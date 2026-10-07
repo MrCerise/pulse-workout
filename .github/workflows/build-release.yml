@@ -84,7 +84,22 @@ jobs:
           PULSE_RELEASE_STORE_FILE: ${{ runner.temp }}/pulse-release.jks
         run: |
           compile_sdk="${PULSE_COMPILE_SDK:-37}"
-          bash ./gradlew --no-daemon "-Ppulse.compileSdk=${compile_sdk}" "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+UseSerialGC -Dfile.encoding=UTF-8" :engine:test :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease
+          bash ./gradlew --no-daemon --console=plain "--stacktrace" "-Ppulse.compileSdk=${compile_sdk}" "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+UseSerialGC -Dfile.encoding=UTF-8" :engine:test :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease 2>&1 | tee gradle-build.log
+
+      - name: Publish build log to ci-diag-log branch (failure only)
+        if: failure()
+        shell: bash
+        run: |
+          # Temporary debugging aid: log retrieval is not available from every environment, so on
+          # failure the tail of the Gradle log is committed to a dedicated branch.
+          git config user.name "ci-diag"
+          git config user.email "diag@users.noreply.github.com"
+          git checkout -B ci-diag-log
+          mkdir -p ci-diag
+          tail -c 300000 gradle-build.log > ci-diag/last-failure.log
+          git add ci-diag/last-failure.log
+          git commit -m "CI failure log $(date -u +%FT%TZ)"
+          git push origin ci-diag-log --force
 
       - name: Prepare release assets
         if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
