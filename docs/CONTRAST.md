@@ -18,62 +18,62 @@ pairs measured here, and the text colours move to pure white / pure black.
 
 | Pair | Foreground | Background | Ratio | Required | Result | Where it is used |
 | --- | --- | --- | --- | --- | --- | --- |
-| Primary text | `#F5F7FB` | `#0B1020` | 17.65:1 | 4.5:1 | pass | body copy on the app background |
-| Secondary text | `#AAB4C8` | `#0B1020` | 9.08:1 | 4.5:1 | pass | captions and hints |
-| Primary text on card | `#F5F7FB` | `#151B2D` | 15.96:1 | 4.5:1 | pass | workout cards, list rows |
-| Secondary text on card | `#AAB4C8` | `#151B2D` | 8.21:1 | 4.5:1 | pass | card captions |
-| Primary text on sheet | `#F5F7FB` | `#1E263C` | 14.01:1 | 4.5:1 | pass | bottom sheets, dialogs |
-| Work accent on background | `#B8F267` | `#0B1020` | 14.37:1 | 3.0:1 | pass | work chips and timeline segments |
-| Work accent as large text | `#B8F267` | `#0B1020` | 14.37:1 | 3.0:1 | pass | the big timer digits |
-| Rest accent on background | `#65D9EF` | `#0B1020` | 11.47:1 | 3.0:1 | pass | rest chips and segments |
-| Prepare accent on background | `#FFCA7A` | `#0B1020` | 12.60:1 | 3.0:1 | pass | preparation interval |
-| Cooldown accent on background | `#B9A6FF` | `#0B1020` | 8.98:1 | 3.0:1 | pass | cooldown interval |
-| Destructive on background | `#FF727D` | `#0B1020` | 7.17:1 | 3.0:1 | pass | destructive buttons |
-| Destructive as large text | `#FF727D` | `#0B1020` | 7.17:1 | 3.0:1 | pass | destructive labels |
-| Text on a filled work pill | `#0B1020` | `#B8F267` | 14.37:1 | 4.5:1 | pass | labels inside accent fills |
-| Outline on background | `#5A688A` | `#0B1020` | 3.41:1 | 3.0:1 | pass | control borders and dividers |
-| Outline on card | `#5A688A` | `#151B2D` | 3.08:1 | 3.0:1 | pass | card borders |
-| Text on dialog/menu surface | `#F5F7FB` | `#27314A` | 12.05:1 | 4.5:1 | pass | dialogs, dropdown menus |
-| Secondary text on dialog | `#AAB4C8` | `#27314A` | 6.20:1 | 4.5:1 | pass | dialog body copy |
-| Primary container text | `#D9F7A8` | `#2A3A12` | 10.41:1 | 4.5:1 | pass | work-tonal badges |
-| Secondary container text | `#B6ECF7` | `#0E3440` | 10.31:1 | 4.5:1 | pass | rest-tonal badges |
-| Tertiary container text | `#D6CCFF` | `#2C2258` | 9.44:1 | 4.5:1 | pass | cool-down badges |
-| Error container text | `#FFC2C7` | `#4A1520` | 9.72:1 | 4.5:1 | pass | import/export failures |
+| Primary text | `#F6F8FE` | `#0A0E1C` | 18.10:1 | 4.5:1 | pass | body copy on the app background |
+| Secondary text | `#A8B2CE` | `#0A0E1C` | 9.08:1 | 4.5:1 | pass | captions and hints |
+| Primary text on card | `#F6F8FE` | `#121831` | 16.47:1 | 4.5:1 | pass | workout cards, list rows |
+| Secondary text on card | `#A8B2CE` | `#121831` | 8.27:1 | 4.5:1 | pass | card captions |
+| Primary text on sheet | `#F6F8FE` | `#1B2340` | 14.53:1 | 4.5:1 | pass | bottom sheets, dialogs |
+| Work accent on background | `#C6F463` | `#0A0E1C` | 15.12:1 | 3.0:1 | pass | work chips and timeline segments |
+| Work accent as large text | `#C6F463` | `#0A0E1C` | 15.12:1 | 3.0:1 | pass | the big timer digits |
+| Rest accent on background | `#5FE3F5` | `#0A0E1C` | 12.63:1 | 3.0:1 | pass | rest chips and segments |
+| Prepare accent on background | `#FFCF87` | `#0A0E1C` | 13.30:1 | 3.0:1 | pass | preparation interval |
+| Cooldown accent on background | `#C6B5FF` | `#0A0E1C` | 10.48:1 | 3.0:1 | pass | cooldown interval |
+| Destructive on background | `#FF7B87` | `#0A0E1C` | 7.72:1 | 3.0:1 | pass | destructive buttons |
+| Destructive as large text | `#FF7B87` | `#0A0E1C` | 7.72:1 | 3.0:1 | pass | destructive labels |
+| Text on a filled work pill | `#0A0E1C` | `#C6F463` | 15.12:1 | 4.5:1 | pass | labels inside accent fills |
+| Outline on background | `#5C6A92` | `#0A0E1C` | 3.60:1 | 3.0:1 | pass | control borders and dividers |
+| Outline on card | `#5C6A92` | `#121831` | 3.27:1 | 3.0:1 | pass | card borders |
+| Text on dialog/menu surface | `#F6F8FE` | `#242E52` | 12.46:1 | 4.5:1 | pass | dialogs, dropdown menus |
+| Secondary text on dialog | `#A8B2CE` | `#242E52` | 6.25:1 | 4.5:1 | pass | dialog body copy |
+| Primary container text | `#DBF7A9` | `#2F4512` | 9.03:1 | 4.5:1 | pass | work-tonal badges |
+| Secondary container text | `#BDEFFB` | `#0D3846` | 10.11:1 | 4.5:1 | pass | rest-tonal badges |
+| Tertiary container text | `#DAD1FF` | `#2E2360` | 9.53:1 | 4.5:1 | pass | cool-down badges |
+| Error container text | `#FFC6CB` | `#4D161F` | 9.79:1 | 4.5:1 | pass | import/export failures |
 
 ## True black (OLED)
 
 | Pair | Foreground | Background | Ratio | Required | Result | Where it is used |
 | --- | --- | --- | --- | --- | --- | --- |
-| Primary text on OLED black | `#F5F7FB` | `#000000` | 19.58:1 | 4.5:1 | pass | true black theme |
-| Secondary text on OLED black | `#AAB4C8` | `#000000` | 10.07:1 | 4.5:1 | pass | true black theme |
-| Work accent on OLED black | `#B8F267` | `#000000` | 15.93:1 | 3.0:1 | pass | true black theme |
-| Rest accent on OLED black | `#65D9EF` | `#000000` | 12.72:1 | 3.0:1 | pass | true black theme |
-| Destructive on OLED black | `#FF727D` | `#000000` | 7.96:1 | 3.0:1 | pass | true black theme |
-| Primary text on OLED surface | `#F5F7FB` | `#0C0C10` | 18.20:1 | 4.5:1 | pass | true black cards |
-| Primary text on OLED dialog | `#F5F7FB` | `#1C1C24` | 15.78:1 | 4.5:1 | pass | true black dialogs |
-| Secondary text on OLED dialog | `#AAB4C8` | `#1C1C24` | 8.12:1 | 4.5:1 | pass | true black dialogs |
+| Primary text on OLED black | `#F6F8FE` | `#000000` | 19.78:1 | 4.5:1 | pass | true black theme |
+| Secondary text on OLED black | `#A8B2CE` | `#000000` | 9.92:1 | 4.5:1 | pass | true black theme |
+| Work accent on OLED black | `#C6F463` | `#000000` | 16.52:1 | 3.0:1 | pass | true black theme |
+| Rest accent on OLED black | `#5FE3F5` | `#000000` | 13.79:1 | 3.0:1 | pass | true black theme |
+| Destructive on OLED black | `#FF7B87` | `#000000` | 8.44:1 | 3.0:1 | pass | true black theme |
+| Primary text on OLED surface | `#F6F8FE` | `#0B0B10` | 18.49:1 | 4.5:1 | pass | true black cards |
+| Primary text on OLED dialog | `#F6F8FE` | `#1D1D26` | 15.75:1 | 4.5:1 | pass | true black dialogs |
+| Secondary text on OLED dialog | `#A8B2CE` | `#1D1D26` | 7.90:1 | 4.5:1 | pass | true black dialogs |
 
 ## Light
 
 | Pair | Foreground | Background | Ratio | Required | Result | Where it is used |
 | --- | --- | --- | --- | --- | --- | --- |
-| Primary text | `#101426` | `#F5F7FC` | 17.04:1 | 4.5:1 | pass | body copy |
-| Secondary text | `#4C5670` | `#F5F7FC` | 6.82:1 | 4.5:1 | pass | captions and hints |
-| Primary text on card | `#101426` | `#FFFFFF` | 18.26:1 | 4.5:1 | pass | cards |
-| Secondary text on card | `#4C5670` | `#FFFFFF` | 7.31:1 | 4.5:1 | pass | card captions |
-| Primary text on raised card | `#101426` | `#EDF1F9` | 16.13:1 | 4.5:1 | pass | sheets and dialogs |
-| Work accent on background | `#3F6F0B` | `#F5F7FC` | 5.61:1 | 3.0:1 | pass | work chips |
-| Work accent as large text | `#3F6F0B` | `#F5F7FC` | 5.61:1 | 3.0:1 | pass | big timer digits |
-| Rest accent on background | `#0B6076` | `#F5F7FC` | 6.64:1 | 3.0:1 | pass | rest chips |
-| Prepare accent on background | `#8A4B00` | `#F5F7FC` | 6.35:1 | 3.0:1 | pass | preparation chips |
-| Cooldown accent on background | `#4C33B8` | `#F5F7FC` | 7.92:1 | 3.0:1 | pass | cooldown chips |
-| Destructive on background | `#B32638` | `#F5F7FC` | 6.03:1 | 3.0:1 | pass | destructive actions |
-| Outline on background | `#7F8798` | `#F5F7FC` | 3.37:1 | 3.0:1 | pass | control borders |
-| Outline on card | `#7F8798` | `#FFFFFF` | 3.61:1 | 3.0:1 | pass | card borders |
-| Text on dialog/menu surface | `#101426` | `#E3E9F4` | 14.98:1 | 4.5:1 | pass | light dialogs |
-| Secondary text on dialog | `#4C5670` | `#E3E9F4` | 6.00:1 | 4.5:1 | pass | light dialog body |
-| Primary container text | `#1B2E00` | `#D6EFB0` | 11.71:1 | 4.5:1 | pass | light tonal badges |
-| Error container text | `#410006` | `#FFDAD9` | 13.27:1 | 4.5:1 | pass | light error banners |
+| Primary text | `#111527` | `#F6F8FD` | 17.03:1 | 4.5:1 | pass | body copy |
+| Secondary text | `#4E5873` | `#F6F8FD` | 6.66:1 | 4.5:1 | pass | captions and hints |
+| Primary text on card | `#111527` | `#FFFFFF` | 18.10:1 | 4.5:1 | pass | cards |
+| Secondary text on card | `#4E5873` | `#FFFFFF` | 7.08:1 | 4.5:1 | pass | card captions |
+| Primary text on raised card | `#111527` | `#ECF0F9` | 15.86:1 | 4.5:1 | pass | sheets and dialogs |
+| Work accent on background | `#3E6E0A` | `#F6F8FD` | 5.75:1 | 3.0:1 | pass | work chips |
+| Work accent as large text | `#3E6E0A` | `#F6F8FD` | 5.75:1 | 3.0:1 | pass | big timer digits |
+| Rest accent on background | `#0A5F77` | `#F6F8FD` | 6.78:1 | 3.0:1 | pass | rest chips |
+| Prepare accent on background | `#8A4E00` | `#F6F8FD` | 6.23:1 | 3.0:1 | pass | preparation chips |
+| Cooldown accent on background | `#4D34BA` | `#F6F8FD` | 7.86:1 | 3.0:1 | pass | cooldown chips |
+| Destructive on background | `#B42638` | `#F6F8FD` | 6.03:1 | 3.0:1 | pass | destructive actions |
+| Outline on background | `#818AA0` | `#F6F8FD` | 3.25:1 | 3.0:1 | pass | control borders |
+| Outline on card | `#818AA0` | `#FFFFFF` | 3.46:1 | 3.0:1 | pass | card borders |
+| Text on dialog/menu surface | `#111527` | `#E2E8F4` | 14.72:1 | 4.5:1 | pass | light dialogs |
+| Secondary text on dialog | `#4E5873` | `#E2E8F4` | 5.76:1 | 4.5:1 | pass | light dialog body |
+| Primary container text | `#20350A` | `#D7F0A4` | 10.72:1 | 4.5:1 | pass | light tonal badges |
+| Error container text | `#410006` | `#FFD9DB` | 13.20:1 | 4.5:1 | pass | light error banners |
 
 ## Why these pairs
 

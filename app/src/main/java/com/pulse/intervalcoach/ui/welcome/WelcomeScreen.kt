@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,9 +29,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pulse.engine.SoundCue
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.data.StarterWorkouts
+import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.ProgressRing
@@ -68,13 +71,23 @@ fun WelcomeScreen(
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
             when (step) {
                 0 -> {
-                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelLarge, color = colors.work)
+                    Text(
+                        stringResource(R.string.app_name).uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colors.work,
+                        letterSpacing = MaterialTheme.typography.labelLarge.letterSpacing,
+                    )
                     Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.app_tagline), style = MaterialTheme.typography.displaySmall, color = colors.textPrimary)
+                    Text(
+                        stringResource(R.string.app_tagline),
+                        style = MaterialTheme.typography.displaySmall,
+                        color = colors.textPrimary,
+                    )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        "Precise intervals, spoken coaching, and a timer that keeps running with the screen off. " +
-                            "Everything is stored on this device — no account, no ads, no tracking.",
+                        "Precise intervals, spoken coaching, live heart rate from Health Connect, " +
+                            "and a timer that keeps running with the screen off. Everything is stored on " +
+                            "this device — no account, no ads, no tracking.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = colors.textSecondary,
                     )
@@ -106,10 +119,16 @@ fun WelcomeScreen(
                         progress = 0.35f,
                         color = colors.work,
                         trackColor = colors.outline,
-                        strokeWidth = 8.dp,
-                        modifier = Modifier.size(180.dp).align(Alignment.CenterHorizontally),
+                        strokeWidth = 10.dp,
+                        brush = colors.ringGradient(com.pulse.engine.PhaseKind.WORK),
+                        modifier = Modifier.size(190.dp).align(Alignment.CenterHorizontally),
                     ) {
-                        Text("20", style = MaterialTheme.typography.displayMedium, color = colors.textPrimary)
+                        Text(
+                            "20",
+                            style = MaterialTheme.typography.displayMedium,
+                            color = colors.textPrimary,
+                            fontFeatureSettings = "tnum",
+                        )
                     }
                     Spacer(Modifier.height(20.dp))
                     SecondaryActionButton(
@@ -118,7 +137,7 @@ fun WelcomeScreen(
                             container.speech.initialise()
                             val spoken = container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.")
                             if (!spoken) {
-                                container.cueSoundPlayer.play(com.pulse.engine.SoundCue.DOUBLE_BEEP)
+                                container.cueSoundPlayer.play(SoundCue.DOUBLE_BEEP)
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -137,6 +156,7 @@ fun WelcomeScreen(
                         "${example.plan.name} · ${formatDuration(exampleDuration)}",
                         style = MaterialTheme.typography.titleMedium,
                         color = colors.work,
+                        fontFeatureSettings = "tnum",
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(example.plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
@@ -165,12 +185,12 @@ fun WelcomeScreen(
                     Box(
                         Modifier
                             .size(8.dp)
-                            .background(if (index == step) colors.work else colors.outline, androidx.compose.foundation.shape.CircleShape),
+                            .background(if (index == step) colors.work else colors.outline, CircleShape),
                     )
                 }
             }
             Spacer(Modifier.height(16.dp))
-            PrimaryActionButton(
+            GradientActionButton(
                 text = when (step) {
                     0 -> "Next"
                     1 -> "Next"

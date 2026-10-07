@@ -73,6 +73,13 @@ data class UserPreferences(
     val musicVolume: Float = 0.6f,
     val volumeKeysControlSession: Boolean = false,
     val showInstructorViewByDefault: Boolean = false,
+    // --- Health & fitness integrations (v1.3) ---
+    /** Master switch for writing finished sessions to Health / Google Fit. */
+    val healthSyncSessions: Boolean = true,
+    /** Last successful sync-to-Health moment, in epoch millis. */
+    val healthLastSyncAt: Long = 0L,
+    /** True after the user authorised the Google Fit scopes on this device. */
+    val fitAuthorized: Boolean = false,
 ) {
     /** Warning thresholds derived from the "count down from N seconds" preference. */
     val countdownThresholds: List<Int>
@@ -122,6 +129,9 @@ class PreferencesRepository(private val context: Context) {
         val musicVolume = floatPreferencesKey("music_volume")
         val volumeKeys = booleanPreferencesKey("volume_keys_control")
         val instructorView = booleanPreferencesKey("instructor_view_default")
+        val healthSyncSessions = booleanPreferencesKey("health_sync_sessions")
+        val healthLastSyncAt = longPreferencesKey("health_last_sync_at")
+        val fitAuthorized = booleanPreferencesKey("fit_authorized")
     }
 
     val flow: Flow<UserPreferences> = context.dataStore.data.map { prefs ->
@@ -166,6 +176,9 @@ class PreferencesRepository(private val context: Context) {
             musicVolume = prefs[Keys.musicVolume] ?: 0.6f,
             volumeKeysControlSession = prefs[Keys.volumeKeys] ?: false,
             showInstructorViewByDefault = prefs[Keys.instructorView] ?: false,
+            healthSyncSessions = prefs[Keys.healthSyncSessions] ?: true,
+            healthLastSyncAt = prefs[Keys.healthLastSyncAt] ?: 0L,
+            fitAuthorized = prefs[Keys.fitAuthorized] ?: false,
         )
     }
 
@@ -216,6 +229,9 @@ class PreferencesRepository(private val context: Context) {
     suspend fun setMusicVolume(volume: Float) = edit { it[Keys.musicVolume] = volume.coerceIn(0f, 1f) }
     suspend fun setVolumeKeysControl(value: Boolean) = edit { it[Keys.volumeKeys] = value }
     suspend fun setInstructorViewDefault(value: Boolean) = edit { it[Keys.instructorView] = value }
+    suspend fun setHealthSyncSessions(value: Boolean) = edit { it[Keys.healthSyncSessions] = value }
+    suspend fun setHealthLastSyncAt(at: Long) = edit { it[Keys.healthLastSyncAt] = at }
+    suspend fun setFitAuthorized(value: Boolean) = edit { it[Keys.fitAuthorized] = value }
 
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         context.dataStore.edit(block)

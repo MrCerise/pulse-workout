@@ -40,8 +40,11 @@ jobs:
         with:
           packages: platform-tools
 
-      - name: Install Android 35 SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install Android 17 SDK
+        run: sdkmanager "platforms;android-37"
+      - name: Install build tools
+        run: |
+          sdkmanager "build-tools;37.0.0" || sdkmanager "build-tools;36.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4

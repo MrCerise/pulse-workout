@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,18 +41,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
-import com.pulse.intervalcoach.data.SessionRepository
-import com.pulse.intervalcoach.data.STATUS_COMPLETED
-import com.pulse.intervalcoach.data.STATUS_INTERRUPTED
+import com.pulse.intervalcoach.health.HealthHub
+import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
+import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
-import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -66,7 +67,8 @@ import com.pulse.intervalcoach.R
 
 /**
  * Post-workout summary built from the saved session — real recorded numbers only.
- * Also offers "Repeat" (starts the same workout again) and a shareable image.
+ * When Health Connect is connected and the user allows sharing, the finished session is written
+ * to it here (idempotent per session UUID), and real heart-rate stats are shown when available.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +78,7 @@ fun SessionSummaryScreen(
     onRepeat: (WorkoutPlan) -> Unit,
 ) {
     val summary by container.sessionController.summary.collectAsStateWithLifecycle()
+    val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val colors = LocalPulseColors.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -101,6 +104,23 @@ fun SessionSummaryScreen(
             return@Scaffold
         }
 
+        val entity by container.sessions.observeSession(current.sessionId).collectAsStateWithLifecycle(initialValue = null)
+        var hrStats by remember { mutableStateOf<HealthHub.HrStats?>(null) }
+        var healthShared by remember { mutableStateOf<Boolean?>(null) }
+
+        // Read HR stats for the session window and (if the user allows) write the session to health apps.
+        LaunchedEffect(current.sessionId, entity) {
+            val e = entity ?: return@LaunchedEffect
+            hrStats = if (e.endedAt > e.startedAt) {
+                container.health.heartRateStats(e.startedAt, e.endedAt)
+            } else null
+            if (prefs?.healthSyncSessions == true && healthShared == null) {
+                val events = container.sessions.observeEvents(current.sessionId)
+                    .first()
+                healthShared = container.health.writeSession(e, events)
+            }
+        }
+
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -108,34 +128,61 @@ fun SessionSummaryScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(current.planName, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
-            Text(
-                if (current.stoppedEarly) "Ended early" else "Completed",
-                style = MaterialTheme.typography.labelLarge,
-                color = if (current.stoppedEarly) colors.prepare else colors.work,
-            )
+            // --- Hero ---
+            PulseCard {
+                Column {
+                    Text(current.planName, style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
+                    Spacer(Modifier.height(4.dp))
+                    NeutralChip(if (current.stoppedEarly) "Ended early" else "Completed")
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        formatDuration(current.activeMillis),
+                        style = MaterialTheme.typography.displaySmall,
+                        color = colors.work,
+                        fontFeatureSettings = "tnum",
+                    )
+                    Text("active time", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
+                }
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile(
-                    "Active time",
-                    formatDuration(current.activeMillis),
-                    accent = colors.work,
-                    modifier = Modifier.weight(1f),
-                )
                 StatTile(
                     "Completion",
                     "${if (current.totalIntervals == 0) 0 else (current.completedIntervals * 100 / current.totalIntervals)}%",
                     modifier = Modifier.weight(1f),
                 )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile("Intervals", "${current.completedIntervals}/${current.totalIntervals}", modifier = Modifier.weight(1f))
+                StatTile(
+                    "Intervals",
+                    "${current.completedIntervals}/${current.totalIntervals}",
+                    modifier = Modifier.weight(1f),
+                )
                 StatTile("Skipped", current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
-                if (current.roundsLogged > 0) {
-                    StatTile("Rounds", current.roundsLogged.toString(), modifier = Modifier.weight(1f))
-                }
+            }
+            if (current.roundsLogged > 0) {
+                StatTile("Rounds", current.roundsLogged.toString(), modifier = Modifier.fillMaxWidth())
             }
             StatTile("Total time (incl. pauses)", formatDuration(current.wallMillis), modifier = Modifier.fillMaxWidth())
+
+            // --- Heart rate (real data only, when a connected app recorded it) ---
+            val stats = hrStats
+            if (stats != null && stats.sampleCount >= 4) {
+                SectionHeader("Heart rate")
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    StatTile("Average", "${stats.average} bpm", accent = colors.work, modifier = Modifier.weight(1f))
+                    StatTile("Peak", "${stats.max} bpm", accent = colors.prepare, modifier = Modifier.weight(1f))
+                }
+            }
+
+            // --- Health sync result (only ever shown for what actually happened) ---
+            val shared = healthShared
+            if (shared != null) {
+                Text(
+                    if (shared) "Shared to your health apps — it now appears in their workout history."
+                    else "Could not share to health apps this time — the session is saved on this device.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (shared) colors.work else colors.textSecondary,
+                )
+            }
 
             SectionHeader("Notes")
             OutlinedTextField(
@@ -173,7 +220,7 @@ fun SessionSummaryScreen(
             )
 
             Spacer(Modifier.height(8.dp))
-            PrimaryActionButton(
+            GradientActionButton(
                 text = "Repeat workout",
                 onClick = { scope.launch { container.workouts.plan(current.workoutId)?.let(onRepeat) } },
                 modifier = Modifier.fillMaxWidth(),
@@ -195,27 +242,27 @@ object SummaryImage {
     fun render(summary: com.pulse.intervalcoach.session.SessionSummaryData): Bitmap {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        canvas.drawColor(AndroidColor.parseColor("#0B1020"))
+        canvas.drawColor(AndroidColor.parseColor("#0C0E13"))
 
         val title = Paint().apply {
-            color = AndroidColor.parseColor("#F5F7FB")
+            color = AndroidColor.parseColor("#F4F6FA")
             textSize = 64f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
         }
         val body = Paint().apply {
-            color = AndroidColor.parseColor("#AAB4C8")
+            color = AndroidColor.parseColor("#A9B0C0")
             textSize = 40f
             isAntiAlias = true
         }
         val big = Paint().apply {
-            color = AndroidColor.parseColor("#B8F267")
+            color = AndroidColor.parseColor("#BFF374")
             textSize = 190f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
         }
         val label = Paint().apply {
-            color = AndroidColor.parseColor("#AAB4C8")
+            color = AndroidColor.parseColor("#A9B0C0")
             textSize = 34f
             letterSpacing = 0.12f
             isAntiAlias = true
@@ -226,7 +273,7 @@ object SummaryImage {
         canvas.drawText(
             if (summary.stoppedEarly) "Ended early" else "Completed",
             80f, 290f,
-            Paint(body).apply { color = AndroidColor.parseColor(if (summary.stoppedEarly) "#FFCA7A" else "#B8F267") },
+            Paint(body).apply { color = AndroidColor.parseColor(if (summary.stoppedEarly) "#FFD58E" else "#BFF374") },
         )
 
         canvas.drawText(formatClock(summary.activeMillis), 80f, 520f, big)
@@ -235,7 +282,7 @@ object SummaryImage {
         val statsY = 760f
         drawStat(canvas, body, title, 80f, statsY, "Intervals", "${summary.completedIntervals}/${summary.totalIntervals}")
         drawStat(canvas, body, title, 560f, statsY, "Completion", "${if (summary.totalIntervals == 0) 0 else summary.completedIntervals * 100 / summary.totalIntervals}%")
-        canvas.drawText("Suggested by PULSE — every number above is from this device's saved session", 80f, 1120f, body.apply { textSize = 30f })
+        canvas.drawText("Recorded by PULSE — every number above is from this device's saved session", 80f, 1120f, body.apply { textSize = 30f })
         canvas.drawText(
             DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
                 .format(Instant.now().atZone(ZoneId.systemDefault())),

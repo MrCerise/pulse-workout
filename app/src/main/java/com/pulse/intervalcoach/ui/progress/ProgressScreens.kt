@@ -3,6 +3,7 @@ package com.pulse.intervalcoach.ui.progress
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,8 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.HealthAndBeauty
+import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -36,6 +40,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.data.DailyActivity
@@ -60,7 +65,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -113,32 +117,51 @@ fun ProgressScreen(
     onOpenHistory: () -> Unit,
     onOpenSession: (String) -> Unit,
     onOpenWorkout: (String) -> Unit,
+    onOpenHealth: () -> Unit,
 ) {
     val viewModel: ProgressViewModel = viewModel(initializer = { ProgressViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
     val summaries by container.workouts.summaries.collectAsStateWithLifecycle(initialValue = emptyList())
+    val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
     var scheduleFor by remember { mutableStateOf<String?>(null) }
+    val weekMillis = remember(state.sessions) {
+        val weekAgo = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
+        state.sessions.filter { it.startedAt >= weekAgo }.sumOf { it.activeMillis }
+    }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_progress)) }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("Progress", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
+                        Text("Real numbers from your saved sessions", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                    }
+                },
+            )
+        },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("All time", formatDuration(state.totals), accent = colors.work, modifier = Modifier.weight(1f))
-                    StatTile("Sessions", state.sessions.size.toString(), modifier = Modifier.weight(1f))
-                    StatTile("Streak", "${state.streak} d", modifier = Modifier.weight(1f))
+                    StatTile("Streak", "${state.streak}d", accent = colors.work, modifier = Modifier.weight(1f))
+                    StatTile("This week", "${(weekMillis / 60000L).toInt()}m", accent = colors.rest, modifier = Modifier.weight(1f))
+                    StatTile("All time", formatDuration(state.totals), modifier = Modifier.weight(1f))
                 }
             }
             item {
                 PulseCard {
                     Column {
-                        Text(stringResource(R.string.progress_minutes_chart), style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                        Text(
+                            "Active minutes — last 14 days",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textSecondary,
+                        )
                         Spacer(Modifier.height(10.dp))
                         ActivityChart(state.activities)
                         Spacer(Modifier.height(6.dp))
@@ -152,15 +175,52 @@ fun ProgressScreen(
                 }
             }
 
+            // --- Health sync status ---
+            item {
+                PulseCard(onClick = onOpenHealth) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Filled.HealthAndBeauty,
+                                    contentDescription = null,
+                                    tint = if (healthSnapshot.source != null) colors.work else colors.textSecondary,
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text("Health sync", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                when {
+                                    healthSnapshot.source == null -> "Health Connect & Google Fit — connect to share workouts and see heart rate"
+                                    healthSnapshot.lastSyncAt > 0 ->
+                                        "Connected via ${healthSnapshot.source} · last sync " +
+                                            formatLastSync(healthSnapshot.lastSyncAt)
+                                    else -> "Connected via ${healthSnapshot.source} · not synced yet"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.textSecondary,
+                                maxLines = 2,
+                            )
+                        }
+                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textSecondary)
+                    }
+                }
+            }
+
             item { SectionHeader("Planner") }
             item {
                 PulseCard {
                     Column {
                         if (state.reminders.isEmpty()) {
-                            Text(stringResource(R.string.planner_empty), color = colors.textSecondary)
+                            Text(
+                                "No planned sessions. Schedule one and it appears on Today.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.textSecondary,
+                            )
                         } else {
                             state.reminders.forEach { reminder ->
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(
                                             state.planned.firstOrNull { it.first == reminder.id }?.second ?: "Workout",
@@ -174,7 +234,9 @@ fun ProgressScreen(
                                             color = colors.textSecondary,
                                         )
                                     }
-                                    TextButton(onClick = { viewModel.deleteReminder(reminder.id) }) { Text(stringResource(R.string.planner_delete)) }
+                                    TextButton(onClick = { viewModel.deleteReminder(reminder.id) }) {
+                                        Text(stringResource(R.string.planner_delete))
+                                    }
                                 }
                             }
                         }
@@ -203,6 +265,7 @@ fun ProgressScreen(
                     EmptyState(
                         title = stringResource(R.string.progress_empty_title),
                         body = "Finish your first workout and your real numbers appear here.",
+                        icon = Icons.Filled.Healing,
                     )
                 }
             } else {
@@ -217,21 +280,33 @@ fun ProgressScreen(
     }
 
     scheduleFor?.let { workoutId ->
-        val now = remember { LocalDateTime.now() }
-        var choice by remember { mutableStateOf(now.plusHours(1)) }
+        val whenTo = remember {
+            LocalDateTime.now().plusDays(1).withHour(18).withMinute(0).withSecond(0).withNano(0)
+        }
         ConfirmDialog(
             title = "Schedule this workout",
-            body = "Reminder set for " + choice.format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm")) +
-                ". You can change it later; PULSE uses a lightweight periodic check, so the exact minute may shift slightly.",
+            body = "Reminder for tomorrow at 18:00 (" +
+                whenTo.format(DateTimeFormatter.ofPattern("EEE d MMM")) +
+                "). You can delete it from the Planner any time.",
             confirmLabel = "Schedule",
             dismissLabel = stringResource(R.string.cancel),
             onConfirm = {
-                val at = choice.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val at = whenTo.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 viewModel.schedule(workoutId, at)
                 scheduleFor = null
             },
             onDismiss = { scheduleFor = null },
         )
+    }
+}
+
+private fun formatLastSync(millis: Long): String {
+    val then = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
+    val now = LocalDateTime.now(ZoneId.systemDefault())
+    return if (then.toLocalDate() == now.toLocalDate()) {
+        "today " + then.format(DateTimeFormatter.ofPattern("HH:mm"))
+    } else {
+        then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
     }
 }
 
@@ -293,7 +368,15 @@ private fun SessionRow(session: SessionEntity, onClick: () -> Unit) {
     val colors = LocalPulseColors.current
     PulseCard(onClick = onClick) {
         Column {
-            Text(session.workoutName, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(session.workoutName, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary, modifier = Modifier.weight(1f, fill = false), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Spacer(Modifier.width(8.dp))
+                Icon(
+                    Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    tint = colors.textSecondary,
+                )
+            }
             Spacer(Modifier.height(4.dp))
             Text(
                 buildString {
@@ -342,7 +425,7 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (sessions.isEmpty()) {
@@ -365,7 +448,7 @@ fun SessionDetailScreen(
     container: AppContainer,
     sessionId: String,
     onBack: () -> Unit,
-    onRepeat: (com.pulse.engine.WorkoutPlan) -> Unit,
+    onRepeat: (WorkoutPlan) -> Unit,
 ) {
     val colors = LocalPulseColors.current
     val session by container.sessions.observeSession(sessionId).collectAsStateWithLifecycle(initialValue = null)
@@ -388,7 +471,7 @@ fun SessionDetailScreen(
         }
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
@@ -488,12 +571,13 @@ fun SessionDetailScreen(
 @Composable
 private fun EventRow(event: SessionEventEntity) {
     val colors = LocalPulseColors.current
-    Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             formatOffset(event.atMillis),
             style = MaterialTheme.typography.labelMedium,
             color = colors.textSecondary,
             modifier = Modifier.padding(end = 12.dp),
+            fontFeatureSettings = "tnum",
         )
         Column(Modifier.weight(1f)) {
             Text(event.kind.humanEvent(), style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)

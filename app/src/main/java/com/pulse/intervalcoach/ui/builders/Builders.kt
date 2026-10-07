@@ -66,6 +66,7 @@ import com.pulse.intervalcoach.data.PlanCodec
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
+import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
@@ -224,7 +225,12 @@ fun QuickBuilderScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.builder_quick_title)) },
+                title = {
+                    Column {
+                        Text(stringResource(R.string.builder_quick_title), style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
+                        Text("Work · rest · rounds — the workout builds itself", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { if (state.dirty) showDiscard = true else onBack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -267,26 +273,28 @@ fun QuickBuilderScreen(
             item {
                 PulseCard {
                     Column {
-                        Text("Total ${formatDuration(duration)}", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
-                        Spacer(Modifier.height(8.dp))
+                        Text(formatDuration(duration), style = MaterialTheme.typography.displaySmall, color = colors.work, fontFeatureSettings = "tnum")
+                        Text("total time", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
+                        Spacer(Modifier.height(10.dp))
                         val expanded = remember(plan) { runCatching { TimelineExpander.expand(plan) }.getOrNull() }
                         TimelineBar(
                             kinds = expanded?.steps?.map { it.kind }.orEmpty(),
                             currentIndex = -1,
                             progressInStep = 0f,
+                            height = 12.dp,
                         )
                     }
                 }
             }
             item {
-                PrimaryActionButton(
+                SecondaryActionButton(
                     text = stringResource(R.string.builder_save),
                     onClick = { scope.launch { val id = UUID.randomUUID().toString(); viewModel.save(viewModel.buildPlan(id)); onSaved(id) } },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
             item {
-                SecondaryActionButton(
+                GradientActionButton(
                     text = stringResource(R.string.builder_save_and_start),
                     onClick = {
                         scope.launch {
@@ -614,7 +622,12 @@ fun AdvancedBuilderScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (workoutId == null) "New workout" else "Edit workout") },
+                title = {
+                    Column {
+                        Text(if (workoutId == null) "New workout" else "Edit workout", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
+                        Text("Drag the order, tweak the cues, undo anything", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { if (state.dirty) showDiscard = true else onBack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -695,16 +708,24 @@ fun AdvancedBuilderScreen(
                 PulseCard {
                     Column {
                         Text(
-                            "Total ${expanded?.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded?.knownMillis ?: 0L)}"} · ${expanded?.steps?.size ?: 0} intervals",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.textPrimary,
+                            expanded?.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded?.knownMillis ?: 0L)}",
+                            style = MaterialTheme.typography.displaySmall,
+                            color = colors.work,
+                            fontFeatureSettings = "tnum",
                         )
-                        if (expanded?.hasOpenEnded == true) {
-                            Spacer(Modifier.height(6.dp))
-                            InfoBanner("Some intervals wait for you, so the known total is a minimum.")
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        TimelineBar(expanded?.steps?.map { it.kind }.orEmpty(), currentIndex = -1, progressInStep = 0f)
+                        Text(
+                            "${expanded?.steps?.size ?: 0} intervals" +
+                                (if (expanded?.hasOpenEnded == true) " · total is a minimum (some intervals wait for you)" else ""),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        TimelineBar(
+                            expanded?.steps?.map { it.kind }.orEmpty(),
+                            currentIndex = -1,
+                            progressInStep = 0f,
+                            height = 12.dp,
+                        )
                     }
                 }
             }
@@ -744,7 +765,7 @@ fun AdvancedBuilderScreen(
                 }
             }
             item {
-                PrimaryActionButton(
+                GradientActionButton(
                     text = stringResource(R.string.builder_save),
                     onClick = {
                         scope.launch {

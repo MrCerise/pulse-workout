@@ -29,4 +29,12 @@
 # TTS callbacks are invoked through the framework.
 -keep class * implements android.speech.tts.TextToSpeech$OnInitListener { *; }
 
+# Health Connect: record classes cross an AIDL/protobuf boundary and are referenced by name.
+-keep class androidx.health.connect.client.** { *; }
+-keepclassmembers class androidx.health.connect.client.records.** { *; }
+
+# Google Fit / sign-in clients are bound through Play services.
+-keep class com.google.android.gms.fitness.** { *; }
+-keep class com.google.android.gms.auth.api.signin.** { *; }
+
 -dontwarn org.jetbrains.annotations.**
