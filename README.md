@@ -256,48 +256,37 @@ and uses sound cues during workouts.
 
 ## Release signing
 
-The release build is minified (`isMinifyEnabled = true`, `isShrinkResources = true`) and the ProGuard
-rules keep Room entities/DAO/converters, kotlinx-serialization serializers and the engine, service,
-widget and receiver entry points — a shrinker pass that changed serialization or service behaviour
-would be a bug, and those rules are why it does not.
+The automated release workflow signs the production APK when repository signing secrets are configured.
+It fails a tag release if the signing key is missing, rather than publishing an unsigned APK as a signed
+release. Ordinary pushes to `main` can still build without signing credentials.
 
-There is no keystore in this repository (deliberately). To produce a *signed* release:
+Create a release keystore and keep it backed up somewhere private. **Never commit the keystore or its
+passwords.** For example:
 
 ```bash
 keytool -genkeypair -v -keystore pulse-release.jks \
   -alias pulse -keyalg RSA -keysize 4096 -validity 10000
-
-cat >> keystore.properties <<'EOF'
-storeFile=/absolute/path/to/pulse-release.jks
-storePassword=…
-keyAlias=pulse
-keyPassword=…
-EOF
 ```
 
-Then add to `app/build.gradle.kts` (this block is intentionally not committed, since it would break
-the build for anyone without the keystore):
+In the repository's **Settings → Secrets and variables → Actions**, add these repository secrets:
 
-```kotlin
-android {
-    signingConfigs {
-        create("release") {
-            val props = java.util.Properties().apply {
-                load(rootProject.file("keystore.properties").inputStream())
-            }
-            storeFile = file(props.getProperty("storeFile"))
-            storePassword = props.getProperty("storePassword")
-            keyAlias = props.getProperty("keyAlias")
-            keyPassword = props.getProperty("keyPassword")
-        }
-    }
-    buildTypes { getByName("release") { signingConfig = signingConfigs.getByName("release") } }
-}
+| Secret | Value |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | Base64 encoding of `pulse-release.jks` |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | `pulse` (or the alias you chose) |
+| `ANDROID_KEY_PASSWORD` | Password for the key |
+
+In PowerShell, generate the base64 value with:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("pulse-release.jks"))
 ```
 
-Until then, `assembleRelease` produces `app-release-unsigned.apk` and the **debug** APK
-(`app-debug.apk`, signed with the standard Android debug key) is the installable artifact.
-
+After adding the secrets, update an existing release with a signed APK by running **Actions → Build and
+release → Run workflow** on `main`, with `release_tag` set to `v1.0.0`. The workflow builds and signs the
+APK, then uploads it to that release. Future version tags (for example, `v1.0.1`) publish signed APKs
+automatically.
 ## Known limitations
 
 1. **No emulator or physical device exists in the environment this was built in.** The app was

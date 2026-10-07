@@ -7,8 +7,28 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
 }
+val releaseStoreFile = System.getenv("PULSE_RELEASE_STORE_FILE")
+val releaseStorePassword = System.getenv("PULSE_RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = System.getenv("PULSE_RELEASE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("PULSE_RELEASE_KEY_PASSWORD")
+val releaseSigningConfigured = !releaseStoreFile.isNullOrBlank() &&
+    java.io.File(releaseStoreFile).isFile &&
+    !releaseStorePassword.isNullOrBlank() &&
+    !releaseKeyAlias.isNullOrBlank() &&
+    !releaseKeyPassword.isNullOrBlank()
 
 android {
+    signingConfigs {
+        if (releaseSigningConfigured) {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     namespace = "com.pulse.intervalcoach"
     compileSdk = 35
 
@@ -30,11 +50,11 @@ android {
             isMinifyEnabled = false
         }
         release {
+            signingConfig = if (releaseSigningConfigured) signingConfigs.getByName("release") else null
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Release signing: see README "Release signing". Without a keystore the release APK is
-            // produced unsigned by Gradle; the debug APK is the installable test artifact.
+            // Local builds without signing credentials continue to produce an unsigned APK.
         }
     }
 
