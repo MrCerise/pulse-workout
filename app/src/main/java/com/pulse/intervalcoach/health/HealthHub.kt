@@ -15,6 +15,7 @@ import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessActivities
@@ -392,14 +393,14 @@ class HealthHub(
     private fun fitPlatformStatus(): FitAvailability {
         val playServices = runCatching {
             GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
-        }.getOrDefault(GoogleApiAvailability.API_UNAVAILABLE)
-        if (playServices != GoogleApiAvailability.SUCCESS) return FitAvailability.PLAY_SERVICES_MISSING
+        }.getOrDefault(ConnectionResult.API_UNAVAILABLE)
+        if (playServices != ConnectionResult.SUCCESS) return FitAvailability.PLAY_SERVICES_MISSING
         if (fitOAuthConfigured().isNullOrBlank()) return FitAvailability.NOT_CONFIGURED
         return FitAvailability.AVAILABLE
     }
 
     private fun fitOAuthConfigured(): String? = runCatching {
-        val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_META_DATA)
+        val info = context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
         info.metaData?.getString("com.google.android.gms.fitness.OAUTH_CLIENT_ID")
     }.getOrNull()
 
