@@ -31,14 +31,14 @@ android {
     }
 
     namespace = "com.pulse.intervalcoach"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        targetSdk = 37
+        versionCode = 3
+        versionName = "1.3.0"
         resourceConfigurations += listOf("en", "fr")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -126,6 +126,11 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.work.runtime.ktx)
+
+    // Health & fitness integrations (Health Connect + Google Fit)
+    implementation(libs.androidx.health.connect.client)
+    implementation(libs.gms.play.services.fitness)
+    implementation(libs.gms.play.services.auth)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

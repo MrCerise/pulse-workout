@@ -12,15 +12,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.HealthAndBeauty
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,17 +40,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import com.pulse.engine.SoundCue
-import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.BuildConfig
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
+import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
+import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
@@ -69,7 +71,10 @@ import com.pulse.intervalcoach.data.WeightUnit
 import com.pulse.intervalcoach.data.db.AudioAssetEntity
 import kotlinx.coroutines.launch
 import java.io.File
-import androidx.compose.ui.res.stringResource
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import com.pulse.intervalcoach.R
 
 // ---------------------------------------------------------------------------------------------
@@ -85,20 +90,68 @@ fun SettingsScreen(
     onOpenHelp: () -> Unit,
     onOpenWelcome: () -> Unit,
     onOpenParser: () -> Unit,
+    onOpenHealth: () -> Unit,
 ) {
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val colors = LocalPulseColors.current
     val scope = rememberCoroutineScope()
+    val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     var confirmDeleteSessions by remember { mutableStateOf(false) }
     val current = prefs
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_settings)) }) }) { padding ->
+    Scaffold(topBar = {
+        TopAppBar(title = {
+            Column {
+                Text(stringResource(R.string.nav_settings), style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
+                Text("Everything applies instantly", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+            }
+        })
+    }) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (current == null) return@LazyColumn
+
+            // --- Health sync (the real thing now) ---
+            item { SectionHeader("Health") }
+            item {
+                PulseCard(onClick = onOpenHealth) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Filled.HealthAndBeauty,
+                                contentDescription = null,
+                                tint = if (healthSnapshot.source != null) colors.work else colors.textSecondary,
+                                modifier = Modifier.padding(end = 10.dp),
+                            )
+                            Column(Modifier.weight(1f)) {
+                                Text("Health Connect & Google Fit", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                            }
+                            if (healthSnapshot.source != null) NeutralChip(healthSnapshot.source)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            when {
+                                healthSnapshot.source == null -> "Connect in the Health setup screen to share finished workouts, and to show live heart rate and daily steps."
+                                else -> "Connected via ${healthSnapshot.source}." +
+                                    (if (healthSnapshot.lastSyncAt > 0) " Last sync " + formatSync(healthSnapshot.lastSyncAt) + "." else "")
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        ToggleRow(
+                            label = "Share finished workouts to health apps",
+                            hint = "Writes workout sessions with per-interval segments and calories burned. Off = nothing is written.",
+                            checked = current.healthSyncSessions,
+                            onCheckedChange = { scope.launch { container.preferences.setHealthSyncSessions(it) } },
+                        )
+                    }
+                }
+            }
 
             item { SectionHeader("Appearance") }
             item {
@@ -219,10 +272,10 @@ fun SettingsScreen(
                         )
                         Text(
                             if (current.lastAutoBackupAt > 0) {
-                                "Last backup: " + java.time.LocalDateTime.ofInstant(
-                                    java.time.Instant.ofEpochMilli(current.lastAutoBackupAt),
-                                    java.time.ZoneId.systemDefault(),
-                                ).format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy HH:mm"))
+                                "Last backup: " + LocalDateTime.ofInstant(
+                                    Instant.ofEpochMilli(current.lastAutoBackupAt),
+                                    ZoneId.systemDefault(),
+                                ).format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm"))
                             } else {
                                 "No automatic backup has run yet."
                             },
@@ -236,25 +289,7 @@ fun SettingsScreen(
             item { SectionHeader("Create workouts") }
             item {
                 PulseCard {
-                    Column {
-                        SecondaryActionButton("Describe a workout in words", onOpenParser, Modifier.fillMaxWidth())
-                    }
-                }
-            }
-
-            item { SectionHeader("Integrations") }
-            item {
-                PulseCard {
-                    Column {
-                        Text("Health Connect: not implemented", style = MaterialTheme.typography.bodyLarge, color = colors.textPrimary)
-                        Text(
-                            "PULSE ships no Health Connect, Bluetooth heart-rate or cloud sync code, because those features " +
-                                "could not be tested on a real device in this build. Nothing is stubbed out and no button " +
-                                "pretends to work.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
-                    }
+                    SecondaryActionButton("Describe a workout in words", onOpenParser, Modifier.fillMaxWidth())
                 }
             }
 
@@ -265,9 +300,13 @@ fun SettingsScreen(
                         SecondaryActionButton("Help, voice setup & shortcuts", onOpenHelp, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(8.dp))
                         SecondaryActionButton("Show the welcome tour again", onOpenWelcome, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(10.dp))
                         Text("PULSE Interval Coach ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-                        Text("Offline interval timer · package ${BuildConfig.APPLICATION_ID}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text(
+                            "Offline interval timer · Health Connect first, Google Fit best-effort (deprecated by Google as of 2026) · package ${BuildConfig.APPLICATION_ID}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
+                        )
                     }
                 }
             }
@@ -287,6 +326,15 @@ fun SettingsScreen(
             },
             onDismiss = { confirmDeleteSessions = false },
         )
+    }
+}
+
+private fun formatSync(millis: Long): String {
+    val then = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
+    return if (then.toLocalDate() == LocalDateTime.now(ZoneId.systemDefault()).toLocalDate()) {
+        "today " + then.format(DateTimeFormatter.ofPattern("HH:mm"))
+    } else {
+        then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
     }
 }
 
@@ -360,7 +408,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (current == null) return@LazyColumn
@@ -508,7 +556,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                 PulseCard {
                     Column {
                         Text(
-                            "Record short spoken cues (for example “switch sides”) and PULSE stores them as private app files.",
+                            "Record short spoken cues (for example \u201Cswitch sides\u201D) and PULSE stores them as private app files.",
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
@@ -657,7 +705,7 @@ fun BackupScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { SectionHeader("Export") }
@@ -710,10 +758,10 @@ fun BackupScreen(
                                     Column(Modifier.weight(1f)) {
                                         Text(file.name, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
                                         Text(
-                                            "${file.length() / 1024} KB · " + java.time.LocalDateTime.ofInstant(
-                                                java.time.Instant.ofEpochMilli(file.lastModified()),
-                                                java.time.ZoneId.systemDefault(),
-                                            ).format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy HH:mm")),
+                                            "${file.length() / 1024} KB · " + LocalDateTime.ofInstant(
+                                                Instant.ofEpochMilli(file.lastModified()),
+                                                ZoneId.systemDefault(),
+                                            ).format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm")),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = colors.textSecondary,
                                         )
@@ -805,7 +853,7 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { SectionHeader("Voice setup") }
@@ -815,6 +863,19 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
                         "PULSE uses the text-to-speech engine installed on your device. For coaching that works in flight mode, install an offline voice: " +
                             "Android Settings → System → Languages & input → Text-to-speech → your engine → Install voice data. If no engine is present, PULSE falls " +
                             "back to sound cues and says so in Voice Studio.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textSecondary,
+                    )
+                }
+            }
+            item { SectionHeader("Health Connect & Google Fit") }
+            item {
+                PulseCard {
+                    Text(
+                        "Health Connect is the primary integration: finished workouts (with per-interval segments and calories) are written to it, and live " +
+                            "heart rate plus daily steps are read for the player and Today screen. Google Fit is best-effort on top — Google has deprecated the " +
+                            "on-device Fit API as of 2026 and no longer accepts new signups, so treat Fit extras as optional. Nothing is ever sent to the cloud " +
+                            "by PULSE itself; only the Google services you connect to.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textSecondary,
                     )
@@ -874,7 +935,9 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
                             "• Vibration: interval haptics.\n" +
                             "• Microphone (optional): only while you record your own cue in Voice Studio.\n" +
                             "• Foreground service: keeps timing and cues alive with the screen off.\n" +
-                            "PULSE asks for nothing else — no location, no contacts, no cloud account.",
+                            "• Health Connect (optional): read heart rate & steps, write finished workouts.\n" +
+                            "• Google Fit (optional): the same, as a secondary source where available.\n" +
+                            "PULSE asks for no location, no contacts, no cloud account.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textSecondary,
                     )

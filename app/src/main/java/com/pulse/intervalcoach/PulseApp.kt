@@ -18,6 +18,7 @@ import com.pulse.intervalcoach.data.VoiceProfileRepository
 import com.pulse.intervalcoach.data.WorkoutRepository
 import com.pulse.intervalcoach.data.db.PulseDatabase
 import com.pulse.intervalcoach.data.db.PulseMigrations
+import com.pulse.intervalcoach.health.HealthHub
 import com.pulse.intervalcoach.session.MusicController
 import com.pulse.intervalcoach.session.Notifications
 import com.pulse.intervalcoach.session.SessionController
@@ -52,6 +53,8 @@ class AppContainer(private val app: Application) {
     val audioAssets: AudioAssetRepository by lazy { AudioAssetRepository(database) }
     val reminders: ReminderRepository by lazy { ReminderRepository(database) }
     val programs: ProgramRepository by lazy { ProgramRepository(database) }
+
+    val health: HealthHub by lazy { HealthHub(app, preferences) }
 
     val cueSoundPlayer: CueSoundPlayer by lazy { CueSoundPlayer(app) }
     val haptics: Haptics by lazy { Haptics(app) }
@@ -91,6 +94,9 @@ class PulseApp : Application() {
                 BackupWorker.schedule(this@PulseApp, container)
                 ReminderWorker.schedule(this@PulseApp)
             }
+            // First look at the health platforms (Health Connect / Google Fit). All of this is
+            // read-only and cheap; without the Health Connect app it simply reports unavailable.
+            runCatching { container.health.refresh() }
         }
     }
 }

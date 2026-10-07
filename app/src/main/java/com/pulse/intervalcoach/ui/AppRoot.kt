@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -39,6 +39,7 @@ import com.pulse.intervalcoach.DeepLinks
 import com.pulse.intervalcoach.ui.builders.AdvancedBuilderScreen
 import com.pulse.intervalcoach.ui.builders.QuickBuilderScreen
 import com.pulse.intervalcoach.ui.home.HomeScreen
+import com.pulse.intervalcoach.ui.health.HealthScreen
 import com.pulse.intervalcoach.ui.parser.ParserScreen
 import com.pulse.intervalcoach.ui.player.PlayerScreen
 import com.pulse.intervalcoach.ui.progress.HistoryScreen
@@ -75,6 +76,7 @@ object Routes {
     const val VOICE_STUDIO = "settings/voice"
     const val BACKUP = "settings/backup"
     const val HELP = "settings/help"
+    const val HEALTH = "health"
     const val WELCOME = "welcome"
 
     fun details(id: String) = "workout/$id"
@@ -84,9 +86,9 @@ object Routes {
 private data class Destination(val route: String, val label: String, val icon: ImageVector)
 
 private val primaryDestinations = listOf(
-    Destination(Routes.HOME, "Home", Icons.Filled.Home),
+    Destination(Routes.HOME, "Today", Icons.Filled.Home),
     Destination(Routes.WORKOUTS, "Workouts", Icons.Filled.FitnessCenter),
-    Destination(Routes.PROGRESS, "Progress", Icons.Filled.BarChart),
+    Destination(Routes.PROGRESS, "Progress", Icons.Filled.Insights),
     Destination(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
 )
 
@@ -224,6 +226,7 @@ fun PulseAppRoot(
                         onOpenProgress = { navController.navigate(Routes.PROGRESS) },
                         onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
                         onResumeSession = { navController.navigate(Routes.PLAYER) },
+                        onOpenHealth = { navController.navigate(Routes.HEALTH) },
                     )
                 }
                 composable(Routes.WORKOUTS) {
@@ -322,6 +325,7 @@ fun PulseAppRoot(
                         onOpenHistory = { navController.navigate(Routes.HISTORY) },
                         onOpenSession = { navController.navigate(Routes.session(it)) },
                         onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                        onOpenHealth = { navController.navigate(Routes.HEALTH) },
                     )
                 }
                 composable(Routes.HISTORY) {
@@ -347,6 +351,7 @@ fun PulseAppRoot(
                         onOpenHelp = { navController.navigate(Routes.HELP) },
                         onOpenWelcome = { navController.navigate(Routes.WELCOME) },
                         onOpenParser = { navController.navigate(Routes.PARSER) },
+                        onOpenHealth = { navController.navigate(Routes.HEALTH) },
                     )
                 }
                 composable(Routes.VOICE_STUDIO) {
@@ -361,6 +366,12 @@ fun PulseAppRoot(
                 }
                 composable(Routes.HELP) {
                     HelpScreen(container = container, onBack = { navController.popBackStack() })
+                }
+                composable(Routes.HEALTH) {
+                    HealthScreen(
+                        container = container,
+                        onBack = { navController.popBackStack() },
+                    )
                 }
                 composable(Routes.WELCOME) {
                     WelcomeScreen(

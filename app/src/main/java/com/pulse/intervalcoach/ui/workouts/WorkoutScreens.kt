@@ -3,6 +3,7 @@ package com.pulse.intervalcoach.ui.workouts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,13 +11,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -26,21 +30,23 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.Spellcheck
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.ViewList
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,7 +62,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.pulse.engine.PhaseKind
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.WorkoutType
 import com.pulse.engine.formatDuration
@@ -65,18 +70,23 @@ import com.pulse.intervalcoach.data.StarterWorkouts
 import com.pulse.intervalcoach.data.WorkoutSummary
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
+import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PhaseChip
-import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.res.stringResource
 import com.pulse.intervalcoach.R
 
@@ -96,12 +106,12 @@ data class LibraryUiState(
 
 class LibraryViewModel(private val container: AppContainer) : ViewModel() {
 
-    private val query = kotlinx.coroutines.flow.MutableStateFlow("")
-    private val sort = kotlinx.coroutines.flow.MutableStateFlow(LibrarySort.RECENT)
-    private val favoritesOnly = kotlinx.coroutines.flow.MutableStateFlow(false)
-    private val grid = kotlinx.coroutines.flow.MutableStateFlow(false)
+    private val query = MutableStateFlow("")
+    private val sort = MutableStateFlow(LibrarySort.RECENT)
+    private val favoritesOnly = MutableStateFlow(false)
+    private val grid = MutableStateFlow(false)
 
-    val state = kotlinx.coroutines.flow.combine(
+    val state = combine(
         container.workouts.summaries, query, sort, favoritesOnly, grid,
     ) { workouts, q, s, favOnly, isGrid ->
         val filtered = workouts
@@ -120,7 +130,7 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
                 }
             }
         LibraryUiState(filtered, q, s, favOnly, isGrid)
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000), LibraryUiState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryUiState())
 
     fun setQuery(value: String) { query.value = value }
     fun setSort(value: LibrarySort) { sort.value = value }
@@ -136,7 +146,6 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
     fun setFavorite(id: String, favorite: Boolean) = viewModelScope.launch { container.workouts.setFavorite(id, favorite) }
 
     suspend fun plan(id: String): WorkoutPlan? = container.workouts.plan(id)
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -156,20 +165,38 @@ fun WorkoutLibraryScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     var pendingDelete by remember { mutableStateOf<WorkoutSummary?>(null) }
     var showNewMenu by remember { mutableStateOf(false) }
+    var showSortMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.nav_workouts)) },
-                actions = {
-                    IconButton(onClick = { showNewMenu = true }) {
-                        Icon(Icons.Filled.Bolt, contentDescription = "Create workout")
+                title = {
+                    Column {
+                        Text(
+                            "Your workouts",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = colors.textPrimary,
+                        )
+                        Text(
+                            "${state.workouts.size} saved on this device",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textSecondary,
+                        )
                     }
-                    DropdownMenu(expanded = showNewMenu, onDismissRequest = { showNewMenu = false }) {
-                        DropdownMenuItem(text = { Text(stringResource(R.string.builder_quick_title)) }, onClick = { showNewMenu = false; onQuickBuilder() })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.builder_advanced_title)) }, onClick = { showNewMenu = false; onAdvancedBuilder() })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.parser_title)) }, onClick = { showNewMenu = false; onParser() })
-                        DropdownMenuItem(text = { Text("Template gallery") }, onClick = { showNewMenu = false; onOpenTemplates() })
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { showSortMenu = true }) {
+                            Icon(Icons.Filled.Sort, contentDescription = stringResource(R.string.workouts_sort))
+                        }
+                        DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
+                            LibrarySort.entries.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option.label()) },
+                                    onClick = { viewModel.setSort(option); showSortMenu = false },
+                                )
+                            }
+                        }
                     }
                     IconButton(onClick = viewModel::toggleGrid) {
                         Icon(
@@ -177,8 +204,40 @@ fun WorkoutLibraryScreen(
                             contentDescription = if (state.grid) "List view" else "Grid view",
                         )
                     }
+                    Box {
+                        IconButton(onClick = { showNewMenu = true }) {
+                            Icon(Icons.Filled.Tune, contentDescription = "Create workout")
+                        }
+                        DropdownMenu(expanded = showNewMenu, onDismissRequest = { showNewMenu = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Quick builder") },
+                                leadingIcon = { Icon(Icons.Filled.FitnessCenter, null) },
+                                onClick = { showNewMenu = false; onQuickBuilder() },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Advanced builder") },
+                                leadingIcon = { Icon(Icons.Filled.Tune, null) },
+                                onClick = { showNewMenu = false; onAdvancedBuilder() },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Describe in words") },
+                                leadingIcon = { Icon(Icons.Filled.Spellcheck, null) },
+                                onClick = { showNewMenu = false; onParser() },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Template gallery") },
+                                leadingIcon = { Icon(Icons.Filled.GridView, null) },
+                                onClick = { showNewMenu = false; onOpenTemplates() },
+                            )
+                        }
+                    }
                 },
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showNewMenu = true }) {
+                Icon(Icons.Filled.FitnessCenter, contentDescription = "New workout")
+            }
         },
     ) { padding ->
         Column(Modifier.padding(padding)) {
@@ -189,37 +248,39 @@ fun WorkoutLibraryScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 placeholder = { Text(stringResource(R.string.workouts_search_hint)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = ImeAction.Search),
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                 trailingIcon = {
-                    var expanded by remember { mutableStateOf(false) }
-                    Box {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Filled.Sort, contentDescription = stringResource(R.string.workouts_sort))
-                        }
-                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                            LibrarySort.entries.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.label()) },
-                                    onClick = { viewModel.setSort(option); expanded = false },
-                                )
-                            }
+                    if (state.query.isNotBlank()) {
+                        IconButton(onClick = { viewModel.setQuery("") }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Clear search")
                         }
                     }
                 },
+                singleLine = true,
+                shape = RoundedCornerShape(999.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             )
-            Row(
-                Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            LazyRow(
+                contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 8.dp),
             ) {
-                FilterChip(selected = state.favoritesOnly, onClick = viewModel::toggleFavoritesOnly, label = { Text(stringResource(R.string.home_favorites)) })
-                FilterChip(selected = false, onClick = onOpenTemplates, label = { Text(stringResource(R.string.workouts_templates)) })
+                item {
+                    FilterChip(
+                        selected = state.favoritesOnly,
+                        onClick = viewModel::toggleFavoritesOnly,
+                        label = { Text("Favorites") },
+                    )
+                }
+                item {
+                    FilterChip(selected = false, onClick = onOpenTemplates, label = { Text("Templates") })
+                }
             }
 
             if (state.workouts.isEmpty()) {
                 Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                     EmptyState(
-                        title = if (state.query.isBlank()) "No workouts yet" else "Nothing matches “${state.query}”",
+                        title = if (state.query.isBlank()) "No workouts yet" else "Nothing matches \u201C${state.query}\u201D",
                         body = if (state.query.isBlank()) {
                             "Build one in under a minute, or start from the template gallery."
                         } else {
@@ -233,7 +294,7 @@ fun WorkoutLibraryScreen(
             } else if (state.grid) {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 160.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                    contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -245,7 +306,8 @@ fun WorkoutLibraryScreen(
                                 Text(
                                     if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textSecondary,
+                                    color = colors.work,
+                                    fontFeatureSettings = "tnum",
                                 )
                             }
                         }
@@ -253,7 +315,7 @@ fun WorkoutLibraryScreen(
                 }
             } else {
                 LazyColumn(
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                    contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     items(state.workouts, key = { it.id }) { workout ->
@@ -277,7 +339,7 @@ fun WorkoutLibraryScreen(
     pendingDelete?.let { workout ->
         ConfirmDialog(
             title = stringResource(R.string.delete_workout_title),
-            body = "“${workout.name}” will be removed. Finished sessions keep their own copy of the workout, so your history stays readable.",
+            body = "\u201C${workout.name}\u201D will be removed. Finished sessions keep their own copy of the workout, so your history stays readable.",
             confirmLabel = stringResource(R.string.action_delete),
             dismissLabel = stringResource(R.string.cancel),
             destructive = true,
@@ -311,7 +373,7 @@ private fun WorkoutRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(workout.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(workout.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                         if (workout.builtIn) {
                             Spacer(Modifier.width(8.dp))
                             NeutralChip("starter")
@@ -408,9 +470,10 @@ fun WorkoutDetailsScreen(
         }
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            // --- Hero header ---
             item {
                 PulseCard {
                     Column {
@@ -418,30 +481,40 @@ fun WorkoutDetailsScreen(
                             NeutralChip(plan.type.displayName)
                             Spacer(Modifier.width(8.dp))
                             entity?.let { e ->
-                                TextButton(onClick = { scope.launch { container.workouts.setFavorite(workoutId, !e.isFavorite) } }) {
+                                Text(
+                                    if (e.isFavorite) "Favorited" else "Favorite",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (e.isFavorite) colors.work else colors.textSecondary,
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                IconButton(onClick = { scope.launch { container.workouts.setFavorite(workoutId, !e.isFavorite) } }) {
                                     Icon(
                                         if (e.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                                         contentDescription = null,
                                         tint = if (e.isFavorite) colors.work else colors.textSecondary,
                                     )
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(if (e.isFavorite) "Favorited" else "Favorite")
                                 }
                             }
                         }
-                        Spacer(Modifier.height(10.dp))
-                        Text(plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            if (expanded.hasOpenEnded) "≥ ${formatDuration(expanded.knownMillis)}" else formatDuration(expanded.totalMillis ?: 0L),
+                            style = MaterialTheme.typography.displaySmall,
+                            color = colors.work,
+                            fontFeatureSettings = "tnum",
+                        )
+                        if (plan.description.isNotBlank()) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
+                        }
                         Spacer(Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            StatTile(
-                                "Total",
-                                expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}",
-                                accent = colors.work,
-                                modifier = Modifier.weight(1f),
-                            )
                             StatTile("Intervals", expanded.steps.size.toString(), modifier = Modifier.weight(1f))
                             expanded.steps.firstNotNullOfOrNull { it.roundsInGroup }?.let { rounds ->
                                 StatTile("Rounds", rounds.toString(), modifier = Modifier.weight(1f))
+                            }
+                            plan.equipment?.let {
+                                StatTile("Equipment", it.take(12), modifier = Modifier.weight(1.3f))
                             }
                         }
                         if (expanded.hasOpenEnded) {
@@ -453,8 +526,8 @@ fun WorkoutDetailsScreen(
             }
 
             item {
-                PrimaryActionButton(
-                    text = stringResource(R.string.details_start),
+                GradientActionButton(
+                    text = "Start workout",
                     onClick = { onStart(plan) },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -501,6 +574,7 @@ fun WorkoutDetailsScreen(
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.textSecondary,
+                                fontFeatureSettings = "tnum",
                             )
                             step.notes?.let {
                                 Spacer(Modifier.height(4.dp))
@@ -547,7 +621,7 @@ fun TemplateGalleryScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
@@ -558,7 +632,7 @@ fun TemplateGalleryScreen(
                 )
             }
             item {
-                androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     item {
                         FilterChip(selected = filter == null, onClick = { filter = null }, label = { Text("All") })
                     }
@@ -577,11 +651,14 @@ fun TemplateGalleryScreen(
                 val duration = remember(template) { StarterWorkouts.knownDuration(template.plan) }
                 PulseCard {
                     Column {
-                        Text(template.plan.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
-                        Spacer(Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(template.plan.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, modifier = Modifier.weight(1f, fill = false), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Spacer(Modifier.width(8.dp))
+                            Text(formatDuration(duration), style = MaterialTheme.typography.titleMedium, color = colors.work, fontFeatureSettings = "tnum")
+                        }
+                        Spacer(Modifier.height(6.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             NeutralChip(template.plan.type.displayName)
-                            Text(formatDuration(duration), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(template.plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
@@ -590,7 +667,7 @@ fun TemplateGalleryScreen(
                             Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                         }
                         Spacer(Modifier.height(12.dp))
-                        PrimaryActionButton(
+                        SecondaryActionButton(
                             text = stringResource(R.string.templates_use),
                             onClick = {
                                 scope.launch {
@@ -609,7 +686,7 @@ fun TemplateGalleryScreen(
 
 /** Shares a readable text summary of a workout (structure only — never fake session numbers). */
 private fun shareWorkout(context: android.content.Context, container: AppContainer, workoutId: String) {
-    val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default)
+    val scope = kotlinx.coroutines.CoroutineScope(Dispatchers.Default)
     scope.launch {
         val plan = container.workouts.plan(workoutId) ?: return@launch
         val expanded = runCatching { com.pulse.engine.TimelineExpander.expand(plan) }.getOrNull() ?: return@launch
@@ -626,7 +703,7 @@ private fun shareWorkout(context: android.content.Context, container: AppContain
             append("Total: ")
             append(expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}")
         }
-        withContextMain {
+        withContext(Dispatchers.Main) {
             val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(android.content.Intent.EXTRA_SUBJECT, plan.name)
@@ -636,5 +713,3 @@ private fun shareWorkout(context: android.content.Context, container: AppContain
         }
     }
 }
-
-private suspend fun withContextMain(block: () -> Unit) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { block() }

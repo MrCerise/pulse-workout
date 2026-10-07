@@ -1,15 +1,17 @@
 package com.pulse.intervalcoach.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,17 +21,17 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,9 +40,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,11 +50,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -64,9 +66,10 @@ import com.pulse.engine.PhaseKind
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.TimerTextStyle
 
 /**
- * The shared building blocks every screen is made of.
+ * The shared building blocks every screen is made of — v1.3 "Aurora" edition.
  *
  * Two rules hold throughout, because both were broken before:
  *  - **nothing may overflow its container.** Chips scroll, stepper values are weighted, labels are
@@ -91,16 +94,27 @@ fun PulseCard(
             modifier = modifier.fillMaxWidth(),
             shape = shape,
             colors = CardDefaults.cardColors(containerColor = colors.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
-            Box(Modifier.padding(dimens.l)) { content() }
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(shape)
+                    .background(
+                        Brush.verticalGradient(
+                            colors.surface.copy(alpha = if (colors.isDark) 0.02f else 0.06f),
+                            colors.surface,
+                        ),
+                    )
+                    .padding(dimens.l),
+            ) { content() }
         }
     } else {
         Card(
             modifier = modifier.fillMaxWidth(),
             shape = shape,
             colors = CardDefaults.cardColors(containerColor = colors.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
             Box(Modifier.padding(dimens.l)) { content() }
         }
@@ -111,10 +125,10 @@ fun PulseCard(
 fun SectionHeader(text: String, modifier: Modifier = Modifier) {
     val dimens = LocalPulseDimens.current
     Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
         color = LocalPulseColors.current.textSecondary,
-        modifier = modifier.padding(top = dimens.l, bottom = dimens.s),
+        modifier = modifier.padding(top = dimens.s, bottom = dimens.xs),
     )
 }
 
@@ -123,57 +137,56 @@ fun PhaseChip(kind: PhaseKind, name: String?, modifier: Modifier = Modifier) {
     val colors = LocalPulseColors.current
     val fill = colors.phaseColor(kind)
     val label = name ?: PhaseKind.defaultLabel(kind)
-    Row(
-        modifier = modifier
-            .background(fill, RoundedCornerShape(LocalPulseDimens.current.chipRadius))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-            .semantics { contentDescription = "${PhaseKind.defaultLabel(kind)}${name?.let { ": $it" } ?: ""}" },
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(LocalPulseDimens.current.chipRadius),
+        color = fill,
     ) {
-        Box(
-            Modifier
-                .size(8.dp)
-                .background(colors.onAccent.copy(alpha = 0.75f), CircleShape)
-                .clearAndSetSemantics { }
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = colors.onAccent,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(
+            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                Modifier
+                    .size(7.dp)
+                    .background(colors.onAccent.copy(alpha = 0.55f), CircleShape),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                label.uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                color = colors.onAccent,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
-/**
- * Label for things that are *not* a phase — workout type, "starter", counts.
- *
- * Using [PhaseChip] for these painted them in the work-green "effort" colour, which broke the rule
- * that a phase colour always means the same thing.
- */
 @Composable
 fun NeutralChip(text: String, modifier: Modifier = Modifier, icon: ImageVector? = null) {
     val colors = LocalPulseColors.current
-    Row(
-        modifier = modifier
-            .background(colors.neutralFill, RoundedCornerShape(LocalPulseDimens.current.chipRadius))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-            .semantics { contentDescription = text },
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(LocalPulseDimens.current.chipRadius),
+        color = colors.neutralFill,
     ) {
-        if (icon != null) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = colors.textSecondary)
-            Spacer(Modifier.width(6.dp))
+        Row(
+            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            icon?.let {
+                Icon(it, contentDescription = null, tint = colors.onNeutralFill, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(5.dp))
+            }
+            Text(
+                text.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.onNeutralFill,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = colors.onNeutralFill,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
@@ -188,7 +201,7 @@ fun StatTile(
     val dimens = LocalPulseDimens.current
     Column(
         modifier = modifier
-            .background(colors.surfaceRaised, RoundedCornerShape(dimens.cardRadius - 4.dp))
+            .background(colors.surfaceRaised, RoundedCornerShape(dimens.cardRadius - 8.dp))
             .padding(horizontal = 14.dp, vertical = 12.dp),
     ) {
         Text(
@@ -205,6 +218,7 @@ fun StatTile(
             color = accent ?: colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            fontFeatureSettings = "tnum",
         )
     }
 }
@@ -228,63 +242,44 @@ fun TimelineBar(
     val description = if (kinds.isEmpty()) {
         "No intervals"
     } else {
-        "Session timeline, interval ${(currentIndex + 1).coerceIn(1, kinds.size)} of ${kinds.size}"
+        "Interval ${currentIndex + 1} of ${kinds.size}"
     }
     Canvas(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .semantics { contentDescription = description }
+            .semantics { contentDescription = description },
     ) {
         if (kinds.isEmpty()) return@Canvas
-        val gap = if (kinds.size > 40) 0f else 2.dp.toPx()
-        val segmentWidth = (size.width - gap * (kinds.size - 1)) / kinds.size
-        val radius = androidx.compose.ui.geometry.CornerRadius(size.height / 2)
-        var x = 0f
+        val gap = if (kinds.size <= 40) size.width * 0.008f else 0f
+        val slot = (size.width - gap * (kinds.size - 1)) / kinds.size
+        val barHeight = size.height
         kinds.forEachIndexed { index, kind ->
-            val fill = colors.phaseColor(kind)
-            val width = segmentWidth.coerceAtLeast(1f)
-            when {
-                index < currentIndex -> drawRoundRect(
-                    color = fill.copy(alpha = 0.5f),
+            val x = index * (slot + gap)
+            val color = colors.phaseColor(kind)
+            val baseAlpha = when {
+                index == currentIndex -> 1f
+                index < currentIndex -> 0.5f
+                else -> 0.28f
+            }
+            drawRoundRect(
+                color = color.copy(alpha = baseAlpha),
+                topLeft = androidx.compose.ui.geometry.Offset(x, 0f),
+                size = androidx.compose.ui.geometry.Size(slot, barHeight),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(barHeight / 2, barHeight / 2),
+            )
+            if (index == currentIndex && progressInStep > 0f) {
+                drawRoundRect(
+                    color = color,
                     topLeft = androidx.compose.ui.geometry.Offset(x, 0f),
-                    size = androidx.compose.ui.geometry.Size(width, size.height),
-                    cornerRadius = radius,
-                )
-                index == currentIndex -> {
-                    drawRoundRect(
-                        color = fill.copy(alpha = 0.3f),
-                        topLeft = androidx.compose.ui.geometry.Offset(x, 0f),
-                        size = androidx.compose.ui.geometry.Size(width, size.height),
-                        cornerRadius = radius,
-                    )
-                    // The progress marker the parameter always promised.
-                    val done = progressInStep.coerceIn(0f, 1f)
-                    if (done > 0f) {
-                        drawRoundRect(
-                            color = fill,
-                            topLeft = androidx.compose.ui.geometry.Offset(x, 0f),
-                            size = androidx.compose.ui.geometry.Size(
-                                (width * done).coerceAtLeast(size.height),
-                                size.height,
-                            ),
-                            cornerRadius = radius,
-                        )
-                    }
-                }
-                else -> drawRoundRect(
-                    color = fill.copy(alpha = 0.22f),
-                    topLeft = androidx.compose.ui.geometry.Offset(x, 0f),
-                    size = androidx.compose.ui.geometry.Size(width, size.height),
-                    cornerRadius = radius,
+                    size = androidx.compose.ui.geometry.Size(slot * progressInStep.coerceIn(0f, 1f), barHeight),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(barHeight / 2, barHeight / 2),
                 )
             }
-            x += width + gap
         }
     }
 }
 
-/** Circular progress used by the player around the big countdown. */
 @Composable
 fun ProgressRing(
     progress: Float,
@@ -292,8 +287,10 @@ fun ProgressRing(
     trackColor: Color,
     strokeWidth: Dp,
     modifier: Modifier = Modifier,
+    brush: Brush? = null,
     content: @Composable () -> Unit,
 ) {
+    val animated by animateFloatAsState(targetValue = progress.coerceIn(0f, 1f), label = "ring")
     Box(modifier, contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
             val stroke = strokeWidth.toPx()
@@ -308,9 +305,10 @@ fun ProgressRing(
                 size = arcSize,
                 style = Stroke(width = stroke),
             )
-            val sweep = 360f * progress.coerceIn(0f, 1f)
+            val sweep = 360f * animated
             if (sweep > 0f) {
                 drawArc(
+                    brush = brush,
                     color = color,
                     startAngle = -90f,
                     sweepAngle = sweep,
@@ -339,17 +337,17 @@ fun EmptyState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(dimens.xl),
+            .padding(vertical = dimens.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (icon != null) {
+        icon?.let {
             Box(
                 Modifier
-                    .size(56.dp)
+                    .size(72.dp)
                     .background(colors.surfaceRaised, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icon, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(26.dp))
+                Icon(it, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(32.dp))
             }
             Spacer(Modifier.height(dimens.l))
         }
@@ -365,53 +363,48 @@ fun EmptyState(
             style = MaterialTheme.typography.bodyMedium,
             color = colors.textSecondary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(max = 320.dp),
         )
         if (actionLabel != null && onAction != null) {
             Spacer(Modifier.height(dimens.l))
-            Button(onClick = onAction) { Text(actionLabel) }
+            TextButton(onClick = onAction) { Text(actionLabel) }
         }
     }
 }
 
 @Composable
 fun LoadingBox(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().heightIn(min = 120.dp), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = LocalPulseColors.current.work)
+    val colors = LocalPulseColors.current
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(color = colors.work, trackColor = colors.track)
     }
 }
 
-/** Tonal banner. [warning] switches the icon and the accent used for the border. */
 @Composable
 fun InfoBanner(
     text: String,
-    tone: Color? = null,
     modifier: Modifier = Modifier,
+    tone: Color? = null,
     warning: Boolean = false,
 ) {
     val colors = LocalPulseColors.current
     val accent = tone ?: if (warning) colors.prepare else colors.textSecondary
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(colors.surfaceRaised, RoundedCornerShape(14.dp))
-            .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.Top,
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(LocalPulseDimens.current.cardRadius - 8.dp),
+        color = accent.copy(alpha = if (colors.isDark) 0.12f else 0.10f),
     ) {
-        Icon(
-            if (warning) Icons.Filled.Warning else Icons.Filled.Info,
-            contentDescription = null,
-            tint = accent,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(Modifier.width(10.dp))
-        Text(
-            text,
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.textPrimary,
-            modifier = Modifier.weight(1f),
-        )
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(8.dp).background(accent, CircleShape))
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text,
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.textPrimary,
+            )
+        }
     }
 }
 
@@ -428,23 +421,20 @@ fun ConfirmDialog(
     val colors = LocalPulseColors.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { Text(body) },
+        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+        text = { Text(body, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(confirmLabel, color = if (destructive) colors.destructive else colors.work)
+                Text(confirmLabel, color = if (destructive) colors.destructive else colors.work, fontWeight = FontWeight.SemiBold)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(dismissLabel) } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(dismissLabel) }
+        },
+        containerColor = colors.surfaceContainerHighest,
     )
 }
 
-/**
- * +/- stepper for durations.
- *
- * The value is weighted and single-line: two steppers side by side on a 360 dp screen leave roughly
- * 150 dp each, and an unweighted label used to push the digits out of the row entirely.
- */
 @Composable
 fun DurationStepper(
     label: String,
@@ -456,7 +446,6 @@ fun DurationStepper(
     enabled: Boolean = true,
     onChange: (Long) -> Unit,
 ) {
-    val colors = LocalPulseColors.current
     val min = if (allowZero) 0L else stepMillis
     StepperField(
         label = label,
@@ -470,7 +459,6 @@ fun DurationStepper(
         modifier = modifier,
         onDecrease = { onChange((millis - stepMillis).coerceIn(min, maxMillis)) },
         onIncrease = { onChange((millis + stepMillis).coerceIn(min, maxMillis)) },
-        valueColor = colors.textPrimary,
     )
 }
 
@@ -484,7 +472,6 @@ fun NumberStepper(
     enabled: Boolean = true,
     onChange: (Int) -> Unit,
 ) {
-    val colors = LocalPulseColors.current
     StepperField(
         label = label,
         value = value.toString(),
@@ -497,7 +484,6 @@ fun NumberStepper(
         modifier = modifier,
         onDecrease = { onChange((value - 1).coerceIn(min, max)) },
         onIncrease = { onChange((value + 1).coerceIn(min, max)) },
-        valueColor = colors.textPrimary,
     )
 }
 
@@ -513,56 +499,57 @@ private fun StepperField(
     enabled: Boolean,
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
-    valueColor: Color,
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalPulseColors.current
-    Column(modifier.fillMaxWidth()) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelLarge,
-            color = colors.textSecondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(6.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(colors.surfaceRaised, RoundedCornerShape(14.dp)),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = onDecrease,
-                enabled = enabled && !atMin,
-                modifier = Modifier.size(48.dp),
-            ) { Icon(Icons.Filled.Remove, contentDescription = decreaseDescription) }
+    val dimens = LocalPulseDimens.current
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dimens.cardRadius - 8.dp),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outlineVariant),
+    ) {
+        Column(Modifier.padding(start = dimens.m, top = 6.dp, bottom = 6.dp)) {
             Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                color = valueColor,
+                label.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.textSecondary,
                 maxLines = 1,
-                softWrap = false,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .semantics { contentDescription = valueDescription },
+                overflow = TextOverflow.Ellipsis,
             )
-            IconButton(
-                onClick = onIncrease,
-                enabled = enabled && !atMax,
-                modifier = Modifier.size(48.dp),
-            ) { Icon(Icons.Filled.Add, contentDescription = increaseDescription) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = onDecrease,
+                    enabled = enabled && !atMin,
+                    modifier = Modifier.size(44.dp),
+                ) {
+                    Icon(Icons.Filled.Remove, contentDescription = decreaseDescription, tint = colors.textPrimary)
+                }
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = valueDescription },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.textPrimary,
+                        fontFeatureSettings = "tnum",
+                    )
+                }
+                IconButton(
+                    onClick = onIncrease,
+                    enabled = enabled && !atMax,
+                    modifier = Modifier.size(44.dp),
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = increaseDescription, tint = colors.textPrimary)
+                }
+            }
         }
     }
 }
 
-/**
- * Single-choice row used instead of a spinner so every option is one tap away.
- *
- * The row scrolls: with 15 workout types or 8 cue sounds an unscrollable row pushed the later
- * options past the right edge of the screen, where they could not be tapped at all.
- */
 @Composable
 fun <T> OptionRow(
     label: String,
@@ -647,19 +634,66 @@ fun ToggleRow(
 /** Shared "start this workout" affordance so the row of buttons looks the same everywhere. */
 @Composable
 fun PrimaryActionButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val colors = LocalPulseColors.current
     Button(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.heightIn(min = 52.dp),
-    ) { Text(text, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)) }
+        shape = RoundedCornerShape(999.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = colors.work, contentColor = colors.onAccent),
+    ) {
+        Text(text, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/**
+ * The big hero CTA: a lime→cyan gradient pill used on Today, Details and the Summary.
+ * Slightly taller than [PrimaryActionButton] so it reads as the single most important action.
+ */
+@Composable
+fun GradientActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    val colors = LocalPulseColors.current
+    val shape = RoundedCornerShape(999.dp)
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .heightIn(min = 58.dp)
+            .background(colors.brandGradient, shape),
+        shape = shape,
+        color = Color.Transparent,
+    ) {
+        Box(
+            Modifier
+                .defaultMinSize(minWidth = 120.dp)
+                .padding(horizontal = 24.dp, vertical = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = colors.onAccent,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
 }
 
 @Composable
 fun SecondaryActionButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val colors = LocalPulseColors.current
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.heightIn(min = 48.dp),
+        shape = RoundedCornerShape(999.dp),
+        border = BorderStroke(1.dp, colors.outline),
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
