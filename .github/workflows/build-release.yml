@@ -86,29 +86,19 @@ jobs:
           compile_sdk="${PULSE_COMPILE_SDK:-37}"
           bash ./gradlew --no-daemon --console=plain "--stacktrace" "-Ppulse.compileSdk=${compile_sdk}" "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+UseSerialGC -Dfile.encoding=UTF-8" :engine:test :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease 2>&1 | tee gradle-build.log
 
-      - name: Publish build log to ci-diag-log branch (failure only)
-        if: failure()
-        shell: bash
-        run: |
-          # Temporary debugging aid: log retrieval is not available from every environment, so on
-          # failure the tail of the Gradle log is committed to a dedicated branch.
-          git config user.name "ci-diag"
-          git config user.email "diag@users.noreply.github.com"
-          git checkout -B ci-diag-log
-          mkdir -p ci-diag
-          tail -c 300000 gradle-build.log > ci-diag/last-failure.log
-          git add ci-diag/last-failure.log
-          git commit -m "CI failure log $(date -u +%FT%TZ)"
-          git push origin ci-diag-log --force
-
       - name: Prepare release assets
         if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
         shell: bash
         run: |
-          release_tag="${RELEASE_TAG:-$GITHUB_REF_NAME}"
-          mkdir -p release-assets
-          cp app/build/outputs/apk/debug/app-debug.apk "release-assets/pulse-${release_tag}-debug.apk"
-          cp app/build/outputs/apk/release/app-release.apk "release-assets/pulse-${release_tag}-release.apk"
+          {
+            release_tag="${RELEASE_TAG:-$GITHUB_REF_NAME}"
+            echo "release_tag=${release_tag}"
+            ls -la app/build/outputs/apk/debug/ app/build/outputs/apk/release/ 2>&1
+            mkdir -p release-assets
+            cp app/build/outputs/apk/debug/app-debug.apk "release-assets/pulse-${release_tag}-debug.apk"
+            cp app/build/outputs/apk/release/app-release.apk "release-assets/pulse-${release_tag}-release.apk"
+            ls -la release-assets/
+          } 2>&1 | tee asset-prep.log
 
       - name: Attach signed APKs to GitHub Release
         if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
@@ -118,3 +108,27 @@ jobs:
           generate_release_notes: true
           overwrite_files: true
           files: release-assets/*.apk
+
+      - name: Publish logs to ci-diag-log branch (failure only)
+        if: failure()
+        shell: bash
+        run: |
+          # Debugging aid: raw run-log retrieval is not available from every environment, so on
+          # failure the relevant log tails are committed to a dedicated branch.
+          git config user.name "ci-diag"
+          git config user.email "diag@users.noreply.github.com"
+          git checkout -B ci-diag-log
+          mkdir -p ci-diag
+          {
+            echo "### gradle-build.log (tail)"
+            tail -c 300000 gradle-build.log 2>/dev/null || echo "(no gradle log)"
+            echo
+            echo "### asset-prep.log (tail)"
+            tail -c 200000 asset-prep.log 2>/dev/null || echo "(no asset-prep log)"
+            echo
+            echo "### apk output dirs"
+            ls -laR app/build/outputs/apk 2>/dev/null || echo "(no apk outputs)"
+          } > ci-diag/last-failure.log
+          git add ci-diag/last-failure.log
+          git commit -m "CI failure log $(date -u +%FT%TZ)"
+          git push origin ci-diag-log --force
