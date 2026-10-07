@@ -1,6 +1,8 @@
 # PULSE Interval Coach — pinned dependency versions (verified available 2026-10-07)
 [versions]
-agp = "8.7.3"
+# 8.9.1 is the minimum accepted by androidx.health.connect:connect-client:1.1.0 (enforced by its
+# AAR metadata check at build time); 8.7.3 failed CI with "requires Android Gradle plugin 8.9.1".
+agp = "8.9.1"
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.28"
 coreKtx = "1.13.1"
