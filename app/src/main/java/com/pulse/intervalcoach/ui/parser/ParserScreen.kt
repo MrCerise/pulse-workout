@@ -133,7 +133,6 @@ fun ParserScreen(
                                 expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}",
                                 style = MaterialTheme.typography.displaySmall,
                                 color = colors.work,
-                                fontFeatureSettings = "tnum",
                             )
                             Text(
                                 "${expanded.steps.size} intervals · total time" +
@@ -176,7 +175,6 @@ fun ParserScreen(
                                         if (step.isIndefinite) "manual" else formatDuration(step.durationMillis),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = colors.textSecondary,
-                                        fontFeatureSettings = "tnum",
                                     )
                                 }
                                 Spacer(Modifier.width(10.dp))

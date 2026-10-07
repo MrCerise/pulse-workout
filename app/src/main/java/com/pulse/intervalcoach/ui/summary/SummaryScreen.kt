@@ -41,7 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
-import com.pulse.intervalcoach.health.HealthHub
+import com.pulse.intervalcoach.health.HrStats
 import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NeutralChip
@@ -105,7 +105,7 @@ fun SessionSummaryScreen(
         }
 
         val entity by container.sessions.observeSession(current.sessionId).collectAsStateWithLifecycle(initialValue = null)
-        var hrStats by remember { mutableStateOf<HealthHub.HrStats?>(null) }
+        var hrStats by remember { mutableStateOf<HrStats?>(null) }
         var healthShared by remember { mutableStateOf<Boolean?>(null) }
 
         // Read HR stats for the session window and (if the user allows) write the session to health apps.
@@ -139,7 +139,6 @@ fun SessionSummaryScreen(
                         formatDuration(current.activeMillis),
                         style = MaterialTheme.typography.displaySmall,
                         color = colors.work,
-                        fontFeatureSettings = "tnum",
                     )
                     Text("active time", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
                 }

@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +71,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -319,7 +321,6 @@ fun HomeScreen(
                                 "${(state.weekMillis / 60000L).toInt()}",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = colors.textPrimary,
-                                fontFeatureSettings = "tnum",
                             )
                             Text(
                                 "min",
@@ -451,7 +452,7 @@ fun HomeScreen(
                                 Modifier
                                     .size(8.dp)
                                     .background(colors.work, CircleShape)
-                                    .semantics { contentDescription = healthSnapshot.source },
+                                    .semantics { contentDescription = healthSnapshot.source.orEmpty() },
                             )
                         }
                         Spacer(Modifier.height(10.dp))
@@ -624,7 +625,6 @@ private fun PresetChip(
                 duration,
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.work,
-                fontFeatureSettings = "tnum",
             )
         }
     }

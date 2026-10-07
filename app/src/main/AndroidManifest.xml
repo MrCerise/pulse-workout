@@ -13,17 +13,10 @@
     <!-- Optional: only requested when the user records their own coaching clips in Voice Studio. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-    <!--
-      Health & fitness integrations. All of these are optional at runtime: PULSE checks
-      availability and permission state on every launch and degrades gracefully when the
-      Health Connect platform app, Google Play services or the user's consent is missing.
-      (READ_HEART_RATE doubles as the Fit API's sensor-read permission on Android 10+.)
-    -->
+    <!-- Health Connect permissions are optional and are requested through its permission UI. -->
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <uses-permission android:name="android.permission.health.READ_STEPS" />
-    <uses-permission android:name="android.permission.health.READ_ACTIVITY" />
-    <uses-permission android:name="android.permission.health.READ_WORKOUT" />
-    <uses-permission android:name="android.permission.health.WRITE_WORKOUT" />
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
 
     <uses-feature android:name="android.hardware.vibrator" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
@@ -34,7 +27,7 @@
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
         <!-- Health Connect platform app (bundled on Android 14+ Pixels, otherwise via Play). -->
-        <package android:name="com.google.android.gmshealth" />
+        <package android:name="com.google.android.apps.healthdata" />
         <!-- Google Play services, which hosts the Google Fit APIs. -->
         <package android:name="com.google.android.gms" />
     </queries>
@@ -67,6 +60,13 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="pulse" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
             </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"

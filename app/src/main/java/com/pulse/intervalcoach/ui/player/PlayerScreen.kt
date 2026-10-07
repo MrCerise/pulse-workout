@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -164,7 +163,7 @@ fun PlayerScreen(
     // of the player instead of relying on the order siblings happen to be emitted in.
     Box(Modifier.fillMaxSize().background(colors.background)) {
         // The phase wash: the top of the screen glows in the current interval's colour.
-        Box(Modifier.matchParentSize().background(colors.phaseWash(step?.kind ?: com.pulse.engine.PhaseKind.CUSTOM)))
+        Box(Modifier.fillMaxSize().background(colors.phaseWash(step?.kind ?: com.pulse.engine.PhaseKind.CUSTOM)))
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -198,7 +197,6 @@ fun PlayerScreen(
                                 "$bpm",
                                 style = MaterialTheme.typography.labelLarge,
                                 color = colors.textPrimary,
-                                fontFeatureSettings = "tnum",
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
@@ -338,7 +336,6 @@ fun PlayerScreen(
                             if (next.isIndefinite) "manual" else formatDuration(next.durationMillis),
                             style = MaterialTheme.typography.titleMedium,
                             color = colors.phaseColor(next.kind),
-                            fontFeatureSettings = "tnum",
                         )
                     }
                 }

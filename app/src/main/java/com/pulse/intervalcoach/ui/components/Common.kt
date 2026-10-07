@@ -53,7 +53,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -102,8 +104,10 @@ fun PulseCard(
                     .clip(shape)
                     .background(
                         Brush.verticalGradient(
-                            colors.surface.copy(alpha = if (colors.isDark) 0.02f else 0.06f),
-                            colors.surface,
+                            colors = listOf(
+                                colors.surface.copy(alpha = if (colors.isDark) 0.02f else 0.06f),
+                                colors.surface,
+                            ),
                         ),
                     )
                     .padding(dimens.l),
@@ -218,7 +222,6 @@ fun StatTile(
             color = accent ?: colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            fontFeatureSettings = "tnum",
         )
     }
 }
@@ -308,8 +311,7 @@ fun ProgressRing(
             val sweep = 360f * animated
             if (sweep > 0f) {
                 drawArc(
-                    brush = brush,
-                    color = color,
+                    brush = brush ?: SolidColor(color),
                     startAngle = -90f,
                     sweepAngle = sweep,
                     useCenter = false,
@@ -535,7 +537,6 @@ private fun StepperField(
                         value,
                         style = MaterialTheme.typography.titleMedium,
                         color = colors.textPrimary,
-                        fontFeatureSettings = "tnum",
                     )
                 }
                 IconButton(

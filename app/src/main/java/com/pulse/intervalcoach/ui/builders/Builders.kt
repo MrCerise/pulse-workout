@@ -273,7 +273,7 @@ fun QuickBuilderScreen(
             item {
                 PulseCard {
                     Column {
-                        Text(formatDuration(duration), style = MaterialTheme.typography.displaySmall, color = colors.work, fontFeatureSettings = "tnum")
+                        Text(formatDuration(duration), style = MaterialTheme.typography.displaySmall, color = colors.work)
                         Text("total time", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
                         Spacer(Modifier.height(10.dp))
                         val expanded = remember(plan) { runCatching { TimelineExpander.expand(plan) }.getOrNull() }
@@ -711,7 +711,6 @@ fun AdvancedBuilderScreen(
                             expanded?.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded?.knownMillis ?: 0L)}",
                             style = MaterialTheme.typography.displaySmall,
                             color = colors.work,
-                            fontFeatureSettings = "tnum",
                         )
                         Text(
                             "${expanded?.steps?.size ?: 0} intervals" +
