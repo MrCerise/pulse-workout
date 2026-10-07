@@ -1,6 +1,7 @@
 package com.pulse.intervalcoach.ui.health
 
 import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.HealthAndBeauty
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,7 +35,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.health.connect.client.PermissionController
 import com.pulse.intervalcoach.AppContainer
+import com.pulse.intervalcoach.health.HC_REQUESTED_PERMISSIONS
 import com.pulse.intervalcoach.health.FitAvailability
 import com.pulse.intervalcoach.health.HcAvailability
 import com.pulse.intervalcoach.ui.components.GradientActionButton
@@ -70,6 +73,11 @@ fun HealthScreen(
     val colors = LocalPulseColors.current
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
+        contract = PermissionController.createRequestPermissionResultContract(),
+    ) {
+        container.health.refresh()
+    }
 
     val availability by container.health.availability.collectAsStateWithLifecycle()
     val permissions by container.health.permissions.collectAsStateWithLifecycle()
@@ -93,7 +101,7 @@ fun HealthScreen(
                 },
                 actions = {
                     IconButton(onClick = { container.health.refresh() }) {
-                        Icon(Icons.Filled.HealthAndBeauty, contentDescription = "Refresh health status")
+                        Icon(Icons.Filled.Refresh, contentDescription = "Refresh health status")
                     }
                 },
             )
@@ -187,10 +195,9 @@ fun HealthScreen(
                                 PrimaryActionButton(
                                     text = "Grant Health Connect access",
                                     onClick = {
-                                        // The system dialog result updates the permission rows via the
-                                        // permission state flows; a dismissed dialog simply leaves
-                                        // them at "not granted".
-                                        scope.launch { container.health.requestPermissions() }
+                                        // The Health Connect system screen returns the new grants;
+                                        // refresh these rows whenever it returns.
+                                        healthConnectPermissionLauncher.launch(HC_REQUESTED_PERMISSIONS)
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                 )

@@ -5,26 +5,25 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.records.Activity
-import androidx.health.connect.client.records.Device
+import androidx.health.connect.client.records.ExerciseSegment
+import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.WorkoutSegment
-import androidx.health.connect.client.records.WorkoutSession
+import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
-import androidx.health.connect.client.request.QueryRecordsRequest
-import androidx.health.connect.client.request.TimeRangeFilter
+import androidx.health.connect.client.request.ReadRecordsRequest
+import androidx.health.connect.client.time.TimeRangeFilter
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.fitness.Fitness
+import com.google.android.gms.fitness.FitnessActivities
 import com.google.android.gms.fitness.FitnessOptions
-import com.google.android.gms.fitness.data.DataSet
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
-import com.google.android.gms.fitness.data.SessionConfiguration
+import com.google.android.gms.fitness.data.Session
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.SessionInsertRequest
-import com.google.android.gms.fitness.request.SessionUpdateRequest
 import com.google.android.gms.tasks.Tasks
 import com.pulse.intervalcoach.data.PreferencesRepository
 import com.pulse.intervalcoach.data.db.SessionEntity
@@ -40,47 +39,27 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.ZoneOffset
-import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.KClass
 
-/**
- * PULSE ↔ health-platform bridge.
- *
- * One hub, two backends, zero assumptions:
- *
- *  - **Health Connect** (the platform Google recommends) is the primary backend. It needs the
- *    Health Connect app on the device (preinstalled on Android 14+ Pixels, otherwise a Play
- *    update). Every call degrades to `null` when the platform, an app or a permission is missing,
- *    so the rest of the app never has to branch on health availability.
- *  - **Google Fit** (Google Play services) is the fallback / companion backend for devices where
- *    Health Connect is not present. It covers reading heart rate and steps and writing finished
- *    sessions. Google is phasing the Fit platform out, so the UI presents Health Connect first;
- *    Fit never masks a working Health Connect setup.
- *
- * Nothing here is a stub: every feature checks its real preconditions at runtime and reports
- * them honestly.
- */
-
-// --- Health Connect permission strings (manifest + requestPermission share these) ------------
-
+/** Health Connect permissions used by the app and requested from its permission screen. */
 internal const val HC_PERMISSION_HEART_RATE_READ = "android.permission.health.READ_HEART_RATE"
 internal const val HC_PERMISSION_STEPS_READ = "android.permission.health.READ_STEPS"
-internal const val HC_PERMISSION_ACTIVITY_READ = "android.permission.health.READ_ACTIVITY"
-internal const val HC_PERMISSION_WORKOUT_READ = "android.permission.health.READ_WORKOUT"
-internal const val HC_PERMISSION_WORKOUT_WRITE = "android.permission.health.WRITE_WORKOUT"
-
-// Health Connect 1.1.0 workout type constants. Session type 1 = "a single exercise";
-// segment type 1 = "exercise". PULSE writes rest intervals as exercise-typed segments
-// (their timing is exact; the subtype is cosmetic metadata in the Health app).
-private const val HC_SESSION_TYPE_EXERCISE = 1
-private const val HC_SEGMENT_TYPE_EXERCISE = 1
+internal const val HC_PERMISSION_WORKOUT_WRITE = "android.permission.health.WRITE_EXERCISE"
+internal val HC_REQUESTED_PERMISSIONS = setOf(
+    HC_PERMISSION_HEART_RATE_READ,
+    HC_PERMISSION_STEPS_READ,
+    HC_PERMISSION_WORKOUT_WRITE,
+)
 
 private const val MAX_SEGMENTS_PER_SESSION = 40
+private const val TAG = "HealthHub"
 
-private val DEVICE = Device(name = "PULSE", make = "PULSE", model = "Interval Coach")
-
-// --- Public state -----------------------------------------------------------------------------
+private val PULSE_DEVICE = Device(
+    type = Device.TYPE_PHONE,
+    manufacturer = "PULSE",
+    model = "Interval Coach",
+)
 
 /** What the Health Connect platform itself reports about availability on this device. */
 enum class HcAvailability {
@@ -120,9 +99,8 @@ data class HealthSnapshot(
 )
 
 /**
- * Bridge so [HealthHub] (an `Application`-scoped object) can run the Google Fit authorisation
- * flow, whose result always lands in the *activity*'s `onActivityResult`.
- * [MainActivity] installs the launcher once on startup.
+ * Bridge so [HealthHub] can start Google Fit authorisation from the activity, where its result is
+ * delivered through `onActivityResult`.
  */
 object FitAuthBridge {
     var launcher: ((Activity, FitnessOptions, (Boolean) -> Unit) -> Unit)? = null
@@ -139,15 +117,18 @@ object HrZones {
     }
 }
 
-// --- The hub ------------------------------------------------------------------------------------
-
+/**
+ * PULSE ↔ health-platform bridge.
+ *
+ * Health Connect is the primary backend; Google Fit is an optional legacy fallback. Missing
+ * providers, permissions, or account configuration are handled as unavailable data rather than
+ * allowing a health-service failure to disrupt workout timing.
+ */
 class HealthHub(
     private val context: Context,
     private val prefs: PreferencesRepository,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val tag = "HealthHub"
-
     private var hcClient: HealthConnectClient? = null
 
     private val _availability = MutableStateFlow(HcAvailability.UNKNOWN)
@@ -170,10 +151,10 @@ class HealthHub(
 
     private val fitOptions = FitnessOptions.builder()
         .addDataType(DataType.TYPE_HEART_RATE_BPM, FitnessOptions.ACCESS_READ)
-        .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+        .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
         .build()
 
-    /** Re-reads every platform state and the dashboard snapshot. Safe to call any time. */
+    /** Re-reads platform state and the dashboard snapshot. Safe to call any time. */
     fun refresh() {
         scope.launch {
             _availability.value = healthConnectStatus()
@@ -185,90 +166,68 @@ class HealthHub(
         }
     }
 
-    /**
-     * Asks the system for the Health Connect permissions PULSE uses. Returns whether the dialog
-     * (or the existing grant) resulted in at least one read permission.
-     */
-    suspend fun requestPermissions(): Boolean {
-        val requested = listOf(HC_PERMISSION_HEART_RATE_READ, HC_PERMISSION_STEPS_READ, HC_PERMISSION_WORKOUT_WRITE)
-        val result = withContext(Dispatchers.Main) {
-            runCatching { HealthConnectClient.requestPermission(requested) }.getOrNull()
-        } ?: return false
-        result.onSuccess { refresh() }
-        return _permissions.value.anyReadGranted
-    }
-
     /** Starts the Google Fit authorisation dialog (must be called from the UI thread). */
     fun requestFitAuthorization(activity: Activity) {
-        val launcher = FitAuthBridge.launcher
-        if (launcher == null) {
-            Log.w(tag, "Fit authorisation bridge not installed by the activity")
+        val launch = FitAuthBridge.launcher
+        if (launch == null) {
+            Log.w(TAG, "Fit authorisation bridge not installed by the activity")
             return
         }
-        launcher(activity, fitOptions) { granted ->
+        launch(activity, fitOptions) { granted ->
             scope.launch {
                 if (granted) {
                     _fitAuthorized.value = true
                     runCatching { prefs.setFitAuthorized(true) }
-                    refresh()
                 }
+                refresh()
             }
         }
     }
 
-    // --- Reads ---------------------------------------------------------------------------------
-
-    /** Newest heart-rate reading within the last few minutes, or null when nothing is available. */
+    /** Newest heart-rate reading within the last few minutes, or null when none is available. */
     suspend fun latestHeartRate(): Int? {
         healthConnectLatestHeartRate()?.let { return it }
         return fitLatestHeartRate()
     }
 
-    /** Average / peak heart rate over one window (a finished session). Null without data. */
+    /** Average / peak heart rate over one window. Returns null when no data is available. */
     suspend fun heartRateStats(startMillis: Long, endMillis: Long): HrStats? {
         if (endMillis <= startMillis) return null
         healthConnectHrStats(startMillis, endMillis)?.let { return it }
         return fitHrStats(startMillis, endMillis)
     }
 
-    /** Total steps recorded today, from whichever backend is connected. Null when none. */
+    /** Total steps recorded today, from whichever backend is connected. */
     suspend fun stepsToday(): Long? {
         healthConnectStepsToday()?.let { return it }
         return fitStepsToday()
     }
 
-    // --- Writes --------------------------------------------------------------------------------
-
-    /**
-     * Writes a finished session to Health Connect (workout session + interval segments + a heart
-     * rate record when HR read permission is granted). Returns true on success. Idempotent per
-     * session id: the record ids are derived from the session id, so re-syncing replaces instead
-     * of duplicating.
-     */
+    /** Writes a finished workout to Health Connect, falling back to Fit if HC is unavailable. */
     suspend fun writeSession(session: SessionEntity, events: List<SessionEventEntity>): Boolean {
-        if (healthConnectAvailable()) {
-            return writeSessionToHealthConnect(session, events)
+        val synced = if (healthConnectAvailable()) {
+            writeSessionToHealthConnect(session, events)
+        } else {
+            writeSessionToFit(session)
         }
-        return writeSessionToFit(session)
+        if (synced) markSynced()
+        return synced
     }
 
-    /** Marks a sync as successful (also persisted so the "last sync" label survives restarts). */
+    /** Persists the last successful sync time so the status survives restarts. */
     fun markSynced() {
         val now = System.currentTimeMillis()
         _lastSyncAt.value = now
         scope.launch { runCatching { prefs.setHealthLastSyncAt(now) } }
     }
 
-    // --- Health Connect internals --------------------------------------------------------------
-
-    private suspend fun healthConnectStatus(): HcAvailability = withContext(Dispatchers.Main) {
+    private suspend fun healthConnectStatus(): HcAvailability = withContext(Dispatchers.IO) {
         runCatching {
             when (HealthConnectClient.getSdkStatus(context)) {
-                HealthConnectClient.SdkStatus.AVAILABLE -> HcAvailability.AVAILABLE
-                HealthConnectClient.SdkStatus.NOT_INSTALLED -> HcAvailability.NOT_INSTALLED
-                HealthConnectClient.SdkStatus.NOT_ENABLED -> HcAvailability.NOT_ENABLED
-                HealthConnectClient.SdkStatus.NO_PROVIDER -> HcAvailability.NO_PROVIDER
-                HealthConnectClient.SdkStatus.NOT_SUPPORTED -> HcAvailability.NOT_SUPPORTED
+                HealthConnectClient.SDK_AVAILABLE -> HcAvailability.AVAILABLE
+                // The provider is missing or too old for this SDK version.
+                HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> HcAvailability.NOT_INSTALLED
+                HealthConnectClient.SDK_UNAVAILABLE -> HcAvailability.NOT_SUPPORTED
                 else -> HcAvailability.UNKNOWN
             }
         }.getOrDefault(HcAvailability.UNKNOWN)
@@ -276,59 +235,61 @@ class HealthHub(
 
     private fun healthConnectAvailable(): Boolean = _availability.value == HcAvailability.AVAILABLE
 
-    private suspend fun currentPermissions(): HealthPermissions = withContext(Dispatchers.Main) {
-        runCatching {
-            val client = healthConnectClientOrNull() ?: return@runCatching HealthPermissions()
-            val granted = client.permissionController.getGrantedPermissions()
-            HealthPermissions(
-                heartRateRead = granted.contains(HC_PERMISSION_HEART_RATE_READ),
-                stepsRead = granted.contains(HC_PERMISSION_STEPS_READ),
-                workoutWrite = granted.contains(HC_PERMISSION_WORKOUT_WRITE),
-            )
-        }.getOrDefault(HealthPermissions())
+    private suspend fun currentPermissions(): HealthPermissions = withContext(Dispatchers.IO) {
+        val client = healthConnectClientOrNull() ?: return@withContext HealthPermissions()
+        val granted = runCatching { client.permissionController.getGrantedPermissions() }
+            .getOrDefault(emptySet())
+        HealthPermissions(
+            heartRateRead = HC_PERMISSION_HEART_RATE_READ in granted,
+            stepsRead = HC_PERMISSION_STEPS_READ in granted,
+            workoutWrite = HC_PERMISSION_WORKOUT_WRITE in granted,
+        )
     }
 
     private fun healthConnectClientOrNull(): HealthConnectClient? {
         hcClient?.let { return it }
         if (!healthConnectAvailable()) return null
-        val client = runCatching {
-            HealthConnectClient.getClient(
-                context,
-                listOf(
-                    HC_PERMISSION_HEART_RATE_READ,
-                    HC_PERMISSION_STEPS_READ,
-                    HC_PERMISSION_ACTIVITY_READ,
-                    HC_PERMISSION_WORKOUT_READ,
-                    HC_PERMISSION_WORKOUT_WRITE,
-                ),
-            )
-        }.getOrElse { e ->
-            Log.w(tag, "Health Connect client unavailable: ${e.message}")
-            return null
-        }
+        val client = runCatching { HealthConnectClient.getOrCreate(context) }
+            .getOrElse { error ->
+                Log.w(TAG, "Health Connect client unavailable: ${error.message}")
+                return null
+            }
         hcClient = client
         return client
     }
 
-    private suspend fun queryRecords(request: QueryRecordsRequest): List<androidx.health.connect.client.records.Record>? =
-        withContext(Dispatchers.Main) {
-            runCatching {
-                val client = healthConnectClientOrNull() ?: return@runCatching null
-                client.queryRecords(request).let { list -> list.toList() }
-            }.getOrNull()
-        }
+    private suspend fun <T : Record> queryRecords(
+        recordType: KClass<T>,
+        start: Instant,
+        end: Instant,
+    ): List<T>? = withContext(Dispatchers.IO) {
+        if (!start.isBefore(end)) return@withContext emptyList()
+        val client = healthConnectClientOrNull() ?: return@withContext null
+        runCatching {
+            val request = ReadRecordsRequest<T>(
+                recordType = recordType,
+                timeRangeFilter = TimeRangeFilter.between(start, end),
+            )
+            client.readRecords(request).records
+        }.onFailure { error ->
+            Log.w(TAG, "Health Connect read failed: ${error.message}")
+        }.getOrNull()
+    }
 
     private suspend fun healthConnectLatestHeartRate(): Int? {
-        if (_permissions.value.heartRateRead.not()) return null
+        if (!_permissions.value.heartRateRead) return null
         val end = Instant.now()
-        val start = end.minusSeconds(5 * 60L)
-        val records = queryRecords(heartRateQuery(start, end)) ?: return null
+        val records = queryRecords(
+            HeartRateRecord::class,
+            end.minusSeconds(5 * 60L),
+            end,
+        ) ?: return null
         var latestTime: Instant? = null
         var latestBpm: Int? = null
         for (record in records) {
-            val hr = record as? HeartRateRecord ?: continue
-            for (sample in hr.samples) {
-                if (latestTime == null || sample.time.isAfter(latestTime)) {
+            for (sample in record.samples) {
+                val previousTime = latestTime
+                if (previousTime == null || sample.time.isAfter(previousTime)) {
                     latestTime = sample.time
                     latestBpm = sample.beatsPerMinute.toInt()
                 }
@@ -338,137 +299,101 @@ class HealthHub(
     }
 
     private suspend fun healthConnectHrStats(startMillis: Long, endMillis: Long): HrStats? {
-        if (_permissions.value.heartRateRead.not()) return null
-        val records = queryRecords(heartRateQuery(Instant.ofEpochMilli(startMillis), Instant.ofEpochMilli(endMillis))) ?: return null
+        if (!_permissions.value.heartRateRead) return null
+        val records = queryRecords(
+            HeartRateRecord::class,
+            Instant.ofEpochMilli(startMillis),
+            Instant.ofEpochMilli(endMillis),
+        ) ?: return null
         var sum = 0L
         var max = 0
         var count = 0
         for (record in records) {
-            val hr = record as? HeartRateRecord ?: continue
-            for (sample in hr.samples) {
-                sum += sample.beatsPerMinute
-                count += 1
-                if (sample.beatsPerMinute > max) max = sample.beatsPerMinute.toInt()
+            for (sample in record.samples) {
+                val bpm = sample.beatsPerMinute.toInt()
+                sum += bpm
+                max = maxOf(max, bpm)
+                count++
             }
         }
         return if (count > 0) HrStats((sum / count).toInt(), max, count) else null
     }
 
     private suspend fun healthConnectStepsToday(): Long? {
-        if (_permissions.value.stepsRead.not()) return null
+        if (!_permissions.value.stepsRead) return null
         val zone = ZoneId.systemDefault()
         val start = LocalDate.now(zone).atStartOfDay(zone).toInstant()
-        val records = queryRecords(stepsQuery(start, Instant.now())) ?: return null
-        var total = 0L
-        for (record in records) {
-            val steps = record as? StepsRecord ?: continue
-            total += steps.count
-        }
-        return total
+        val records = queryRecords(StepsRecord::class, start, Instant.now()) ?: return null
+        return records.sumOf { it.count }
     }
 
-    private fun heartRateQuery(start: Instant, end: Instant): QueryRecordsRequest =
-        QueryRecordsRequest.Builder(HeartRateRecord::class)
-            .setTimeRangeFilter(TimeRangeFilter(start, end, TimeRangeFilter.INCLUSIVE))
-            .build()
-
-    private fun stepsQuery(start: Instant, end: Instant): QueryRecordsRequest =
-        QueryRecordsRequest.Builder(StepsRecord::class)
-            .setTimeRangeFilter(TimeRangeFilter(start, end, TimeRangeFilter.INCLUSIVE))
-            .build()
-
-    private suspend fun writeSessionToHealthConnect(session: SessionEntity, events: List<SessionEventEntity>): Boolean {
-        if (_permissions.value.workoutWrite.not()) return false
+    private suspend fun writeSessionToHealthConnect(
+        session: SessionEntity,
+        events: List<SessionEventEntity>,
+    ): Boolean {
+        if (!_permissions.value.workoutWrite) return false
         val start = Instant.ofEpochMilli(session.startedAt)
         val end = Instant.ofEpochMilli(session.endedAt.coerceAtLeast(session.startedAt + 1_000L))
-        val zone = ZoneOffset.systemDefault().rules.getOffset(start)
-        val sessionUuid = UUID.nameUUIDFromBytes("pulse-session:${session.id}")
+        val durationMillis = end.toEpochMilli() - start.toEpochMilli()
+        val zone = ZoneId.systemDefault()
+        val record = ExerciseSessionRecord(
+            startTime = start,
+            startZoneOffset = zone.rules.getOffset(start),
+            endTime = end,
+            endZoneOffset = zone.rules.getOffset(end),
+            metadata = Metadata.activelyRecorded(
+                device = PULSE_DEVICE,
+                clientRecordId = "pulse-session-${session.id}",
+            ),
+            exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
+            title = session.workoutName.take(50),
+            segments = intervalSegments(events, start, durationMillis),
+        )
 
-        val workoutSession = WorkoutSession.Builder(sessionUuid)
-            .startTime(start)
-            .endTime(end)
-            .activity(Activity(name = session.workoutName.take(50), category = Activity.CATEGORY_EXERCISE, parentName = null))
-            .type(HC_SESSION_TYPE_EXERCISE)
-            .metadata(metadata())
-            .build()
-
-        val records = mutableListOf<androidx.health.connect.client.records.Record>(workoutSession)
-        records += intervalSegments(session, events, sessionUuid, start, end)
-
-        // Attach the heart-rate trace when we may read it — the Health app shows it on the session.
-        if (_permissions.value.heartRateRead) {
-            val records2 = queryRecords(heartRateQuery(start, end))
-            var sum = 0L
-            var count = 0
-            val samples = mutableListOf<HeartRateRecord.Sample>()
-            for (record in records2.orEmpty()) {
-                val hr = record as? HeartRateRecord ?: continue
-                for (sample in hr.samples) {
-                    samples += sample
-                    sum += sample.beatsPerMinute
-                    count += 1
-                }
-            }
-            if (samples.isNotEmpty()) {
-                samples.sortBy { it.time }
-                records += HeartRateRecord(
-                    startTime = start,
-                    startZoneOffset = zone,
-                    endTime = end,
-                    endZoneOffset = zone,
-                    samples = samples,
-                    metadata = metadata(),
-                )
-            }
-        }
-
-        val ok = withContext(Dispatchers.Main) {
+        val result = withContext(Dispatchers.IO) {
+            val client = healthConnectClientOrNull() ?: return@withContext false
             runCatching {
-                val client = healthConnectClientOrNull() ?: return@runCatching false
-                client.insertRecords(records)
+                client.insertRecords(listOf(record))
                 true
+            }.onFailure { error ->
+                Log.w(TAG, "Could not write workout to Health Connect: ${error.message}")
             }.getOrDefault(false)
         }
-        if (ok) markSynced()
-        return ok
+        return result
     }
 
     private fun intervalSegments(
-        session: SessionEntity,
         events: List<SessionEventEntity>,
-        sessionUuid: UUID,
-        start: Instant,
-        end: Instant,
-    ): List<WorkoutSegment> {
-        val starts = events.filter { it.kind == "INTERVAL_STARTED" }.sortedBy { it.atMillis }
-        return starts.take(MAX_SEGMENTS_PER_SESSION).mapIndexedNotNull { index, event ->
-            val segmentStart = start.plusMillis(event.atMillis)
-            val segmentEnd = if (index + 1 < starts.size) {
-                start.plusMillis(starts[index + 1].atMillis)
-            } else {
-                end
-            }
-            if (segmentEnd <= segmentStart) null else WorkoutSegment.Builder(
-                UUID.nameUUIDFromBytes("pulse-segment:${session.id}:${event.stepIndex}:${event.atMillis}"),
+        sessionStart: Instant,
+        sessionDurationMillis: Long,
+    ): List<ExerciseSegment> {
+        if (sessionDurationMillis <= 0L) return emptyList()
+        val starts = events
+            .asSequence()
+            .filter { it.kind == "INTERVAL_STARTED" }
+            .sortedBy { it.atMillis }
+            .distinctBy { it.atMillis }
+            .take(MAX_SEGMENTS_PER_SESSION)
+            .toList()
+
+        return starts.mapIndexedNotNull { index, event ->
+            val startOffset = event.atMillis.coerceAtLeast(0L)
+            if (startOffset >= sessionDurationMillis) return@mapIndexedNotNull null
+            val nextOffset = starts.getOrNull(index + 1)?.atMillis ?: sessionDurationMillis
+            val endOffset = nextOffset.coerceIn(startOffset + 1L, sessionDurationMillis)
+            ExerciseSegment(
+                startTime = sessionStart.plusMillis(startOffset),
+                endTime = sessionStart.plusMillis(endOffset),
+                segmentType = ExerciseSegment.EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT,
             )
-                .workoutSessionId(sessionUuid)
-                .startTime(segmentStart)
-                .endTime(segmentEnd)
-                .type(HC_SEGMENT_TYPE_EXERCISE)
-                .metadata(metadata())
-                .build()
         }
     }
 
-    private fun metadata(): Metadata = Metadata.actuallyRecorded(device = DEVICE)
-
-    // --- Google Fit internals --------------------------------------------------------------------
-
     private fun fitPlatformStatus(): FitAvailability {
-        val playStatus = runCatching {
+        val playServices = runCatching {
             GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
         }.getOrDefault(GoogleApiAvailability.API_UNAVAILABLE)
-        if (playStatus != GoogleApiAvailability.SUCCESS) return FitAvailability.PLAY_SERVICES_MISSING
+        if (playServices != GoogleApiAvailability.SUCCESS) return FitAvailability.PLAY_SERVICES_MISSING
         if (fitOAuthConfigured().isNullOrBlank()) return FitAvailability.NOT_CONFIGURED
         return FitAvailability.AVAILABLE
     }
@@ -478,29 +403,29 @@ class HealthHub(
         info.metaData?.getString("com.google.android.gms.fitness.OAUTH_CLIENT_ID")
     }.getOrNull()
 
-    private fun fitAccount(): com.google.android.gms.fitness.data.Account =
-        GoogleSignIn.getAccountForExtension(context, fitOptions)
+    private fun fitAccount() = GoogleSignIn.getAccountForExtension(context, fitOptions)
 
     private fun fitHasPermissions(): Boolean = runCatching {
         GoogleSignIn.hasPermissions(fitAccount(), fitOptions)
     }.getOrDefault(false)
 
     private suspend fun fitLatestHeartRate(): Int? {
-        if (_fitAvailability.value != FitAvailability.AVAILABLE || _fitAuthorized.value.not()) return null
+        if (_fitAvailability.value != FitAvailability.AVAILABLE || !_fitAuthorized.value) return null
         return withContext(Dispatchers.IO) {
             runCatching {
-                val now = System.currentTimeMillis() / 1000L
+                val now = System.currentTimeMillis()
                 val request = DataReadRequest.Builder()
                     .read(DataType.TYPE_HEART_RATE_BPM)
-                    .setTimeRange(now - 5 * 60, now, TimeUnit.SECONDS)
+                    .setTimeRange(now - TimeUnit.MINUTES.toMillis(5), now, TimeUnit.MILLISECONDS)
                     .build()
                 val response = Tasks.await(Fitness.getHistoryClient(context, fitAccount()).readData(request))
-                val dataSet = response.dataSet.firstOrNull { it.dataType == DataType.TYPE_HEART_RATE_BPM } ?: return@runCatching null
-                var latestTime = 0L
+                val dataSet = response.dataSets.firstOrNull { it.dataType == DataType.TYPE_HEART_RATE_BPM }
+                    ?: return@runCatching null
+                var latestTime = Long.MIN_VALUE
                 var latestBpm: Int? = null
-                for (data in dataSet.getData(DataType.TYPE_HEART_RATE_BPM)) {
-                    val time = data.startTimeNanos / 1_000_000L
-                    val bpm = data.getField(Field.FIELD_BPM).firstValue
+                for (point in dataSet.dataPoints) {
+                    val time = point.getStartTime(TimeUnit.MILLISECONDS)
+                    val bpm = point.getValue(Field.FIELD_BPM).asFloat().toInt()
                     if (time >= latestTime) {
                         latestTime = time
                         latestBpm = bpm
@@ -512,23 +437,24 @@ class HealthHub(
     }
 
     private suspend fun fitHrStats(startMillis: Long, endMillis: Long): HrStats? {
-        if (_fitAvailability.value != FitAvailability.AVAILABLE || _fitAuthorized.value.not()) return null
+        if (_fitAvailability.value != FitAvailability.AVAILABLE || !_fitAuthorized.value) return null
         return withContext(Dispatchers.IO) {
             runCatching {
                 val request = DataReadRequest.Builder()
                     .read(DataType.TYPE_HEART_RATE_BPM)
-                    .setTimeRange(startMillis / 1000L, endMillis / 1000L, TimeUnit.SECONDS)
+                    .setTimeRange(startMillis, endMillis, TimeUnit.MILLISECONDS)
                     .build()
                 val response = Tasks.await(Fitness.getHistoryClient(context, fitAccount()).readData(request))
-                val dataSet = response.dataSet.firstOrNull { it.dataType == DataType.TYPE_HEART_RATE_BPM } ?: return@runCatching null
+                val dataSet = response.dataSets.firstOrNull { it.dataType == DataType.TYPE_HEART_RATE_BPM }
+                    ?: return@runCatching null
                 var sum = 0L
                 var max = 0
                 var count = 0
-                for (data in dataSet.getData(DataType.TYPE_HEART_RATE_BPM)) {
-                    val bpm = data.getField(Field.FIELD_BPM).firstValue
+                for (point in dataSet.dataPoints) {
+                    val bpm = point.getValue(Field.FIELD_BPM).asFloat().toInt()
                     sum += bpm
-                    count += 1
-                    if (bpm > max) max = bpm
+                    max = maxOf(max, bpm)
+                    count++
                 }
                 if (count > 0) HrStats((sum / count).toInt(), max, count) else null
             }.getOrNull()
@@ -536,66 +462,52 @@ class HealthHub(
     }
 
     private suspend fun fitStepsToday(): Long? {
-        if (_fitAvailability.value != FitAvailability.AVAILABLE || _fitAuthorized.value.not()) return null
+        if (_fitAvailability.value != FitAvailability.AVAILABLE || !_fitAuthorized.value) return null
         return withContext(Dispatchers.IO) {
             runCatching {
                 val zone = ZoneId.systemDefault()
-                val start = LocalDate.now(zone).atStartOfDay(zone).toEpochSecond()
-                val now = System.currentTimeMillis() / 1000L
+                val start = LocalDate.now(zone).atStartOfDay(zone).toInstant().toEpochMilli()
+                val now = System.currentTimeMillis()
                 val request = DataReadRequest.Builder()
                     .read(DataType.TYPE_STEP_COUNT_DELTA)
-                    .setTimeRange(start, now, TimeUnit.SECONDS)
+                    .setTimeRange(start, now, TimeUnit.MILLISECONDS)
                     .build()
                 val response = Tasks.await(Fitness.getHistoryClient(context, fitAccount()).readData(request))
-                var total = 0L
-                for (dataSet in response.dataSet) {
-                    for (data in dataSet) {
-                        total += data.getField(Field.FIELD_STEPS).firstValue
-                    }
-                }
-                total
+                response.dataSets
+                    .filter { it.dataType == DataType.TYPE_STEP_COUNT_DELTA }
+                    .flatMap { it.dataPoints }
+                    .sumOf { it.getValue(Field.FIELD_STEPS).asInt().toLong() }
             }.getOrNull()
         }
     }
 
     private suspend fun writeSessionToFit(session: SessionEntity): Boolean {
-        if (_fitAvailability.value != FitAvailability.AVAILABLE || _fitAuthorized.value.not()) return false
+        if (_fitAvailability.value != FitAvailability.AVAILABLE || !_fitAuthorized.value) return false
         return withContext(Dispatchers.IO) {
             runCatching {
-                val account = fitAccount()
-                val description = "Interval workout recorded by PULSE (${session.workoutName})"
-                val config = SessionConfiguration(
-                    session.workoutName.take(50),
-                    description,
-                    SessionConfiguration.TYPE_WORKOUT,
-                    SessionConfiguration.STATUS_IN_PROGRESS,
-                )
-                val insertRequest = SessionInsertRequest.Builder()
-                    .setSessionConfiguration(config)
+                val end = session.endedAt.coerceAtLeast(session.startedAt + 1_000L)
+                val fitSession = Session.Builder()
+                    .setName(session.workoutName.take(50))
+                    .setDescription("Interval workout recorded by PULSE")
+                    .setIdentifier("pulse-session-${session.id}")
+                    .setActivity(FitnessActivities.OTHER)
+                    .setStartTime(session.startedAt, TimeUnit.MILLISECONDS)
+                    .setEndTime(end, TimeUnit.MILLISECONDS)
                     .build()
-                val inserted = Tasks.await(Fitness.getSessionsClient(context, account).insertSession(insertRequest))
-                val completed = SessionConfiguration(
-                    inserted.name,
-                    description,
-                    SessionConfiguration.TYPE_WORKOUT,
-                    SessionConfiguration.STATUS_COMPLETE,
-                )
-                val updateRequest = SessionUpdateRequest.Builder(
-                    inserted.id,
-                    completed,
-                    session.startedAt,
-                    session.endedAt.coerceAtLeast(session.startedAt + 1_000L),
-                ).build()
-                Tasks.await(Fitness.getSessionsClient(context, account).updateSession(updateRequest))
+                val request = SessionInsertRequest.Builder()
+                    .setSession(fitSession)
+                    .build()
+                Tasks.await(Fitness.getSessionsClient(context, fitAccount()).insertSession(request))
+                true
+            }.onFailure { error ->
+                Log.w(TAG, "Could not write workout to Google Fit: ${error.message}")
             }.getOrDefault(false)
         }
     }
 
-    // --- Snapshot ------------------------------------------------------------------------------
-
     private suspend fun buildSnapshot(): HealthSnapshot {
         val steps = stepsToday()
-        val hr = latestHeartRate()
+        val heartRate = latestHeartRate()
         val source = when {
             healthConnectAvailable() && _permissions.value.anyReadGranted -> "Health Connect"
             _fitAvailability.value == FitAvailability.AVAILABLE && _fitAuthorized.value -> "Google Fit"
@@ -603,7 +515,7 @@ class HealthHub(
         }
         return HealthSnapshot(
             stepsToday = steps,
-            latestHeartRate = hr,
+            latestHeartRate = heartRate,
             source = source,
             lastSyncAt = _lastSyncAt.value,
         )

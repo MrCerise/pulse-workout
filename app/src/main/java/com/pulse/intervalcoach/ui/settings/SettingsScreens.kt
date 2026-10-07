@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.HealthAndBeauty
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -122,7 +122,7 @@ fun SettingsScreen(
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                Icons.Filled.HealthAndBeauty,
+                                Icons.Filled.Favorite,
                                 contentDescription = null,
                                 tint = if (healthSnapshot.source != null) colors.work else colors.textSecondary,
                                 modifier = Modifier.padding(end = 10.dp),
@@ -130,7 +130,7 @@ fun SettingsScreen(
                             Column(Modifier.weight(1f)) {
                                 Text("Health Connect & Google Fit", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
                             }
-                            if (healthSnapshot.source != null) NeutralChip(healthSnapshot.source)
+                            healthSnapshot.source?.let { NeutralChip(it) }
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(

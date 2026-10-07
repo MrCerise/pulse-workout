@@ -127,7 +127,6 @@ fun WelcomeScreen(
                             "20",
                             style = MaterialTheme.typography.displayMedium,
                             color = colors.textPrimary,
-                            fontFeatureSettings = "tnum",
                         )
                     }
                     Spacer(Modifier.height(20.dp))
@@ -156,7 +155,6 @@ fun WelcomeScreen(
                         "${example.plan.name} · ${formatDuration(exampleDuration)}",
                         style = MaterialTheme.typography.titleMedium,
                         color = colors.work,
-                        fontFeatureSettings = "tnum",
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(example.plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)

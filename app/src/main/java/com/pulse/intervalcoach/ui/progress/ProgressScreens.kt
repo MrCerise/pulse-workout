@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.HealthAndBeauty
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -182,7 +182,7 @@ fun ProgressScreen(
                         Column(Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    Icons.Filled.HealthAndBeauty,
+                                    Icons.Filled.Healing,
                                     contentDescription = null,
                                     tint = if (healthSnapshot.source != null) colors.work else colors.textSecondary,
                                 )
@@ -577,7 +577,6 @@ private fun EventRow(event: SessionEventEntity) {
             style = MaterialTheme.typography.labelMedium,
             color = colors.textSecondary,
             modifier = Modifier.padding(end = 12.dp),
-            fontFeatureSettings = "tnum",
         )
         Column(Modifier.weight(1f)) {
             Text(event.kind.humanEvent(), style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)

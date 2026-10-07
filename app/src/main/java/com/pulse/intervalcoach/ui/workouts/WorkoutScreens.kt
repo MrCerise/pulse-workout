@@ -307,7 +307,6 @@ fun WorkoutLibraryScreen(
                                     if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.work,
-                                    fontFeatureSettings = "tnum",
                                 )
                             }
                         }
@@ -501,7 +500,6 @@ fun WorkoutDetailsScreen(
                             if (expanded.hasOpenEnded) "≥ ${formatDuration(expanded.knownMillis)}" else formatDuration(expanded.totalMillis ?: 0L),
                             style = MaterialTheme.typography.displaySmall,
                             color = colors.work,
-                            fontFeatureSettings = "tnum",
                         )
                         if (plan.description.isNotBlank()) {
                             Spacer(Modifier.height(8.dp))
@@ -574,7 +572,6 @@ fun WorkoutDetailsScreen(
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.textSecondary,
-                                fontFeatureSettings = "tnum",
                             )
                             step.notes?.let {
                                 Spacer(Modifier.height(4.dp))
@@ -654,7 +651,7 @@ fun TemplateGalleryScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(template.plan.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, modifier = Modifier.weight(1f, fill = false), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Spacer(Modifier.width(8.dp))
-                            Text(formatDuration(duration), style = MaterialTheme.typography.titleMedium, color = colors.work, fontFeatureSettings = "tnum")
+                            Text(formatDuration(duration), style = MaterialTheme.typography.titleMedium, color = colors.work)
                         }
                         Spacer(Modifier.height(6.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
