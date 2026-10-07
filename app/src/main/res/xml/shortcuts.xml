@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="quick_builder"
+        android:enabled="true"
+        android:shortcutShortLabel="@string/shortcut_quick"
+        android:shortcutLongLabel="@string/builder_quick_title"
+        android:icon="@drawable/ic_shortcut_quick">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="pulse://quick-builder"
+            android:targetPackage="com.pulse.intervalcoach"
+            android:targetClass="com.pulse.intervalcoach.MainActivity" />
+    </shortcut>
+</shortcuts>

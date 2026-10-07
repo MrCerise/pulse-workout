@@ -1,0 +1,21 @@
+# Build outputs
+build/
+app/build/
+engine/build/
+.gradle/
+.kotlin/
+
+# Machine-specific
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Signing material — never commit these
+*.jks
+*.keystore
+keystore.properties
+
+# IDE
+.idea/
+*.iml

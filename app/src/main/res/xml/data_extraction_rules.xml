@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Data extraction rules for API 31+. Cloud backups and device-to-device transfers carry the same
+  content: the database, preferences and user media, minus the regenerable cache and the local
+  backup folder.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="." />
+        <exclude domain="file" path="recordings" />
+        <exclude domain="file" path="shared" />
+        <exclude domain="file" path="backups" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="." />
+        <exclude domain="file" path="shared" />
+        <exclude domain="file" path="backups" />
+    </device-transfer>
+</data-extraction-rules>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup (API 26-30). The Room database and preferences are the app's source of truth, so they
+  are included in full; recordings and the regenerable export/share cache stay on the device.
+  Backups written by the weekly WorkManager job are also excluded: they are a copy of the database
+  and would otherwise be duplicated on every restore.
+-->
+<full-backup-content>
+    <include domain="database" path="." />
+    <include domain="sharedpref" path="." />
+    <include domain="file" path="." />
+    <exclude domain="file" path="recordings" />
+    <exclude domain="file" path="shared" />
+    <exclude domain="file" path="backups" />
+</full-backup-content>

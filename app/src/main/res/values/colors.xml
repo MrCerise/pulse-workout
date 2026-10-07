@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PULSE design tokens shared between XML themes/widgets and Compose (see ui/theme/Color.kt).
+  Measured WCAG contrast ratios for these pairings are documented in docs/CONTRAST.md and are
+  produced by scripts/contrast_check.py, which reads this file.
+-->
+<resources>
+    <!-- Dark theme (default look) -->
+    <color name="pulse_background">#0B1020</color>
+    <color name="pulse_surface">#151B2D</color>
+    <color name="pulse_surface_raised">#1E263C</color>
+    <color name="pulse_text_primary">#F5F7FB</color>
+    <color name="pulse_text_secondary">#AAB4C8</color>
+    <color name="pulse_outline">#5A688A</color>
+
+    <!-- Interval colours (dark theme) — always paired with dark text on the fill -->
+    <color name="pulse_work">#B8F267</color>
+    <color name="pulse_rest">#65D9EF</color>
+    <color name="pulse_prepare">#FFCA7A</color>
+    <color name="pulse_cooldown">#B9A6FF</color>
+    <color name="pulse_destructive">#FF727D</color>
+    <color name="pulse_on_accent">#0B1020</color>
+
+    <!-- Light theme -->
+    <color name="pulse_light_background">#F5F7FC</color>
+    <color name="pulse_light_surface">#FFFFFF</color>
+    <color name="pulse_light_surface_raised">#EDF1F9</color>
+    <color name="pulse_light_text_primary">#101426</color>
+    <color name="pulse_light_text_secondary">#4C5670</color>
+    <color name="pulse_light_outline">#7F8798</color>
+    <color name="pulse_light_work">#3F6F0B</color>
+    <color name="pulse_light_rest">#0B6076</color>
+    <color name="pulse_light_prepare">#8A4B00</color>
+    <color name="pulse_light_cooldown">#4C33B8</color>
+    <color name="pulse_light_destructive">#B32638</color>
+
+    <!-- True black theme -->
+    <color name="pulse_black_background">#000000</color>
+    <color name="pulse_black_surface">#0C0C10</color>
+
+    <color name="ic_launcher_background">#0B1020</color>
+    <color name="widget_background">#151B2D</color>
+</resources>
