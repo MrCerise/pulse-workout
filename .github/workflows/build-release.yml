@@ -48,3 +48,4 @@ jobs:
         with:
           generate_release_notes: true
           files: release-assets/*.apk
+
