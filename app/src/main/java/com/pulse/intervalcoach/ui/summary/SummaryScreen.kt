@@ -116,15 +116,26 @@ fun SessionSummaryScreen(
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile("Active time", formatDuration(current.activeMillis), accent = colors.work)
-                StatTile("Completion", "${if (current.totalIntervals == 0) 0 else (current.completedIntervals * 100 / current.totalIntervals)}%")
+                StatTile(
+                    "Active time",
+                    formatDuration(current.activeMillis),
+                    accent = colors.work,
+                    modifier = Modifier.weight(1f),
+                )
+                StatTile(
+                    "Completion",
+                    "${if (current.totalIntervals == 0) 0 else (current.completedIntervals * 100 / current.totalIntervals)}%",
+                    modifier = Modifier.weight(1f),
+                )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatTile("Intervals", "${current.completedIntervals}/${current.totalIntervals}")
-                StatTile("Skipped", current.skippedIntervals.toString())
-                if (current.roundsLogged > 0) StatTile("Rounds", current.roundsLogged.toString())
+                StatTile("Intervals", "${current.completedIntervals}/${current.totalIntervals}", modifier = Modifier.weight(1f))
+                StatTile("Skipped", current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
+                if (current.roundsLogged > 0) {
+                    StatTile("Rounds", current.roundsLogged.toString(), modifier = Modifier.weight(1f))
+                }
             }
-            StatTile("Total time (incl. pauses)", formatDuration(current.wallMillis))
+            StatTile("Total time (incl. pauses)", formatDuration(current.wallMillis), modifier = Modifier.fillMaxWidth())
 
             SectionHeader("Notes")
             OutlinedTextField(

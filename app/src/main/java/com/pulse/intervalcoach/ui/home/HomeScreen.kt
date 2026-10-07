@@ -1,21 +1,28 @@
 package com.pulse.intervalcoach.ui.home
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +33,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -38,14 +48,13 @@ import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.data.DailyActivity
 import com.pulse.intervalcoach.data.WorkoutSummary
 import com.pulse.intervalcoach.data.db.ReminderEntity
+import com.pulse.intervalcoach.ui.components.DurationStepper
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.NumberStepper
-import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
-import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -79,11 +88,6 @@ data class PlannedInfo(val reminder: ReminderEntity, val workoutName: String)
 class HomeViewModel(
     private val container: AppContainer,
 ) : ViewModel() {
-
-    val quickWorkMillis = MutableStateFlow(40_000L)
-    val quickRestMillis = MutableStateFlow(20_000L)
-    val quickRounds = MutableStateFlow(8)
-    val quickPrepMillis = MutableStateFlow(10_000L)
 
     private val _quickState = MutableStateFlow(QuickState())
     val quickState: StateFlow<QuickState> = _quickState.asStateFlow()
@@ -124,10 +128,6 @@ class HomeViewModel(
                 rounds = prefs.defaultRounds,
                 prepMillis = prefs.defaultPreparationMillis,
             )
-            quickWorkMillis.value = prefs.defaultWorkMillis
-            quickRestMillis.value = prefs.defaultRestMillis
-            quickRounds.value = prefs.defaultRounds
-            quickPrepMillis.value = prefs.defaultPreparationMillis
         }
     }
 
@@ -145,7 +145,6 @@ class HomeViewModel(
 
     suspend fun planFor(id: String): WorkoutPlan? = container.workouts.plan(id)
     suspend fun favorite(id: String, favorite: Boolean) = container.workouts.setFavorite(id, favorite)
-    suspend fun runNow() = Unit
 }
 
 @Composable
@@ -155,6 +154,8 @@ fun HomeScreen(
     onStartWorkout: (WorkoutPlan) -> Unit,
     onQuickStart: () -> Unit,
     onOpenProgress: () -> Unit,
+    onOpenTemplates: () -> Unit,
+    onResumeSession: () -> Unit,
 ) {
     val viewModel: HomeViewModel = viewModel(initializer = { HomeViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -165,36 +166,55 @@ fun HomeScreen(
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+        // The root Scaffold no longer applies system-bar insets (see PulseAppRoot), so the two
+        // screens without their own Scaffold apply them here.
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding(),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
             Column {
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelLarge, color = colors.work)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(10.dp).background(colors.work, CircleShape))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelLarge, color = colors.textSecondary)
+                }
+                Spacer(Modifier.height(6.dp))
                 Text(stringResource(R.string.home_greeting), style = MaterialTheme.typography.headlineMedium, color = colors.textPrimary)
             }
         }
 
         if (activeSession != null) {
             item {
-                PulseCard(onClick = {}) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                PulseCard(onClick = onResumeSession) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(40.dp).background(colors.work.copy(alpha = 0.16f), RoundedCornerShape(12.dp)),
+                            contentAlignment = Alignment.Center,
+                        ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = colors.work)
-                            Spacer(Modifier.width(8.dp))
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
                             Text(
                                 "Workout in progress — ${activeSession?.plan?.name}",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = colors.textPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                "${snapshot.step?.name ?: ""} · ${formatDuration(snapshot.stepRemainingMillis)} left",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.textSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            "${snapshot.step?.name ?: ""} · ${formatDuration(snapshot.stepRemainingMillis)} left",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.textSecondary,
-                        )
+                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textSecondary)
                     }
                 }
             }
@@ -216,13 +236,13 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        com.pulse.intervalcoach.ui.components.DurationStepper(
+                        DurationStepper(
                             label = stringResource(R.string.builder_work),
                             millis = quick.work,
                             onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
                             modifier = Modifier.weight(1f),
                         )
-                        com.pulse.intervalcoach.ui.components.DurationStepper(
+                        DurationStepper(
                             label = stringResource(R.string.builder_rest),
                             millis = quick.rest,
                             onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
@@ -230,13 +250,13 @@ fun HomeScreen(
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        com.pulse.intervalcoach.ui.components.NumberStepper(
+                        NumberStepper(
                             label = stringResource(R.string.details_rounds),
                             value = quick.rounds,
                             onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
                             modifier = Modifier.weight(1f),
                         )
-                        com.pulse.intervalcoach.ui.components.DurationStepper(
+                        DurationStepper(
                             label = stringResource(R.string.builder_preparation),
                             millis = quick.prepMillis,
                             onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
@@ -287,11 +307,16 @@ fun HomeScreen(
             PulseCard {
                 Column {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatTile("Sessions", state.weekSessions.toString())
-                        StatTile("Active time", formatDuration(state.weekMillis), accent = colors.work)
+                        StatTile("Sessions", state.weekSessions.toString(), modifier = Modifier.weight(1f))
+                        StatTile(
+                            "Active time",
+                            formatDuration(state.weekMillis),
+                            accent = colors.work,
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                     Spacer(Modifier.height(12.dp))
-                    WeekBars(state.week)
+                    WeekChart(state.week)
                 }
             }
         }
@@ -339,8 +364,9 @@ fun HomeScreen(
                 EmptyState(
                     title = "Nothing here yet",
                     body = "Star a workout to pin it here, or press Start on Quick start above. Your finished sessions will appear once you complete one.",
+                    icon = Icons.Filled.FitnessCenter,
                     actionLabel = "Browse templates",
-                    onAction = onOpenProgress,
+                    onAction = onOpenTemplates,
                 )
             }
         }
@@ -350,28 +376,52 @@ fun HomeScreen(
 private fun quickTotal(quick: HomeViewModel.QuickState): Long =
     quick.prepMillis + quick.rounds * (quick.work + quick.rest)
 
+/**
+ * Seven-day activity chart.
+ *
+ * Bars sit in equal-width slots so they line up with the weekday labels underneath — the previous
+ * version spaced them by a fixed gap, so the bars drifted out of alignment with nothing to read
+ * them against anyway.
+ */
 @Composable
-private fun WeekBars(activities: List<DailyActivity>) {
+private fun WeekChart(activities: List<DailyActivity>) {
     val colors = LocalPulseColors.current
     val max = (activities.maxOfOrNull { it.activeMillis } ?: 0L).coerceAtLeast(1L)
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp),
-    ) {
-        if (activities.isEmpty()) return@Canvas
-        val gap = 6.dp.toPx()
-        val barWidth = (size.width - gap * (activities.size - 1)) / activities.size
-        activities.forEachIndexed { index, day ->
-            val fraction = day.activeMillis.toFloat() / max.toFloat()
-            val barHeight = (size.height * fraction).coerceAtLeast(if (day.activeMillis > 0) 6.dp.toPx() else 2.dp.toPx())
-            val color: Color = if (day.activeMillis > 0) colors.work else colors.outline.copy(alpha = 0.4f)
-            drawRoundRect(
-                color = color,
-                topLeft = androidx.compose.ui.geometry.Offset(index * (barWidth + gap), size.height - barHeight),
-                size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 4),
-            )
+    Column {
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .semantics { contentDescription = "Last 7 days of activity" },
+        ) {
+            if (activities.isEmpty()) return@Canvas
+            val slot = size.width / activities.size
+            val barWidth = (slot - 6.dp.toPx()).coerceAtLeast(2.dp.toPx())
+            activities.forEachIndexed { index, day ->
+                val fraction = day.activeMillis.toFloat() / max.toFloat()
+                val barHeight = (size.height * fraction).coerceAtLeast(if (day.activeMillis > 0) 6.dp.toPx() else 2.dp.toPx())
+                val color: Color = if (day.activeMillis > 0) colors.work else colors.outline.copy(alpha = 0.4f)
+                val x = index * slot + (slot - barWidth) / 2
+                drawRoundRect(
+                    color = color,
+                    topLeft = androidx.compose.ui.geometry.Offset(x, size.height - barHeight),
+                    size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 3),
+                )
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(Modifier.fillMaxWidth()) {
+            activities.forEach { day ->
+                Text(
+                    day.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (day.activeMillis > 0) colors.textPrimary else colors.textSecondary,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }

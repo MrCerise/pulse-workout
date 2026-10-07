@@ -1,6 +1,9 @@
 package com.pulse.intervalcoach.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -21,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -136,6 +140,8 @@ fun PulseAppRoot(
         val backStackEntry by navController.currentBackStackEntryAsState()
         val route = backStackEntry?.destination?.route
         val showBottomBar = route in primaryDestinations.map { it.route }
+        // With no bottom bar the snackbar would otherwise sit under the gesture bar.
+        val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
         // Deep links from shortcuts, widgets, reminders and notification taps.
         val deeplink by deeplinks.collectAsStateWithLifecycle()
@@ -172,7 +178,17 @@ fun PulseAppRoot(
         }
 
         Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = {
+                SnackbarHost(
+                    snackbarHostState,
+                    modifier = Modifier.padding(bottom = if (showBottomBar) 0.dp else navBarInset),
+                )
+            },
+            // Zero here on purpose. Most destinations own their own Scaffold + TopAppBar, and
+            // Material3's Scaffold does not consume the insets it applies — so an outer Scaffold
+            // that applied the system bars would push every inner app bar down a second status-bar
+            // height. Screens without their own Scaffold apply the insets themselves.
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showBottomBar) {
                     NavigationBar {
@@ -206,6 +222,8 @@ fun PulseAppRoot(
                         onStartWorkout = startSession,
                         onQuickStart = { navController.navigate(Routes.QUICK_BUILDER) },
                         onOpenProgress = { navController.navigate(Routes.PROGRESS) },
+                        onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
+                        onResumeSession = { navController.navigate(Routes.PLAYER) },
                     )
                 }
                 composable(Routes.WORKOUTS) {
