@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- App-shortcut glyph: quick start. Centred on the 24 dp canvas (the old path sat 1 dp left). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp"
     android:viewportWidth="24" android:viewportHeight="24"
     android:tint="#0B1020">
-    <path android:fillColor="#FFFFFF" android:pathData="M13,2L4.5,13.5h5L9,22l8.5,-11.5h-5z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M14,2L5.5,13.5h5L10,22l8.5,-11.5h-5z" />
 </vector>

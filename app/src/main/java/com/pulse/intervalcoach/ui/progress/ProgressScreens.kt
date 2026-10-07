@@ -28,6 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,6 +64,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import androidx.compose.ui.res.stringResource
 import com.pulse.intervalcoach.R
 
@@ -100,8 +104,6 @@ class ProgressViewModel(private val container: AppContainer) : ViewModel() {
         container.reminders.delete(id)
         refresh.value++
     }
-
-    suspend fun workouts() = container.workouts.summaries.let { }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,9 +130,9 @@ fun ProgressScreen(
         ) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("All time", formatDuration(state.totals), accent = colors.work)
-                    StatTile("Sessions", state.sessions.size.toString())
-                    StatTile("Streak", "${state.streak} d")
+                    StatTile("All time", formatDuration(state.totals), accent = colors.work, modifier = Modifier.weight(1f))
+                    StatTile("Sessions", state.sessions.size.toString(), modifier = Modifier.weight(1f))
+                    StatTile("Streak", "${state.streak} d", modifier = Modifier.weight(1f))
                 }
             }
             item {
@@ -233,27 +235,55 @@ fun ProgressScreen(
     }
 }
 
+/**
+ * Daily-minutes chart. Bars sit in equal-width slots so the date labels below line up with them;
+ * only every other day is labelled, otherwise 14 labels would collide on a phone.
+ */
 @Composable
 private fun ActivityChart(activities: List<DailyActivity>) {
     val colors = LocalPulseColors.current
     val max = (activities.maxOfOrNull { it.activeMillis } ?: 0L).coerceAtLeast(1L)
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp),
-    ) {
-        if (activities.isEmpty()) return@Canvas
-        val gap = 4.dp.toPx()
-        val barWidth = (size.width - gap * (activities.size - 1)) / activities.size
-        activities.forEachIndexed { index, day ->
-            val fraction = day.activeMillis.toFloat() / max.toFloat()
-            val barHeight = (size.height * fraction).coerceAtLeast(if (day.activeMillis > 0) 8.dp.toPx() else 2.dp.toPx())
-            drawRoundRect(
-                color = if (day.activeMillis > 0) colors.work else colors.outline.copy(alpha = 0.35f),
-                topLeft = androidx.compose.ui.geometry.Offset(index * (barWidth + gap), size.height - barHeight),
-                size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 4),
-            )
+    Column {
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .semantics { contentDescription = "Active minutes over the last ${activities.size} days" },
+        ) {
+            if (activities.isEmpty()) return@Canvas
+            val slot = size.width / activities.size
+            val barWidth = (slot - 3.dp.toPx()).coerceAtLeast(2.dp.toPx())
+            activities.forEachIndexed { index, day ->
+                val fraction = day.activeMillis.toFloat() / max.toFloat()
+                val barHeight = (size.height * fraction).coerceAtLeast(if (day.activeMillis > 0) 8.dp.toPx() else 2.dp.toPx())
+                val x = index * slot + (slot - barWidth) / 2
+                drawRoundRect(
+                    color = if (day.activeMillis > 0) colors.work else colors.outline.copy(alpha = 0.35f),
+                    topLeft = androidx.compose.ui.geometry.Offset(x, size.height - barHeight),
+                    size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 3),
+                )
+            }
+        }
+        if (activities.isNotEmpty()) {
+            Spacer(Modifier.height(6.dp))
+            Row(Modifier.fillMaxWidth()) {
+                activities.forEachIndexed { index, day ->
+                    val label = if (index % 2 == 0 || index == activities.lastIndex) {
+                        day.date.format(DateTimeFormatter.ofPattern("d/M", Locale.getDefault()))
+                    } else {
+                        ""
+                    }
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.textSecondary,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
         }
     }
 }
@@ -374,9 +404,9 @@ fun SessionDetailScreen(
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("Active", formatDuration(current.activeMillis), accent = colors.work)
-                    StatTile("Total", formatDuration(current.wallMillis))
-                    StatTile("Skipped", current.skippedIntervals.toString())
+                    StatTile("Active", formatDuration(current.activeMillis), accent = colors.work, modifier = Modifier.weight(1f))
+                    StatTile("Total", formatDuration(current.wallMillis), modifier = Modifier.weight(1f))
+                    StatTile("Skipped", current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
                 }
             }
             if (current.status == STATUS_INTERRUPTED) {

@@ -8,7 +8,7 @@ Thresholds are WCAG 2.1 AA: **4.5:1** for body text, **3:1** for large text (≥
 ≥ 14 pt bold) and for non-text UI such as timeline segments, progress rings, control
 outlines and destructive affordances.
 
-**Result: PASS** — 34 pairs measured across three themes.
+**Result: PASS** — 46 pairs measured across three themes.
 
 The high-contrast switch in Settings replaces the phase accents and the outline with
 brighter variants (`HighContrast*` in Theme.kt); those variants are strictly lighter than the
@@ -33,6 +33,12 @@ pairs measured here, and the text colours move to pure white / pure black.
 | Text on a filled work pill | `#0B1020` | `#B8F267` | 14.37:1 | 4.5:1 | pass | labels inside accent fills |
 | Outline on background | `#5A688A` | `#0B1020` | 3.41:1 | 3.0:1 | pass | control borders and dividers |
 | Outline on card | `#5A688A` | `#151B2D` | 3.08:1 | 3.0:1 | pass | card borders |
+| Text on dialog/menu surface | `#F5F7FB` | `#27314A` | 12.05:1 | 4.5:1 | pass | dialogs, dropdown menus |
+| Secondary text on dialog | `#AAB4C8` | `#27314A` | 6.20:1 | 4.5:1 | pass | dialog body copy |
+| Primary container text | `#D9F7A8` | `#2A3A12` | 10.41:1 | 4.5:1 | pass | work-tonal badges |
+| Secondary container text | `#B6ECF7` | `#0E3440` | 10.31:1 | 4.5:1 | pass | rest-tonal badges |
+| Tertiary container text | `#D6CCFF` | `#2C2258` | 9.44:1 | 4.5:1 | pass | cool-down badges |
+| Error container text | `#FFC2C7` | `#4A1520` | 9.72:1 | 4.5:1 | pass | import/export failures |
 
 ## True black (OLED)
 
@@ -44,6 +50,8 @@ pairs measured here, and the text colours move to pure white / pure black.
 | Rest accent on OLED black | `#65D9EF` | `#000000` | 12.72:1 | 3.0:1 | pass | true black theme |
 | Destructive on OLED black | `#FF727D` | `#000000` | 7.96:1 | 3.0:1 | pass | true black theme |
 | Primary text on OLED surface | `#F5F7FB` | `#0C0C10` | 18.20:1 | 4.5:1 | pass | true black cards |
+| Primary text on OLED dialog | `#F5F7FB` | `#1C1C24` | 15.78:1 | 4.5:1 | pass | true black dialogs |
+| Secondary text on OLED dialog | `#AAB4C8` | `#1C1C24` | 8.12:1 | 4.5:1 | pass | true black dialogs |
 
 ## Light
 
@@ -62,6 +70,10 @@ pairs measured here, and the text colours move to pure white / pure black.
 | Destructive on background | `#B32638` | `#F5F7FC` | 6.03:1 | 3.0:1 | pass | destructive actions |
 | Outline on background | `#7F8798` | `#F5F7FC` | 3.37:1 | 3.0:1 | pass | control borders |
 | Outline on card | `#7F8798` | `#FFFFFF` | 3.61:1 | 3.0:1 | pass | card borders |
+| Text on dialog/menu surface | `#101426` | `#E3E9F4` | 14.98:1 | 4.5:1 | pass | light dialogs |
+| Secondary text on dialog | `#4C5670` | `#E3E9F4` | 6.00:1 | 4.5:1 | pass | light dialog body |
+| Primary container text | `#1B2E00` | `#D6EFB0` | 11.71:1 | 4.5:1 | pass | light tonal badges |
+| Error container text | `#410006` | `#FFDAD9` | 13.27:1 | 4.5:1 | pass | light error banners |
 
 ## Why these pairs
 

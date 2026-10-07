@@ -748,7 +748,7 @@ fun BackupScreen(
 
             error?.let { message ->
                 item {
-                    InfoBanner("Import failed: $message Nothing was changed.", tone = colors.destructive.copy(alpha = 0.15f))
+                    InfoBanner("Import failed: $message Nothing was changed.", tone = colors.destructive, warning = true)
                 }
             }
         }

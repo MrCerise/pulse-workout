@@ -71,6 +71,43 @@ KOTLIN_MIRROR = {
     "OnAccent": "pulse_on_accent",
     "TrueBlack": "pulse_black_background",
     "TrueBlackSurface": "pulse_black_surface",
+    # Material tonal ramp (dark)
+    "DarkContainerLowest": "pulse_container_lowest",
+    "DarkContainerLow": "pulse_container_low",
+    "DarkContainerHigh": "pulse_container_high",
+    "DarkContainerHighest": "pulse_container_highest",
+    "DarkSurfaceDim": "pulse_surface_dim",
+    "DarkSurfaceBright": "pulse_surface_bright",
+    "DarkOutlineVariant": "pulse_outline_variant",
+    "DarkPrimaryContainer": "pulse_primary_container",
+    "DarkOnPrimaryContainer": "pulse_on_primary_container",
+    "DarkSecondaryContainer": "pulse_secondary_container",
+    "DarkOnSecondaryContainer": "pulse_on_secondary_container",
+    "DarkTertiaryContainer": "pulse_tertiary_container",
+    "DarkOnTertiaryContainer": "pulse_on_tertiary_container",
+    "DarkErrorContainer": "pulse_error_container",
+    "DarkOnErrorContainer": "pulse_on_error_container",
+    # Material tonal ramp (light)
+    "LightContainerLowest": "pulse_light_container_lowest",
+    "LightContainerLow": "pulse_light_container_low",
+    "LightContainerHigh": "pulse_light_container_high",
+    "LightContainerHighest": "pulse_light_container_highest",
+    "LightSurfaceDim": "pulse_light_surface_dim",
+    "LightSurfaceBright": "pulse_light_surface_bright",
+    "LightOutlineVariant": "pulse_light_outline_variant",
+    "LightPrimaryContainer": "pulse_light_primary_container",
+    "LightOnPrimaryContainer": "pulse_light_on_primary_container",
+    "LightSecondaryContainer": "pulse_light_secondary_container",
+    "LightOnSecondaryContainer": "pulse_light_on_secondary_container",
+    "LightTertiaryContainer": "pulse_light_tertiary_container",
+    "LightOnTertiaryContainer": "pulse_light_on_tertiary_container",
+    "LightErrorContainer": "pulse_light_error_container",
+    "LightOnErrorContainer": "pulse_light_on_error_container",
+    # OLED
+    "BlackContainerLowest": "pulse_black_container_lowest",
+    "BlackContainerLow": "pulse_black_container_low",
+    "BlackContainerHigh": "pulse_black_container_high",
+    "BlackContainerHighest": "pulse_black_container_highest",
 }
 
 
@@ -125,6 +162,13 @@ DARK_PAIRS = [
     ("Text on a filled work pill", "pulse_on_accent", "pulse_work", TEXT_MIN, "labels inside accent fills"),
     ("Outline on background", "pulse_outline", "pulse_background", NON_TEXT_MIN, "control borders and dividers"),
     ("Outline on card", "pulse_outline", "pulse_surface", NON_TEXT_MIN, "card borders"),
+    # Material components (dialogs, menus, tonal badges) read the tonal ramp.
+    ("Text on dialog/menu surface", "pulse_text_primary", "pulse_container_highest", TEXT_MIN, "dialogs, dropdown menus"),
+    ("Secondary text on dialog", "pulse_text_secondary", "pulse_container_highest", TEXT_MIN, "dialog body copy"),
+    ("Primary container text", "pulse_on_primary_container", "pulse_primary_container", TEXT_MIN, "work-tonal badges"),
+    ("Secondary container text", "pulse_on_secondary_container", "pulse_secondary_container", TEXT_MIN, "rest-tonal badges"),
+    ("Tertiary container text", "pulse_on_tertiary_container", "pulse_tertiary_container", TEXT_MIN, "cool-down badges"),
+    ("Error container text", "pulse_on_error_container", "pulse_error_container", TEXT_MIN, "import/export failures"),
 ]
 
 TRUE_BLACK_PAIRS = [
@@ -134,6 +178,8 @@ TRUE_BLACK_PAIRS = [
     ("Rest accent on OLED black", "pulse_rest", "pulse_black_background", NON_TEXT_MIN, "true black theme"),
     ("Destructive on OLED black", "pulse_destructive", "pulse_black_background", NON_TEXT_MIN, "true black theme"),
     ("Primary text on OLED surface", "pulse_text_primary", "pulse_black_surface", TEXT_MIN, "true black cards"),
+    ("Primary text on OLED dialog", "pulse_text_primary", "pulse_black_container_highest", TEXT_MIN, "true black dialogs"),
+    ("Secondary text on OLED dialog", "pulse_text_secondary", "pulse_black_container_highest", TEXT_MIN, "true black dialogs"),
 ]
 
 LIGHT_PAIRS = [
@@ -150,6 +196,10 @@ LIGHT_PAIRS = [
     ("Destructive on background", "pulse_light_destructive", "pulse_light_background", NON_TEXT_MIN, "destructive actions"),
     ("Outline on background", "pulse_light_outline", "pulse_light_background", NON_TEXT_MIN, "control borders"),
     ("Outline on card", "pulse_light_outline", "pulse_light_surface", NON_TEXT_MIN, "card borders"),
+    ("Text on dialog/menu surface", "pulse_light_text_primary", "pulse_light_container_highest", TEXT_MIN, "light dialogs"),
+    ("Secondary text on dialog", "pulse_light_text_secondary", "pulse_light_container_highest", TEXT_MIN, "light dialog body"),
+    ("Primary container text", "pulse_light_on_primary_container", "pulse_light_primary_container", TEXT_MIN, "light tonal badges"),
+    ("Error container text", "pulse_light_on_error_container", "pulse_light_error_container", TEXT_MIN, "light error banners"),
 ]
 
 

@@ -22,10 +22,12 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -64,6 +66,7 @@ import com.pulse.intervalcoach.data.WorkoutSummary
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.InfoBanner
+import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
@@ -192,7 +195,7 @@ fun WorkoutLibraryScreen(
                     var expanded by remember { mutableStateOf(false) }
                     Box {
                         IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Filled.ViewList, contentDescription = stringResource(R.string.workouts_sort))
+                            Icon(Icons.Filled.Sort, contentDescription = stringResource(R.string.workouts_sort))
                         }
                         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                             LibrarySort.entries.forEach { option ->
@@ -214,16 +217,19 @@ fun WorkoutLibraryScreen(
             }
 
             if (state.workouts.isEmpty()) {
-                EmptyState(
-                    title = if (state.query.isBlank()) "No workouts yet" else "Nothing matches “${state.query}”",
-                    body = if (state.query.isBlank()) {
-                        "Build one in under a minute, or start from the template gallery."
-                    } else {
-                        "Try a different word — search covers names, tags and equipment."
-                    },
-                    actionLabel = "Open templates",
-                    onAction = onOpenTemplates,
-                )
+                Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    EmptyState(
+                        title = if (state.query.isBlank()) "No workouts yet" else "Nothing matches “${state.query}”",
+                        body = if (state.query.isBlank()) {
+                            "Build one in under a minute, or start from the template gallery."
+                        } else {
+                            "Try a different word — search covers names, tags and equipment."
+                        },
+                        icon = Icons.Filled.FitnessCenter,
+                        actionLabel = "Open templates",
+                        onAction = onOpenTemplates,
+                    )
+                }
             } else if (state.grid) {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 160.dp),
@@ -308,7 +314,7 @@ private fun WorkoutRow(
                         Text(workout.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (workout.builtIn) {
                             Spacer(Modifier.width(8.dp))
-                            Text("starter", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                            NeutralChip("starter")
                         }
                     }
                     Spacer(Modifier.height(4.dp))
@@ -409,7 +415,7 @@ fun WorkoutDetailsScreen(
                 PulseCard {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            PhaseChip(kind = PhaseKind.WORK, name = plan.type.displayName)
+                            NeutralChip(plan.type.displayName)
                             Spacer(Modifier.width(8.dp))
                             entity?.let { e ->
                                 TextButton(onClick = { scope.launch { container.workouts.setFavorite(workoutId, !e.isFavorite) } }) {
@@ -431,10 +437,11 @@ fun WorkoutDetailsScreen(
                                 "Total",
                                 expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}",
                                 accent = colors.work,
+                                modifier = Modifier.weight(1f),
                             )
-                            StatTile("Intervals", expanded.steps.size.toString())
+                            StatTile("Intervals", expanded.steps.size.toString(), modifier = Modifier.weight(1f))
                             expanded.steps.firstNotNullOfOrNull { it.roundsInGroup }?.let { rounds ->
-                                StatTile("Rounds", rounds.toString())
+                                StatTile("Rounds", rounds.toString(), modifier = Modifier.weight(1f))
                             }
                         }
                         if (expanded.hasOpenEnded) {
@@ -573,7 +580,7 @@ fun TemplateGalleryScreen(
                         Text(template.plan.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
                         Spacer(Modifier.height(4.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            PhaseChip(kind = PhaseKind.WORK, name = template.plan.type.displayName)
+                            NeutralChip(template.plan.type.displayName)
                             Text(formatDuration(duration), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
                         }
                         Spacer(Modifier.height(8.dp))
@@ -583,18 +590,16 @@ fun TemplateGalleryScreen(
                             Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                         }
                         Spacer(Modifier.height(12.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            PrimaryActionButton(
-                                text = stringResource(R.string.templates_use),
-                                onClick = {
-                                    scope.launch {
-                                        container.workouts.save(template.plan, tags = template.tags)
-                                        onOpenWorkout(template.plan.id)
-                                    }
-                                },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+                        PrimaryActionButton(
+                            text = stringResource(R.string.templates_use),
+                            onClick = {
+                                scope.launch {
+                                    container.workouts.save(template.plan, tags = template.tags)
+                                    onOpenWorkout(template.plan.id)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }
