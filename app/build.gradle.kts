@@ -18,6 +18,11 @@ val releaseSigningConfigured = !releaseStoreFile.isNullOrBlank() &&
     !releaseKeyAlias.isNullOrBlank() &&
     !releaseKeyPassword.isNullOrBlank()
 
+// Android 17 (API 37) is the compile target. CI passes -Ppulse.compileSdk=<n> when the runner's
+// SDK repository does not offer platforms;android-37 yet, so the build degrades to the newest
+// available platform instead of failing. Local builds keep the 37 default.
+val pulseCompileSdk = (findProperty("pulse.compileSdk") as? String)?.toIntOrNull() ?: 37
+
 android {
     signingConfigs {
         if (releaseSigningConfigured) {
@@ -31,12 +36,12 @@ android {
     }
 
     namespace = "com.pulse.intervalcoach"
-    compileSdk = 37
+    compileSdk = pulseCompileSdk
 
     defaultConfig {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = pulseCompileSdk
         versionCode = 3
         versionName = "1.3.0"
         resourceConfigurations += listOf("en", "fr")
