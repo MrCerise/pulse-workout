@@ -1,4 +1,4 @@
-import java.time.Duration
+import java.io.File`nimport java.time.Duration
 
 plugins {
     alias(libs.plugins.android.application)
@@ -12,7 +12,7 @@ val releaseStorePassword = System.getenv("PULSE_RELEASE_STORE_PASSWORD")
 val releaseKeyAlias = System.getenv("PULSE_RELEASE_KEY_ALIAS")
 val releaseKeyPassword = System.getenv("PULSE_RELEASE_KEY_PASSWORD")
 val releaseSigningConfigured = !releaseStoreFile.isNullOrBlank() &&
-    java.io.File(releaseStoreFile).isFile &&
+    File(releaseStoreFile).isFile &&
     !releaseStorePassword.isNullOrBlank() &&
     !releaseKeyAlias.isNullOrBlank() &&
     !releaseKeyPassword.isNullOrBlank()
