@@ -1,0 +1,549 @@
+### gradle-build.log (tail)
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.defaults.buildfeatures.buildconfig=true' is deprecated.
+The current default is 'false'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+To keep using this feature, add the following to your module-level build.gradle files:
+    android.buildFeatures.buildConfig = true
+or from Android Studio, click: `Refactor` > `Migrate BuildConfig to Gradle Build Files`.
+
+> Task :engine:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :engine:compileKotlin FROM-CACHE
+> Task :engine:compileJava NO-SOURCE
+> Task :engine:processResources NO-SOURCE
+> Task :engine:classes UP-TO-DATE
+> Task :engine:jar
+> Task :engine:compileTestKotlin FROM-CACHE
+> Task :engine:compileTestJava NO-SOURCE
+> Task :engine:processTestResources NO-SOURCE
+> Task :engine:testClasses UP-TO-DATE
+> Task :engine:test FROM-CACHE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig FROM-CACHE
+> Task :app:checkDebugAarMetadata
+> Task :app:generateDebugResValues FROM-CACHE
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources FROM-CACHE
+> Task :app:mergeDebugResources FROM-CACHE
+> Task :app:packageDebugResources FROM-CACHE
+> Task :app:parseDebugLocalResources FROM-CACHE
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug FROM-CACHE
+> Task :app:processDebugMainManifest FROM-CACHE
+> Task :app:processDebugManifest FROM-CACHE
+> Task :app:processDebugManifestForPackage FROM-CACHE
+> Task :app:processDebugResources FROM-CACHE
+> Task :app:kspDebugKotlin FROM-CACHE
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/MainActivity.kt:13:47 Unresolved reference 'GoogleSignIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/MainActivity.kt:74:27 Unresolved reference 'GoogleSignIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/MainActivity.kt:75:17 Unresolved reference 'GoogleSignIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/MainActivity.kt:80:17 Unresolved reference 'GoogleSignIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:8:47 Unresolved reference 'Activity'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:9:47 Unresolved reference 'Device'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:12:47 Unresolved reference 'WorkoutSegment'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:13:47 Unresolved reference 'WorkoutSession'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:15:47 Unresolved reference 'QueryRecordsRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:16:47 Unresolved reference 'TimeRangeFilter'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:17:47 Unresolved reference 'GoogleSignIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:24:44 Unresolved reference 'SessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:27:47 Unresolved reference 'SessionUpdateRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:81:22 Unresolved reference 'Device'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:195:13 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:195:25 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:195:47 Unresolved reference 'requestPermission'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:197:16 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:197:16 Not enough information to infer type argument for 'T'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:197:26 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:267:37 Unresolved reference 'SdkStatus'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:268:37 Unresolved reference 'SdkStatus'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:269:37 Unresolved reference 'SdkStatus'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:270:37 Unresolved reference 'SdkStatus'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:271:37 Unresolved reference 'SdkStatus'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:294:22 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:294:34 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:295:33 Unresolved reference 'getClient'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:313:47 Unresolved reference 'QueryRecordsRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:317:24 Unresolved reference 'queryRecords'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:317:46 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:317:46 Not enough information to infer type argument for 'R'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:317:52 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:317:65 Overload resolution ambiguity between candidates:
+fun <T> Pair<T, T>.toList(): List<T>
+fun <T> Triple<T, T, T>.toList(): List<T>
+fun <T> Array<out T>.toList(): List<T>
+fun BooleanArray.toList(): List<Boolean>
+fun ByteArray.toList(): List<Byte>
+fun CharArray.toList(): List<Char>
+fun DoubleArray.toList(): List<Double>
+fun FloatArray.toList(): List<Float>
+fun IntArray.toList(): List<Int>
+fun LongArray.toList(): List<Long>
+fun ShortArray.toList(): List<Short>
+fun <T> Enumeration<T>.toList(): List<T>
+fun <T> Iterable<T>.toList(): List<T>
+fun <K, V> Map<out K, V>.toList(): List<Pair<K, V>>
+fun <T> Sequence<T>.toList(): List<T>
+fun CharSequence.toList(): List<Char>
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:370:63 Unresolved reference 'QueryRecordsRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:371:9 Unresolved reference 'QueryRecordsRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:372:33 Unresolved reference 'TimeRangeFilter'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:372:61 Unresolved reference 'TimeRangeFilter'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:375:59 Unresolved reference 'QueryRecordsRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:376:9 Unresolved reference 'QueryRecordsRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:377:33 Unresolved reference 'TimeRangeFilter'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:377:61 Unresolved reference 'TimeRangeFilter'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:385:50 Argument type mismatch: actual type is 'kotlin.String', but 'kotlin.ByteArray!' was expected.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:387:30 Unresolved reference 'WorkoutSession'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:390:32 Named arguments are prohibited for non-Kotlin functions.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:390:32 No parameter with name 'name' found.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:390:69 Named arguments are prohibited for non-Kotlin functions.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:390:69 No parameter with name 'category' found.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:390:89 Unresolved reference 'CATEGORY_EXERCISE'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:390:108 Named arguments are prohibited for non-Kotlin functions.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:390:108 No parameter with name 'parentName' found.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:396:9 'val' cannot be reassigned.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:396:9 Assignment type mismatch: actual type is 'kotlin.collections.List<kotlin.Any>', but 'kotlin.collections.MutableList<androidx.health.connect.client.records.Record>' was expected.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:442:13 Unresolved reference 'WorkoutSegment'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:451:55 Unresolved reference 'WorkoutSegment'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:452:40 Argument type mismatch: actual type is 'kotlin.String', but 'kotlin.ByteArray!' was expected.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:463:49 Unresolved reference 'actuallyRecorded'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:470:46 Unresolved reference 'API_UNAVAILABLE'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:471:49 Unresolved reference 'SUCCESS'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:476:49 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:476:61 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:478:14 Unresolved reference 'metaData'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:481:67 Unresolved reference 'Account'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:482:9 Unresolved reference 'GoogleSignIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:484:48 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:484:60 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:485:9 Unresolved reference 'GoogleSignIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:498:40 Unresolved reference 'dataSet'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:498:62 Unresolved reference 'it'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:501:38 Method 'iterator()' is ambiguous for this expression. Applicable candidates:
+fun <T> Enumeration<T>.iterator(): Iterator<T>
+fun <T> Iterator<T>.iterator(): Iterator<T>
+fun <K, V> Map<out K, V>.iterator(): Iterator<Map.Entry<K, V>>
+fun <K, V> MutableMap<K, V>.iterator(): MutableIterator<MutableMap.MutableEntry<K, V>>
+fun CharSequence.iterator(): CharIterator
+fun BufferedInputStream.iterator(): ByteIterator
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:501:38 Unresolved reference 'getData'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:504:30 'operator' modifier is required on 'FirNamedFunctionSymbol kotlin/compareTo' in 'compareTo'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:523:40 Unresolved reference 'dataSet'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:523:62 Unresolved reference 'it'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:527:38 Method 'iterator()' is ambiguous for this expression. Applicable candidates:
+fun <T> Enumeration<T>.iterator(): Iterator<T>
+fun <T> Iterator<T>.iterator(): Iterator<T>
+fun <K, V> Map<out K, V>.iterator(): Iterator<Map.Entry<K, V>>
+fun <K, V> MutableMap<K, V>.iterator(): MutableIterator<MutableMap.MutableEntry<K, V>>
+fun CharSequence.iterator(): CharIterator
+fun BufferedInputStream.iterator(): ByteIterator
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:527:38 Unresolved reference 'getData'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:551:42 Method 'iterator()' is ambiguous for this expression. Applicable candidates:
+fun <T> Enumeration<T>.iterator(): Iterator<T>
+fun <T> Iterator<T>.iterator(): Iterator<T>
+fun <K, V> Map<out K, V>.iterator(): Iterator<Map.Entry<K, V>>
+fun <K, V> MutableMap<K, V>.iterator(): MutableIterator<MutableMap.MutableEntry<K, V>>
+fun CharSequence.iterator(): CharIterator
+fun BufferedInputStream.iterator(): ByteIterator
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:551:42 Unresolved reference 'dataSet'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:552:34 Method 'iterator()' is ambiguous for this expression. Applicable candidates:
+fun <T> Enumeration<T>.iterator(): Iterator<T>
+fun <T> Iterator<T>.iterator(): Iterator<T>
+fun <K, V> Map<out K, V>.iterator(): Iterator<Map.Entry<K, V>>
+fun <K, V> MutableMap<K, V>.iterator(): MutableIterator<MutableMap.MutableEntry<K, V>>
+fun CharSequence.iterator(): CharIterator
+fun BufferedInputStream.iterator(): ByteIterator
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:564:13 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:564:13 Not enough information to infer type argument for 'R'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:564:25 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:567:30 Unresolved reference 'SessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:570:21 Unresolved reference 'SessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:571:21 Unresolved reference 'SessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:574:22 Unresolved reference 'setSessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:577:33 Unresolved reference 'SessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:578:30 Unresolved reference 'name'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:580:21 Unresolved reference 'SessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:581:21 Unresolved reference 'SessionConfiguration'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:583:37 Unresolved reference 'SessionUpdateRequest'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:584:30 Unresolved reference 'id'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:589:23 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:589:23 Not enough information to infer type argument for 'TResult'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/health/HealthHub.kt:589:73 Unresolved reference 'updateSession'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/builders/Builders.kt:276:25 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/builders/Builders.kt:710:25 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/components/Common.kt:104:31 None of the following candidates is applicable:
+fun verticalGradient(vararg colorStops: Pair<Float, Color>, startY: Float = ..., endY: Float = ..., tileMode: TileMode = ...): Brush
+fun verticalGradient(colors: List<Color>, startY: Float = ..., endY: Float = ..., tileMode: TileMode = ...): Brush
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/components/Common.kt:215:9 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/components/Common.kt:306:25 Unresolved reference 'Stroke'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/components/Common.kt:318:29 Unresolved reference 'Stroke'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/components/Common.kt:534:21 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/health/HealthScreen.kt:16:47 Unresolved reference 'HealthAndBeauty'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/health/HealthScreen.kt:96:43 Unresolved reference 'HealthAndBeauty'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:126:7 Unresolved reference 'stateIn'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:234:19 Unresolved reference 'remember'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:318:29 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:370:41 Overload resolution ambiguity between candidates:
+fun <T> Iterable<T>.forEach(action: (T) -> Unit): Unit
+fun <K, V> Map<out K, V>.forEach(action: (Map.Entry<K, V>) -> Unit): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:370:51 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:371:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:372:48 Unresolved reference 'label'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:376:67 Unresolved reference 'plan'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:380:41 Overload resolution ambiguity between candidates:
+fun <T> Iterable<T>.forEach(action: (T) -> Unit): Unit
+fun <K, V> Map<out K, V>.forEach(action: (Map.Entry<K, V>) -> Unit): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:380:51 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:381:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:382:48 Unresolved reference 'label'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:386:67 Unresolved reference 'plan'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:454:71 Assignment type mismatch: actual type is 'kotlin.String?', but 'kotlin.String' was expected.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/home/HomeScreen.kt:623:13 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/parser/ParserScreen.kt:132:29 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/parser/ParserScreen.kt:175:37 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/player/PlayerScreen.kt:15:43 Unresolved reference 'matchParentSize'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/player/PlayerScreen.kt:197:29 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/player/PlayerScreen.kt:337:25 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/progress/ProgressScreens.kt:17:47 Unresolved reference 'HealthAndBeauty'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/progress/ProgressScreens.kt:185:50 Unresolved reference 'HealthAndBeauty'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/progress/ProgressScreens.kt:189:49 Unresolved reference 'width'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/progress/ProgressScreens.kt:373:33 Unresolved reference 'width'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/progress/ProgressScreens.kt:575:9 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/settings/SettingsScreens.kt:24:47 Unresolved reference 'HealthAndBeauty'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/settings/SettingsScreens.kt:125:46 Unresolved reference 'HealthAndBeauty'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/settings/SettingsScreens.kt:133:76 Smart cast to 'kotlin.String' is impossible, because 'source' is a delegated property.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:108:24 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:108:24 Not enough information to infer type argument for 'T'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:108:33 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:108:60 Unresolved reference 'HrStats'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:108:70 Null cannot be a value of a non-null type 'T'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:138:21 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:168:40 Unresolved reference 'sampleCount'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:171:50 Unresolved reference 'average'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/summary/SummaryScreen.kt:172:47 Unresolved reference 'max'.
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/welcome/WelcomeScreen.kt:126:25 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/welcome/WelcomeScreen.kt:155:21 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/workouts/WorkoutScreens.kt:306:33 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/workouts/WorkoutScreens.kt:500:25 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/workouts/WorkoutScreens.kt:569:29 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+e: file:///home/runner/work/pulse-workout/pulse-workout/app/src/main/java/com/pulse/intervalcoach/ui/workouts/WorkoutScreens.kt:657:29 None of the following candidates is applicable:
+fun Text(text: AnnotatedString, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., inlineContent: Map<String, InlineTextContent> = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., style: TextStyle = ...): Unit
+fun Text(text: String, modifier: Modifier = ..., color: Color = ..., fontSize: TextUnit = ..., fontStyle: FontStyle? = ..., fontWeight: FontWeight? = ..., fontFamily: FontFamily? = ..., letterSpacing: TextUnit = ..., textDecoration: TextDecoration? = ..., textAlign: TextAlign? = ..., lineHeight: TextUnit = ..., overflow: TextOverflow = ..., softWrap: Boolean = ..., maxLines: Int = ..., minLines: Int = ..., onTextLayout: ((TextLayoutResult) -> Unit)? = ..., style: TextStyle = ...): Unit
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1791412844136.json
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:compileDebugKotlin'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:130)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:293)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:128)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:116)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:42)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:331)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:318)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:303)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.execution.plan.DefaultPlanExecutor.process(DefaultPlanExecutor.java:111)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.executeWithServices(DefaultTaskExecutionGraph.java:138)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.execute(DefaultTaskExecutionGraph.java:123)
+	at org.gradle.execution.SelectedTaskExecutionAction.execute(SelectedTaskExecutionAction.java:35)
+	at org.gradle.execution.DryRunBuildExecutionAction.execute(DryRunBuildExecutionAction.java:51)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:54)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:43)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor.execute(BuildOperationFiringBuildWorkerExecutor.java:40)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.lambda$executeTasks$10(DefaultBuildLifecycleController.java:313)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
+	at org.gradle.internal.model.StateTransitionController.lambda$tryTransition$8(StateTransitionController.java:177)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:46)
+	at org.gradle.internal.model.StateTransitionController.tryTransition(StateTransitionController.java:177)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.executeTasks(DefaultBuildLifecycleController.java:304)
+	at org.gradle.internal.build.DefaultBuildWorkGraphController$DefaultBuildWorkGraph.runWork(DefaultBuildWorkGraphController.java:220)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:263)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:127)
+	at org.gradle.composite.internal.DefaultBuildController.doRun(DefaultBuildController.java:181)
+	at org.gradle.composite.internal.DefaultBuildController.access$000(DefaultBuildController.java:50)
+	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.lambda$run$0(DefaultBuildController.java:198)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:198)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:48)
+Caused by: org.gradle.workers.internal.DefaultWorkerExecutor$WorkExecutionException: A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+	at org.gradle.workers.internal.DefaultWorkerExecutor$WorkItemExecution.waitForCompletion(DefaultWorkerExecutor.java:287)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.lambda$waitForItemsAndGatherFailures$2(DefaultAsyncWorkTracker.java:130)
+	at org.gradle.internal.Factories$1.create(Factories.java:31)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLocks(DefaultWorkerLeaseService.java:335)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLocks(DefaultWorkerLeaseService.java:318)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLock(DefaultWorkerLeaseService.java:323)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForItemsAndGatherFailures(DefaultAsyncWorkTracker.java:126)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForItemsAndGatherFailures(DefaultAsyncWorkTracker.java:92)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForAll(DefaultAsyncWorkTracker.java:78)
+	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForCompletion(DefaultAsyncWorkTracker.java:66)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:252)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:229)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:212)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:195)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:162)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:67)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:37)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:40)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:29)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeAndStoreInCache(BuildCacheStep.java:145)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$executeWithCache$4(BuildCacheStep.java:101)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$executeWithCache$5(BuildCacheStep.java:101)
+	at org.gradle.internal.Try$Success.map(Try.java:175)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithCache(BuildCacheStep.java:85)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$0(BuildCacheStep.java:74)
+	at org.gradle.internal.Either$Left.fold(Either.java:115)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:65)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:36)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:107)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:56)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:64)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:43)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:125)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:61)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:36)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:289)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:48)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:35)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:61)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:127)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:116)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:42)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:331)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:318)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:314)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:303)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.execution.plan.DefaultPlanExecutor.process(DefaultPlanExecutor.java:111)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.executeWithServices(DefaultTaskExecutionGraph.java:138)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.execute(DefaultTaskExecutionGraph.java:123)
+	at org.gradle.execution.SelectedTaskExecutionAction.execute(SelectedTaskExecutionAction.java:35)
+	at org.gradle.execution.DryRunBuildExecutionAction.execute(DryRunBuildExecutionAction.java:51)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:54)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:43)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor.execute(BuildOperationFiringBuildWorkerExecutor.java:40)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.lambda$executeTasks$10(DefaultBuildLifecycleController.java:313)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
+	at org.gradle.internal.model.StateTransitionController.lambda$tryTransition$8(StateTransitionController.java:177)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:46)
+	at org.gradle.internal.model.StateTransitionController.tryTransition(StateTransitionController.java:177)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.executeTasks(DefaultBuildLifecycleController.java:304)
+	at org.gradle.internal.build.DefaultBuildWorkGraphController$DefaultBuildWorkGraph.runWork(DefaultBuildWorkGraphController.java:220)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:263)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:127)
+	at org.gradle.composite.internal.DefaultBuildController.doRun(DefaultBuildController.java:181)
+	at org.gradle.composite.internal.DefaultBuildController.access$000(DefaultBuildController.java:50)
+	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.lambda$run$0(DefaultBuildController.java:198)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:85)
+	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:198)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:48)
+Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
+	at org.jetbrains.kotlin.gradle.tasks.TasksUtilsKt.throwExceptionIfCompilationFailed(tasksUtils.kt:21)
+	at org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.run(GradleKotlinCompilerWork.kt:119)
+	at org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction.execute(GradleCompilerRunnerWithWorkers.kt:76)
+	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:63)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:66)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:62)
+	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:100)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:62)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:59)
+	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$0(DefaultWorkerExecutor.java:174)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:194)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:127)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:169)
+	at org.gradle.internal.Factories$1.create(Factories.java:31)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:263)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:127)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:132)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:164)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:133)
+	... 2 more
+
+
+BUILD FAILED in 24s
+20 actionable tasks: 5 executed, 15 from cache
+
+### asset-prep.log (tail)
+release_tag=v1.3.0
+ls: cannot access 'app/build/outputs/apk/debug/': No such file or directory
+ls: cannot access 'app/build/outputs/apk/release/': No such file or directory
+
+### apk output dirs
+(no apk outputs)
