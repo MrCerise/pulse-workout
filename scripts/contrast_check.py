@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-PULSE contrast checker.
+PULSE contrast checker (v1.4 "Graphite" design system).
 
-Parses the palette out of the app's own resources (`app/src/main/res/values/colors.xml`) and
-computes WCAG 2.1 contrast ratios for the pairs the interface actually renders. It exits non-zero
-when a text pair falls below 4.5:1 or a meaningful non-text pair below 3:1, and it always writes
-`docs/CONTRAST.md` so the numbers can be reviewed without rerunning anything.
+Parses the palette out of the app's own resources (`app/src/main/res/values/colors.xml`), verifies
+that the Compose mirror in `ui/theme/Palette.kt` declares exactly the same values, and computes
+WCAG 2.1 contrast ratios for the pairs the interface actually renders.
 
-Kotlin mirrors these tokens in `ui/theme/Theme.kt` (`PulsePalette`) and the script asserts that the
-two agree, so a token cannot drift between XML and Compose unnoticed.
+It exits non-zero when a text pair falls below 4.5:1 or a meaningful non-text pair (control
+boundary, phase marker, ring) below 3:1, and it always writes `docs/CONTRAST.md` so the numbers can
+be reviewed without rerunning anything.
 
 Usage (from the repository root):
 
@@ -23,7 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 COLORS_XML = ROOT / "app/src/main/res/values/colors.xml"
-THEME_KT = ROOT / "app/src/main/java/com/pulse/intervalcoach/ui/theme/Theme.kt"
+PALETTE_KT = ROOT / "app/src/main/java/com/pulse/intervalcoach/ui/theme/Palette.kt"
 OUT = ROOT / "docs/CONTRAST.md"
 
 TEXT_MIN = 4.5
@@ -31,83 +31,102 @@ LARGE_TEXT_MIN = 3.0  # >= 18 pt, or >= 14 pt bold
 NON_TEXT_MIN = 3.0
 
 # Tokens that must exist before anything is measured.
-REQUIRED_DARK = [
-    "pulse_background", "pulse_surface", "pulse_surface_raised", "pulse_text_primary",
-    "pulse_text_secondary", "pulse_outline", "pulse_work", "pulse_rest", "pulse_prepare",
-    "pulse_cooldown", "pulse_destructive", "pulse_on_accent",
-]
-REQUIRED_LIGHT = [
-    "pulse_light_background", "pulse_light_surface", "pulse_light_surface_raised",
-    "pulse_light_text_primary", "pulse_light_text_secondary", "pulse_light_outline",
+REQUIRED_TOKENS = [
+    # Neutral ramp — dark
+    "pulse_canvas", "pulse_nav", "pulse_surface", "pulse_surface_raised",
+    "pulse_surface_overlay", "pulse_surface_hover", "pulse_border",
+    "pulse_text_primary", "pulse_text_secondary", "pulse_text_muted", "pulse_text_disabled",
+    # Neutral ramp — light
+    "pulse_light_canvas", "pulse_light_nav", "pulse_light_surface", "pulse_light_surface_raised",
+    "pulse_light_surface_overlay", "pulse_light_surface_hover", "pulse_light_border",
+    "pulse_light_text_primary", "pulse_light_text_secondary", "pulse_light_text_muted",
+    "pulse_light_text_disabled",
+    # Neutral ramp — OLED
+    "pulse_black_canvas", "pulse_black_surface", "pulse_black_surface_raised",
+    "pulse_black_surface_overlay", "pulse_black_border",
+    # Control boundaries and accent
+    "pulse_outline", "pulse_light_outline", "pulse_accent", "pulse_light_accent",
+    "pulse_accent_tint", "pulse_light_accent_tint",
+    # Phases and their pre-composited tints
+    "pulse_work", "pulse_rest", "pulse_prepare", "pulse_cooldown", "pulse_destructive",
+    "pulse_work_tint", "pulse_rest_tint", "pulse_prepare_tint", "pulse_cooldown_tint",
+    "pulse_destructive_tint", "pulse_neutral_fill",
     "pulse_light_work", "pulse_light_rest", "pulse_light_prepare", "pulse_light_cooldown",
     "pulse_light_destructive",
+    "pulse_light_work_tint", "pulse_light_rest_tint", "pulse_light_prepare_tint",
+    "pulse_light_cooldown_tint", "pulse_light_destructive_tint", "pulse_light_neutral_fill",
+    # Solid action surfaces
+    "pulse_action_fill", "pulse_action_text",
+    "pulse_light_action_fill", "pulse_light_action_text",
+    "pulse_on_accent", "pulse_light_on_accent",
 ]
-REQUIRED_BLACK = ["pulse_black_background", "pulse_black_surface"]
 
-# Compose mirrors: Kotlin token name -> colour resource name.
+# Compose mirrors: Kotlin token name -> colour resource name. The two must agree exactly, so a
+# token cannot drift between XML and Compose unnoticed.
 KOTLIN_MIRROR = {
-    "Ink": "pulse_background",
+    "Canvas": "pulse_canvas",
+    "Nav": "pulse_nav",
     "Surface": "pulse_surface",
     "SurfaceRaised": "pulse_surface_raised",
+    "SurfaceOverlay": "pulse_surface_overlay",
+    "SurfaceHover": "pulse_surface_hover",
+    "Border": "pulse_border",
     "TextPrimary": "pulse_text_primary",
     "TextSecondary": "pulse_text_secondary",
-    "Outline": "pulse_outline",
-    "LightBackground": "pulse_light_background",
+    "TextMuted": "pulse_text_muted",
+    "TextDisabled": "pulse_text_disabled",
+    "LightCanvas": "pulse_light_canvas",
+    "LightNav": "pulse_light_nav",
     "LightSurface": "pulse_light_surface",
     "LightSurfaceRaised": "pulse_light_surface_raised",
+    "LightSurfaceOverlay": "pulse_light_surface_overlay",
+    "LightSurfaceHover": "pulse_light_surface_hover",
+    "LightBorder": "pulse_light_border",
     "LightTextPrimary": "pulse_light_text_primary",
     "LightTextSecondary": "pulse_light_text_secondary",
+    "LightTextMuted": "pulse_light_text_muted",
+    "LightTextDisabled": "pulse_light_text_disabled",
+    "BlackCanvas": "pulse_black_canvas",
+    "BlackNav": "pulse_black_nav",
+    "BlackSurface": "pulse_black_surface",
+    "BlackSurfaceRaised": "pulse_black_surface_raised",
+    "BlackSurfaceOverlay": "pulse_black_surface_overlay",
+    "BlackSurfaceHover": "pulse_black_surface_hover",
+    "BlackBorder": "pulse_black_border",
+    "Outline": "pulse_outline",
     "LightOutline": "pulse_light_outline",
+    "Accent": "pulse_accent",
+    "LightAccent": "pulse_light_accent",
+    "AccentTint": "pulse_accent_tint",
+    "LightAccentTint": "pulse_light_accent_tint",
     "Work": "pulse_work",
     "Rest": "pulse_rest",
     "Prepare": "pulse_prepare",
     "Cooldown": "pulse_cooldown",
     "Destructive": "pulse_destructive",
-    "WorkLight": "pulse_light_work",
-    "RestLight": "pulse_light_rest",
-    "PrepareLight": "pulse_light_prepare",
-    "CooldownLight": "pulse_light_cooldown",
-    "DestructiveLight": "pulse_light_destructive",
+    "WorkTint": "pulse_work_tint",
+    "RestTint": "pulse_rest_tint",
+    "PrepareTint": "pulse_prepare_tint",
+    "CooldownTint": "pulse_cooldown_tint",
+    "DestructiveTint": "pulse_destructive_tint",
+    "NeutralFill": "pulse_neutral_fill",
+    "LightWork": "pulse_light_work",
+    "LightRest": "pulse_light_rest",
+    "LightPrepare": "pulse_light_prepare",
+    "LightCooldown": "pulse_light_cooldown",
+    "LightDestructive": "pulse_light_destructive",
+    "LightWorkTint": "pulse_light_work_tint",
+    "LightRestTint": "pulse_light_rest_tint",
+    "LightPrepareTint": "pulse_light_prepare_tint",
+    "LightCooldownTint": "pulse_light_cooldown_tint",
+    "LightDestructiveTint": "pulse_light_destructive_tint",
+    "LightNeutralFill": "pulse_light_neutral_fill",
+    "ActionFill": "pulse_action_fill",
+    "ActionText": "pulse_action_text",
+    "LightActionFill": "pulse_light_action_fill",
+    "LightActionText": "pulse_light_action_text",
     "OnAccent": "pulse_on_accent",
-    "TrueBlack": "pulse_black_background",
-    "TrueBlackSurface": "pulse_black_surface",
-    # Material tonal ramp (dark)
-    "DarkContainerLowest": "pulse_container_lowest",
-    "DarkContainerLow": "pulse_container_low",
-    "DarkContainerHigh": "pulse_container_high",
-    "DarkContainerHighest": "pulse_container_highest",
-    "DarkSurfaceDim": "pulse_surface_dim",
-    "DarkSurfaceBright": "pulse_surface_bright",
-    "DarkOutlineVariant": "pulse_outline_variant",
-    "DarkPrimaryContainer": "pulse_primary_container",
-    "DarkOnPrimaryContainer": "pulse_on_primary_container",
-    "DarkSecondaryContainer": "pulse_secondary_container",
-    "DarkOnSecondaryContainer": "pulse_on_secondary_container",
-    "DarkTertiaryContainer": "pulse_tertiary_container",
-    "DarkOnTertiaryContainer": "pulse_on_tertiary_container",
-    "DarkErrorContainer": "pulse_error_container",
-    "DarkOnErrorContainer": "pulse_on_error_container",
-    # Material tonal ramp (light)
-    "LightContainerLowest": "pulse_light_container_lowest",
-    "LightContainerLow": "pulse_light_container_low",
-    "LightContainerHigh": "pulse_light_container_high",
-    "LightContainerHighest": "pulse_light_container_highest",
-    "LightSurfaceDim": "pulse_light_surface_dim",
-    "LightSurfaceBright": "pulse_light_surface_bright",
-    "LightOutlineVariant": "pulse_light_outline_variant",
-    "LightPrimaryContainer": "pulse_light_primary_container",
-    "LightOnPrimaryContainer": "pulse_light_on_primary_container",
-    "LightSecondaryContainer": "pulse_light_secondary_container",
-    "LightOnSecondaryContainer": "pulse_light_on_secondary_container",
-    "LightTertiaryContainer": "pulse_light_tertiary_container",
-    "LightOnTertiaryContainer": "pulse_light_on_tertiary_container",
-    "LightErrorContainer": "pulse_light_error_container",
-    "LightOnErrorContainer": "pulse_light_on_error_container",
-    # OLED
-    "BlackContainerLowest": "pulse_black_container_lowest",
-    "BlackContainerLow": "pulse_black_container_low",
-    "BlackContainerHigh": "pulse_black_container_high",
-    "BlackContainerHighest": "pulse_black_container_highest",
+    "LightOnAccent": "pulse_light_on_accent",
 }
 
 
@@ -123,7 +142,9 @@ def parse_kotlin_palette(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
     return {
         m.group(1): "#" + m.group(2).upper()
-        for m in re.finditer(r"val\s+([A-Za-z][A-Za-z0-9]*)\s*=\s*Color\(0xFF([0-9A-Fa-f]{6})\)", text)
+        for m in re.finditer(
+            r"val\s+([A-Za-z][A-Za-z0-9]*)\s*=\s*Color\(0xFF([0-9A-Fa-f]{6})\)", text
+        )
     }
 
 
@@ -147,59 +168,95 @@ def ratio(fg: str, bg: str) -> float:
 
 # (label, foreground token, background token, minimum, note)
 DARK_PAIRS = [
-    ("Primary text", "pulse_text_primary", "pulse_background", TEXT_MIN, "body copy on the app background"),
-    ("Secondary text", "pulse_text_secondary", "pulse_background", TEXT_MIN, "captions and hints"),
+    ("Primary text on canvas", "pulse_text_primary", "pulse_canvas", TEXT_MIN, "titles and body copy"),
     ("Primary text on card", "pulse_text_primary", "pulse_surface", TEXT_MIN, "workout cards, list rows"),
-    ("Secondary text on card", "pulse_text_secondary", "pulse_surface", TEXT_MIN, "card captions"),
-    ("Primary text on sheet", "pulse_text_primary", "pulse_surface_raised", TEXT_MIN, "bottom sheets, dialogs"),
-    ("Work accent on background", "pulse_work", "pulse_background", NON_TEXT_MIN, "work chips and timeline segments"),
-    ("Work accent as large text", "pulse_work", "pulse_background", LARGE_TEXT_MIN, "the big timer digits"),
-    ("Rest accent on background", "pulse_rest", "pulse_background", NON_TEXT_MIN, "rest chips and segments"),
-    ("Prepare accent on background", "pulse_prepare", "pulse_background", NON_TEXT_MIN, "preparation interval"),
-    ("Cooldown accent on background", "pulse_cooldown", "pulse_background", NON_TEXT_MIN, "cooldown interval"),
-    ("Destructive on background", "pulse_destructive", "pulse_background", NON_TEXT_MIN, "destructive buttons"),
-    ("Destructive as large text", "pulse_destructive", "pulse_background", LARGE_TEXT_MIN, "destructive labels"),
-    ("Text on a filled work pill", "pulse_on_accent", "pulse_work", TEXT_MIN, "labels inside accent fills"),
-    ("Outline on background", "pulse_outline", "pulse_background", NON_TEXT_MIN, "control borders and dividers"),
-    ("Outline on card", "pulse_outline", "pulse_surface", NON_TEXT_MIN, "card borders"),
-    # Material components (dialogs, menus, tonal badges) read the tonal ramp.
-    ("Text on dialog/menu surface", "pulse_text_primary", "pulse_container_highest", TEXT_MIN, "dialogs, dropdown menus"),
-    ("Secondary text on dialog", "pulse_text_secondary", "pulse_container_highest", TEXT_MIN, "dialog body copy"),
-    ("Primary container text", "pulse_on_primary_container", "pulse_primary_container", TEXT_MIN, "work-tonal badges"),
-    ("Secondary container text", "pulse_on_secondary_container", "pulse_secondary_container", TEXT_MIN, "rest-tonal badges"),
-    ("Tertiary container text", "pulse_on_tertiary_container", "pulse_tertiary_container", TEXT_MIN, "cool-down badges"),
-    ("Error container text", "pulse_on_error_container", "pulse_error_container", TEXT_MIN, "import/export failures"),
+    ("Primary text on raised", "pulse_text_primary", "pulse_surface_raised", TEXT_MIN, "inputs, stat tiles"),
+    ("Primary text on overlay", "pulse_text_primary", "pulse_surface_overlay", TEXT_MIN, "dialogs, menus, tooltips"),
+    ("Primary text on nav bar", "pulse_text_primary", "pulse_nav", TEXT_MIN, "the bottom navigation bar"),
+    ("Secondary text on canvas", "pulse_text_secondary", "pulse_canvas", TEXT_MIN, "captions and hints"),
+    ("Secondary text on card", "pulse_text_secondary", "pulse_surface", TEXT_MIN, "card captions and metadata"),
+    ("Secondary text on raised", "pulse_text_secondary", "pulse_surface_raised", TEXT_MIN, "input placeholders"),
+    ("Secondary text on overlay", "pulse_text_secondary", "pulse_surface_overlay", TEXT_MIN, "dialog body copy"),
+    ("Muted text on canvas", "pulse_text_muted", "pulse_canvas", TEXT_MIN, "section labels, timestamps"),
+    ("Muted text on card", "pulse_text_muted", "pulse_surface", TEXT_MIN, "timeline row captions"),
+    ("Muted text on raised", "pulse_text_muted", "pulse_surface_raised", TEXT_MIN, "stat tile labels"),
+    ("Control outline on canvas", "pulse_outline", "pulse_canvas", NON_TEXT_MIN, "input borders, focus rings"),
+    ("Control outline on card", "pulse_outline", "pulse_surface", NON_TEXT_MIN, "card control boundaries"),
+    ("Accent on canvas", "pulse_accent", "pulse_canvas", TEXT_MIN, "links and inline actions"),
+    ("Accent on card", "pulse_accent", "pulse_surface", TEXT_MIN, "selected rows, activity labels"),
+    ("Accent on overlay", "pulse_accent", "pulse_surface_overlay", TEXT_MIN, "menu emphasis"),
+    ("Work accent on canvas", "pulse_work", "pulse_canvas", TEXT_MIN, "work phase label, chart bars"),
+    ("Work accent on card", "pulse_work", "pulse_surface", TEXT_MIN, "work phase label on a card"),
+    ("Rest accent on card", "pulse_rest", "pulse_surface", TEXT_MIN, "rest phase label"),
+    ("Prepare accent on card", "pulse_prepare", "pulse_surface", TEXT_MIN, "preparation phase label"),
+    ("Cooldown accent on card", "pulse_cooldown", "pulse_surface", TEXT_MIN, "cool-down phase label"),
+    ("Destructive on canvas", "pulse_destructive", "pulse_canvas", TEXT_MIN, "destructive labels"),
+    ("Destructive on card", "pulse_destructive", "pulse_surface", TEXT_MIN, "delete actions in rows"),
+    ("Work marker on canvas", "pulse_work", "pulse_canvas", NON_TEXT_MIN, "timeline segments, progress ring"),
+    ("Rest marker on canvas", "pulse_rest", "pulse_canvas", NON_TEXT_MIN, "timeline segments"),
+    ("Prepare marker on canvas", "pulse_prepare", "pulse_canvas", NON_TEXT_MIN, "timeline segments"),
+    ("Cooldown marker on canvas", "pulse_cooldown", "pulse_canvas", NON_TEXT_MIN, "timeline segments"),
+    # Phase chips are a tinted pill: accent text on the pre-composited tint, not on a raw accent fill.
+    ("Work chip label", "pulse_work", "pulse_work_tint", TEXT_MIN, "phase chips, interval tiles"),
+    ("Rest chip label", "pulse_rest", "pulse_rest_tint", TEXT_MIN, "phase chips"),
+    ("Prepare chip label", "pulse_prepare", "pulse_prepare_tint", TEXT_MIN, "phase chips"),
+    ("Cooldown chip label", "pulse_cooldown", "pulse_cooldown_tint", TEXT_MIN, "phase chips"),
+    ("Destructive chip label", "pulse_destructive", "pulse_destructive_tint", TEXT_MIN, "invalid import, error banners"),
+    ("Accent chip label", "pulse_accent", "pulse_accent_tint", TEXT_MIN, "selected filters, info badges"),
+    # Primary buttons are solid: light fill with ink label (dark theme) and the reverse in light.
+    ("Primary button label", "pulse_action_text", "pulse_action_fill", TEXT_MIN, "the solid primary action"),
+    ("Neutral chip label", "pulse_text_primary", "pulse_neutral_fill", TEXT_MIN, "type badges, neutral metadata"),
 ]
 
 TRUE_BLACK_PAIRS = [
-    ("Primary text on OLED black", "pulse_text_primary", "pulse_black_background", TEXT_MIN, "true black theme"),
-    ("Secondary text on OLED black", "pulse_text_secondary", "pulse_black_background", TEXT_MIN, "true black theme"),
-    ("Work accent on OLED black", "pulse_work", "pulse_black_background", NON_TEXT_MIN, "true black theme"),
-    ("Rest accent on OLED black", "pulse_rest", "pulse_black_background", NON_TEXT_MIN, "true black theme"),
-    ("Destructive on OLED black", "pulse_destructive", "pulse_black_background", NON_TEXT_MIN, "true black theme"),
-    ("Primary text on OLED surface", "pulse_text_primary", "pulse_black_surface", TEXT_MIN, "true black cards"),
-    ("Primary text on OLED dialog", "pulse_text_primary", "pulse_black_container_highest", TEXT_MIN, "true black dialogs"),
-    ("Secondary text on OLED dialog", "pulse_text_secondary", "pulse_black_container_highest", TEXT_MIN, "true black dialogs"),
+    ("Primary text on OLED canvas", "pulse_text_primary", "pulse_black_canvas", TEXT_MIN, "true black theme"),
+    ("Secondary text on OLED canvas", "pulse_text_secondary", "pulse_black_canvas", TEXT_MIN, "true black theme"),
+    ("Muted text on OLED canvas", "pulse_text_muted", "pulse_black_canvas", TEXT_MIN, "true black theme"),
+    ("Control outline on OLED canvas", "pulse_outline", "pulse_black_canvas", NON_TEXT_MIN, "true black controls"),
+    ("Primary text on OLED card", "pulse_text_primary", "pulse_black_surface", TEXT_MIN, "true black cards"),
+    ("Secondary text on OLED card", "pulse_text_secondary", "pulse_black_surface", TEXT_MIN, "true black card copy"),
+    ("Primary text on OLED overlay", "pulse_text_primary", "pulse_black_surface_overlay", TEXT_MIN, "true black dialogs"),
+    ("Secondary text on OLED overlay", "pulse_text_secondary", "pulse_black_surface_overlay", TEXT_MIN, "true black dialogs"),
+    ("Work accent on OLED canvas", "pulse_work", "pulse_black_canvas", TEXT_MIN, "true black phase labels"),
+    ("Rest accent on OLED canvas", "pulse_rest", "pulse_black_canvas", TEXT_MIN, "true black phase labels"),
+    ("Destructive on OLED canvas", "pulse_destructive", "pulse_black_canvas", TEXT_MIN, "true black destructive"),
 ]
 
 LIGHT_PAIRS = [
-    ("Primary text", "pulse_light_text_primary", "pulse_light_background", TEXT_MIN, "body copy"),
-    ("Secondary text", "pulse_light_text_secondary", "pulse_light_background", TEXT_MIN, "captions and hints"),
-    ("Primary text on card", "pulse_light_text_primary", "pulse_light_surface", TEXT_MIN, "cards"),
+    ("Primary text on canvas", "pulse_light_text_primary", "pulse_light_canvas", TEXT_MIN, "titles and body copy"),
+    ("Primary text on card", "pulse_light_text_primary", "pulse_light_surface", TEXT_MIN, "cards and list rows"),
+    ("Primary text on raised", "pulse_light_text_primary", "pulse_light_surface_raised", TEXT_MIN, "inputs, stat tiles"),
+    ("Primary text on overlay", "pulse_light_text_primary", "pulse_light_surface_overlay", TEXT_MIN, "dialogs and menus"),
+    ("Primary text on nav bar", "pulse_light_text_primary", "pulse_light_nav", TEXT_MIN, "the bottom navigation bar"),
+    ("Secondary text on canvas", "pulse_light_text_secondary", "pulse_light_canvas", TEXT_MIN, "captions and hints"),
     ("Secondary text on card", "pulse_light_text_secondary", "pulse_light_surface", TEXT_MIN, "card captions"),
-    ("Primary text on raised card", "pulse_light_text_primary", "pulse_light_surface_raised", TEXT_MIN, "sheets and dialogs"),
-    ("Work accent on background", "pulse_light_work", "pulse_light_background", NON_TEXT_MIN, "work chips"),
-    ("Work accent as large text", "pulse_light_work", "pulse_light_background", LARGE_TEXT_MIN, "big timer digits"),
-    ("Rest accent on background", "pulse_light_rest", "pulse_light_background", NON_TEXT_MIN, "rest chips"),
-    ("Prepare accent on background", "pulse_light_prepare", "pulse_light_background", NON_TEXT_MIN, "preparation chips"),
-    ("Cooldown accent on background", "pulse_light_cooldown", "pulse_light_background", NON_TEXT_MIN, "cooldown chips"),
-    ("Destructive on background", "pulse_light_destructive", "pulse_light_background", NON_TEXT_MIN, "destructive actions"),
-    ("Outline on background", "pulse_light_outline", "pulse_light_background", NON_TEXT_MIN, "control borders"),
-    ("Outline on card", "pulse_light_outline", "pulse_light_surface", NON_TEXT_MIN, "card borders"),
-    ("Text on dialog/menu surface", "pulse_light_text_primary", "pulse_light_container_highest", TEXT_MIN, "light dialogs"),
-    ("Secondary text on dialog", "pulse_light_text_secondary", "pulse_light_container_highest", TEXT_MIN, "light dialog body"),
-    ("Primary container text", "pulse_light_on_primary_container", "pulse_light_primary_container", TEXT_MIN, "light tonal badges"),
-    ("Error container text", "pulse_light_on_error_container", "pulse_light_error_container", TEXT_MIN, "light error banners"),
+    ("Secondary text on raised", "pulse_light_text_secondary", "pulse_light_surface_raised", TEXT_MIN, "input placeholders"),
+    ("Muted text on canvas", "pulse_light_text_muted", "pulse_light_canvas", TEXT_MIN, "section labels, timestamps"),
+    ("Muted text on card", "pulse_light_text_muted", "pulse_light_surface", TEXT_MIN, "timeline row captions"),
+    ("Muted text on raised", "pulse_light_text_muted", "pulse_light_surface_raised", TEXT_MIN, "stat tile labels"),
+    ("Control outline on canvas", "pulse_light_outline", "pulse_light_canvas", NON_TEXT_MIN, "input borders, focus rings"),
+    ("Control outline on card", "pulse_light_outline", "pulse_light_surface", NON_TEXT_MIN, "card control boundaries"),
+    ("Accent on canvas", "pulse_light_accent", "pulse_light_canvas", TEXT_MIN, "links and inline actions"),
+    ("Accent on card", "pulse_light_accent", "pulse_light_surface", TEXT_MIN, "selected rows, activity labels"),
+    ("Work accent on canvas", "pulse_light_work", "pulse_light_canvas", TEXT_MIN, "work phase label"),
+    ("Work accent on card", "pulse_light_work", "pulse_light_surface", TEXT_MIN, "work phase label on a card"),
+    ("Rest accent on card", "pulse_light_rest", "pulse_light_surface", TEXT_MIN, "rest phase label"),
+    ("Prepare accent on card", "pulse_light_prepare", "pulse_light_surface", TEXT_MIN, "preparation phase label"),
+    ("Cooldown accent on card", "pulse_light_cooldown", "pulse_light_surface", TEXT_MIN, "cool-down phase label"),
+    ("Destructive on canvas", "pulse_light_destructive", "pulse_light_canvas", TEXT_MIN, "destructive labels"),
+    ("Destructive on card", "pulse_light_destructive", "pulse_light_surface", TEXT_MIN, "delete actions in rows"),
+    ("Work marker on canvas", "pulse_light_work", "pulse_light_canvas", NON_TEXT_MIN, "timeline segments, progress ring"),
+    ("Rest marker on canvas", "pulse_light_rest", "pulse_light_canvas", NON_TEXT_MIN, "timeline segments"),
+    ("Prepare marker on canvas", "pulse_light_prepare", "pulse_light_canvas", NON_TEXT_MIN, "timeline segments"),
+    ("Cooldown marker on canvas", "pulse_light_cooldown", "pulse_light_canvas", NON_TEXT_MIN, "timeline segments"),
+    ("Work chip label", "pulse_light_work", "pulse_light_work_tint", TEXT_MIN, "phase chips, interval tiles"),
+    ("Rest chip label", "pulse_light_rest", "pulse_light_rest_tint", TEXT_MIN, "phase chips"),
+    ("Prepare chip label", "pulse_light_prepare", "pulse_light_prepare_tint", TEXT_MIN, "phase chips"),
+    ("Cooldown chip label", "pulse_light_cooldown", "pulse_light_cooldown_tint", TEXT_MIN, "phase chips"),
+    ("Destructive chip label", "pulse_light_destructive", "pulse_light_destructive_tint", TEXT_MIN, "error banners"),
+    ("Accent chip label", "pulse_light_accent", "pulse_light_accent_tint", TEXT_MIN, "selected filters, info badges"),
+    ("Primary button label", "pulse_light_action_text", "pulse_light_action_fill", TEXT_MIN, "the solid primary action"),
+    ("Neutral chip label", "pulse_light_text_primary", "pulse_light_neutral_fill", TEXT_MIN, "type badges, neutral metadata"),
 ]
 
 
@@ -218,21 +275,21 @@ def evaluate(name: str, pairs, colors: dict[str, str]):
 
 
 def main() -> int:
-    missing_file = [p for p in (COLORS_XML, THEME_KT) if not p.exists()]
+    missing_file = [p for p in (COLORS_XML, PALETTE_KT) if not p.exists()]
     if missing_file:
         print("missing: " + ", ".join(str(p) for p in missing_file), file=sys.stderr)
         return 2
 
     colors = parse_colors(COLORS_XML)
-    kotlin = parse_kotlin_palette(THEME_KT)
+    kotlin = parse_kotlin_palette(PALETTE_KT)
 
     problems: list[str] = []
-    for token in REQUIRED_DARK + REQUIRED_LIGHT + REQUIRED_BLACK:
+    for token in REQUIRED_TOKENS:
         if token not in colors:
             problems.append(f"colors.xml is missing {token}")
     for kotlin_name, token in KOTLIN_MIRROR.items():
         if kotlin_name not in kotlin:
-            problems.append(f"Theme.kt is missing PulsePalette.{kotlin_name}")
+            problems.append(f"Palette.kt is missing PulsePalette.{kotlin_name}")
         elif token in colors and kotlin[kotlin_name].upper() != colors[token].upper():
             problems.append(
                 f"token drift: PulsePalette.{kotlin_name}={kotlin[kotlin_name]} but "
@@ -241,9 +298,6 @@ def main() -> int:
     if problems:
         print("\n".join(problems), file=sys.stderr)
         return 2
-
-    dark = dict(colors)
-    dark["pulse_black_surface"] = colors["pulse_black_surface"]
 
     sections = []
     failures: list[str] = []
@@ -262,17 +316,23 @@ def main() -> int:
         "",
         "Generated by `python3 scripts/contrast_check.py`, which reads the real palette from",
         "`app/src/main/res/values/colors.xml` and cross-checks it against `PulsePalette` in",
-        "`app/src/main/java/com/pulse/intervalcoach/ui/theme/Theme.kt`.",
+        "`app/src/main/java/com/pulse/intervalcoach/ui/theme/Palette.kt`.",
         "",
-        "Thresholds are WCAG 2.1 AA: **4.5:1** for body text, **3:1** for large text (≥ 18 pt, or",
-        "≥ 14 pt bold) and for non-text UI such as timeline segments, progress rings, control",
-        "outlines and destructive affordances.",
+        "Thresholds are WCAG 2.1 AA: **4.5:1** for body text, **3:1** for large text (>= 18 pt, or",
+        ">= 14 pt bold) and for non-text UI such as timeline segments, progress rings and control",
+        "boundaries (WCAG 1.4.11).",
         "",
         f"**Result: {'PASS' if not failures else 'FAIL'}** — {total} pairs measured across three themes.",
         "",
-        "The high-contrast switch in Settings replaces the phase accents and the outline with",
-        "brighter variants (`HighContrast*` in Theme.kt); those variants are strictly lighter than the",
-        "pairs measured here, and the text colours move to pure white / pure black.",
+        "Two border tokens exist on purpose: `pulse_border` is a decorative hairline between",
+        "surfaces and is *not* contrast-constrained, while `pulse_outline` marks a meaningful control",
+        "boundary (input, focus ring, toggle) and is measured at 3:1. Phase chips are tinted pills,",
+        "so their label contrast is measured against the pre-composited tint value that ships, not",
+        "against a hypothetical alpha blend.",
+        "",
+        "The high-contrast switch in Settings replaces the phase accents and the control outline with",
+        "brighter variants (`highContrast` in `PulseColors`); those variants are strictly lighter than",
+        "the pairs measured here and text moves to pure white / pure black.",
         "",
     ]
     for name, rows in sections:
@@ -295,15 +355,17 @@ def main() -> int:
     lines += [
         "## Why these pairs",
         "",
-        "- Phase colours are never the only signal: every interval also carries a name, an icon and a",
-        "  position in the session timeline, so the timer stays readable in greyscale.",
-        "- The large timer digits are checked at the large-text threshold; every other use of an accent",
-        "  colour (chips, bars, rings) is checked against the non-text threshold.",
-        "- `pulse_outline` was raised from the original #303B55 to reach 3:1 against both the app",
-        "  background and card surfaces, so control borders and dividers meet the non-text threshold",
-        "  instead of being decorative-only. The light theme outline was raised for the same reason.",
-        "- Timer digits use tabular numerals (`FontFeatureSetting(\"tnum\")`), so a changing countdown",
-        "  never reflows the layout.",
+        "- The chrome is monochrome: navigation, buttons, borders and text use the neutral ramp only,",
+        "  so colour always means something. Anything chromatic on screen is a phase, a state or the",
+        "  single interactive accent.",
+        "- Phase colour is never the only signal: every interval also carries a name, a position in the",
+        "  session timeline and, in the player, a written status, so the timer stays readable in",
+        "  greyscale.",
+        "- The primary action is a solid light-on-dark (dark theme) or dark-on-light (light theme)",
+        "  surface rather than a brand colour, which is why `pulse_action_fill` / `pulse_action_text`",
+        "  are measured as a pair.",
+        "- Timer digits are set in the platform monospace face with tabular figures, so a changing",
+        "  countdown never reflows the layout.",
         "",
     ]
 

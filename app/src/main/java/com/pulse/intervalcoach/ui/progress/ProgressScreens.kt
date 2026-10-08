@@ -1,6 +1,5 @@
 package com.pulse.intervalcoach.ui.progress
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,28 +12,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Healing
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
+import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.DailyActivity
 import com.pulse.intervalcoach.data.STATUS_COMPLETED
 import com.pulse.intervalcoach.data.STATUS_INTERRUPTED
@@ -50,27 +42,34 @@ import com.pulse.intervalcoach.data.STATUS_STOPPED
 import com.pulse.intervalcoach.data.db.ReminderEntity
 import com.pulse.intervalcoach.data.db.SessionEntity
 import com.pulse.intervalcoach.data.db.SessionEventEntity
+import com.pulse.intervalcoach.ui.components.ActivityBar
+import com.pulse.intervalcoach.ui.components.ActivityChart
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
-import com.pulse.intervalcoach.ui.components.SecondaryActionButton
+import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulseListRow
+import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SectionHeader
+import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.StatTile
+import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import androidx.compose.ui.res.stringResource
-import com.pulse.intervalcoach.R
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------------------------------------
 // Progress
@@ -110,7 +109,13 @@ class ProgressViewModel(private val container: AppContainer) : ViewModel() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Progress.
+ *
+ * Every figure on this screen comes from a stored session — the streak, the weekly total, the
+ * fourteen-day chart and the health sync line. Nothing here is projected, estimated or padded out
+ * to make the screen look fuller than the user's real history.
+ */
 @Composable
 fun ProgressScreen(
     container: AppContainer,
@@ -122,6 +127,7 @@ fun ProgressScreen(
     val viewModel: ProgressViewModel = viewModel(initializer = { ProgressViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     val summaries by container.workouts.summaries.collectAsStateWithLifecycle(initialValue = emptyList())
     val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
     var scheduleFor by remember { mutableStateOf<String?>(null) }
@@ -131,26 +137,28 @@ fun ProgressScreen(
     }
 
     Scaffold(
+        containerColor = colors.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Progress", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-                        Text("Real numbers from your saved sessions", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-                    }
-                },
+            PulseTopBar(
+                title = "Progress",
+                subtitle = "Real numbers from your saved sessions",
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = dimens.pagePadding,
+                end = dimens.pagePadding,
+                top = dimens.cardGap,
+                bottom = dimens.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("Streak", "${state.streak}d", accent = colors.work, modifier = Modifier.weight(1f))
-                    StatTile("This week", "${(weekMillis / 60000L).toInt()}m", accent = colors.rest, modifier = Modifier.weight(1f))
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    StatTile("Streak", "${state.streak}d", accent = colors.success, modifier = Modifier.weight(1f))
+                    StatTile("This week", "${(weekMillis / 60000L).toInt()}m", modifier = Modifier.weight(1f))
                     StatTile("All time", formatDuration(state.totals), modifier = Modifier.weight(1f))
                 }
             }
@@ -158,18 +166,27 @@ fun ProgressScreen(
                 PulseCard {
                     Column {
                         Text(
-                            "Active minutes — last 14 days",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.textSecondary,
+                            text = "Active minutes — last 14 days",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.textPrimary,
                         )
-                        Spacer(Modifier.height(10.dp))
-                        ActivityChart(state.activities)
-                        Spacer(Modifier.height(6.dp))
+                        Spacer(Modifier.height(dimens.m))
+                        ActivityChart(
+                            bars = state.activities.map {
+                                ActivityBar(
+                                    label = it.date.format(DateTimeFormatter.ofPattern("d/M", Locale.getDefault())),
+                                    value = it.activeMillis,
+                                )
+                            },
+                            height = 112.dp,
+                            labelEvery = 2,
+                            emptyLabel = "No sessions yet — the chart fills in as you finish workouts.",
+                        )
+                        Spacer(Modifier.height(dimens.s))
                         Text(
-                            if (state.sessions.isEmpty()) "No sessions yet — this chart stays empty until you finish a workout."
-                            else "Built from your saved sessions on this device.",
+                            text = "Built from your saved sessions on this device.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
+                            color = colors.textMuted,
                         )
                     }
                 }
@@ -178,60 +195,53 @@ fun ProgressScreen(
             // --- Health sync status ---
             item {
                 PulseCard(onClick = onOpenHealth) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Filled.Healing,
-                                    contentDescription = null,
-                                    tint = if (healthSnapshot.source != null) colors.work else colors.textSecondary,
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text("Health sync", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                    PulseListRow(
+                        title = "Health sync",
+                        subtitle = when {
+                            healthSnapshot.source == null ->
+                                "Connect Health Connect or Google Fit to share workouts and read heart rate."
+                            healthSnapshot.lastSyncAt > 0 ->
+                                "Connected via ${healthSnapshot.source} · last sync ${formatLastSync(healthSnapshot.lastSyncAt)}"
+                            else -> "Connected via ${healthSnapshot.source} · not synced yet"
+                        },
+                        leadingIcon = Icons.Filled.Healing,
+                        leadingTint = if (healthSnapshot.source != null) colors.success else colors.textMuted,
+                        leadingContainer = if (healthSnapshot.source != null) colors.successTint else colors.neutralFill,
+                        trailing = {
+                            if (healthSnapshot.source != null) {
+                                StatusBadge(text = "connected", tone = PulseTone.SUCCESS)
+                            } else {
+                                StatusBadge(text = "not connected", tone = PulseTone.NEUTRAL)
                             }
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                when {
-                                    healthSnapshot.source == null -> "Health Connect & Google Fit — connect to share workouts and see heart rate"
-                                    healthSnapshot.lastSyncAt > 0 ->
-                                        "Connected via ${healthSnapshot.source} · last sync " +
-                                            formatLastSync(healthSnapshot.lastSyncAt)
-                                    else -> "Connected via ${healthSnapshot.source} · not synced yet"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
-                                maxLines = 2,
-                            )
-                        }
-                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textSecondary)
-                    }
+                        },
+                    )
                 }
             }
 
             item { SectionHeader("Planner") }
             item {
                 PulseCard {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(dimens.s)) {
                         if (state.reminders.isEmpty()) {
                             Text(
-                                "No planned sessions. Schedule one and it appears on Today.",
+                                text = "No planned sessions. Schedule one and it appears on Today.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
                         } else {
                             state.reminders.forEach { reminder ->
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f)) {
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                         Text(
-                                            state.planned.firstOrNull { it.first == reminder.id }?.second ?: "Workout",
-                                            style = MaterialTheme.typography.bodyLarge,
+                                            text = state.planned.firstOrNull { it.first == reminder.id }?.second ?: "Workout",
+                                            style = MaterialTheme.typography.titleSmall,
                                             color = colors.textPrimary,
                                         )
                                         Text(
-                                            LocalDateTime.ofInstant(Instant.ofEpochMilli(reminder.scheduledAt), ZoneId.systemDefault())
+                                            text = LocalDateTime.ofInstant(Instant.ofEpochMilli(reminder.scheduledAt), ZoneId.systemDefault())
                                                 .format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm")),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = colors.textSecondary,
+                                            style = PulseType.NumericSmall,
+                                            color = colors.textMuted,
                                         )
                                     }
                                     TextButton(onClick = { viewModel.deleteReminder(reminder.id) }) {
@@ -240,7 +250,6 @@ fun ProgressScreen(
                                 }
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
                         var expanded by remember { mutableStateOf(false) }
                         SecondaryActionButton(
                             text = stringResource(R.string.planner_add),
@@ -273,7 +282,11 @@ fun ProgressScreen(
                     SessionRow(session, onClick = { onOpenSession(session.id) })
                 }
                 item {
-                    SecondaryActionButton("Open full history", onOpenHistory, Modifier.fillMaxWidth())
+                    SecondaryActionButton(
+                        text = "Open full history",
+                        onClick = onOpenHistory,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
         }
@@ -310,90 +323,41 @@ private fun formatLastSync(millis: Long): String {
     }
 }
 
-/**
- * Daily-minutes chart. Bars sit in equal-width slots so the date labels below line up with them;
- * only every other day is labelled, otherwise 14 labels would collide on a phone.
- */
-@Composable
-private fun ActivityChart(activities: List<DailyActivity>) {
-    val colors = LocalPulseColors.current
-    val max = (activities.maxOfOrNull { it.activeMillis } ?: 0L).coerceAtLeast(1L)
-    Column {
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .semantics { contentDescription = "Active minutes over the last ${activities.size} days" },
-        ) {
-            if (activities.isEmpty()) return@Canvas
-            val slot = size.width / activities.size
-            val barWidth = (slot - 3.dp.toPx()).coerceAtLeast(2.dp.toPx())
-            activities.forEachIndexed { index, day ->
-                val fraction = day.activeMillis.toFloat() / max.toFloat()
-                val barHeight = (size.height * fraction).coerceAtLeast(if (day.activeMillis > 0) 8.dp.toPx() else 2.dp.toPx())
-                val x = index * slot + (slot - barWidth) / 2
-                drawRoundRect(
-                    color = if (day.activeMillis > 0) colors.work else colors.outline.copy(alpha = 0.35f),
-                    topLeft = androidx.compose.ui.geometry.Offset(x, size.height - barHeight),
-                    size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 3),
-                )
-            }
-        }
-        if (activities.isNotEmpty()) {
-            Spacer(Modifier.height(6.dp))
-            Row(Modifier.fillMaxWidth()) {
-                activities.forEachIndexed { index, day ->
-                    val label = if (index % 2 == 0 || index == activities.lastIndex) {
-                        day.date.format(DateTimeFormatter.ofPattern("d/M", Locale.getDefault()))
-                    } else {
-                        ""
-                    }
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.textSecondary,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun SessionRow(session: SessionEntity, onClick: () -> Unit) {
     val colors = LocalPulseColors.current
     PulseCard(onClick = onClick) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(session.workoutName, style = MaterialTheme.typography.titleSmall, color = colors.textPrimary, modifier = Modifier.weight(1f, fill = false), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                Spacer(Modifier.width(8.dp))
-                Icon(
-                    Icons.Filled.ChevronRight,
-                    contentDescription = null,
-                    tint = colors.textSecondary,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = session.workoutName,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.textPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = buildString {
+                        append(formatDuration(session.activeMillis))
+                        append(" · ")
+                        append("${session.completedIntervals}/${session.totalIntervals} intervals")
+                    },
+                    style = PulseType.NumericSmall,
+                    color = colors.textSecondary,
+                )
+                Text(
+                    text = LocalDateTime.ofInstant(Instant.ofEpochMilli(session.startedAt), ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ofPattern("EEE d MMM yyyy, HH:mm")),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.textMuted,
                 )
             }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                buildString {
-                    append(formatDuration(session.activeMillis))
-                    append(" · ")
-                    append("${session.completedIntervals}/${session.totalIntervals} intervals")
-                    append(" · ")
-                    append(session.status.humanStatus())
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.textSecondary,
-            )
-            Text(
-                LocalDateTime.ofInstant(Instant.ofEpochMilli(session.startedAt), ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ofPattern("EEE d MMM yyyy, HH:mm")),
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.textSecondary,
+            Spacer(Modifier.width(LocalPulseDimens.current.s))
+            StatusBadge(text = session.status.humanStatus(), tone = session.status.tone())
+            PulseIconButton(
+                icon = Icons.Filled.ChevronRight,
+                contentDescription = null,
+                onClick = onClick,
             )
         }
     }
@@ -406,30 +370,51 @@ private fun String.humanStatus(): String = when (this) {
     else -> lowercase()
 }
 
+private fun String.tone(): PulseTone = when (this) {
+    STATUS_COMPLETED -> PulseTone.SUCCESS
+    STATUS_STOPPED -> PulseTone.WARNING
+    STATUS_INTERRUPTED -> PulseTone.DANGER
+    else -> PulseTone.NEUTRAL
+}
+
 // ---------------------------------------------------------------------------------------------
 // History
 // ---------------------------------------------------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (String) -> Unit) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     val sessions by container.sessions.history.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Scaffold(
+        containerColor = colors.background,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.progress_history)) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) } },
+            PulseTopBar(
+                title = stringResource(R.string.progress_history),
+                subtitle = "${sessions.size} recorded sessions",
+                onBack = onBack,
+                backDescription = stringResource(R.string.back),
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(
+                start = dimens.pagePadding,
+                end = dimens.pagePadding,
+                top = dimens.cardGap,
+                bottom = dimens.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimens.s),
         ) {
             if (sessions.isEmpty()) {
-                item { EmptyState(title = "No sessions", body = "Finished workouts are listed here with their real timings.") }
+                item {
+                    EmptyState(
+                        title = "No sessions",
+                        body = "Finished workouts are listed here with their real timings.",
+                    )
+                }
             }
             items(sessions, key = { it.id }) { session ->
                 SessionRow(session, onClick = { onOpenSession(session.id) })
@@ -442,7 +427,6 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
 // Session detail
 // ---------------------------------------------------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SessionDetailScreen(
     container: AppContainer,
@@ -451,50 +435,64 @@ fun SessionDetailScreen(
     onRepeat: (WorkoutPlan) -> Unit,
 ) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     val session by container.sessions.observeSession(sessionId).collectAsStateWithLifecycle(initialValue = null)
     val events by container.sessions.observeEvents(sessionId).collectAsStateWithLifecycle(initialValue = emptyList())
     var confirmDelete by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     Scaffold(
+        containerColor = colors.background,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.session_detail_title)) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) } },
+            PulseTopBar(
+                title = stringResource(R.string.session_detail_title),
+                subtitle = session?.workoutName,
+                onBack = onBack,
+                backDescription = stringResource(R.string.back),
             )
         },
     ) { padding ->
         val current = session
         if (current == null) {
-            Column(Modifier.padding(padding)) { EmptyState(title = "Session not found", body = "It may have been deleted.") }
+            Column(Modifier.padding(padding)) {
+                EmptyState(title = "Session not found", body = "It may have been deleted.")
+            }
             return@Scaffold
         }
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = dimens.pagePadding,
+                end = dimens.pagePadding,
+                top = dimens.cardGap,
+                bottom = dimens.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(current.workoutName, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
                     Text(
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(current.startedAt), ZoneId.systemDefault())
+                        text = LocalDateTime.ofInstant(Instant.ofEpochMilli(current.startedAt), ZoneId.systemDefault())
                             .format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy, HH:mm")),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textMuted,
                     )
                 }
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("Active", formatDuration(current.activeMillis), accent = colors.work, modifier = Modifier.weight(1f))
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    StatTile("Active", formatDuration(current.activeMillis), accent = colors.success, modifier = Modifier.weight(1f))
                     StatTile("Total", formatDuration(current.wallMillis), modifier = Modifier.weight(1f))
                     StatTile("Skipped", current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
                 }
             }
             if (current.status == STATUS_INTERRUPTED) {
                 item {
-                    InfoBanner("This session was interrupted (the app stopped before it finished), so its numbers show what was actually recorded.")
+                    InfoBanner(
+                        text = "This session was interrupted (the app stopped before it finished), so its numbers show what was actually recorded.",
+                        tone = PulseTone.WARNING,
+                    )
                 }
             }
             current.notes?.takeIf { it.isNotBlank() }?.let { note ->
@@ -516,32 +514,34 @@ fun SessionDetailScreen(
                 )
             }
             item {
-                SecondaryActionButton("Delete session", { confirmDelete = true }, Modifier.fillMaxWidth())
+                SecondaryActionButton(
+                    text = "Delete session",
+                    onClick = { confirmDelete = true },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-            item {
-                SectionHeader("Workout as it was run")
-            }
+            item { SectionHeader("Workout as it was run") }
             item {
                 val snapshotPlan = remember(current.id) {
                     runCatching { com.pulse.intervalcoach.data.PlanCodec.decode(current.workoutSnapshotJson) }.getOrNull()
                 }
                 PulseCard {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            "Saved snapshot (revision ${snapshotPlan?.revision ?: 1})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
+                            text = "Saved snapshot (revision ${snapshotPlan?.revision ?: 1})",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textMuted,
                         )
-                        Spacer(Modifier.height(6.dp))
+                        Spacer(Modifier.height(dimens.xs))
                         Text(
-                            snapshotPlan?.let { "${it.name} · ${it.type.displayName}" } ?: "Snapshot unavailable",
+                            text = snapshotPlan?.let { "${it.name} · ${it.type.displayName}" } ?: "Snapshot unavailable",
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.textPrimary,
                         )
                         Text(
-                            "Editing the workout later never changes these historical numbers.",
+                            text = "Editing the workout later never changes these historical numbers.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
+                            color = colors.textMuted,
                         )
                     }
                 }
@@ -571,21 +571,26 @@ fun SessionDetailScreen(
 @Composable
 private fun EventRow(event: SessionEventEntity) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
-            formatOffset(event.atMillis),
-            style = MaterialTheme.typography.labelMedium,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(end = 12.dp),
+            text = formatOffset(event.atMillis),
+            style = PulseType.NumericSmall,
+            color = colors.textMuted,
+            modifier = Modifier.padding(end = dimens.m),
         )
         Column(Modifier.weight(1f)) {
             Text(event.kind.humanEvent(), style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
             if (event.stepName.isNotBlank()) {
-                Text(event.stepName, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                Text(event.stepName, style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
             }
         }
         if (event.durationMillis > 0) {
-            Text(formatDuration(event.durationMillis), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+            Text(
+                text = formatDuration(event.durationMillis),
+                style = PulseType.NumericSmall,
+                color = colors.textMuted,
+            )
         }
     }
 }

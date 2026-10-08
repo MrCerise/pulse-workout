@@ -3,33 +3,26 @@ package com.pulse.intervalcoach.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -55,6 +48,10 @@ import com.pulse.intervalcoach.ui.theme.PulseTheme
 import com.pulse.intervalcoach.ui.welcome.WelcomeScreen
 import com.pulse.intervalcoach.ui.workouts.TemplateGalleryScreen
 import com.pulse.intervalcoach.ui.workouts.WorkoutDetailsScreen
+import com.pulse.intervalcoach.ui.components.PulseBottomBar
+import com.pulse.intervalcoach.ui.components.PulseNavItem
+import com.pulse.intervalcoach.ui.components.PulseSnackbar
+import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.workouts.WorkoutLibraryScreen
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -83,13 +80,11 @@ object Routes {
     fun session(id: String) = "session/$id"
 }
 
-private data class Destination(val route: String, val label: String, val icon: ImageVector)
-
 private val primaryDestinations = listOf(
-    Destination(Routes.HOME, "Today", Icons.Filled.Home),
-    Destination(Routes.WORKOUTS, "Workouts", Icons.Filled.FitnessCenter),
-    Destination(Routes.PROGRESS, "Progress", Icons.Filled.Insights),
-    Destination(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
+    PulseNavItem(Routes.HOME, "Today", Icons.Filled.Home),
+    PulseNavItem(Routes.WORKOUTS, "Workouts", Icons.Filled.FitnessCenter),
+    PulseNavItem(Routes.PROGRESS, "Progress", Icons.Filled.Insights),
+    PulseNavItem(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
 )
 
 @Composable
@@ -180,11 +175,12 @@ fun PulseAppRoot(
         }
 
         Scaffold(
+            containerColor = LocalPulseColors.current.background,
             snackbarHost = {
                 SnackbarHost(
-                    snackbarHostState,
+                    hostState = snackbarHostState,
                     modifier = Modifier.padding(bottom = if (showBottomBar) 0.dp else navBarInset),
-                )
+                ) { data -> PulseSnackbar(data) }
             },
             // Zero here on purpose. Most destinations own their own Scaffold + TopAppBar, and
             // Material3's Scaffold does not consume the insets it applies — so an outer Scaffold
@@ -193,22 +189,17 @@ fun PulseAppRoot(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showBottomBar) {
-                    NavigationBar {
-                        primaryDestinations.forEach { destination ->
-                            NavigationBarItem(
-                                selected = route == destination.route,
-                                onClick = {
-                                    navController.navigate(destination.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                icon = { Icon(destination.icon, contentDescription = null) },
-                                label = { Text(destination.label) },
-                            )
-                        }
-                    }
+                    PulseBottomBar(
+                        items = primaryDestinations,
+                        currentRoute = route,
+                        onSelect = { destination ->
+                            navController.navigate(destination) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                    )
                 }
             },
         ) { padding ->

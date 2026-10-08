@@ -20,23 +20,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -49,17 +42,20 @@ import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.BuildConfig
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
-import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseSliderRow
+import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.ToggleRow
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.ThemeMode
 import com.pulse.intervalcoach.audio.SpeechAvailability
 import com.pulse.intervalcoach.data.AudioInterruptionBehavior
@@ -81,7 +77,6 @@ import com.pulse.intervalcoach.R
 // Settings
 // ---------------------------------------------------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     container: AppContainer,
@@ -100,18 +95,24 @@ fun SettingsScreen(
     var confirmDeleteSessions by remember { mutableStateOf(false) }
     val current = prefs
 
-    Scaffold(topBar = {
-        TopAppBar(title = {
-            Column {
-                Text(stringResource(R.string.nav_settings), style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-                Text("Everything applies instantly", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-            }
-        })
-    }) { padding ->
+    Scaffold(
+        containerColor = colors.background,
+        topBar = {
+            PulseTopBar(
+                title = stringResource(R.string.nav_settings),
+                subtitle = "Everything on this screen applies instantly",
+            )
+        },
+    ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = LocalPulseDimens.current.pagePadding,
+                end = LocalPulseDimens.current.pagePadding,
+                top = LocalPulseDimens.current.cardGap,
+                bottom = LocalPulseDimens.current.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             if (current == null) return@LazyColumn
 
@@ -125,14 +126,14 @@ fun SettingsScreen(
                                 Icons.Filled.Favorite,
                                 contentDescription = null,
                                 tint = if (healthSnapshot.source != null) colors.work else colors.textSecondary,
-                                modifier = Modifier.padding(end = 10.dp),
+                                modifier = Modifier.padding(end = LocalPulseDimens.current.m),
                             )
                             Column(Modifier.weight(1f)) {
                                 Text("Health Connect & Google Fit", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
                             }
                             healthSnapshot.source?.let { NeutralChip(it) }
                         }
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         Text(
                             when {
                                 healthSnapshot.source == null -> "Connect in the Health setup screen to share finished workouts, and to show live heart rate and daily steps."
@@ -142,7 +143,7 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         ToggleRow(
                             label = "Share finished workouts to health apps",
                             hint = "Writes workout sessions with per-interval segments and calories burned. Off = nothing is written.",
@@ -259,11 +260,11 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         SecondaryActionButton("Import / export & backups", onOpenBackup, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         SecondaryActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         ToggleRow(
                             label = stringResource(R.string.settings_backup_auto),
                             hint = "A dated JSON backup is written weekly with WorkManager.",
@@ -298,9 +299,9 @@ fun SettingsScreen(
                 PulseCard {
                     Column {
                         SecondaryActionButton("Help, voice setup & shortcuts", onOpenHelp, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         SecondaryActionButton("Show the welcome tour again", onOpenWelcome, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         Text("PULSE Interval Coach ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                         Text(
                             "Offline interval timer · Health Connect first, Google Fit best-effort (deprecated by Google as of 2026) · package ${BuildConfig.APPLICATION_ID}",
@@ -371,7 +372,6 @@ private fun HeadphoneBehavior.label(): String = when (this) {
 // Voice & audio studio
 // ---------------------------------------------------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
@@ -400,16 +400,23 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Voice & audio") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) } },
+            PulseTopBar(
+                title = "Voice & audio",
+                subtitle = "Speech, cue tones and music ducking",
+                onBack = onBack,
+                backDescription = stringResource(R.string.back),
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = LocalPulseDimens.current.pagePadding,
+                end = LocalPulseDimens.current.pagePadding,
+                top = LocalPulseDimens.current.cardGap,
+                bottom = LocalPulseDimens.current.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             if (current == null) return@LazyColumn
 
@@ -428,7 +435,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             style = MaterialTheme.typography.titleMedium,
                             color = if (availability is SpeechAvailability.Ready) colors.work else colors.prepare,
                         )
-                        Spacer(Modifier.height(6.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.xs))
                         speechInfo.engineLabel?.let {
                             Text("Engine: $it", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                         }
@@ -441,8 +448,8 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(10.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
+                        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
                             SecondaryActionButton(
                                 text = "Text-to-speech settings",
                                 onClick = { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) },
@@ -462,18 +469,20 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
             item {
                 PulseCard {
                     Column {
-                        Text("Speaking rate ${"%.2f".format(current.voiceRate)}", style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-                        Slider(
+                        PulseSliderRow(
+                            label = "Speaking rate",
                             value = current.voiceRate,
-                            onValueChange = { scope.launch { container.preferences.setVoiceRate(it) } },
                             valueRange = 0.5f..2.0f,
+                            valueLabel = "${"%.2f".format(current.voiceRate)}×",
+                            onValueChange = { scope.launch { container.preferences.setVoiceRate(it) } },
                             onValueChangeFinished = { container.speech.rate = current.voiceRate },
                         )
-                        Text("Pitch ${"%.2f".format(current.voicePitch)}", style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-                        Slider(
+                        PulseSliderRow(
+                            label = "Pitch",
                             value = current.voicePitch,
-                            onValueChange = { scope.launch { container.preferences.setVoicePitch(it) } },
                             valueRange = 0.5f..2.0f,
+                            valueLabel = "${"%.2f".format(current.voicePitch)}×",
+                            onValueChange = { scope.launch { container.preferences.setVoicePitch(it) } },
                             onValueChangeFinished = { container.speech.pitch = current.voicePitch },
                         )
                         OptionRow(
@@ -499,14 +508,15 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
             item {
                 PulseCard {
                     Column {
-                        Text("Cue volume ${(current.cueVolume * 100).toInt()}%", style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-                        Slider(
+                        PulseSliderRow(
+                            label = "Cue volume",
                             value = current.cueVolume,
-                            onValueChange = { scope.launch { container.preferences.setCueVolume(it) } },
                             valueRange = 0f..1f,
+                            valueLabel = "${(current.cueVolume * 100).toInt()}%",
+                            onValueChange = { scope.launch { container.preferences.setCueVolume(it) } },
                             onValueChangeFinished = { container.cueSoundPlayer.volume = current.cueVolume },
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
                             listOf(SoundCue.BEEP, SoundCue.BELL, SoundCue.CHIME).forEach { cue ->
                                 SecondaryActionButton(
                                     text = cue.name.lowercase().replaceFirstChar { it.uppercase() },
@@ -518,7 +528,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                                 )
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         Text(
                             if (container.haptics.isAvailable) "Vibration is available on this device." else "This device has no vibrator — cues stay audible only.",
                             style = MaterialTheme.typography.bodySmall,
@@ -542,8 +552,8 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
                             SecondaryActionButton("Choose audio…", { musicPicker.launch(arrayOf("audio/*")) }, Modifier.weight(1f))
                             SecondaryActionButton("Remove", { scope.launch { container.preferences.setMusic(null) } }, Modifier.weight(0.6f))
                         }
@@ -560,7 +570,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         if (recording == null) {
                             SecondaryActionButton(
                                 text = "Record a cue",
@@ -582,7 +592,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             )
                         }
                         if (assets.isNotEmpty()) {
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
                             assets.forEach { asset ->
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
@@ -650,7 +660,6 @@ private fun VoiceVerbosity.label(): String = when (this) {
 // Import / export / backups
 // ---------------------------------------------------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupScreen(
     container: AppContainer,
@@ -697,16 +706,23 @@ fun BackupScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Backups & import") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) } },
+            PulseTopBar(
+                title = "Backups & import",
+                subtitle = "Nothing is written until you confirm",
+                onBack = onBack,
+                backDescription = stringResource(R.string.back),
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = LocalPulseDimens.current.pagePadding,
+                end = LocalPulseDimens.current.pagePadding,
+                top = LocalPulseDimens.current.cardGap,
+                bottom = LocalPulseDimens.current.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item { SectionHeader("Export") }
             item {
@@ -717,7 +733,7 @@ fun BackupScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         PrimaryActionButton(
                             text = stringResource(R.string.settings_export_all),
                             onClick = { createDocument.launch("pulse-backup.json") },
@@ -736,7 +752,7 @@ fun BackupScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         SecondaryActionButton(
                             text = stringResource(R.string.settings_import),
                             onClick = { openDocument.launch(arrayOf("application/json", "text/plain", "*/*")) },
@@ -778,7 +794,7 @@ fun BackupScreen(
                                 }
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         SecondaryActionButton(
                             text = "Write a backup now",
                             onClick = {
@@ -796,7 +812,10 @@ fun BackupScreen(
 
             error?.let { message ->
                 item {
-                    InfoBanner("Import failed: $message Nothing was changed.", tone = colors.destructive, warning = true)
+                    InfoBanner(
+                        text = "Import failed: $message Nothing was changed.",
+                        tone = PulseTone.DANGER,
+                    )
                 }
             }
         }
@@ -837,7 +856,6 @@ fun BackupScreen(
 // Help
 // ---------------------------------------------------------------------------------------------
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
     val colors = LocalPulseColors.current
@@ -845,16 +863,23 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.help_title)) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) } },
+            PulseTopBar(
+                title = stringResource(R.string.help_title),
+                subtitle = "Voice setup, accessibility and data",
+                onBack = onBack,
+                backDescription = stringResource(R.string.back),
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = LocalPulseDimens.current.pagePadding,
+                end = LocalPulseDimens.current.pagePadding,
+                top = LocalPulseDimens.current.cardGap,
+                bottom = LocalPulseDimens.current.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item { SectionHeader("Voice setup") }
             item {

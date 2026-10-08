@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- A row inside the widget: same radius scale as an in-app list row, colour from a token. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#1B2340" />
-    <corners android:radius="12dp" />
+    <solid android:color="@color/widget_row_background" />
+    <corners android:radius="8dp" />
 </shape>

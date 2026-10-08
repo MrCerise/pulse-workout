@@ -131,7 +131,9 @@ for p, text in sources.items():
             problems.append(f"{p.name}: UserPreferences field '{m.group(1)}' not found")
     # in screens where `val current = prefs` (UserPreferences), check current.<field>
     if p.name in PREFS_UI_FILES and re.search(r"val current = prefs\b", text):
-        for m in re.finditer(r"\bcurrent\.(\w+)", text):
+        # `LocalPulseDimens.current.<step>` is a qualified property read; only a bare
+        # `current.<field>` is the preferences delegate.
+        for m in re.finditer(r"(?<![\w.])current\.(\w+)", text):
             field = m.group(1)
             if re.search(rf"\bcurrent\.{field}\s*\(", text):
                 continue  # method call, not a field

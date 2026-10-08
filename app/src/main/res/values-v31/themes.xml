@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Android 12+ splash screen: the same canvas colour and mark as the pre-Compose window, so the
+         launch sequence reads as one continuous surface rather than a colour jump. -->
     <style name="Theme.Pulse.Splash" parent="Theme.Pulse">
-        <item name="android:windowSplashScreenBackground">@color/pulse_background</item>
+        <item name="android:windowSplashScreenBackground">@color/pulse_canvas</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_mark</item>
-        <item name="android:windowSplashScreenIconBackgroundColor">@color/pulse_background</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/pulse_canvas</item>
     </style>
 </resources>

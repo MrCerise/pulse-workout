@@ -21,7 +21,7 @@ here** means the environment lacks what the check requires.
 | 12 | Invalid imports fail safely without touching existing data | **verified** | `BackupAndCueTest` rejects a foreign JSON document and a corrupt plan; `BackupRepository` validates the whole file and previews before writing anything |
 | 13 | Database migration preserves workouts and session history | **verified on real SQLite** | `DatabaseMigrationTest` rebuilds the v1 schema from Room's exported schema, applies the shipped `PulseMigrations.ONE_TO_TWO` statements through JDBC, and asserts every row survived |
 | 14 | Force-stop, process loss and reboot are distinguished, never shown as uninterrupted | **implemented** | Sessions are written start-and-finish, heartbeated every 15 s, and any session still marked `RUNNING` at startup is closed as `INTERRUPTED` with the heartbeat as its last known time; `BootReceiver` restores reminders and shortcuts. Not additionally unit tested (it needs Room on device) |
-| 15 | TalkBack, large text, landscape, light/dark keep controls usable | **partially verified** | Contrast is measured for all three themes (`docs/CONTRAST.md`, 34 pairs, all passing); 48 dp targets, non-drag reordering, phase labels, tabular numerals and a high-contrast switch are implemented. TalkBack itself needs a device |
+| 15 | TalkBack, large text, landscape, light/dark keep controls usable | **partially verified** | Contrast is measured for all three themes (`docs/CONTRAST.md`, 81 pairs, all passing) and the rules behind it are written down in `docs/DESIGN.md`; every interactive element exposes a 48 dp touch target, every icon-only control carries a content description and a tooltip, colour is never the only signal, numerals are tabular so nothing reflows, and the high-contrast and reduced-motion switches are honoured by the design system. TalkBack itself needs a device |
 | 16 | Core flows work in airplane mode; offline speech with a locally installed voice | **verified structurally, implemented otherwise** | The app declares no network permission and links no networking code, so nothing can depend on connectivity; the offline-voice install path is documented in Voice Studio and Help. Offline playback needs a device |
 | 17 | The APK installs, launches, runs a workout, saves the result and reopens it | **not possible here** | No emulator or physical device exists in this environment. The debug APK is built and debug-signed (verified with `apksigner`); the install-and-smoke sequence is documented in the README for a machine with a device |
 
@@ -34,3 +34,22 @@ here** means the environment lacks what the check requires.
 - The **platform integration** (foreground service, notifications, audio focus, vibration, TTS,
   widgets, TalkBack) is implemented against the documented APIs and compiles, but has not been
   observed running. That is the honest boundary of what this environment can prove.
+
+## v1.4.2 design-refactor checks
+
+The visual refactor has its own pass/fail criteria, all of which are machine-checkable and were run:
+
+| Check | How it is checked | Result |
+| --- | --- | --- |
+| One design reference, applied everywhere | `docs/DESIGN.md` states the reference (Linear) and the rules; every screen imports its styling from `ui/components` | **verified** — no screen constructs a button, card, field or chip of its own |
+| No hardcoded styles | Token usage is the only path: `LocalPulseColors` / `LocalPulseDimens` / `LocalPulseShapes`; the raw palette is `internal` to `ui/theme` | **verified** — the screens contain no colour literals, and spacing is `LocalPulseDimens.current` |
+| Centralised tokens | `colors.xml` ↔ `Palette.kt` name-for-name comparison | **verified** — `scripts/contrast_check.py` exits 2 on any drift |
+| Readable contrast in dark, OLED and light | 81 measured pairings | **verified** — exit 0, see `docs/CONTRAST.md` |
+| Forbidden traits removed | Gradient buttons, ring gradients, phase washes, glow tiles, pill chips and 28 dp cards are gone | **verified** — none of `brandGradient`, `ringGradient`, `phaseWash`, `activeGlow` or `GradientActionButton` exist in the tree |
+| Functionality preserved | No engine, data, session, health or parser file was touched by the refactor; only `ui/`, resources and documentation changed | **verified by diff** — `engine/` and the non-UI app packages are untouched |
+| Every route refactored | All eleven destinations plus the four settings sub-screens use `PulseTopBar` and the shared component set | **verified** — `scripts/kotlin_xref_gate.py` reports 0 problems across every screen |
+| Component call sites valid | Every named argument passed to a `ui/components` composable exists on its declaration | **verified** — 43 components, 0 unknown arguments |
+| Resources and locale parity | `scripts/check_ui.py` | **verified** — 414 resource names resolve, 322 EN / 322 FR strings, vectors parse |
+
+Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
+environment); the local gates above are the ones that can run before it.

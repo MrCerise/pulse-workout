@@ -1,11 +1,11 @@
 package com.pulse.intervalcoach.ui.home
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ChevronRight
@@ -30,18 +28,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -56,9 +48,12 @@ import com.pulse.intervalcoach.data.DailyActivity
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.data.WorkoutSummary
 import com.pulse.intervalcoach.data.db.ReminderEntity
+import com.pulse.intervalcoach.ui.components.ActivityBar
+import com.pulse.intervalcoach.ui.components.ActivityChart
 import com.pulse.intervalcoach.ui.components.DurationStepper
 import com.pulse.intervalcoach.ui.components.EmptyState
-import com.pulse.intervalcoach.ui.components.GradientActionButton
+import com.pulse.intervalcoach.ui.components.GhostActionButton
+import com.pulse.intervalcoach.ui.components.LoadingBox
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.ProgressRing
@@ -66,19 +61,22 @@ import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
+import com.pulse.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val favorites: List<WorkoutSummary> = emptyList(),
@@ -157,7 +155,7 @@ class HomeViewModel(
 
 /**
  * The one-tap presets on the Today hero. Every preset is a real plan built with
- * [QuickWorkoutFactory], and the chip shows its *real* computed duration — never a guess.
+ * [QuickWorkoutFactory], and the tile shows its *real* computed duration — never a guess.
  */
 data class QuickPreset(val id: String, val label: String, val plan: WorkoutPlan)
 
@@ -214,6 +212,13 @@ fun buildQuickPresets(): List<QuickPreset> = listOf(
 
 private const val WEEKLY_GOAL_MILLIS = 150L * 60L * 1000L // WHO 150 min/week guideline
 
+/**
+ * Today.
+ *
+ * The screen answers one question — "what do I do right now?" — so it is ordered by urgency: the
+ * running session first, then this week's progress, then one-tap starts, then the library rails.
+ * Every number on it is a recorded one; nothing is estimated.
+ */
 @Composable
 fun HomeScreen(
     container: AppContainer,
@@ -229,6 +234,7 @@ fun HomeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val quick by viewModel.quickState.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     val activeSession by container.sessionController.active.collectAsStateWithLifecycle()
     val snapshot by container.sessionController.snapshot.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -241,71 +247,62 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(
+            start = dimens.pagePadding,
+            end = dimens.pagePadding,
+            top = dimens.m,
+            bottom = dimens.xxl,
+        ),
+        verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
     ) {
-        // --- Greeting ---------------------------------------------------------------------
+        // --- Greeting -------------------------------------------------------------------------
         item {
-            Column(Modifier.padding(top = 8.dp, bottom = 4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(10.dp).background(colors.work, CircleShape))
-                    Spacer(Modifier.width(8.dp))
-                    Text("PULSE", style = MaterialTheme.typography.labelLarge, color = colors.textSecondary)
-                }
-                Spacer(Modifier.height(6.dp))
+            Column(Modifier.padding(top = dimens.s, bottom = dimens.xs)) {
                 Text(
-                    greeting(),
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = greeting(),
+                    style = MaterialTheme.typography.headlineSmall,
                     color = colors.textPrimary,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.textSecondary,
+                    text = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textMuted,
                 )
             }
         }
 
-        // --- Active session banner ----------------------------------------------------------
+        // --- Active session banner ------------------------------------------------------------
         if (activeSession != null) {
             item {
                 PulseCard(onClick = onResumeSession) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            Modifier
-                                .size(44.dp)
-                                .background(colors.activeGlow, RoundedCornerShape(14.dp)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = colors.work)
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
+                        IconTile(icon = Icons.Filled.PlayArrow, tint = colors.accent, container = colors.accentTint)
+                        Spacer(Modifier.width(dimens.m))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
-                                "Workout in progress",
+                                text = "Workout in progress",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = colors.textPrimary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            Spacer(Modifier.height(2.dp))
                             Text(
-                                "${activeSession?.plan?.name} · ${snapshot.step?.name ?: ""} · " +
+                                text = "${activeSession?.plan?.name} · ${snapshot.step?.name ?: ""} · " +
                                     formatDuration(snapshot.stepRemainingMillis) + " left",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }
-                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textSecondary)
+                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
                     }
                 }
             }
         }
 
-        // --- Weekly activity: ring + stats ---------------------------------------------------
+        // --- Weekly activity ------------------------------------------------------------------
         item {
             PulseCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -313,126 +310,136 @@ fun HomeScreen(
                         progress = (state.weekMillis.toFloat() / WEEKLY_GOAL_MILLIS).coerceIn(0f, 1f),
                         color = colors.work,
                         trackColor = colors.track,
-                        strokeWidth = 10.dp,
-                        modifier = Modifier.size(96.dp),
+                        strokeWidth = 6.dp,
+                        modifier = Modifier.size(76.dp),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "${(state.weekMillis / 60000L).toInt()}",
-                                style = MaterialTheme.typography.titleLarge,
+                                text = "${(state.weekMillis / 60000L).toInt()}",
+                                style = PulseType.NumericMedium,
                                 color = colors.textPrimary,
                             )
                             Text(
-                                "min",
+                                text = "min",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
                         }
                     }
-                    Spacer(Modifier.width(16.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("This week", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
-                        Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.width(dimens.l))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            "Goal 150 min · ${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
+                            text = "This week",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.textPrimary,
                         )
-                        Spacer(Modifier.height(10.dp))
-                        WeekChart(state.week)
+                        Text(
+                            text = "${formatDuration(state.weekMillis)} of the 150 min goal · " +
+                                "${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
+                        )
                     }
                 }
+                Spacer(Modifier.height(dimens.l))
+                ActivityChart(
+                    bars = state.week.map {
+                        ActivityBar(
+                            label = it.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
+                            value = it.activeMillis,
+                        )
+                    },
+                    height = 48.dp,
+                    emptyLabel = "No sessions recorded this week yet.",
+                )
             }
         }
 
-        // --- Quick start hero -----------------------------------------------------------------
+        // --- Quick start ----------------------------------------------------------------------
         item {
             PulseCard {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            Modifier
-                                .size(34.dp)
-                                .background(colors.work.copy(alpha = 0.16f), RoundedCornerShape(10.dp)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Filled.Bolt, contentDescription = null, tint = colors.work, modifier = Modifier.size(20.dp))
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        Text("Quick start", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-                    }
-                    Spacer(Modifier.height(10.dp))
-
-                    // Preset chips — real plans, real durations.
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        presets.take(2).forEach { preset ->
-                            PresetChip(
-                                label = preset.label,
-                                duration = presetDuration(preset),
-                                colors = colors,
-                                modifier = Modifier.weight(1f),
-                                onClick = { onStartWorkout(preset.plan) },
-                            )
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        presets.drop(2).forEach { preset ->
-                            PresetChip(
-                                label = preset.label,
-                                duration = presetDuration(preset),
-                                colors = colors,
-                                modifier = Modifier.weight(1f),
-                                onClick = { onStartWorkout(preset.plan) },
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(14.dp))
-                    Text(
-                        "Custom — total ${formatDuration(quickTotal(quick))}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = colors.textSecondary,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        DurationStepper(
-                            label = "Work",
-                            millis = quick.work,
-                            onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
-                            modifier = Modifier.weight(1f),
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconTile(icon = Icons.Filled.Bolt, tint = colors.accent, container = colors.accentTint)
+                    Spacer(Modifier.width(dimens.m))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = "Quick start",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = colors.textPrimary,
                         )
-                        DurationStepper(
-                            label = "Rest",
-                            millis = quick.rest,
-                            onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
-                            modifier = Modifier.weight(1f),
+                        Text(
+                            text = "Presets start immediately with their real duration.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        NumberStepper(
-                            label = "Rounds",
-                            value = quick.rounds,
-                            onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
-                            modifier = Modifier.weight(1f),
-                        )
-                        DurationStepper(
-                            label = "Prep",
-                            millis = quick.prepMillis,
-                            onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    Spacer(Modifier.height(14.dp))
-                    GradientActionButton(
-                        text = "Start now",
-                        onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    TextButton(onClick = onQuickStart) { Text("Open the quick builder instead") }
                 }
+                Spacer(Modifier.height(dimens.m))
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    presets.take(2).forEach { preset ->
+                        PresetTile(
+                            label = preset.label,
+                            duration = presetDuration(preset),
+                            onClick = { onStartWorkout(preset.plan) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(dimens.s))
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    presets.drop(2).forEach { preset ->
+                        PresetTile(
+                            label = preset.label,
+                            duration = presetDuration(preset),
+                            onClick = { onStartWorkout(preset.plan) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(dimens.l))
+                SectionHeader(text = "Custom · ${formatDuration(quickTotal(quick))}")
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    DurationStepper(
+                        label = "Work",
+                        millis = quick.work,
+                        onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
+                        modifier = Modifier.weight(1f),
+                    )
+                    DurationStepper(
+                        label = "Rest",
+                        millis = quick.rest,
+                        onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Spacer(Modifier.height(dimens.s))
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    NumberStepper(
+                        label = "Rounds",
+                        value = quick.rounds,
+                        onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
+                        modifier = Modifier.weight(1f),
+                    )
+                    DurationStepper(
+                        label = "Prep",
+                        millis = quick.prepMillis,
+                        onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Spacer(Modifier.height(dimens.m))
+                PrimaryActionButton(
+                    text = "Start now",
+                    onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = Icons.Filled.PlayArrow,
+                )
+                GhostActionButton(
+                    text = "Open the quick builder instead",
+                    onClick = onQuickStart,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
 
@@ -443,36 +450,28 @@ fun HomeScreen(
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Today's health",
+                                text = "Today's health",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = colors.textPrimary,
+                                modifier = Modifier.weight(1f),
                             )
-                            Spacer(Modifier.width(8.dp))
-                            Box(
-                                Modifier
-                                    .size(8.dp)
-                                    .background(colors.work, CircleShape)
-                                    .semantics { contentDescription = healthSnapshot.source.orEmpty() },
+                            Text(
+                                text = healthSnapshot.source.orEmpty(),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colors.textMuted,
                             )
                         }
-                        Spacer(Modifier.height(10.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Spacer(Modifier.height(dimens.m))
+                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                             StatTile(
-                                "Steps",
-                                healthSnapshot.stepsToday?.toString() ?: "—",
-                                accent = colors.rest,
+                                label = "Steps",
+                                value = healthSnapshot.stepsToday?.toString() ?: "—",
                                 modifier = Modifier.weight(1f),
                             )
                             StatTile(
-                                "Heart rate",
-                                healthSnapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
-                                accent = colors.prepare,
+                                label = "Heart rate",
+                                value = healthSnapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
                                 modifier = Modifier.weight(1f),
-                            )
-                            StatTile(
-                                "Source",
-                                healthSnapshot.source ?: "—",
-                                modifier = Modifier.weight(1.4f),
                             )
                         }
                     }
@@ -480,19 +479,24 @@ fun HomeScreen(
             }
         }
 
-        // --- Favorites rail ----------------------------------------------------------------------
+        // --- Favorites rail ---------------------------------------------------------------------
         if (state.favorites.isNotEmpty()) {
             item { SectionHeader("Favorites") }
             item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
                     items(state.favorites, key = { it.id }) { workout ->
                         PulseCard(modifier = Modifier.width(220.dp), onClick = { onOpenWorkout(workout.id) }) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Filled.Star, contentDescription = null, tint = colors.work, modifier = Modifier.size(18.dp))
+                                    Icon(
+                                        Icons.Filled.Star,
+                                        contentDescription = null,
+                                        tint = colors.textMuted,
+                                        modifier = Modifier.size(14.dp),
+                                    )
                                     Spacer(Modifier.width(6.dp))
                                     Text(
-                                        workout.name,
+                                        text = workout.name,
                                         style = MaterialTheme.typography.titleMedium,
                                         color = colors.textPrimary,
                                         maxLines = 1,
@@ -500,18 +504,17 @@ fun HomeScreen(
                                         modifier = Modifier.weight(1f, fill = false),
                                     )
                                 }
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(6.dp))
                                 Text(
-                                    if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = colors.textSecondary,
+                                    text = if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis),
+                                    style = PulseType.NumericSmall,
+                                    color = colors.textMuted,
                                 )
-                                Spacer(Modifier.height(10.dp))
-                                PrimaryActionButton(
+                                Spacer(Modifier.height(dimens.m))
+                                SecondaryStartButton(
                                     text = "Start",
                                     // One tap from Today starts the favourite immediately.
                                     onClick = { scope.launch { viewModel.planFor(workout.id)?.let(onStartWorkout) } },
-                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
@@ -521,27 +524,28 @@ fun HomeScreen(
         }
 
         // --- Next planned -------------------------------------------------------------------------
-        if (state.nextPlanned != null) {
+        state.nextPlanned?.let { planned ->
             item { SectionHeader("Next planned") }
             item {
-                val planned = state.nextPlanned!!
                 PulseCard(onClick = { onOpenWorkout(planned.reminder.workoutId) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            Modifier
-                                .size(40.dp)
-                                .background(colors.prepare.copy(alpha = 0.16f), RoundedCornerShape(12.dp)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Filled.Schedule, contentDescription = null, tint = colors.prepare)
+                        IconTile(icon = Icons.Filled.Schedule, tint = colors.prepare, container = colors.warningTint)
+                        Spacer(Modifier.width(dimens.m))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = planned.workoutName,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.textPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = formatPlanned(planned.reminder.scheduledAt),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.textMuted,
+                            )
                         }
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(planned.workoutName, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Spacer(Modifier.height(2.dp))
-                            Text(formatPlanned(planned.reminder.scheduledAt), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-                        }
-                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textSecondary)
+                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
                     }
                 }
             }
@@ -553,19 +557,29 @@ fun HomeScreen(
             items(state.recent, key = { it.id }) { workout ->
                 PulseCard(onClick = { onOpenWorkout(workout.id) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(workout.name, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Spacer(Modifier.height(2.dp))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
-                                "${workout.intervalCount} intervals · ${if (workout.hasOpenEnded) "open-ended" else formatDuration(workout.knownDurationMillis)}",
+                                text = workout.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.textPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = "${workout.intervalCount} intervals · " +
+                                    (if (workout.hasOpenEnded) "open-ended" else formatDuration(workout.knownDurationMillis)),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
                         }
-                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textSecondary)
+                        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
                     }
                 }
             }
+        }
+
+        if (state.loading) {
+            item { LoadingBox(label = "Loading your training log…", modifier = Modifier.height(160.dp)) }
         }
 
         if (state.favorites.isEmpty() && state.recent.isEmpty() && !state.loading) {
@@ -578,6 +592,89 @@ fun HomeScreen(
                     onAction = onOpenTemplates,
                 )
             }
+        }
+    }
+}
+
+/**
+ * The 28 dp icon tile used at the head of a card: a tinted square that identifies the section
+ * without introducing decoration. The tint carries meaning (accent for live, prepare for scheduled).
+ */
+@Composable
+private fun IconTile(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: androidx.compose.ui.graphics.Color,
+    container: androidx.compose.ui.graphics.Color? = null,
+) {
+    val colors = LocalPulseColors.current
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(LocalPulseShapes.current.chip)
+            .background(container ?: colors.neutralFill),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+    }
+}
+
+@Composable
+private fun PresetTile(
+    label: String,
+    duration: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = LocalPulseShapes.current.control,
+        color = colors.surfaceRaised,
+        border = BorderStroke(dimens.borderWidth, colors.border),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.s),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleSmall,
+                color = colors.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = duration,
+                style = PulseType.NumericSmall,
+                color = colors.textMuted,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+/** A compact start affordance for the favourite rail; a full-width button would dominate the card. */
+@Composable
+private fun SecondaryStartButton(text: String, onClick: () -> Unit) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Surface(
+        onClick = onClick,
+        shape = LocalPulseShapes.current.control,
+        color = colors.surfaceRaised,
+        border = BorderStroke(dimens.borderWidth, colors.outline),
+        contentColor = colors.textPrimary,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(36.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = text, style = MaterialTheme.typography.labelLarge)
         }
     }
 }
@@ -596,89 +693,6 @@ private fun presetDuration(preset: QuickPreset): String = runCatching {
 
 private fun quickTotal(quick: HomeViewModel.QuickState): Long =
     quick.prepMillis + quick.rounds * (quick.work + quick.rest)
-
-@Composable
-private fun PresetChip(
-    label: String,
-    duration: String,
-    colors: com.pulse.intervalcoach.ui.theme.PulseColors,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = colors.surfaceRaised,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.outlineVariant),
-    ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Text(
-                label,
-                style = MaterialTheme.typography.labelLarge,
-                color = colors.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                duration,
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.work,
-            )
-        }
-    }
-}
-
-/**
- * Seven-day activity chart.
- *
- * Bars sit in equal-width slots so they line up with the weekday labels underneath — the previous
- * version spaced them by a fixed gap, so the bars drifted out of alignment with nothing to read
- * them against anyway.
- */
-@Composable
-private fun WeekChart(activities: List<DailyActivity>) {
-    val colors = LocalPulseColors.current
-    val max = (activities.maxOfOrNull { it.activeMillis } ?: 0L).coerceAtLeast(1L)
-    Column {
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .semantics { contentDescription = "Last 7 days of activity" },
-        ) {
-            if (activities.isEmpty()) return@Canvas
-            val slot = size.width / activities.size
-            val barWidth = (slot - 6.dp.toPx()).coerceAtLeast(2.dp.toPx())
-            activities.forEachIndexed { index, day ->
-                val fraction = day.activeMillis.toFloat() / max.toFloat()
-                val barHeight = (size.height * fraction).coerceAtLeast(if (day.activeMillis > 0) 6.dp.toPx() else 2.dp.toPx())
-                val color: Color = if (day.activeMillis > 0) colors.work else colors.outline.copy(alpha = 0.4f)
-                val x = index * slot + (slot - barWidth) / 2
-                drawRoundRect(
-                    color = color,
-                    topLeft = androidx.compose.ui.geometry.Offset(x, size.height - barHeight),
-                    size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 3),
-                )
-            }
-        }
-        Spacer(Modifier.height(6.dp))
-        Row(Modifier.fillMaxWidth()) {
-            activities.forEach { day ->
-                Text(
-                    day.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (day.activeMillis > 0) colors.textPrimary else colors.textSecondary,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-    }
-}
 
 private fun formatPlanned(millis: Long): String {
     val zone = ZoneId.systemDefault()
