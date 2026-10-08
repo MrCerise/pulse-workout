@@ -671,11 +671,14 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             )
                         }
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        // Hoisted: stringResource is a composable call and onClick is not a
+                        // composable lambda, so the sample line has to be read out here.
+                        val duckTestLine = stringResource(R.string.voice_test_line)
                         SecondaryActionButton(
                             text = stringResource(R.string.voice_duck_test),
                             onClick = {
                                 container.music.previewDuck()
-                                container.speech.speakPreview(stringResource(R.string.voice_test_line))
+                                container.speech.speakPreview(duckTestLine)
                             },
                             modifier = Modifier.fillMaxWidth(),
                         )
