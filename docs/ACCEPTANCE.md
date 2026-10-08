@@ -16,7 +16,7 @@ here** means the environment lacks what the check requires.
 | 7 | Screen-off workout continues with ordered cues | **implemented** | `WorkoutService` (foreground, `mediaPlayback`) with a partial wake lock and a media notification; timing derives from the monotonic clock, so a stopped UI thread cannot shift boundaries. Device verification outstanding |
 | 8 | A missing TTS voice gives a useful setup path and a sound fallback | **implemented + partially verified** | `SpeechCoach` reports `NoEngine` / `MissingLanguageData`, Voice Studio and Help explain how to install an offline voice, and `CueSoundPlayer` plays synthesised tones instead. The cue-gate behaviour is unit tested; actual TTS output needs a device |
 | 9 | Short intervals, long names and overlapping warnings never build a speech backlog | **verified** | `CueGateTest` (8 tests): interval changes always speak and flush, at most one follow-up is queued, countdowns are dropped when they would land late, and a 40-cue burst is throttled |
-| 10 | Audio interruption and headphone disconnection follow the setting | **implemented** | `AudioFocusController` + `AudioManager.AUDIOFOCUS_*` handling implemented for pause / keep-timing-mute / duck, and `AUDIO_BECOMING_NOISY` routes to `onHeadphonesDisconnected()` honouring the headphone preference. Needs a device with a headset |
+| 10 | Audio interruption and headphone disconnection follow the setting | **implemented + partially verified** | `AudioFocusController` + `AudioManager.AUDIOFOCUS_*` handling implemented for pause / keep-timing-mute / duck, and `AUDIO_BECOMING_NOISY` routes to `onHeadphonesDisconnected()` honouring the headphone preference. Since v1.4.4 a `LOSS_TRANSIENT_CAN_DUCK` event lowers the background audio and keeps coaching, and the ducking curve that decision feeds is unit tested (`DuckingTest`, 17 tests). Focus negotiation itself still needs a device with a headset |
 | 11 | Import/export round trips preserve structure and settings | **verified** | `BackupAndCueTest` — every one of the 15 starter templates survives encode → decode with identical step lists and totals; the backup file carries workouts, folders, sessions, voice profiles, labels and reminders |
 | 12 | Invalid imports fail safely without touching existing data | **verified** | `BackupAndCueTest` rejects a foreign JSON document and a corrupt plan; `BackupRepository` validates the whole file and previews before writing anything |
 | 13 | Database migration preserves workouts and session history | **verified on real SQLite** | `DatabaseMigrationTest` rebuilds the v1 schema from Room's exported schema, applies the shipped `PulseMigrations.ONE_TO_TWO` statements through JDBC, and asserts every row survived |
@@ -53,3 +53,23 @@ The visual refactor has its own pass/fail criteria, all of which are machine-che
 
 Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
 environment); the local gates above are the ones that can run before it.
+
+## v1.4.4 audio-ducking checks
+
+Ducking was added in v1.4.4 together with the wiring that makes background audio play at all. The
+volume curve is pure Kotlin over an injected clock, so it is verified on the JVM; the audible result
+still needs a device.
+
+| Check | How it is checked | Result |
+| --- | --- | --- |
+| Ducking can be switched off | `DuckingTest.ducking off leaves the music at full volume even while the coach speaks` | **verified** — scale stays 1.0 with speech running |
+| The drop, hold and recovery are the configured shape | `DuckingTest` — ramp, hold, fade-up and settle assertions with an explicit clock | **verified** — 1.0 → 0.30 over the fade, held for the hold, back to 1.0 |
+| A long announcement never lets the music back in early | `an open ended duck lasts as long as the coach is talking` | **verified** — still ducked after 60 s with no scheduled change |
+| Back-to-back cues do not pump the volume | `a second utterance before the hold ends keeps the music down`, `ducking again mid recovery drops from the current volume instead of snapping` | **verified** |
+| A cue tone ducks for exactly its own length | `a cue tone ducks for its own length and then recovers`, `a cue tone during speech never shortens the duck` | **verified** — driven by `CueSoundPlayer.durationMillis` |
+| A 40-cue burst always returns to full volume | `a forty cue burst never leaves the music ducked afterwards` | **verified** |
+| Out-of-range depths cannot amplify or invert | `out of range levels are clamped instead of amplifying or inverting` | **verified** |
+| Settings changed mid-workout apply without a restart | `SessionController` pushes every `UserPreferences` emission into `MusicController.configure` | **implemented** — needs a device to hear |
+| Ducking follows the real speech engine | `SpeechCoach` utterance counting (`onStart` / `onDone` / `onStop` / `onError`) plus a watchdog from the cue gate's estimate | **implemented** — TTS callbacks need a device |
+| Background audio starts, pauses, resumes and is released with the session | `SessionController.startWorkout` / `syncMusicWithEngine` / `teardown` → `MusicController` | **implemented** — ExoPlayer output needs a device |
+| Volume keys control the workout when asked to | `MainActivity.onKeyDown` behind the `volume keys control the session` preference | **implemented** — needs a device |

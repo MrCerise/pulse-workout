@@ -57,7 +57,13 @@ data class UserPreferences(
     val announceNext: Boolean = true,
     val cueVolume: Float = 0.8f,
     val vibrationEnabled: Boolean = true,
+    /** Duck the background audio while the coach speaks or a cue tone sounds. */
     val duckMusicDuringCues: Boolean = true,
+    /**
+     * Volume multiplier the music drops to while ducked: 0.3 = 30 % of the listener's volume,
+     * 0 = muted for the length of the cue, 1 = no audible change.
+     */
+    val duckLevel: Float = 0.30f,
     val keepScreenOn: Boolean = true,
     val continueCuesScreenOff: Boolean = true,
     val audioInterruptionBehavior: AudioInterruptionBehavior = AudioInterruptionBehavior.KEEP_TIMING_DUCK,
@@ -114,6 +120,7 @@ class PreferencesRepository(private val context: Context) {
         val cueVolume = floatPreferencesKey("cue_volume")
         val vibration = booleanPreferencesKey("vibration")
         val duck = booleanPreferencesKey("duck_music")
+        val duckLevel = floatPreferencesKey("duck_level")
         val keepScreenOn = booleanPreferencesKey("keep_screen_on")
         val cuesScreenOff = booleanPreferencesKey("cues_screen_off")
         val interruption = stringPreferencesKey("audio_interruption")
@@ -159,6 +166,7 @@ class PreferencesRepository(private val context: Context) {
             cueVolume = prefs[Keys.cueVolume] ?: 0.8f,
             vibrationEnabled = prefs[Keys.vibration] ?: true,
             duckMusicDuringCues = prefs[Keys.duck] ?: true,
+            duckLevel = prefs[Keys.duckLevel] ?: 0.30f,
             keepScreenOn = prefs[Keys.keepScreenOn] ?: true,
             continueCuesScreenOff = prefs[Keys.cuesScreenOff] ?: true,
             audioInterruptionBehavior = prefs[Keys.interruption]?.let { runCatching { AudioInterruptionBehavior.valueOf(it) }.getOrNull() }
@@ -209,6 +217,7 @@ class PreferencesRepository(private val context: Context) {
     suspend fun setCueVolume(value: Float) = edit { it[Keys.cueVolume] = value.coerceIn(0f, 1f) }
     suspend fun setVibration(value: Boolean) = edit { it[Keys.vibration] = value }
     suspend fun setDuckMusic(value: Boolean) = edit { it[Keys.duck] = value }
+    suspend fun setDuckLevel(value: Float) = edit { it[Keys.duckLevel] = value.coerceIn(0f, 1f) }
     suspend fun setKeepScreenOn(value: Boolean) = edit { it[Keys.keepScreenOn] = value }
     suspend fun setContinueCuesScreenOff(value: Boolean) = edit { it[Keys.cuesScreenOff] = value }
     suspend fun setAudioInterruption(value: AudioInterruptionBehavior) = edit { it[Keys.interruption] = value.name }

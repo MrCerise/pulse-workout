@@ -136,6 +136,8 @@
     <string name="player_open_ended">Sans durée fixe</string>
     <string name="player_voice_on">Voix activée</string>
     <string name="player_voice_off">Annonces coupées</string>
+    <string name="player_music_on">Musique active</string>
+    <string name="player_music_ducked">Musique baissée</string>
     <string name="player_keep_screen_on">Garder l\'écran allumé</string>
     <string name="player_exit_title">Terminer cette séance ?</string>
     <string name="player_exit_body">Vous pouvez arrêter plus tôt et conserver ce que vous avez fait.</string>
@@ -214,10 +216,24 @@
     <string name="voice_sound_volume">Volume des signaux</string>
     <string name="voice_vibration">Vibration</string>
     <string name="voice_duck_music">Baisser la musique pendant les annonces</string>
+    <string name="voice_duck_title">Atténuation audio</string>
+    <string name="voice_duck_hint">Baisse votre audio d\'arrière-plan pendant que le coach parle ou qu\'un signal sonne, puis le rétablit.</string>
+    <string name="voice_duck_level">Profondeur de l\'atténuation</string>
+    <string name="voice_duck_active">Musique baissée</string>
+    <string name="voice_duck_idle">Musique au volume normal</string>
+    <string name="voice_duck_phase">Atténuation : %1$s</string>
+    <string name="voice_duck_test">Tester l\'atténuation</string>
+    <string name="voice_duck_test_hint">Baisse l\'audio un instant et prononce une phrase d\'exemple pour entendre le réglage.</string>
     <string name="voice_music_title">Audio d\'arrière-plan</string>
     <string name="voice_music_pick">Choisir un fichier audio…</string>
     <string name="voice_music_none">Aucun audio d\'arrière-plan sélectionné</string>
     <string name="voice_music_clear">Retirer</string>
+    <string name="voice_music_hint">PULSE lit un fichier que vous choisissez ; il n\'intègre ni ne diffuse jamais de musique.</string>
+    <string name="voice_music_volume">Volume de l\'audio d\'arrière-plan</string>
+    <string name="voice_music_play">Lire l\'audio d\'arrière-plan</string>
+    <string name="voice_music_stop">Arrêter l\'audio d\'arrière-plan</string>
+    <string name="voice_music_preview_hint">Essayez-le ici pour vérifier le fichier, le volume et l\'atténuation avant une séance.</string>
+    <string name="voice_music_unavailable">Ce fichier ne peut pas être lu (%1$s). Choisissez-le à nouveau.</string>
     <string name="voice_recording_title">Vos propres annonces enregistrées</string>
     <string name="voice_record_start">Enregistrer</string>
     <string name="voice_record_stop">Arrêter l\'enregistrement</string>
@@ -260,6 +276,8 @@
     <string name="audio_interrupt_continue">Continuer le temps, couper les annonces</string>
     <string name="audio_interrupt_duck">Continuer le temps, baisser l\'autre audio</string>
     <string name="settings_headphone_unplug">Débranchement du casque</string>
+    <string name="settings_volume_keys">Les touches de volume contrôlent la séance</string>
+    <string name="settings_volume_keys_hint">Volume haut passe à l\'intervalle suivant, volume bas met en pause ou reprend. Désactivé = les touches règlent le volume.</string>
     <string name="headphone_pause">Mettre la séance en pause</string>
     <string name="headphone_continue">Continuer, annonces sur le haut-parleur</string>
     <string name="settings_data">Données</string>

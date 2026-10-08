@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import com.pulse.engine.HapticCue
 import com.pulse.engine.SoundCue
@@ -149,6 +150,25 @@ class CueSoundPlayer(private val context: Context) {
     }
 
     private fun silence(millis: Int) = FloatArray(sampleRate * millis / 1000)
+
+    companion object {
+        /**
+         * Rendered length of each cue tone, in milliseconds.
+         *
+         * Ducking uses it to lower the music for exactly as long as the tone sounds — no guessing,
+         * and no re-rendering a buffer just to measure it.
+         */
+        fun durationMillis(cue: SoundCue): Long = when (cue) {
+            SoundCue.NONE -> 0L
+            SoundCue.TICK -> 90L
+            SoundCue.BEEP -> 160L
+            SoundCue.DOUBLE_BEEP -> 310L
+            SoundCue.BELL -> 900L
+            SoundCue.WHISTLE -> 320L
+            SoundCue.CHIME -> 1_300L
+            SoundCue.BUZZ -> 260L
+        }
+    }
 
     private fun envelope(index: Int, total: Int, attackMs: Int, releaseMs: Int): Double {
         val attack = sampleRate * attackMs / 1000
@@ -338,6 +358,20 @@ class SpeechCoach(
     @Volatile
     var verbose: VoiceVerbosity = VoiceVerbosity.STANDARD
 
+    /**
+     * Called when an utterance is handed to the engine, with the cue gate's duration estimate.
+     * Ducking hooks in here so the music drops *before* the first word rather than after it.
+     */
+    @Volatile
+    var onSpeechStarted: ((estimatedMillis: Long) -> Unit)? = null
+
+    /** Called once the engine has nothing left to say. Drives the end of the duck. */
+    @Volatile
+    var onSpeechFinished: (() -> Unit)? = null
+
+    /** Utterances the engine has started but not finished; queued cues overlap. */
+    private val activeUtterances = AtomicInteger(0)
+
     private var initialised = false
 
     fun initialise() {
@@ -362,10 +396,16 @@ class SpeechCoach(
         val engine = tts ?: return
         runCatching {
             engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) = Unit
-                override fun onDone(utteranceId: String?) = Unit
+                override fun onStart(utteranceId: String?) {
+                    activeUtterances.incrementAndGet()
+                }
+
+                override fun onDone(utteranceId: String?) = utteranceFinished()
+
+                override fun onStop(utteranceId: String?, interrupted: Boolean) = utteranceFinished()
+
                 @Deprecated("Deprecated in Java")
-                override fun onError(utteranceId: String?) = Unit
+                override fun onError(utteranceId: String?) = utteranceFinished()
             })
             val locale = localeFor(appContext)
             val result = engine.setLanguage(locale)
@@ -411,10 +451,25 @@ class SpeechCoach(
             val mode = if (decision.flush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
             engine.speak(text, mode, null, UUID.randomUUID().toString())
         }.onFailure { return false }
+        onSpeechStarted?.invoke(gate.estimateDuration(text))
         return true
     }
 
-    fun stop() = runCatching { tts?.stop() }.let { }
+    /**
+     * One utterance finished. Only the last one in the queue releases the duck, so a queued
+     * "three, two, one" does not make the music pump between words.
+     */
+    private fun utteranceFinished() {
+        if (activeUtterances.decrementAndGet() > 0) return
+        activeUtterances.set(0)
+        onSpeechFinished?.invoke()
+    }
+
+    fun stop() {
+        runCatching { tts?.stop() }
+        activeUtterances.set(0)
+        onSpeechFinished?.invoke()
+    }
 
     /** Preview used by Voice Studio and onboarding; bypasses the gate. */
     fun speakPreview(text: String): Boolean {
@@ -433,6 +488,7 @@ class SpeechCoach(
         runCatching { tts?.shutdown() }
         tts = null
         initialised = false
+        activeUtterances.set(0)
         gate.reset()
     }
 

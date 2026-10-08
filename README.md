@@ -10,9 +10,36 @@ Everything PULSE does itself runs on the device. No account, no ads, no analytic
 only data that ever leaves the phone are the records you explicitly share with a Google health app.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.4.2 (versionCode 5)
+- **Version:** 1.4.4 (versionCode 7)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.4.4 — what changed
+
+- **Audio ducking that actually runs.** `MusicController` already had a `setDucked` method and a
+  preference claimed the app "ducks your audio during cues" — but nothing ever called either, so
+  background audio was never even started. Both are wired now, and the ducking curve itself is a
+  pure state machine (`audio/Ducking.kt`) covered by `DuckingTest`: a 140 ms drop when the coach
+  starts talking, a hold that covers the end of the sentence, a slower 420 ms climb back, and the
+  same treatment sized to the exact length of each cue tone.
+- **Ducking follows the speech engine, not a guess.** `SpeechCoach` counts utterances through the
+  TTS progress callbacks and reports the real start and end of speech, so the music comes back when
+  the coach stops talking. Engines that never report completion are caught by a watchdog built on
+  the cue gate's own duration estimate.
+- **Switch and depth, applied live.** Voice Studio has the on/off switch plus a depth slider from
+  *Muted* to *barely*. Both are pushed into the running session as you move them — no restart.
+- **Background audio plays for real.** The file you pick starts with the workout, fades in over
+  320 ms instead of slamming in, pauses when you pause, resumes when you resume, and is released
+  when the session ends. Voice Studio can play it on its own to check the file, the volume and the
+  ducking before you train, and names the error when the file cannot be read.
+- **Ducking is visible.** The player carries a `Music on` / `Music lowered` chip, Voice Studio shows
+  the live phase (lowering / lowered / restoring), and *Test ducking* demonstrates the setting
+  without starting a workout.
+- **Volume keys can drive the workout.** The dormant `volume keys control the session` preference now
+  does something: with it on, volume up skips to the next interval and volume down pauses or
+  resumes, so the phone can stay on the floor. Auto-repeat is ignored.
+- **"May duck" interruptions behave.** A navigation prompt that only needs to be heard over the music
+  used to mute the coach entirely; it now lowers the music and keeps coaching.
 
 ## v1.4.2 — what changed
 
@@ -242,10 +269,11 @@ inside Progress, the template gallery and Health setup are pushed destinations.
 - [x] History with per-session details and the workout as it was actually run
 - [x] Progress: weekly chart, daily minutes, streak, all-time totals, local planner with reminders
 - [x] Voice & audio studio: engine status, offline-voice guidance, rate, pitch, verbosity, profiles,
-      cue volume, vibration, music ducking, own recordings
+      cue volume, vibration, audio ducking (switch, depth, live phase, test button), background audio
+      with volume and preview, own recordings
 - [x] Settings: themes (system/light/dark/true black), dynamic colour for navigation only, high
       contrast, reduced motion, left-handed player, density, defaults, units, interruption and
-      headphone behaviour, background audio, data management, help
+      headphone behaviour, volume-key control, background audio, data management, help
 - [x] Import / export / backup (JSON, SAF) with preview before writing and never overwriting
 - [x] Empty, loading, error and permission-denied states on every data surface
 - [x] Drafts preserved across process death; Save / Discard / Cancel on dirty drafts
@@ -390,18 +418,19 @@ automatically.
    line renames several record types and is alpha; the code deliberately does not chase it.
 ## Verification report
 
-For v1.4.2 the build environment has no Android SDK or JDK, so compilation and tests run in the
+For v1.4.4 the build environment has no Android SDK or JDK, so compilation and tests run in the
 GitHub Actions workflow (see `.github/workflows/build-release.yml`); the checks that *can* run
 locally are run and are listed below with their real output.
 
 | Check | Command | Result |
 | --- | --- | --- |
 | Contrast (tokens ↔ XML ↔ Kotlin in lockstep) | `python3 scripts/contrast_check.py` | 81 pairs across 3 themes, all pass (see `docs/CONTRAST.md`) |
-| Resource gate (every `@color`/`@string`/`@drawable` resolves, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 414 names, 322 EN / 322 FR strings, 41 icons — OK |
+| Kotlin syntax gate (tree-sitter parse of every source file) | `python3 scripts/kotlin_parse_gate.py` | 48 files, 0 syntax errors |
+| Resource gate (every `@color`/`@string`/`@drawable` resolves, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 432 names, 340 EN / 340 FR strings, 42 icons — OK |
 | Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
 | Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
 | Engine unit tests (unchanged module) | CI `./gradlew :engine:test` | final gate |
-| App unit tests (parser, factory, backups, cue gate, DB migration v2) | CI `./gradlew :app:testDebugUnitTest` | final gate |
+| App unit tests (parser, factory, backups, cue gate, ducking, DB migration v2) | CI `./gradlew :app:testDebugUnitTest` | final gate |
 | Compilation, lint, debug + release APK (SDK 37) | CI workflow | final gate |
 | Install / smoke test | — | **not run** — no emulator or device in this environment |
 
