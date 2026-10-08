@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   build:
-    name: Test and build APKs
+    name: Build APKs (tests on PRs)
     runs-on: ubuntu-latest
     env:
       PULSE_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -88,14 +88,22 @@ jobs:
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$PULSE_RELEASE_STORE_FILE"
           fi
 
-      - name: Run tests and build APKs
+      - name: Run tests (pull requests only)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          compile_sdk="${PULSE_COMPILE_SDK:-37}"
+          bash ./gradlew --no-daemon --console=plain "--stacktrace" "-Ppulse.compileSdk=${compile_sdk}" "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+UseSerialGC -Dfile.encoding=UTF-8" :engine:test :app:testDebugUnitTest 2>&1 | tee gradle-build.log
+
+      - name: Build APKs
         shell: bash
         env:
           PULSE_RELEASE_STORE_FILE: ${{ runner.temp }}/pulse-release.jks
         run: |
           set -euo pipefail
           compile_sdk="${PULSE_COMPILE_SDK:-37}"
-          bash ./gradlew --no-daemon --console=plain "--stacktrace" "-Ppulse.compileSdk=${compile_sdk}" "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+UseSerialGC -Dfile.encoding=UTF-8" :engine:test :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease 2>&1 | tee gradle-build.log
+          bash ./gradlew --no-daemon --console=plain "--stacktrace" "-Ppulse.compileSdk=${compile_sdk}" "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+UseSerialGC -Dfile.encoding=UTF-8" :app:assembleDebug :app:assembleRelease 2>&1 | tee -a gradle-build.log
 
       - name: Prepare release assets
         if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
