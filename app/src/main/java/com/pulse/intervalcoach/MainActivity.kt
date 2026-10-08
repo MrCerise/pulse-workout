@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,9 +16,11 @@ import com.google.android.gms.fitness.FitnessOptions
 import com.pulse.intervalcoach.health.FitAuthBridge
 import com.pulse.intervalcoach.session.Notifications
 import com.pulse.intervalcoach.ui.PulseAppRoot
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Single-activity host.
@@ -31,6 +34,10 @@ class MainActivity : ComponentActivity() {
 
     private val deeplinks = MutableStateFlow<String?>(null)
     private var fitResultCallback: ((Boolean) -> Unit)? = null
+
+    /** Mirrors the "volume keys control the workout" preference for [onKeyDown]. */
+    @Volatile
+    private var volumeKeysControlSession = false
 
     // Result launchers must be registered before the activity reaches STARTED, so they live at
     // property level — calling registerForActivityResult from a runtime callback would throw.
@@ -51,8 +58,29 @@ class MainActivity : ComponentActivity() {
                 onRequestNotificationPermission = ::requestNotificationPermissionIfNeeded,
             )
         }
+        val container = (application as PulseApp).container
         // Refresh the health-platform state whenever the app comes back to the foreground.
-        (application as PulseApp).container.health.refresh()
+        container.health.refresh()
+        lifecycleScope.launch {
+            container.preferences.flow.collect { volumeKeysControlSession = it.volumeKeysControlSession }
+        }
+    }
+
+    /**
+     * Blind, mid-set control: with the preference on, volume up skips to the next interval and
+     * volume down pauses or resumes, so the phone can stay on the floor. Auto-repeat is ignored —
+     * holding a key must not skip the whole workout.
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val volumeKey = keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+        if (volumeKey && volumeKeysControlSession && (event?.repeatCount ?: 0) == 0) {
+            val session = (application as PulseApp).container.sessionController
+            if (session.active.value != null) {
+                if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) session.next() else session.togglePause()
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onNewIntent(intent: Intent) {

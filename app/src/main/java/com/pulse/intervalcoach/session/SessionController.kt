@@ -87,6 +87,7 @@ class SessionController(
     val soundPlayer: CueSoundPlayer,
     val speech: SpeechCoach,
     val haptics: Haptics,
+    private val music: MusicController,
     private val limits: EngineLimits = EngineLimits(),
 ) {
     private val engine = TimerEngine(AndroidMonotonicClock)
@@ -128,8 +129,19 @@ class SessionController(
             // work happens here. Everything else is handed to the reducer channel.
             eventChannel.trySend(event)
         }
+        // Ducking follows the speech engine itself rather than an estimate: the music drops when an
+        // utterance is handed over and comes back once the queue is empty.
+        speech.onSpeechStarted = { estimatedMillis -> music.onSpeechStarted(estimatedMillis) }
+        speech.onSpeechFinished = { music.onSpeechFinished() }
         scope.launch { consumeEvents() }
-        scope.launch { prefs.flow.collect { prefsSnapshot = it } }
+        scope.launch {
+            prefs.flow.collect {
+                prefsSnapshot = it
+                // Settings changed mid-workout (ducking off, louder music) apply immediately.
+                music.configure(it)
+                music.setVolume(it.musicVolume)
+            }
+        }
     }
 
     // -------------------------------------------------------------------------------------------
@@ -175,6 +187,8 @@ class SessionController(
         speech.initialise()
         soundPlayer.volume = current.cueVolume
         haptics.enabled = current.vibrationEnabled
+        music.configure(current)
+        music.start()
         acquireWakeLockIfNeeded(current)
         requestAudioFocus()
         ensureTicker()
@@ -195,8 +209,13 @@ class SessionController(
                 AudioInterruptionBehavior.PAUSE -> pause()
                 else -> muteCues(true)
             }
-            FocusEvent.LOSS_TRANSIENT_CAN_DUCK -> if (prefsSnapshot.duckMusicDuringCues) muteCues(true)
-            FocusEvent.GAIN -> if (mutedByFocus) muteCues(false)
+            // The other app only needs room to be heard (a navigation prompt): lower the music and
+            // keep coaching, which is what "may duck" means. Cues stay audible.
+            FocusEvent.LOSS_TRANSIENT_CAN_DUCK -> music.setExternalDuck(true)
+            FocusEvent.GAIN -> {
+                music.setExternalDuck(false)
+                if (mutedByFocus) muteCues(false)
+            }
         }
     }
 
@@ -213,17 +232,25 @@ class SessionController(
     fun togglePause() {
         if (_active.value == null) return
         engine.togglePause()
+        syncMusicWithEngine()
         publish()
     }
 
     fun pause() {
         engine.pause()
+        syncMusicWithEngine()
         publish()
     }
 
     fun resume() {
         engine.resume()
+        syncMusicWithEngine()
         publish()
+    }
+
+    /** Background audio follows the workout: pausing stops the track, resuming brings it back. */
+    private fun syncMusicWithEngine() {
+        if (engine.snapshot().isPaused) music.pause() else music.play()
     }
 
     fun next() {
@@ -328,6 +355,7 @@ class SessionController(
         focusController = null
         soundPlayer.release()
         speech.stop()
+        music.stop()
         haptics.cancel()
         _active.value = null
         _cuesMuted.value = false
@@ -474,7 +502,10 @@ class SessionController(
 
     private fun playCue(step: TimelineStep) {
         val cue = if (step.kind == com.pulse.engine.PhaseKind.REST) com.pulse.engine.SoundCue.BEEP else step.sound
-        if (!step.isIndefinite) soundPlayer.play(cue)
+        if (step.isIndefinite) return
+        soundPlayer.play(cue)
+        // The music drops for exactly as long as the tone sounds, then climbs back.
+        music.onCue(CueSoundPlayer.durationMillis(cue))
     }
 
     private fun requestAudioFocus() {

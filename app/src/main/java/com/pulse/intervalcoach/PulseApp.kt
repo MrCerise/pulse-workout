@@ -71,6 +71,7 @@ class AppContainer(private val app: Application) {
             soundPlayer = cueSoundPlayer,
             speech = speech,
             haptics = haptics,
+            music = music,
             limits = EngineLimits(),
         )
     }

@@ -132,6 +132,8 @@
     <string name="player_open_ended">Open-ended</string>
     <string name="player_voice_on">Voice on</string>
     <string name="player_voice_off">Cues muted</string>
+    <string name="player_music_on">Music on</string>
+    <string name="player_music_ducked">Music lowered</string>
     <string name="player_keep_screen_on">Keep screen on</string>
     <string name="player_exit_title">End this session?</string>
     <string name="player_exit_body">You can finish early and still save what you did.</string>
@@ -210,10 +212,24 @@
     <string name="voice_sound_volume">Cue volume</string>
     <string name="voice_vibration">Vibration</string>
     <string name="voice_duck_music">Lower music during cues</string>
+    <string name="voice_duck_title">Audio ducking</string>
+    <string name="voice_duck_hint">Lowers your background audio while the coach speaks or a cue sounds, then brings it back.</string>
+    <string name="voice_duck_level">Ducking depth</string>
+    <string name="voice_duck_active">Music lowered</string>
+    <string name="voice_duck_idle">Music at full volume</string>
+    <string name="voice_duck_phase">Ducking: %1$s</string>
+    <string name="voice_duck_test">Test ducking</string>
+    <string name="voice_duck_test_hint">Drops the audio for a moment and speaks a sample line, so you can hear the setting.</string>
     <string name="voice_music_title">Background audio</string>
     <string name="voice_music_pick">Choose audio file…</string>
     <string name="voice_music_none">No background audio selected</string>
     <string name="voice_music_clear">Remove</string>
+    <string name="voice_music_hint">PULSE plays a file you pick; it never bundles or streams music.</string>
+    <string name="voice_music_volume">Background audio volume</string>
+    <string name="voice_music_play">Play background audio</string>
+    <string name="voice_music_stop">Stop background audio</string>
+    <string name="voice_music_preview_hint">Preview it here to check the file, the volume and the ducking before a workout.</string>
+    <string name="voice_music_unavailable">This file cannot be played (%1$s). Pick it again.</string>
     <string name="voice_recording_title">Your own cue recordings</string>
     <string name="voice_record_start">Record</string>
     <string name="voice_record_stop">Stop recording</string>
@@ -256,6 +272,8 @@
     <string name="audio_interrupt_continue">Keep timing, mute cues</string>
     <string name="audio_interrupt_duck">Keep timing, duck other audio</string>
     <string name="settings_headphone_unplug">When headphones are unplugged</string>
+    <string name="settings_volume_keys">Volume keys control the workout</string>
+    <string name="settings_volume_keys_hint">Volume up skips to the next interval, volume down pauses or resumes. Off = the keys set the volume.</string>
     <string name="headphone_pause">Pause the workout</string>
     <string name="headphone_continue">Keep going, speaker cues</string>
     <string name="settings_data">Data</string>

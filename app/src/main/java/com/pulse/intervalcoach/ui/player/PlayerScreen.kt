@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
@@ -63,6 +64,7 @@ import com.pulse.intervalcoach.session.formatClock
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.GhostActionButton
+import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.ProgressRing
 import com.pulse.intervalcoach.ui.components.PulseIconButton
@@ -99,6 +101,8 @@ fun PlayerScreen(
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val cuesMuted by controller.cuesMuted.collectAsStateWithLifecycle()
     val lastCue by controller.lastCueText.collectAsStateWithLifecycle()
+    val musicPlaying by container.music.playing.collectAsStateWithLifecycle()
+    val musicDucked by container.music.duckState.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val context = LocalContext.current
@@ -269,6 +273,18 @@ fun PlayerScreen(
                     }
                     step?.sideLabel?.let {
                         Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
+                    }
+                    // Only shown when the listener picked a background track: the chip says whether
+                    // it is playing, and drops to "lowered" for as long as the coach is talking.
+                    if (musicPlaying) {
+                        NeutralChip(
+                            text = if (musicDucked.isDucked) {
+                                stringResource(R.string.player_music_ducked)
+                            } else {
+                                stringResource(R.string.player_music_on)
+                            },
+                            icon = if (musicDucked.isDucked) Icons.Filled.VolumeDown else Icons.Filled.VolumeUp,
+                        )
                     }
                 }
 

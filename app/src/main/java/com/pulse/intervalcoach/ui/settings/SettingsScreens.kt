@@ -18,15 +18,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +62,7 @@ import com.pulse.intervalcoach.ui.components.ToggleRow
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.ThemeMode
+import com.pulse.intervalcoach.audio.DuckPhase
 import com.pulse.intervalcoach.audio.SpeechAvailability
 import com.pulse.intervalcoach.data.AudioInterruptionBehavior
 import com.pulse.intervalcoach.data.BackupRepository
@@ -248,6 +252,12 @@ fun SettingsScreen(
                             selected = current.headphoneBehavior,
                             onSelect = { value -> scope.launch { container.preferences.setHeadphoneBehavior(value) } },
                         )
+                        ToggleRow(
+                            label = stringResource(R.string.settings_volume_keys),
+                            hint = stringResource(R.string.settings_volume_keys_hint),
+                            checked = current.volumeKeysControlSession,
+                            onCheckedChange = { scope.launch { container.preferences.setVolumeKeysControl(it) } },
+                        )
                         TextButton(onClick = onOpenVoiceStudio) { Text("Open Voice & audio studio") }
                     }
                 }
@@ -382,8 +392,18 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val assets by container.audioAssets.assets.collectAsStateWithLifecycle(initialValue = emptyList())
+    val musicPlaying by container.music.playing.collectAsStateWithLifecycle()
+    val musicUnavailable by container.music.unavailable.collectAsStateWithLifecycle()
+    val duckState by container.music.duckState.collectAsStateWithLifecycle()
     var recording by remember { mutableStateOf<MediaRecorder?>(null) }
+    /** True when *this screen* started the background audio, so leaving stops only the preview. */
+    var previewingHere by remember { mutableStateOf(false) }
     val current = prefs
+
+    // A preview started here must not outlive the screen — but a workout's own audio must survive it.
+    DisposableEffect(Unit) {
+        onDispose { if (previewingHere) container.music.stop() }
+    }
 
     val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
@@ -540,25 +560,133 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                 }
             }
 
-            item { SectionHeader("Background audio") }
+            item { SectionHeader(stringResource(R.string.voice_music_title)) }
             item {
                 PulseCard {
                     Column {
                         Text(
-                            current.musicUri?.let { "Selected: ${it.substringAfterLast('/')}" } ?: "No background audio selected",
+                            current.musicUri?.let { "Selected: " + it.substringAfterLast('/') }
+                                ?: stringResource(R.string.voice_music_none),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.textPrimary,
                         )
                         Text(
-                            "PULSE plays a file you pick; it never bundles or streams music, and it ducks your audio during cues.",
+                            stringResource(R.string.voice_music_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
+                        musicUnavailable?.let { reason ->
+                            Spacer(Modifier.height(LocalPulseDimens.current.xs))
+                            Text(
+                                stringResource(R.string.voice_music_unavailable, reason),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.destructive,
+                            )
+                        }
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        PulseSliderRow(
+                            label = stringResource(R.string.voice_music_volume),
+                            value = current.musicVolume,
+                            valueRange = 0f..1f,
+                            valueLabel = (current.musicVolume * 100).toInt().toString() + "%",
+                            onValueChange = { scope.launch { container.preferences.setMusicVolume(it) } },
+                            onValueChangeFinished = { container.music.setVolume(current.musicVolume) },
+                        )
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                            SecondaryActionButton("Choose audio…", { musicPicker.launch(arrayOf("audio/*")) }, Modifier.weight(1f))
-                            SecondaryActionButton("Remove", { scope.launch { container.preferences.setMusic(null) } }, Modifier.weight(0.6f))
+                            SecondaryActionButton(
+                                stringResource(R.string.voice_music_pick),
+                                { musicPicker.launch(arrayOf("audio/*")) },
+                                Modifier.weight(1f),
+                            )
+                            SecondaryActionButton(
+                                stringResource(R.string.voice_music_clear),
+                                {
+                                    container.music.stop()
+                                    previewingHere = false
+                                    scope.launch { container.preferences.setMusic(null) }
+                                },
+                                Modifier.weight(0.6f),
+                            )
                         }
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        SecondaryActionButton(
+                            text = if (musicPlaying) {
+                                stringResource(R.string.voice_music_stop)
+                            } else {
+                                stringResource(R.string.voice_music_play)
+                            },
+                            onClick = {
+                                if (musicPlaying) {
+                                    container.music.stop()
+                                    previewingHere = false
+                                } else {
+                                    container.music.start()
+                                    previewingHere = true
+                                }
+                            },
+                            enabled = current.musicUri != null,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Text(
+                            stringResource(R.string.voice_music_preview_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
+                        )
+                    }
+                }
+            }
+
+            item { SectionHeader(stringResource(R.string.voice_duck_title)) }
+            item {
+                PulseCard {
+                    Column {
+                        ToggleRow(
+                            label = stringResource(R.string.voice_duck_music),
+                            hint = stringResource(R.string.voice_duck_hint),
+                            checked = current.duckMusicDuringCues,
+                            onCheckedChange = { enabled -> scope.launch { container.preferences.setDuckMusic(enabled) } },
+                        )
+                        PulseSliderRow(
+                            label = stringResource(R.string.voice_duck_level),
+                            value = current.duckLevel,
+                            valueRange = 0f..1f,
+                            valueLabel = duckLevelLabel(current.duckLevel),
+                            onValueChange = { scope.launch { container.preferences.setDuckLevel(it) } },
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            NeutralChip(
+                                text = if (duckState.isDucked) {
+                                    stringResource(R.string.voice_duck_active)
+                                } else {
+                                    stringResource(R.string.voice_duck_idle)
+                                },
+                                icon = Icons.Filled.VolumeDown,
+                            )
+                            Spacer(Modifier.width(LocalPulseDimens.current.s))
+                            Text(
+                                stringResource(R.string.voice_duck_phase, duckState.phase.label()),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.textSecondary,
+                            )
+                        }
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        // Hoisted: stringResource is a composable call and onClick is not a
+                        // composable lambda, so the sample line has to be read out here.
+                        val duckTestLine = stringResource(R.string.voice_test_line)
+                        SecondaryActionButton(
+                            text = stringResource(R.string.voice_duck_test),
+                            onClick = {
+                                container.music.previewDuck()
+                                container.speech.speakPreview(duckTestLine)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Text(
+                            stringResource(R.string.voice_duck_test_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
+                        )
                     }
                 }
             }
@@ -650,6 +778,22 @@ private fun stopRecording(recorder: MediaRecorder?, context: Context, container:
             )
         }
     }
+}
+
+/** Plain words for the duck multiplier: 30 % means the music sits at 30 % of its own volume. */
+private fun duckLevelLabel(level: Float): String = when {
+    level <= 0.001f -> "Muted"
+    level < 0.2f -> (level * 100).toInt().toString() + "% · strong"
+    level < 0.45f -> (level * 100).toInt().toString() + "% · balanced"
+    level < 0.8f -> (level * 100).toInt().toString() + "% · subtle"
+    else -> (level * 100).toInt().toString() + "% · barely"
+}
+
+private fun DuckPhase.label(): String = when (this) {
+    DuckPhase.NONE -> "full volume"
+    DuckPhase.FADING_DOWN -> "lowering"
+    DuckPhase.HELD -> "lowered"
+    DuckPhase.FADING_UP -> "restoring"
 }
 
 private fun VoiceVerbosity.label(): String = when (this) {
