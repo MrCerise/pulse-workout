@@ -2,21 +2,18 @@ package com.pulse.intervalcoach.ui.builders
 
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ContentCopy
@@ -24,18 +21,12 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,18 +57,23 @@ import com.pulse.intervalcoach.data.PlanCodec
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
-import com.pulse.intervalcoach.ui.components.GradientActionButton
+import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseTextField
+import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.components.ToggleRow
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -202,7 +198,6 @@ class QuickBuilderViewModel(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickBuilderScreen(
     container: AppContainer,
@@ -223,34 +218,32 @@ fun QuickBuilderScreen(
     val duration = remember(plan) { runCatching { TimelineExpander.expand(plan).knownMillis }.getOrDefault(0L) }
 
     Scaffold(
+        containerColor = colors.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(stringResource(R.string.builder_quick_title), style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-                        Text("Work · rest · rounds — the workout builds itself", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { if (state.dirty) showDiscard = true else onBack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
+            PulseTopBar(
+                title = stringResource(R.string.builder_quick_title),
+                subtitle = "Work · rest · rounds — the workout builds itself",
+                onBack = { if (state.dirty) showDiscard = true else onBack() },
+                backDescription = stringResource(R.string.back),
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = LocalPulseDimens.current.pagePadding,
+                end = LocalPulseDimens.current.pagePadding,
+                top = LocalPulseDimens.current.cardGap,
+                bottom = LocalPulseDimens.current.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item {
-                OutlinedTextField(
+                PulseTextField(
                     value = state.name,
                     onValueChange = { value -> viewModel.update { it.copy(name = value) } },
-                    label = { Text(stringResource(R.string.sort_name)) },
+                    label = stringResource(R.string.sort_name),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             item {
@@ -273,15 +266,15 @@ fun QuickBuilderScreen(
             item {
                 PulseCard {
                     Column {
-                        Text(formatDuration(duration), style = MaterialTheme.typography.displaySmall, color = colors.work)
-                        Text("total time", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
-                        Spacer(Modifier.height(10.dp))
+                        Text(formatDuration(duration), style = PulseType.NumericLarge, color = colors.textPrimary)
+                        Text("total time", style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         val expanded = remember(plan) { runCatching { TimelineExpander.expand(plan) }.getOrNull() }
                         TimelineBar(
                             kinds = expanded?.steps?.map { it.kind }.orEmpty(),
                             currentIndex = -1,
                             progressInStep = 0f,
-                            height = 12.dp,
+                            height = LocalPulseDimens.current.barHeightCompact,
                         )
                     }
                 }
@@ -294,7 +287,7 @@ fun QuickBuilderScreen(
                 )
             }
             item {
-                GradientActionButton(
+                PrimaryActionButton(
                     text = stringResource(R.string.builder_save_and_start),
                     onClick = {
                         scope.launch {
@@ -596,7 +589,6 @@ class AdvancedBuilderViewModel(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedBuilderScreen(
     container: AppContainer,
@@ -620,50 +612,56 @@ fun AdvancedBuilderScreen(
     val expanded = remember(state.plan) { runCatching { TimelineExpander.expand(state.plan) }.getOrNull() }
 
     Scaffold(
+        containerColor = colors.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(if (workoutId == null) "New workout" else "Edit workout", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-                        Text("Drag the order, tweak the cues, undo anything", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { if (state.dirty) showDiscard = true else onBack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
+            PulseTopBar(
+                title = if (workoutId == null) "New workout" else "Edit workout",
+                subtitle = "Order, cues and structure — undo anything",
+                onBack = { if (state.dirty) showDiscard = true else onBack() },
+                backDescription = stringResource(R.string.back),
                 actions = {
-                    IconButton(onClick = viewModel::undo, enabled = state.canUndo) {
-                        Icon(Icons.Filled.Undo, contentDescription = stringResource(R.string.builder_undo))
-                    }
-                    IconButton(onClick = viewModel::redo, enabled = state.canRedo) {
-                        Icon(Icons.Filled.Redo, contentDescription = stringResource(R.string.builder_redo))
-                    }
+                    PulseIconButton(
+                        icon = Icons.Filled.Undo,
+                        contentDescription = stringResource(R.string.builder_undo),
+                        tooltip = stringResource(R.string.builder_undo),
+                        onClick = viewModel::undo,
+                        enabled = state.canUndo,
+                    )
+                    PulseIconButton(
+                        icon = Icons.Filled.Redo,
+                        contentDescription = stringResource(R.string.builder_redo),
+                        tooltip = stringResource(R.string.builder_redo),
+                        onClick = viewModel::redo,
+                        enabled = state.canRedo,
+                    )
                 },
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = LocalPulseDimens.current.pagePadding,
+                end = LocalPulseDimens.current.pagePadding,
+                top = LocalPulseDimens.current.cardGap,
+                bottom = LocalPulseDimens.current.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item {
-                OutlinedTextField(
+                PulseTextField(
                     value = state.plan.name,
                     onValueChange = viewModel::rename,
-                    label = { Text(stringResource(R.string.sort_name)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.sort_name),
                     singleLine = true,
                 )
             }
             item {
-                OutlinedTextField(
+                PulseTextField(
                     value = state.plan.description,
                     onValueChange = viewModel::setDescription,
-                    label = { Text(stringResource(R.string.builder_description)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.builder_description),
+                    minLines = 2,
                 )
             }
             item {
@@ -680,12 +678,11 @@ fun AdvancedBuilderScreen(
                             selected = state.plan.type,
                             onSelect = viewModel::setType,
                         )
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedTextField(
+                        Spacer(Modifier.height(LocalPulseDimens.current.cardGap))
+                        PulseTextField(
                             value = state.plan.equipment.orEmpty(),
                             onValueChange = viewModel::setEquipment,
-                            label = { Text(stringResource(R.string.details_equipment)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            label = stringResource(R.string.details_equipment),
                             singleLine = true,
                         )
                         ToggleRow(
@@ -716,14 +713,14 @@ fun AdvancedBuilderScreen(
                             "${expanded?.steps?.size ?: 0} intervals" +
                                 (if (expanded?.hasOpenEnded == true) " · total is a minimum (some intervals wait for you)" else ""),
                             style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
+                            color = colors.textMuted,
                         )
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         TimelineBar(
                             expanded?.steps?.map { it.kind }.orEmpty(),
                             currentIndex = -1,
                             progressInStep = 0f,
-                            height = 12.dp,
+                            height = LocalPulseDimens.current.barHeightCompact,
                         )
                     }
                 }
@@ -731,7 +728,7 @@ fun AdvancedBuilderScreen(
 
             if (state.problems.isNotEmpty()) {
                 item {
-                    InfoBanner(state.problems.joinToString(" "))
+                    InfoBanner(state.problems.joinToString(" "), tone = PulseTone.WARNING)
                 }
             }
 
@@ -752,19 +749,19 @@ fun AdvancedBuilderScreen(
             }
 
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
                     SecondaryActionButton("Add interval", { viewModel.addInterval() }, Modifier.weight(1f))
                     SecondaryActionButton("Add block", { viewModel.addGroup() }, Modifier.weight(1f))
                 }
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
                     SecondaryActionButton("−5 s all", { viewModel.bulkDuration(-5_000, null) }, Modifier.weight(1f))
                     SecondaryActionButton("+5 s all", { viewModel.bulkDuration(5_000, null) }, Modifier.weight(1f))
                 }
             }
             item {
-                GradientActionButton(
+                PrimaryActionButton(
                     text = stringResource(R.string.builder_save),
                     onClick = {
                         scope.launch {
@@ -835,7 +832,7 @@ private fun BuilderNodeCard(
                             Text(
                                 if (node.interval.isIndefinite) "Manual" else formatDuration(node.interval.durationMillis),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
                         }
                         is RepeatGroup -> {
@@ -843,28 +840,43 @@ private fun BuilderNodeCard(
                             Text(
                                 "${node.children.size} intervals" + if (node.restAfterGroupMillis > 0) " · rest ${formatDuration(node.restAfterGroupMillis)}" else "",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
                         }
                     }
                 }
                 if (node is IntervalNode) PhaseChip(kind = node.interval.kind, name = null)
-                IconButton(onClick = onMoveUp, enabled = position > 0) {
-                    Icon(Icons.Filled.ArrowUpward, contentDescription = stringResource(R.string.builder_move_up))
-                }
-                IconButton(onClick = onMoveDown, enabled = position < total - 1) {
-                    Icon(Icons.Filled.ArrowDownward, contentDescription = stringResource(R.string.builder_move_down))
-                }
-                IconButton(onClick = { viewModel.duplicate(node.nodeId) }) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(R.string.action_duplicate))
-                }
-                IconButton(onClick = { viewModel.delete(node.nodeId) }) {
-                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
-                }
+                PulseIconButton(
+                    icon = Icons.Filled.ArrowUpward,
+                    contentDescription = stringResource(R.string.builder_move_up),
+                    tooltip = stringResource(R.string.builder_move_up),
+                    onClick = onMoveUp,
+                    enabled = position > 0,
+                )
+                PulseIconButton(
+                    icon = Icons.Filled.ArrowDownward,
+                    contentDescription = stringResource(R.string.builder_move_down),
+                    tooltip = stringResource(R.string.builder_move_down),
+                    onClick = onMoveDown,
+                    enabled = position < total - 1,
+                )
+                PulseIconButton(
+                    icon = Icons.Filled.ContentCopy,
+                    contentDescription = stringResource(R.string.action_duplicate),
+                    tooltip = stringResource(R.string.action_duplicate),
+                    onClick = { viewModel.duplicate(node.nodeId) },
+                )
+                PulseIconButton(
+                    icon = Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.action_delete),
+                    tooltip = stringResource(R.string.action_delete),
+                    onClick = { viewModel.delete(node.nodeId) },
+                    tint = colors.destructive,
+                )
             }
 
             if (expanded) {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(LocalPulseDimens.current.cardGap))
                 when (node) {
                     is IntervalNode -> IntervalEditor(node, null, viewModel)
                     is RepeatGroup -> RepeatGroupEditor(node, viewModel)
@@ -879,14 +891,13 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
     val colors = LocalPulseColors.current
     val spec = node.interval
     Column {
-        OutlinedTextField(
+        PulseTextField(
             value = spec.name,
             onValueChange = { value -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(name = value) } },
-            label = { Text("Interval name") },
-            modifier = Modifier.fillMaxWidth(),
+            label = "Interval name",
             singleLine = true,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
         OptionRow(
             label = "Phase",
             options = listOf(
@@ -896,7 +907,7 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
             selected = spec.kind,
             onSelect = { kind -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(kind = kind) } },
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
         ToggleRow(
             label = stringResource(R.string.builder_manual),
             hint = stringResource(R.string.builder_manual_hint),
@@ -911,7 +922,7 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
                 allowZero = false,
             )
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
         OptionRow(
             label = stringResource(R.string.builder_sound),
             options = listOf(SoundCue.TICK, SoundCue.BEEP, SoundCue.DOUBLE_BEEP, SoundCue.BELL, SoundCue.WHISTLE, SoundCue.CHIME, SoundCue.BUZZ, SoundCue.NONE)
@@ -919,7 +930,7 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
             selected = spec.sound,
             onSelect = { cue -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(sound = cue) } },
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
         OptionRow(
             label = stringResource(R.string.builder_haptic),
             options = listOf(HapticCue.LIGHT, HapticCue.DOUBLE, HapticCue.STRONG, HapticCue.PATTERN_321, HapticCue.NONE)
@@ -927,21 +938,19 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
             selected = spec.haptic,
             onSelect = { cue -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(haptic = cue) } },
         )
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
+        PulseTextField(
             value = spec.speechText.orEmpty(),
             onValueChange = { value -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(speechText = value.ifBlank { null }) } },
-            label = { Text("Spoken cue (optional)") },
-            modifier = Modifier.fillMaxWidth(),
+            label = "Spoken cue (optional)",
         )
-        OutlinedTextField(
+        PulseTextField(
             value = spec.notes.orEmpty(),
             onValueChange = { value -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(notes = value.ifBlank { null }) } },
-            label = { Text("Note (optional)") },
-            modifier = Modifier.fillMaxWidth(),
+            label = "Note (optional)",
         )
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
+        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
             SecondaryActionButton(
                 text = stringResource(R.string.builder_left_right),
                 onClick = { viewModel.addLeftRight(node.nodeId, groupId) },
@@ -955,11 +964,11 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
                 )
             }
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(LocalPulseDimens.current.xs))
         Text(
             "Tip: colour, image and repetition targets live on the interval and are preserved when you duplicate the block.",
             style = MaterialTheme.typography.bodySmall,
-            color = colors.textSecondary,
+            color = colors.textMuted,
         )
     }
 }
@@ -968,11 +977,10 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
 private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewModel) {
     val colors = LocalPulseColors.current
     Column {
-        OutlinedTextField(
+        PulseTextField(
             value = node.name,
             onValueChange = { value -> viewModel.updateNode(node.nodeId) { group -> (group as RepeatGroup).copy(name = value) } },
-            label = { Text("Block name") },
-            modifier = Modifier.fillMaxWidth(),
+            label = "Block name",
             singleLine = true,
         )
         NumberStepper(
@@ -997,10 +1005,10 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
                 )
             },
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
         Text("Intervals inside this block", style = MaterialTheme.typography.labelLarge, color = colors.textSecondary)
         node.children.forEachIndexed { index, child ->
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(LocalPulseDimens.current.xs))
             var expanded by remember { mutableStateOf(false) }
             PulseCard {
                 Column {
@@ -1020,27 +1028,36 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
                                     is RepeatGroup -> "× ${child.repeat}"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
                         }
-                        IconButton(onClick = { viewModel.move(child.nodeId, -1) }, enabled = index > 0) {
-                            Icon(Icons.Filled.ArrowUpward, contentDescription = "Move up inside block")
-                        }
-                        IconButton(onClick = { viewModel.move(child.nodeId, 1) }, enabled = index < node.children.lastIndex) {
-                            Icon(Icons.Filled.ArrowDownward, contentDescription = "Move down inside block")
-                        }
-                        IconButton(onClick = { viewModel.delete(child.nodeId) }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete interval")
-                        }
+                        PulseIconButton(
+                            icon = Icons.Filled.ArrowUpward,
+                            contentDescription = "Move up inside block",
+                            onClick = { viewModel.move(child.nodeId, -1) },
+                            enabled = index > 0,
+                        )
+                        PulseIconButton(
+                            icon = Icons.Filled.ArrowDownward,
+                            contentDescription = "Move down inside block",
+                            onClick = { viewModel.move(child.nodeId, 1) },
+                            enabled = index < node.children.lastIndex,
+                        )
+                        PulseIconButton(
+                            icon = Icons.Filled.Delete,
+                            contentDescription = "Delete interval",
+                            onClick = { viewModel.delete(child.nodeId) },
+                            tint = colors.destructive,
+                        )
                     }
                     if (expanded && child is IntervalNode) {
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
                         IntervalEditor(child, node.nodeId, viewModel)
                     }
                 }
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(LocalPulseDimens.current.s))
         SecondaryActionButton(
             text = "Add interval to block",
             onClick = {

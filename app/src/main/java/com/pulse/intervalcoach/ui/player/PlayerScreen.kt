@@ -2,6 +2,7 @@ package com.pulse.intervalcoach.ui.player
 
 import android.app.Activity
 import android.view.WindowManager
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -30,13 +30,10 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +43,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,28 +56,35 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.TimerStatus
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
+import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.PlayerDensity
 import com.pulse.intervalcoach.health.HrZones
 import com.pulse.intervalcoach.session.formatClock
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
+import com.pulse.intervalcoach.ui.components.GhostActionButton
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.ProgressRing
+import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.StatusBadge
+import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import androidx.compose.ui.res.stringResource
-import com.pulse.intervalcoach.R
+import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
+import com.pulse.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.delay
 
 /**
- * Full-screen workout player — v1.3 immersive edition.
+ * The workout player.
  *
- * The remaining time dominates the screen and is readable across a room; the whole background
- * washes in the current phase colour so a glance tells you work/rest without reading; live
- * heart rate appears when a health platform (Health Connect or Google Fit) is connected; every
- * control is at least 48 dp, colour is never the only signal for a phase, and the layout follows
- * the user's density, left-handed and reduced-motion preferences.
+ * This screen is looked at from a metre away, mid-effort, so the hierarchy is: the remaining time,
+ * the phase, the next interval, everything else. The phase colour is carried by three functional
+ * elements — the progress strip along the top edge, the ring, and the phase chip — rather than by
+ * washing the whole background, which kept the text legible in theory and unreadable in practice.
+ *
+ * Every control is at least 48 dp, colour is never the only signal for a phase, and the layout
+ * follows the user's density, left-handed and reduced-motion preferences.
  */
 @Composable
 fun PlayerScreen(
@@ -152,274 +161,283 @@ fun PlayerScreen(
         List(snapshot.totalSteps) { com.pulse.engine.PhaseKind.CUSTOM }
     }
     val density = prefs?.playerDensity ?: PlayerDensity.STANDARD
-    val timerSize = when (density) {
-        PlayerDensity.COMPACT -> MaterialTheme.typography.displayMedium.fontSize
-        PlayerDensity.STANDARD -> MaterialTheme.typography.displayLarge.fontSize
-        PlayerDensity.LARGE -> MaterialTheme.typography.displayLarge.fontSize * 1.35f
+    val timerStyle = when (density) {
+        PlayerDensity.COMPACT -> PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 0.75f)
+        PlayerDensity.STANDARD -> PulseType.NumericDisplay
+        PlayerDensity.LARGE -> PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 1.3f)
     }
     val leftHanded = prefs?.leftHandedPlayer == true
 
     // Wrapped in a Box so the instructor overlay and the end-session dialog always stack on top
     // of the player instead of relying on the order siblings happen to be emitted in.
     Box(Modifier.fillMaxSize().background(colors.background)) {
-        // The phase wash: the top of the screen glows in the current interval's colour.
-        Box(Modifier.fillMaxSize().background(colors.phaseWash(step?.kind ?: com.pulse.engine.PhaseKind.CUSTOM)))
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(dimens.l),
+                .safeDrawingPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // --- Top bar: session name, heart rate, mute, close ---
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(active?.plan?.name ?: "", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(
-                        if (cuesMuted) "Cues muted" else "Voice & sound on",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.textSecondary,
+            // --- Interval progress, readable from across the room -----------------------------
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(LocalPulseDimens.current.xs)
+                    .background(colors.surfaceHover),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(
+                            if (snapshot.status == TimerStatus.AWAITING_MANUAL) 1f
+                            else snapshot.intervalProgress.coerceIn(0f, 1f),
+                        )
+                        .height(LocalPulseDimens.current.xs)
+                        .background(accent)
+                        .semantics {
+                            contentDescription = "Interval progress ${(snapshot.intervalProgress * 100).toInt()} percent"
+                        },
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = dimens.l, vertical = dimens.m),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // --- Top bar: session name, heart rate, mute, close ---
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = active?.plan?.name ?: "",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = colors.textPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = if (cuesMuted) "Cues muted" else "Voice & sound on",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textMuted,
+                        )
+                    }
+                    liveHr?.let { bpm ->
+                        HeartRateBadge(bpm = bpm, modifier = Modifier.padding(end = dimens.s))
+                    }
+                    PulseIconButton(
+                        icon = if (cuesMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                        contentDescription = if (cuesMuted) "Unmute cues" else "Mute cues",
+                        tooltip = if (cuesMuted) "Unmute cues" else "Mute cues",
+                        onClick = { controller.toggleCuesMuted() },
+                        tint = colors.textSecondary,
+                    )
+                    PulseIconButton(
+                        icon = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.player_end_session),
+                        tooltip = stringResource(R.string.player_end_session),
+                        onClick = { confirmEnd = true },
+                        tint = colors.textSecondary,
                     )
                 }
-                liveHr?.let { bpm ->
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = colors.prepare.copy(alpha = if (colors.isDark) 0.16f else 0.14f),
-                        modifier = Modifier.padding(end = 4.dp),
+
+                Spacer(Modifier.height(dimens.s))
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(
+                        text = "Elapsed ${formatClock(snapshot.sessionElapsedMillis)}",
+                        style = PulseType.NumericSmall,
+                        color = colors.textMuted,
+                    )
+                    Text(
+                        text = snapshot.sessionRemainingMillis?.let { "Remaining ${formatClock(it)}" } ?: "Open-ended",
+                        style = PulseType.NumericSmall,
+                        color = colors.textMuted,
+                    )
+                }
+
+                Spacer(Modifier.height(dimens.l))
+
+                // --- Phase + round + side label ---
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    step?.let { PhaseChip(kind = it.kind, name = it.name) }
+                    step?.roundInGroup?.let { round ->
+                        val total = step.roundsInGroup
+                        Text(
+                            text = if (total != null && total > 0) "Round $round of $total" else "Round $round",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
+                        )
+                    }
+                    step?.sideLabel?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
+                    }
+                }
+
+                // --- The timer itself ---
+                val showing = if (snapshot.status == TimerStatus.AWAITING_MANUAL) snapshot.stepElapsedMillis else snapshot.stepRemainingMillis
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val available = minOf(maxWidth, maxHeight)
+                    val preferred = when (density) {
+                        PlayerDensity.COMPACT -> LocalPulseDimens.current.playerPanelCompact
+                        PlayerDensity.STANDARD -> LocalPulseDimens.current.playerPanelStandard
+                        PlayerDensity.LARGE -> LocalPulseDimens.current.playerPanelLarge
+                    }
+                    ProgressRing(
+                        progress = if (snapshot.status == TimerStatus.AWAITING_MANUAL) 0f else snapshot.intervalProgress,
+                        color = accent,
+                        trackColor = colors.track,
+                        strokeWidth = 8.dp,
+                        modifier = Modifier.size(minOf(available, preferred)),
                     ) {
-                        Row(
-                            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(Icons.Filled.Favorite, contentDescription = null, tint = colors.prepare, modifier = Modifier.size(14.dp))
-                            Spacer(Modifier.width(6.dp))
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "$bpm",
-                                style = MaterialTheme.typography.labelLarge,
+                                text = formatClock(showing),
+                                style = timerStyle,
                                 color = colors.textPrimary,
+                                maxLines = 1,
                             )
-                            Spacer(Modifier.width(6.dp))
                             Text(
-                                HrZones.zone(bpm),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.textSecondary,
+                                text = when (snapshot.status) {
+                                    TimerStatus.PAUSED -> "PAUSED"
+                                    TimerStatus.AWAITING_MANUAL -> "Tap when done"
+                                    else -> "of ${formatClock(snapshot.stepDurationMillis)}"
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (snapshot.status == TimerStatus.PAUSED) colors.prepare else colors.textMuted,
                             )
                         }
                     }
                 }
-                IconButton(onClick = { controller.toggleCuesMuted() }) {
-                    Icon(
-                        if (cuesMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
-                        contentDescription = if (cuesMuted) "Unmute cues" else "Mute cues",
-                        tint = colors.textPrimary,
-                    )
-                }
-                IconButton(onClick = { confirmEnd = true }) {
-                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.player_end_session), tint = colors.textPrimary)
-                }
-            }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    "Elapsed ${formatClock(snapshot.sessionElapsedMillis)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textSecondary,
-                )
-                Text(
-                    snapshot.sessionRemainingMillis?.let { "Remaining ${formatClock(it)}" } ?: "Open-ended",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textSecondary,
-                )
-            }
-
-            Spacer(Modifier.height(dimens.l))
-
-            // --- Phase + round + live HR zone ---
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                step?.let { PhaseChip(kind = it.kind, name = it.name) }
-                step?.roundInGroup?.let { round ->
-                    val total = step.roundsInGroup
+                // The spoken cue lives outside the ring: two lines of body text inside a 260 dp circle
+                // pushed the countdown off-centre and clipped.
+                if (lastCue != null && !cuesMuted) {
                     Text(
-                        if (total != null && total > 0) "Round $round of $total" else "Round $round",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = colors.textSecondary,
+                        text = lastCue!!,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textMuted,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = dimens.xl, vertical = dimens.s),
                     )
                 }
-                step?.sideLabel?.let {
-                    Text(it, style = MaterialTheme.typography.labelLarge, color = colors.textSecondary)
-                }
-            }
 
-            Spacer(Modifier.height(dimens.l))
-
-            // --- The timer itself ---
-            val showing = if (snapshot.status == TimerStatus.AWAITING_MANUAL) snapshot.stepElapsedMillis else snapshot.stepRemainingMillis
-            BoxWithConstraints(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                val available = minOf(maxWidth, maxHeight)
-                val preferred = when (density) {
-                    PlayerDensity.COMPACT -> 220.dp
-                    PlayerDensity.STANDARD -> 280.dp
-                    PlayerDensity.LARGE -> 340.dp
-                }
-                ProgressRing(
-                    progress = if (snapshot.status == TimerStatus.AWAITING_MANUAL) 0f else snapshot.intervalProgress,
-                    color = accent,
-                    trackColor = colors.track,
-                    strokeWidth = 12.dp,
-                    modifier = Modifier.size(minOf(available, preferred)),
-                    brush = colors.ringGradient(step?.kind ?: com.pulse.engine.PhaseKind.CUSTOM),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = formatClock(showing),
-                            style = MaterialTheme.typography.displayLarge.copy(fontSize = timerSize),
-                            color = colors.textPrimary,
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = when (snapshot.status) {
-                                TimerStatus.PAUSED -> "PAUSED"
-                                TimerStatus.AWAITING_MANUAL -> "Tap when done"
-                                else -> "of ${formatClock(snapshot.stepDurationMillis)}"
-                            },
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (snapshot.status == TimerStatus.PAUSED) colors.prepare else colors.textSecondary,
-                        )
-                    }
-                }
-            }
-
-            // The spoken cue lives outside the ring now: two lines of body text inside a 280 dp circle
-            // pushed the countdown off-centre and clipped.
-            if (lastCue != null && !cuesMuted) {
-                Text(
-                    lastCue!!,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textSecondary,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = dimens.xl, vertical = dimens.s),
-                )
-            }
-
-            Spacer(Modifier.height(dimens.s))
-
-            // --- Next interval card ---
-            snapshot.nextStep?.let { next ->
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = colors.surface.copy(alpha = 0.7f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.outlineVariant),
-                ) {
-                    Row(
-                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                // --- Next interval ---
+                snapshot.nextStep?.let { next ->
+                    Surface(
+                        shape = LocalPulseShapes.current.control,
+                        color = colors.surface,
+                        border = BorderStroke(dimens.borderWidth, colors.border),
                     ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.player_up_next), style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                        Row(
+                            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.s),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Text(
-                                next.name,
-                                style = MaterialTheme.typography.titleMedium,
+                                text = stringResource(R.string.player_up_next).uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.textMuted,
+                                modifier = Modifier.padding(end = dimens.m),
+                            )
+                            Text(
+                                text = next.name,
+                                style = MaterialTheme.typography.titleSmall,
                                 color = colors.textPrimary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Spacer(Modifier.width(dimens.m))
+                            Text(
+                                text = if (next.isIndefinite) "manual" else formatDuration(next.durationMillis),
+                                style = PulseType.NumericSmall,
+                                color = colors.phaseColor(next.kind),
                             )
                         }
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            if (next.isIndefinite) "manual" else formatDuration(next.durationMillis),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.phaseColor(next.kind),
+                    }
+                }
+
+                Spacer(Modifier.height(dimens.m))
+
+                TimelineBar(
+                    kinds = timelineKinds,
+                    currentIndex = snapshot.stepIndex,
+                    progressInStep = snapshot.intervalProgress,
+                )
+
+                Spacer(Modifier.weight(1f))
+
+                // --- Controls (mirrored for left-handed use) ---
+                val mainControls: @Composable () -> Unit = {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(dimens.m),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PulseIconButton(
+                            icon = Icons.Filled.SkipPrevious,
+                            contentDescription = "Previous interval",
+                            tooltip = "Previous interval",
+                            onClick = { controller.previous() },
+                            tint = colors.textSecondary,
+                            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
+                        )
+                        TransportButton(
+                            paused = snapshot.status == TimerStatus.PAUSED,
+                            manual = snapshot.status == TimerStatus.AWAITING_MANUAL,
+                            onClick = {
+                                if (snapshot.status == TimerStatus.AWAITING_MANUAL) controller.completeManual() else controller.togglePause()
+                            },
+                        )
+                        PulseIconButton(
+                            icon = Icons.Filled.SkipNext,
+                            contentDescription = stringResource(R.string.player_next),
+                            tooltip = stringResource(R.string.player_next),
+                            onClick = { controller.next() },
+                            tint = colors.textSecondary,
+                            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
                         )
                     }
                 }
-            }
 
-            Spacer(Modifier.height(dimens.l))
-
-            TimelineBar(
-                kinds = timelineKinds,
-                currentIndex = snapshot.stepIndex,
-                progressInStep = snapshot.intervalProgress,
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            // --- Controls (mirrored for left-handed use) ---
-            val mainControls: @Composable () -> Unit = {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(dimens.m),
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = { controller.previous() }, modifier = Modifier.size(64.dp)) {
-                        Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous interval", modifier = Modifier.size(36.dp), tint = colors.textPrimary)
-                    }
-                    Button(
-                        onClick = {
-                            if (snapshot.status == TimerStatus.AWAITING_MANUAL) controller.completeManual() else controller.togglePause()
-                        },
-                        modifier = Modifier
-                            .size(96.dp)
-                            .background(colors.activeGlow, CircleShape),
-                        shape = CircleShape,
-                    ) {
-                        Icon(
-                            when (snapshot.status) {
-                                TimerStatus.PAUSED -> Icons.Filled.PlayArrow
-                                TimerStatus.AWAITING_MANUAL -> Icons.Filled.Check
-                                else -> Icons.Filled.Pause
-                            },
-                            contentDescription = when (snapshot.status) {
-                                TimerStatus.PAUSED -> "Resume"
-                                TimerStatus.AWAITING_MANUAL -> "Complete this interval"
-                                else -> "Pause"
-                            },
-                            modifier = Modifier.size(42.dp),
+                    val secondary: @Composable () -> Unit = {
+                        SecondaryControls(
+                            onAddTime = { controller.addTime(15_000) },
+                            onLap = { controller.lap() },
                         )
                     }
-                    IconButton(onClick = { controller.next() }, modifier = Modifier.size(64.dp)) {
-                        Icon(Icons.Filled.SkipNext, contentDescription = stringResource(R.string.player_next), modifier = Modifier.size(36.dp), tint = colors.textPrimary)
+                    if (leftHanded) {
+                        secondary()
+                        mainControls()
+                    } else {
+                        mainControls()
+                        secondary()
                     }
                 }
-            }
 
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val secondary: @Composable () -> Unit = {
-                    SecondaryControls(onAddTime = { controller.addTime(15_000) }, onLap = { controller.lap() })
-                }
-                if (leftHanded) {
-                    secondary()
-                    mainControls()
-                } else {
-                    mainControls()
-                    secondary()
-                }
-            }
+                Spacer(Modifier.height(dimens.s))
 
-            Spacer(Modifier.height(dimens.s))
-
-            // "Add time" and "Lap" were offered twice each — once as an icon above and once as a text
-            // button here. One affordance each; the lap count stays visible as a label.
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                if (snapshot.laps > 0) {
-                    Text(
-                        "Laps ${snapshot.laps}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = colors.textSecondary,
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    if (snapshot.laps > 0) {
+                        Text(
+                            text = "Laps ${snapshot.laps}",
+                            style = PulseType.NumericSmall,
+                            color = colors.textMuted,
+                        )
+                    }
+                    GhostActionButton(
+                        text = if (instructor) "Standard view" else "Instructor view",
+                        onClick = { instructor = !instructor },
                     )
-                }
-                TextButton(onClick = { instructor = !instructor }) {
-                    Text(if (instructor) "Standard view" else "Instructor view")
                 }
             }
         }
@@ -455,17 +473,99 @@ fun PlayerScreen(
     }
 }
 
+/**
+ * The one round control in the interface. It is filled with the solid action surface so it is
+ * unmistakably the transport, and it is the only element on the screen with a circular shape.
+ */
+@Composable
+private fun TransportButton(paused: Boolean, manual: Boolean, onClick: () -> Unit) {
+    val colors = LocalPulseColors.current
+    val description = when {
+        manual -> "Complete this interval"
+        paused -> "Resume"
+        else -> "Pause"
+    }
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .size(72.dp)
+            .semantics { contentDescription = description },
+        shape = CircleShape,
+        color = colors.actionFill,
+        contentColor = colors.actionText,
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = when {
+                    manual -> Icons.Filled.Check
+                    paused -> Icons.Filled.PlayArrow
+                    else -> Icons.Filled.Pause
+                },
+                contentDescription = null,
+                modifier = Modifier.size(30.dp),
+            )
+        }
+    }
+}
+
+/** Live heart rate, shown only when a connected health platform actually reported one. */
+@Composable
+private fun HeartRateBadge(bpm: Int, modifier: Modifier = Modifier) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Surface(
+        modifier = modifier,
+        shape = LocalPulseShapes.current.chip,
+        color = colors.warningTint,
+        border = BorderStroke(dimens.borderWidth, colors.border),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = dimens.s, vertical = LocalPulseDimens.current.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = colors.prepare,
+                modifier = Modifier.size(12.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = "$bpm",
+                style = PulseType.NumericSmall,
+                color = colors.textPrimary,
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = HrZones.zone(bpm),
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.textMuted,
+            )
+        }
+    }
+}
+
 @Composable
 private fun SecondaryControls(onAddTime: () -> Unit, onLap: () -> Unit) {
     val colors = LocalPulseColors.current
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onAddTime, modifier = Modifier.size(56.dp)) {
-            Icon(Icons.Filled.Add, contentDescription = "Add 15 seconds", tint = colors.textSecondary)
-        }
-        // A play triangle for "record a lap" read as a second start button.
-        IconButton(onClick = onLap, modifier = Modifier.size(56.dp)) {
-            Icon(Icons.Filled.Flag, contentDescription = "Record a lap", tint = colors.textSecondary)
-        }
+    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.xs), verticalAlignment = Alignment.CenterVertically) {
+        PulseIconButton(
+            icon = Icons.Filled.Add,
+            contentDescription = "Add 15 seconds",
+            tooltip = "Add 15 seconds",
+            onClick = onAddTime,
+            tint = colors.textSecondary,
+            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
+        )
+        // A play triangle for "record a lap" read as a second start button — hence the flag.
+        PulseIconButton(
+            icon = Icons.Filled.Flag,
+            contentDescription = "Record a lap",
+            tooltip = "Record a lap",
+            onClick = onLap,
+            tint = colors.textSecondary,
+            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
+        )
     }
 }
 
@@ -479,28 +579,33 @@ private fun InstructorOverlay(
     nextDuration: Long?,
     round: Int?,
     rounds: Int?,
-    accent: androidx.compose.ui.graphics.Color,
+    accent: Color,
     onClose: () -> Unit,
 ) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     Box(
         Modifier
             .fillMaxSize()
             .background(colors.background)
             .safeDrawingPadding()
-            .padding(32.dp),
+            .padding(dimens.xxl),
     ) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(planName.uppercase(), style = MaterialTheme.typography.titleLarge, color = colors.textSecondary)
-            Spacer(Modifier.height(24.dp))
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            StatusBadge(text = planName, tone = PulseTone.NEUTRAL)
+            Spacer(Modifier.height(dimens.xl))
             Text(
-                formatClock(remaining),
-                style = MaterialTheme.typography.displayLarge.copy(fontSize = MaterialTheme.typography.displayLarge.fontSize * 2.4f),
+                text = formatClock(remaining),
+                style = PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 2.2f),
                 color = accent,
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(dimens.m))
             Text(
-                buildString {
+                text = buildString {
                     append(currentStep)
                     round?.let { append("   ·   round $it of ${rounds ?: 0}") }
                 },
@@ -508,15 +613,22 @@ private fun InstructorOverlay(
                 color = colors.textPrimary,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(dimens.xl))
             Text(
-                "Next: $nextStep" + (nextDuration?.let { " · ${formatDuration(it)}" } ?: ""),
-                style = MaterialTheme.typography.headlineSmall,
-                color = colors.textSecondary,
+                text = "Next: $nextStep" + (nextDuration?.let { " · ${formatDuration(it)}" } ?: ""),
+                style = MaterialTheme.typography.titleLarge,
+                color = colors.textMuted,
             )
         }
-        IconButton(onClick = onClose, modifier = Modifier.align(Alignment.TopEnd)) {
-            Icon(Icons.Filled.Close, contentDescription = "Exit instructor view", tint = colors.textPrimary)
-        }
+        PulseIconButton(
+            icon = Icons.Filled.Close,
+            contentDescription = "Exit instructor view",
+            tooltip = "Exit instructor view",
+            onClick = onClose,
+            tint = colors.textSecondary,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .clip(LocalPulseShapes.current.control),
+        )
     }
 }

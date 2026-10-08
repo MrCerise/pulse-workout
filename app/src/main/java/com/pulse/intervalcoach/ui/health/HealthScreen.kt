@@ -12,17 +12,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,29 +29,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.health.connect.client.PermissionController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.health.HC_REQUESTED_PERMISSIONS
 import com.pulse.intervalcoach.health.FitAvailability
 import com.pulse.intervalcoach.health.HcAvailability
-import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
-import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
+import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.R
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 
 /**
  * Health setup & sync screen.
@@ -64,13 +62,13 @@ import java.time.format.DateTimeFormatter
  * Fit is a best-effort secondary because Google has deprecated its on-device API as of 2026. Every
  * state on this screen is a real platform state — nothing is faked, and every failure says why.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HealthScreen(
     container: AppContainer,
     onBack: () -> Unit,
 ) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
@@ -88,36 +86,40 @@ fun HealthScreen(
     var backfill by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
+        containerColor = colors.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Health", style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-                        Text("Connect once — PULSE reads, writes, and says what happened", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
-                },
+            PulseTopBar(
+                title = "Health",
+                subtitle = "Connect once — PULSE reads, writes, and says what happened",
+                onBack = onBack,
+                backDescription = stringResource(R.string.back),
                 actions = {
-                    IconButton(onClick = { container.health.refresh() }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Refresh health status")
-                    }
+                    PulseIconButton(
+                        icon = Icons.Filled.Refresh,
+                        contentDescription = "Refresh health status",
+                        tooltip = "Refresh health status",
+                        onClick = { container.health.refresh() },
+                    )
                 },
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = dimens.pagePadding,
+                end = dimens.pagePadding,
+                top = dimens.cardGap,
+                bottom = dimens.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             // --- What is connected right now ---
             item {
                 PulseCard {
                     Column {
                         Text("Current connection", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         if (snapshot.source == null) {
                             Text(
                                 "Nothing connected yet. Health Connect (below) is the recommended backend; " +
@@ -127,12 +129,12 @@ fun HealthScreen(
                             )
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.work, modifier = Modifier.padding(end = 8.dp))
+                                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.work, modifier = Modifier.padding(end = LocalPulseDimens.current.s))
                                 Text("Reading through ${snapshot.source}", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
                             }
                         }
                         if (snapshot.latestHeartRate != null) {
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
                             Text(
                                 "Latest heart rate: ${snapshot.latestHeartRate} bpm",
                                 style = MaterialTheme.typography.bodySmall,
@@ -156,42 +158,42 @@ fun HealthScreen(
                                 modifier = Modifier.weight(1f),
                             )
                             when (availability) {
-                                HcAvailability.AVAILABLE -> NeutralChip("ready")
-                                else -> NeutralChip("unavailable")
+                                HcAvailability.AVAILABLE -> StatusBadge("ready", PulseTone.SUCCESS)
+                                else -> StatusBadge("unavailable", PulseTone.NEUTRAL)
                             }
                         }
                         when (availability) {
                             HcAvailability.NOT_INSTALLED -> {
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(LocalPulseDimens.current.s))
                                 InfoBanner(
                                     "Health Connect isn't installed. It ships on Android 14+ and is available for older devices in the Play Store as the Google Health Connect app.",
                                 )
                             }
                             HcAvailability.NOT_ENABLED -> {
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(LocalPulseDimens.current.s))
                                 InfoBanner("Health Connect is installed but switched off in system settings. Enable it, then come back — no restart needed.")
                             }
                             HcAvailability.NO_PROVIDER -> {
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(LocalPulseDimens.current.s))
                                 InfoBanner("No health app on this device offers Health Connect storage, so there is nothing to connect to.")
                             }
                             HcAvailability.NOT_SUPPORTED -> {
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(LocalPulseDimens.current.s))
                                 InfoBanner("This device/Android version does not support Health Connect.")
                             }
                             HcAvailability.AVAILABLE -> Unit
                             HcAvailability.UNKNOWN -> {
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(LocalPulseDimens.current.s))
                                 InfoBanner("Still checking what this device offers — tap the refresh icon when it settles.")
                             }
                         }
                         if (availability == HcAvailability.AVAILABLE) {
-                            Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(LocalPulseDimens.current.m))
                             permissionRow("Heart rate (read)", permissions.heartRateRead)
                             permissionRow("Steps (read)", permissions.stepsRead)
                             permissionRow("Workouts (write)", permissions.workoutWrite)
                             if (!permissions.anyReadGranted || !permissions.workoutWrite) {
-                                Spacer(Modifier.height(10.dp))
+                                Spacer(Modifier.height(LocalPulseDimens.current.m))
                                 PrimaryActionButton(
                                     text = "Grant Health Connect access",
                                     onClick = {
@@ -213,7 +215,7 @@ fun HealthScreen(
                 PulseCard {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Person, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.padding(end = 8.dp))
+                            Icon(Icons.Filled.Person, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.padding(end = LocalPulseDimens.current.s))
                             Text(
                                 "Deprecated by Google as of 2026",
                                 style = MaterialTheme.typography.labelMedium,
@@ -221,12 +223,12 @@ fun HealthScreen(
                                 modifier = Modifier.weight(1f),
                             )
                             when {
-                                fitAuthorized -> NeutralChip("connected")
-                                fitAvailability == FitAvailability.AVAILABLE -> NeutralChip("optional")
-                                else -> NeutralChip("unavailable")
+                                fitAuthorized -> StatusBadge("connected", PulseTone.SUCCESS)
+                                fitAvailability == FitAvailability.AVAILABLE -> StatusBadge("optional", PulseTone.INFO)
+                                else -> StatusBadge("unavailable", PulseTone.NEUTRAL)
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         Text(
                             when (fitAvailability) {
                                 FitAvailability.NOT_CONFIGURED ->
@@ -244,7 +246,7 @@ fun HealthScreen(
                             color = colors.textSecondary,
                         )
                         if (fitAvailability == FitAvailability.AVAILABLE && !fitAuthorized) {
-                            Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(LocalPulseDimens.current.m))
                             if (context is Activity) {
                                 SecondaryActionButton(
                                     text = "Connect with Google",
@@ -260,7 +262,7 @@ fun HealthScreen(
             // --- Your data, as the backend sees it ---
             item { SectionHeader("Your data on the backend") }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     StatTile(
                         "Steps today",
                         snapshot.stepsToday?.let { "${it} " } ?: "—",
@@ -285,8 +287,8 @@ fun HealthScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(10.dp))
-                        GradientActionButton(
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
+                        PrimaryActionButton(
                             text = "Backfill my last 7 days",
                             onClick = {
                                 scope.launch {
@@ -315,7 +317,7 @@ fun HealthScreen(
                             enabled = snapshot.source != null,
                         )
                         if (snapshot.source == null) {
-                            Spacer(Modifier.height(6.dp))
+                            Spacer(Modifier.height(LocalPulseDimens.current.xs))
                             Text(
                                 "Connect Health Connect or Google Fit above first — backfill writes your saved sessions to the connected app.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -323,7 +325,7 @@ fun HealthScreen(
                             )
                         }
                         backfill?.let {
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
                             Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                         }
                     }
@@ -355,11 +357,17 @@ private fun hcStatusText(availability: HcAvailability): String = when (availabil
 private fun permissionRow(label: String, granted: Boolean) {
     val colors = LocalPulseColors.current
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary, modifier = Modifier.weight(1f))
         Text(
-            if (granted) "granted" else "not granted",
-            style = MaterialTheme.typography.labelLarge,
-            color = if (granted) colors.work else colors.textSecondary,
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textPrimary,
+            modifier = Modifier.weight(1f),
+        )
+        // Status is the shared badge, like every other state on this screen: same shape, same
+        // measured tone pairings, no ad-hoc colour.
+        StatusBadge(
+            text = if (granted) "granted" else "not granted",
+            tone = if (granted) PulseTone.SUCCESS else PulseTone.NEUTRAL,
         )
     }
 }

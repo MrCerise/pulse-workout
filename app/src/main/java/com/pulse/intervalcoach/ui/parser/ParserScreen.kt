@@ -10,16 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,24 +21,29 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pulse.engine.TimelineExpander
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
+import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.parser.WorkoutTextParser
-import com.pulse.intervalcoach.ui.components.GradientActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PhaseChip
+import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseTextField
+import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.launch
-import androidx.compose.ui.res.stringResource
-import com.pulse.intervalcoach.R
 
 /**
  * Text-to-workout preview.
@@ -53,7 +51,6 @@ import com.pulse.intervalcoach.R
  * The parser is deterministic, so this screen shows exactly what was understood, what was not, and
  * the resulting intervals and total duration before anything is saved or started.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParserScreen(
     container: AppContainer,
@@ -62,6 +59,7 @@ fun ParserScreen(
     onStart: (WorkoutPlan) -> Unit,
 ) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()
     var text by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("Parsed workout") }
@@ -71,35 +69,38 @@ fun ParserScreen(
     val expanded = remember(parsed) { parsed?.let { runCatching { TimelineExpander.expand(it) }.getOrNull() } }
 
     Scaffold(
+        containerColor = colors.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(stringResource(R.string.parser_title), style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-                        Text("Describe it in words, preview exactly what was matched", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
-                    }
-                },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) } },
+            PulseTopBar(
+                title = stringResource(R.string.parser_title),
+                subtitle = "Describe it in words, preview exactly what was matched",
+                onBack = onBack,
+                backDescription = stringResource(R.string.back),
             )
         },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(
+                start = dimens.pagePadding,
+                end = dimens.pagePadding,
+                top = dimens.cardGap,
+                bottom = dimens.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
-                OutlinedTextField(
+                PulseTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text("Describe the workout") },
-                    placeholder = { Text(stringResource(R.string.parser_hint)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Describe the workout",
+                    placeholder = stringResource(R.string.parser_hint),
+                    minLines = 3,
                 )
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GradientActionButton(
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    PrimaryActionButton(
                         text = stringResource(R.string.voice_preview),
                         onClick = { result = WorkoutTextParser.parse(text, name) },
                         modifier = Modifier.weight(1f),
@@ -113,13 +114,16 @@ fun ParserScreen(
             }
             result?.let { parsedResult ->
                 item {
-                    InfoBanner(parsedResult.message)
+                    InfoBanner(
+                        text = parsedResult.message,
+                        tone = if (parsed == null) PulseTone.WARNING else PulseTone.INFO,
+                    )
                 }
                 item {
                     Text(
-                        "This is a deterministic pattern parser, not an AI assistant: it only reports what it actually matched.",
+                        text = "This is a deterministic pattern parser, not an AI assistant: it only reports what it actually matched.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
+                        color = colors.textMuted,
                     )
                 }
             }
@@ -130,32 +134,31 @@ fun ParserScreen(
                     PulseCard {
                         Column {
                             Text(
-                                expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}",
-                                style = MaterialTheme.typography.displaySmall,
-                                color = colors.work,
+                                text = expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}",
+                                style = PulseType.NumericLarge,
+                                color = colors.textPrimary,
                             )
                             Text(
-                                "${expanded.steps.size} intervals · total time" +
+                                text = "${expanded.steps.size} intervals · total time" +
                                     (if (expanded.hasOpenEnded) " (minimum)" else ""),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
-                            Spacer(Modifier.height(12.dp))
+                            Spacer(Modifier.height(dimens.m))
                             TimelineBar(
                                 kinds = expanded.steps.map { it.kind },
                                 currentIndex = -1,
                                 progressInStep = 0f,
-                                height = 12.dp,
+                                height = LocalPulseDimens.current.barHeightCompact,
                             )
                         }
                     }
                 }
                 item {
-                    OutlinedTextField(
+                    PulseTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Workout name") },
-                        modifier = Modifier.fillMaxWidth(),
+                        label = "Workout name",
                         singleLine = true,
                     )
                 }
@@ -166,32 +169,38 @@ fun ParserScreen(
                             Row(
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
+                                    .padding(vertical = dimens.s),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(step.name, style = MaterialTheme.typography.bodyLarge, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                                     Text(
-                                        if (step.isIndefinite) "manual" else formatDuration(step.durationMillis),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = colors.textSecondary,
+                                        text = step.name,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = colors.textPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        text = if (step.isIndefinite) "manual" else formatDuration(step.durationMillis),
+                                        style = PulseType.NumericSmall,
+                                        color = colors.textMuted,
                                     )
                                 }
-                                Spacer(Modifier.width(10.dp))
+                                Spacer(Modifier.width(dimens.s))
                                 PhaseChip(kind = step.kind, name = null)
                             }
                         }
                         if (expanded.steps.size > 12) {
                             Text(
-                                "+ ${expanded.steps.size - 12} more intervals",
+                                text = "+ ${expanded.steps.size - 12} more intervals",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
+                                color = colors.textMuted,
                             )
                         }
                     }
                 }
                 item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                         SecondaryActionButton(
                             text = stringResource(R.string.builder_save),
                             onClick = {
@@ -203,7 +212,7 @@ fun ParserScreen(
                             },
                             modifier = Modifier.weight(1f),
                         )
-                        GradientActionButton(
+                        PrimaryActionButton(
                             text = stringResource(R.string.builder_save_and_start),
                             onClick = {
                                 scope.launch {
@@ -221,11 +230,11 @@ fun ParserScreen(
             if (result == null) {
                 item {
                     Text(
-                        "Supported patterns: \u201C6 rounds\u201D, \u201C40 seconds work\u201D, \u201C20 seconds rest\u201D, \u201C1 minute warm-up\u201D, " +
+                        text = "Supported patterns: \u201C6 rounds\u201D, \u201C40 seconds work\u201D, \u201C20 seconds rest\u201D, \u201C1 minute warm-up\u201D, " +
                             "\u201Ccool down 3 minutes\u201D, \u201Cget ready 10 seconds\u201D, \u201Ctabata\u201D, \u201Cemom 10 minutes\u201D, \u201Camrap 12 minutes\u201D, " +
                             "plus durations like \u201C90 seconds\u201D, \u201C1:30\u201D or \u201C2m\u201D.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
+                        color = colors.textMuted,
                     )
                 }
             }
