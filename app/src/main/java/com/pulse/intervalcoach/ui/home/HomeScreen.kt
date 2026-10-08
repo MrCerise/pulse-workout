@@ -307,141 +307,145 @@ fun HomeScreen(
         // --- Weekly activity ------------------------------------------------------------------
         item {
             PulseCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ProgressRing(
-                        progress = (state.weekMillis.toFloat() / WEEKLY_GOAL_MILLIS).coerceIn(0f, 1f),
-                        color = colors.work,
-                        trackColor = colors.track,
-                        strokeWidth = 6.dp,
-                        modifier = Modifier.size(76.dp),
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ProgressRing(
+                            progress = (state.weekMillis.toFloat() / WEEKLY_GOAL_MILLIS).coerceIn(0f, 1f),
+                            color = colors.work,
+                            trackColor = colors.track,
+                            strokeWidth = 6.dp,
+                            modifier = Modifier.size(76.dp),
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "${(state.weekMillis / 60000L).toInt()}",
+                                    style = PulseType.NumericMedium,
+                                    color = colors.textPrimary,
+                                )
+                                Text(
+                                    text = "min",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.textMuted,
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(dimens.l))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                             Text(
-                                text = "${(state.weekMillis / 60000L).toInt()}",
-                                style = PulseType.NumericMedium,
+                                text = "This week",
+                                style = MaterialTheme.typography.titleMedium,
                                 color = colors.textPrimary,
                             )
                             Text(
-                                text = "min",
-                                style = MaterialTheme.typography.labelSmall,
+                                text = "${formatDuration(state.weekMillis)} of the 150 min goal · " +
+                                    "${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}",
+                                style = MaterialTheme.typography.bodySmall,
                                 color = colors.textMuted,
                             )
                         }
                     }
-                    Spacer(Modifier.width(dimens.l))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
-                        Text(
-                            text = "This week",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.textPrimary,
-                        )
-                        Text(
-                            text = "${formatDuration(state.weekMillis)} of the 150 min goal · " +
-                                "${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textMuted,
-                        )
-                    }
+                    Spacer(Modifier.height(dimens.l))
+                    ActivityChart(
+                        bars = state.week.map {
+                            ActivityBar(
+                                label = it.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
+                                value = it.activeMillis,
+                            )
+                        },
+                        height = LocalPulseDimens.current.barHeightRegular,
+                        emptyLabel = "No sessions recorded this week yet.",
+                    )
                 }
-                Spacer(Modifier.height(dimens.l))
-                ActivityChart(
-                    bars = state.week.map {
-                        ActivityBar(
-                            label = it.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
-                            value = it.activeMillis,
-                        )
-                    },
-                    height = LocalPulseDimens.current.barHeightRegular,
-                    emptyLabel = "No sessions recorded this week yet.",
-                )
             }
         }
 
         // --- Quick start ----------------------------------------------------------------------
         item {
             PulseCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconTile(icon = Icons.Filled.Bolt, tint = colors.accent, container = colors.accentTint)
-                    Spacer(Modifier.width(dimens.m))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = "Quick start",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.textPrimary,
-                        )
-                        Text(
-                            text = "Presets start immediately with their real duration.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textMuted,
-                        )
+                Column(Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconTile(icon = Icons.Filled.Bolt, tint = colors.accent, container = colors.accentTint)
+                        Spacer(Modifier.width(dimens.m))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = "Quick start",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.textPrimary,
+                            )
+                            Text(
+                                text = "Presets start immediately with their real duration.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.textMuted,
+                            )
+                        }
                     }
-                }
-                Spacer(Modifier.height(dimens.m))
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    presets.take(2).forEach { preset ->
-                        PresetTile(
-                            label = preset.label,
-                            duration = presetDuration(preset),
-                            onClick = { onStartWorkout(preset.plan) },
-                            modifier = Modifier.weight(1f),
-                        )
+                    Spacer(Modifier.height(dimens.m))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        presets.take(2).forEach { preset ->
+                            PresetTile(
+                                label = preset.label,
+                                duration = presetDuration(preset),
+                                onClick = { onStartWorkout(preset.plan) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
-                }
-                Spacer(Modifier.height(dimens.s))
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    presets.drop(2).forEach { preset ->
-                        PresetTile(
-                            label = preset.label,
-                            duration = presetDuration(preset),
-                            onClick = { onStartWorkout(preset.plan) },
-                            modifier = Modifier.weight(1f),
-                        )
+                    Spacer(Modifier.height(dimens.s))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        presets.drop(2).forEach { preset ->
+                            PresetTile(
+                                label = preset.label,
+                                duration = presetDuration(preset),
+                                onClick = { onStartWorkout(preset.plan) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
-                }
 
-                Spacer(Modifier.height(dimens.l))
-                SectionHeader(text = "Custom · ${formatDuration(quickTotal(quick))}")
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    DurationStepper(
-                        label = "Work",
-                        millis = quick.work,
-                        onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
-                        modifier = Modifier.weight(1f),
+                    Spacer(Modifier.height(dimens.l))
+                    SectionHeader(text = "Custom · ${formatDuration(quickTotal(quick))}")
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        DurationStepper(
+                            label = "Work",
+                            millis = quick.work,
+                            onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                        DurationStepper(
+                            label = "Rest",
+                            millis = quick.rest,
+                            onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Spacer(Modifier.height(dimens.s))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        NumberStepper(
+                            label = "Rounds",
+                            value = quick.rounds,
+                            onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                        DurationStepper(
+                            label = "Prep",
+                            millis = quick.prepMillis,
+                            onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Spacer(Modifier.height(dimens.m))
+                    PrimaryActionButton(
+                        text = "Start now",
+                        onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = Icons.Filled.PlayArrow,
                     )
-                    DurationStepper(
-                        label = "Rest",
-                        millis = quick.rest,
-                        onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
-                        modifier = Modifier.weight(1f),
+                    GhostActionButton(
+                        text = "Open the quick builder instead",
+                        onClick = onQuickStart,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                Spacer(Modifier.height(dimens.s))
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    NumberStepper(
-                        label = "Rounds",
-                        value = quick.rounds,
-                        onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
-                        modifier = Modifier.weight(1f),
-                    )
-                    DurationStepper(
-                        label = "Prep",
-                        millis = quick.prepMillis,
-                        onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                Spacer(Modifier.height(dimens.m))
-                PrimaryActionButton(
-                    text = "Start now",
-                    onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
-                    modifier = Modifier.fillMaxWidth(),
-                    icon = Icons.Filled.PlayArrow,
-                )
-                GhostActionButton(
-                    text = "Open the quick builder instead",
-                    onClick = onQuickStart,
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
 
