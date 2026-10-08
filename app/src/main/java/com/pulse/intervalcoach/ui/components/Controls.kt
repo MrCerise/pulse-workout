@@ -44,8 +44,10 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -226,7 +228,11 @@ fun DangerActionButton(
 @Composable
 fun PulseIconButton(
     icon: ImageVector,
-    contentDescription: String,
+    /**
+     * Pass `null` only when the button repeats a label that is already on screen (the chevron at
+     * the end of a labelled row); anything else needs a real description for TalkBack.
+     */
+    contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
