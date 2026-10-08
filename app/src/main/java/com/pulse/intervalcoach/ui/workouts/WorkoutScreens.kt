@@ -288,7 +288,7 @@ fun WorkoutLibraryScreen(
                 }
             } else if (state.grid) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 160.dp),
+                    columns = GridCells.Adaptive(minSize = LocalPulseDimens.current.gridCellMin),
                     contentPadding = PaddingValues(dimens.pagePadding),
                     horizontalArrangement = Arrangement.spacedBy(dimens.cardGap),
                     verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
@@ -610,14 +610,14 @@ fun WorkoutDetailsScreen(
                     kinds = expanded.steps.map { it.kind },
                     currentIndex = -1,
                     progressInStep = 0f,
-                    height = 8.dp,
+                    height = LocalPulseDimens.current.barHeightCompact,
                 )
             }
             items(expanded.steps.size) { index ->
                 val step = expanded.steps[index]
                 PulseCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                             Text(
                                 text = step.name,
                                 style = MaterialTheme.typography.titleSmall,

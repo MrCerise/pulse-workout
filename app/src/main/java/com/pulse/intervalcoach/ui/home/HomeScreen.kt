@@ -263,7 +263,7 @@ fun HomeScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     color = colors.textPrimary,
                 )
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(LocalPulseDimens.current.microGap))
                 Text(
                     text = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())),
                     style = MaterialTheme.typography.bodySmall,
@@ -279,7 +279,7 @@ fun HomeScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconTile(icon = Icons.Filled.PlayArrow, tint = colors.accent, container = colors.accentTint)
                         Spacer(Modifier.width(dimens.m))
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                             Text(
                                 text = "Workout in progress",
                                 style = MaterialTheme.typography.titleMedium,
@@ -327,7 +327,7 @@ fun HomeScreen(
                         }
                     }
                     Spacer(Modifier.width(dimens.l))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                         Text(
                             text = "This week",
                             style = MaterialTheme.typography.titleMedium,
@@ -349,7 +349,7 @@ fun HomeScreen(
                             value = it.activeMillis,
                         )
                     },
-                    height = 48.dp,
+                    height = LocalPulseDimens.current.barHeightRegular,
                     emptyLabel = "No sessions recorded this week yet.",
                 )
             }
@@ -485,7 +485,7 @@ fun HomeScreen(
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
                     items(state.favorites, key = { it.id }) { workout ->
-                        PulseCard(modifier = Modifier.width(220.dp), onClick = { onOpenWorkout(workout.id) }) {
+                        PulseCard(modifier = Modifier.width(LocalPulseDimens.current.carouselCardWidth), onClick = { onOpenWorkout(workout.id) }) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
@@ -531,7 +531,7 @@ fun HomeScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconTile(icon = Icons.Filled.Schedule, tint = colors.prepare, container = colors.warningTint)
                         Spacer(Modifier.width(dimens.m))
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                             Text(
                                 text = planned.workoutName,
                                 style = MaterialTheme.typography.titleMedium,
@@ -557,7 +557,7 @@ fun HomeScreen(
             items(state.recent, key = { it.id }) { workout ->
                 PulseCard(onClick = { onOpenWorkout(workout.id) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                             Text(
                                 text = workout.name,
                                 style = MaterialTheme.typography.titleMedium,
@@ -636,7 +636,7 @@ private fun PresetTile(
     ) {
         Column(
             modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.s),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap),
         ) {
             Text(
                 text = label,

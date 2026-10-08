@@ -178,7 +178,7 @@ fun ProgressScreen(
                                     value = it.activeMillis,
                                 )
                             },
-                            height = 112.dp,
+                            height = LocalPulseDimens.current.chartHeight,
                             labelEvery = 2,
                             emptyLabel = "No sessions yet — the chart fills in as you finish workouts.",
                         )
@@ -231,7 +231,7 @@ fun ProgressScreen(
                         } else {
                             state.reminders.forEach { reminder ->
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                                         Text(
                                             text = state.planned.firstOrNull { it.first == reminder.id }?.second ?: "Workout",
                                             style = MaterialTheme.typography.titleSmall,
@@ -328,7 +328,7 @@ private fun SessionRow(session: SessionEntity, onClick: () -> Unit) {
     val colors = LocalPulseColors.current
     PulseCard(onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                 Text(
                     text = session.workoutName,
                     style = MaterialTheme.typography.titleSmall,
@@ -470,7 +470,7 @@ fun SessionDetailScreen(
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                     Text(current.workoutName, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
                     Text(
                         text = LocalDateTime.ofInstant(Instant.ofEpochMilli(current.startedAt), ZoneId.systemDefault())
@@ -526,7 +526,7 @@ fun SessionDetailScreen(
                     runCatching { com.pulse.intervalcoach.data.PlanCodec.decode(current.workoutSnapshotJson) }.getOrNull()
                 }
                 PulseCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                         Text(
                             text = "Saved snapshot (revision ${snapshotPlan?.revision ?: 1})",
                             style = MaterialTheme.typography.labelSmall,

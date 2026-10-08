@@ -147,7 +147,7 @@ fun ParserScreen(
                                 kinds = expanded.steps.map { it.kind },
                                 currentIndex = -1,
                                 progressInStep = 0f,
-                                height = 8.dp,
+                                height = LocalPulseDimens.current.barHeightCompact,
                             )
                         }
                     }
@@ -170,7 +170,7 @@ fun ParserScreen(
                                     .padding(vertical = dimens.s),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                                     Text(
                                         text = step.name,
                                         style = MaterialTheme.typography.titleSmall,

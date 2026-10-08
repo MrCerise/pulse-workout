@@ -111,8 +111,22 @@ Base unit 4 dp. Steps: `xs 4`, `s 8`, `m 12`, `l 16`, `xl 24`, `xxl 32`, `huge 4
 | List row | `listRowHeight` | 56 dp |
 | Minimum touch target | `minTouchTarget` | 48 dp |
 | Radii | `cardRadius` 12, `controlRadius` 8, `chipRadius` 6, `sheetRadius` 16, `pillRadius` 999 |
+| Micro gap (a caption under its title) | `microGap` | 2 dp |
+| Shared content metrics | `barHeightCompact` 8, `barHeightRegular` 48, `chartHeight` 112, `gridCellMin` 160, `carouselCardWidth` 220 | — |
+| Player density presets | `playerPanelCompact` 200, `playerPanelStandard` 260, `playerPanelLarge` 320 | — |
 
-A screen never writes a raw `dp` for spacing or size; it reads `LocalPulseDimens.current`.
+A screen never writes a raw `dp` for **spacing or for a shared metric**: gutters, gaps, padding,
+control heights and everything in the table above are read from `LocalPulseDimens.current`. Values
+that size one screen's own artwork — the home ring's diameter, the welcome illustration, the player's
+transport button, the density presets' panel height — stay in that screen as `LocalPulseDimens`
+tokens where they are shared (`playerPanelCompact`, `chartHeight`, `gridCellMin`, `carouselCardWidth`)
+and as plain literals where they are not, because a name used once adds indirection rather than
+information.
+
+Inside a single component the rule is deliberately looser: a dot is 5–6 dp, a glyph inside a badge is
+16 dp, a progress stroke is 2 dp. Those are optical adjustments to one control, not spacing between
+blocks, so they live in the component that draws them and never leak to a call site — no screen passes
+a radius, a stroke width or a dot size to a component.
 
 ## 5. Components
 

@@ -270,7 +270,7 @@ fun QuickBuilderScreen(
                             kinds = expanded?.steps?.map { it.kind }.orEmpty(),
                             currentIndex = -1,
                             progressInStep = 0f,
-                            height = 8.dp,
+                            height = LocalPulseDimens.current.barHeightCompact,
                         )
                     }
                 }
@@ -716,7 +716,7 @@ fun AdvancedBuilderScreen(
                             expanded?.steps?.map { it.kind }.orEmpty(),
                             currentIndex = -1,
                             progressInStep = 0f,
-                            height = 8.dp,
+                            height = LocalPulseDimens.current.barHeightCompact,
                         )
                     }
                 }

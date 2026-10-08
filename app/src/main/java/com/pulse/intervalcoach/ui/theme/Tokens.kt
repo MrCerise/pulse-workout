@@ -143,6 +143,12 @@ val LocalPulseColors = staticCompositionLocalOf {
  */
 @Immutable
 data class PulseDimens(
+    /**
+     * 2 dp. Reserved for one job: stacking a caption or a hint directly under the line it belongs
+     * to. It is never a section gap — if two elements are not parts of one sentence, they are
+     * separated by [s] or more.
+     */
+    val microGap: Dp = 2.dp,
     val xs: Dp = 4.dp,
     val s: Dp = 8.dp,
     val m: Dp = 12.dp,
@@ -157,6 +163,26 @@ data class PulseDimens(
     val cardPadding: Dp = 16.dp,
     /** Vertical gap between sibling cards. */
     val cardGap: Dp = 12.dp,
+
+    // --- Reusable content metrics ---------------------------------------------------------------
+    // These are not spacing: they size a specific kind of content, and a second screen that shows
+    // the same kind of content must use the same number. Anything that sizes one screen's artwork
+    // stays with that screen.
+
+    /** Timeline bar used as a thumbnail inside a card or a builder preview. */
+    val barHeightCompact: Dp = 8.dp,
+    /** Timeline bar used as a screen's main visual. */
+    val barHeightRegular: Dp = 48.dp,
+    /** Activity bar chart in Progress. */
+    val chartHeight: Dp = 112.dp,
+    /** Minimum cell width for `GridCells.Adaptive`; the grid decides the columns. */
+    val gridCellMin: Dp = 160.dp,
+    /** Width of a card in a horizontal carousel — narrow enough for a sliver of the next one. */
+    val carouselCardWidth: Dp = 220.dp,
+    /** Height of the player's ring panel for each density preference. */
+    val playerPanelCompact: Dp = 200.dp,
+    val playerPanelStandard: Dp = 260.dp,
+    val playerPanelLarge: Dp = 320.dp,
 
     /** Control heights. */
     val controlHeight: Dp = 40.dp,

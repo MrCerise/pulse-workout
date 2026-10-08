@@ -179,7 +179,7 @@ fun PlayerScreen(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(4.dp)
+                    .height(LocalPulseDimens.current.xs)
                     .background(colors.surfaceHover),
             ) {
                 Box(
@@ -188,7 +188,7 @@ fun PlayerScreen(
                             if (snapshot.status == TimerStatus.AWAITING_MANUAL) 1f
                             else snapshot.intervalProgress.coerceIn(0f, 1f),
                         )
-                        .height(4.dp)
+                        .height(LocalPulseDimens.current.xs)
                         .background(accent)
                         .semantics {
                             contentDescription = "Interval progress ${(snapshot.intervalProgress * 100).toInt()} percent"
@@ -280,9 +280,9 @@ fun PlayerScreen(
                 ) {
                     val available = minOf(maxWidth, maxHeight)
                     val preferred = when (density) {
-                        PlayerDensity.COMPACT -> 200.dp
-                        PlayerDensity.STANDARD -> 260.dp
-                        PlayerDensity.LARGE -> 320.dp
+                        PlayerDensity.COMPACT -> LocalPulseDimens.current.playerPanelCompact
+                        PlayerDensity.STANDARD -> LocalPulseDimens.current.playerPanelStandard
+                        PlayerDensity.LARGE -> LocalPulseDimens.current.playerPanelLarge
                     }
                     ProgressRing(
                         progress = if (snapshot.status == TimerStatus.AWAITING_MANUAL) 0f else snapshot.intervalProgress,
@@ -382,7 +382,7 @@ fun PlayerScreen(
                             tooltip = "Previous interval",
                             onClick = { controller.previous() },
                             tint = colors.textSecondary,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
                         )
                         TransportButton(
                             paused = snapshot.status == TimerStatus.PAUSED,
@@ -397,7 +397,7 @@ fun PlayerScreen(
                             tooltip = stringResource(R.string.player_next),
                             onClick = { controller.next() },
                             tint = colors.textSecondary,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
                         )
                     }
                 }
@@ -518,7 +518,7 @@ private fun HeartRateBadge(bpm: Int, modifier: Modifier = Modifier) {
         border = BorderStroke(dimens.borderWidth, colors.border),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = dimens.s, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = dimens.s, vertical = LocalPulseDimens.current.xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
@@ -546,14 +546,14 @@ private fun HeartRateBadge(bpm: Int, modifier: Modifier = Modifier) {
 @Composable
 private fun SecondaryControls(onAddTime: () -> Unit, onLap: () -> Unit) {
     val colors = LocalPulseColors.current
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.xs), verticalAlignment = Alignment.CenterVertically) {
         PulseIconButton(
             icon = Icons.Filled.Add,
             contentDescription = "Add 15 seconds",
             tooltip = "Add 15 seconds",
             onClick = onAddTime,
             tint = colors.textSecondary,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
         )
         // A play triangle for "record a lap" read as a second start button — hence the flag.
         PulseIconButton(
@@ -562,7 +562,7 @@ private fun SecondaryControls(onAddTime: () -> Unit, onLap: () -> Unit) {
             tooltip = "Record a lap",
             onClick = onLap,
             tint = colors.textSecondary,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
         )
     }
 }

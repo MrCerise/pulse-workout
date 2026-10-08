@@ -355,11 +355,17 @@ private fun hcStatusText(availability: HcAvailability): String = when (availabil
 private fun permissionRow(label: String, granted: Boolean) {
     val colors = LocalPulseColors.current
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary, modifier = Modifier.weight(1f))
         Text(
-            if (granted) "granted" else "not granted",
-            style = MaterialTheme.typography.labelLarge,
-            color = if (granted) colors.work else colors.textSecondary,
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textPrimary,
+            modifier = Modifier.weight(1f),
+        )
+        // Status is the shared badge, like every other state on this screen: same shape, same
+        // measured tone pairings, no ad-hoc colour.
+        StatusBadge(
+            text = if (granted) "granted" else "not granted",
+            tone = if (granted) PulseTone.SUCCESS else PulseTone.NEUTRAL,
         )
     }
 }
