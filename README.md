@@ -10,9 +10,25 @@ Everything PULSE does itself runs on the device. No account, no ads, no analytic
 only data that ever leaves the phone are the records you explicitly share with a Google health app.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.6.0 (versionCode 9)
+- **Version:** 1.6.2 (versionCode 10)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.6.2 — what changed
+
+- **The version metadata finally matches the release.** v1.6.1 was tagged and published without a
+  `versionCode`/`versionName` bump: its APKs still reported 1.6.0 (versionCode 9), the same values
+  as the real v1.6.0 build. Phones and update checkers treated v1.6.1 as the build they already
+  had, Settings kept showing "PULSE Interval Coach 1.6.0", and the features below never seemed to
+  arrive. Same code as v1.6.1, now correctly stamped 1.6.2 (versionCode 10).
+- **A Goals screen.** Home gains a Goals entry that opens a full page of training stats computed
+  from your finished sessions: workouts completed, total active minutes, current and longest daily
+  streaks, and progress against a 1000-minute monthly target. A session that is still running does
+  not count toward any of it.
+- **Clearer wording for the text parser.** The "Describe a workout" phrasing is gone in favour of
+  plain labels: the parser screen is now "Workout description" with a "Workout name" field,
+  Settings offers "Add workout description", and the library's new-workout menu says "Use text
+  description".
 
 ## v1.6.0 — what changed
 
