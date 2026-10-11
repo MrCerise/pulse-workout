@@ -1,48 +1,39 @@
 package com.pulse.intervalcoach.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,43 +41,44 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
-import com.pulse.intervalcoach.ui.theme.PulseFonts
-import com.pulse.intervalcoach.ui.theme.TABULAR_FIGURES
+import com.pulse.intervalcoach.ui.theme.PulseType
 
 /**
- * Buttons, fields and selectors — the interactive half of the design system.
+ * Buttons, fields, chips and pickers — the interactive half of the Prism design system.
  *
- * Three rules hold for every control here:
+ * Three rules are baked into the components themselves, so a screen cannot get them wrong:
  *
- *  1. **Two emphases, not five.** A screen may have one primary action; everything else is
- *     secondary, ghost or destructive. There is deliberately no "medium-primary-gradient" tier.
- *  2. **40 dp visual height, 48 dp touch target.** Controls look compact and still satisfy the
- *     accessibility minimum, because the touch target is applied with
- *     `minimumInteractiveComponentSize` rather than by inflating the button.
- *  3. **States are tokenised.** Hover, pressed, focused, disabled and selected all resolve to a
- *     phase of the same palette, so a control cannot invent its own highlight.
+ *  - **The primary action carries the gradient.** It is the only element on screen allowed to, so
+ *    "where do I tap" is answered before anything is read.
+ *  - **Chips are pills, controls are 14 dp, buttons are 52 dp.** The sizes are the hierarchy: a
+ *    screen reads as big soft panels, one loud action and a scatter of small round pills.
+ *  - **Every control has a real touch target.** A 40 dp icon button still exposes 48 dp, and a
+ *    disabled control is flat, not dimmed.
  */
 
-// ---------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Buttons
-// ---------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 /**
- * The primary action. A solid neutral block — light in dark themes, dark in light themes — rather
- * than a brand colour, which is what keeps the single accent meaningful elsewhere on the screen.
- * Use it once per view.
+ * The primary action: the accent gradient, full width wherever it is used, 52 dp tall.
+ *
+ * The gradient is the one decorative thing Prism allows itself, and it is reserved for the action a
+ * screen exists for — start a workout, save a plan, grant a permission.
  */
 @Composable
 fun PrimaryActionButton(
@@ -98,33 +90,44 @@ fun PrimaryActionButton(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Button(
+    val shape = LocalPulseShapes.current.control
+    val brush = Brush.linearGradient(listOf(colors.accent, colors.accentAlt))
+    val background: Modifier = if (enabled) {
+        Modifier.background(brush, shape)
+    } else {
+        Modifier.background(colors.surfaceHover, shape)
+    }
+    Surface(
         onClick = onClick,
+        modifier = modifier
+            .heightIn(min = dimens.buttonHeight)
+            .clip(shape)
+            .then(background),
         enabled = enabled,
-        modifier = modifier.heightIn(min = dimens.buttonHeight),
-        shape = LocalPulseShapes.current.control,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colors.actionFill,
-            contentColor = colors.actionText,
-            disabledContainerColor = colors.surfaceHover,
-            disabledContentColor = colors.textDisabled,
-        ),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = dimens.l),
+        shape = shape,
+        color = Color.Transparent,
+        contentColor = if (enabled) colors.onAccentGradient else colors.textDisabled,
     ) {
-        if (icon != null) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(dimens.s))
+        Row(
+            modifier = Modifier.padding(horizontal = dimens.l),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (icon != null) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(dimens.s))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
-/** Everything that is not the one primary action: same geometry, outlined instead of filled. */
+/** The secondary action: a raised surface with a hairline. The peer of [PrimaryActionButton]. */
 @Composable
 fun SecondaryActionButton(
     text: String,
@@ -135,96 +138,112 @@ fun SecondaryActionButton(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    OutlinedButton(
+    Surface(
         onClick = onClick,
-        enabled = enabled,
         modifier = modifier.heightIn(min = dimens.buttonHeight),
+        enabled = enabled,
         shape = LocalPulseShapes.current.control,
-        border = BorderStroke(dimens.borderWidth, if (enabled) colors.outline else colors.border),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = colors.textPrimary,
-            disabledContentColor = colors.textDisabled,
-        ),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = dimens.l),
+        color = colors.surfaceRaised,
+        contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
+        border = BorderStroke(dimens.borderWidth, colors.border),
     ) {
-        if (icon != null) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(dimens.s))
+        Row(
+            modifier = Modifier.padding(horizontal = dimens.l),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (icon != null) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(dimens.s))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
-/** A borderless action for tertiary navigation ("Open the quick builder instead"). */
+/** The quietest action: no container, accent label. For "skip", "not now", "learn more". */
 @Composable
 fun GhostActionButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Surface(
         onClick = onClick,
-        enabled = enabled,
         modifier = modifier.heightIn(min = dimens.buttonHeight),
+        enabled = enabled,
         shape = LocalPulseShapes.current.control,
         color = Color.Transparent,
-        contentColor = if (enabled) colors.textSecondary else colors.textDisabled,
+        contentColor = if (enabled) colors.accent else colors.textDisabled,
     ) {
-        Box(
-            Modifier
-                .padding(horizontal = dimens.m)
-                .defaultMinSize(minHeight = dimens.buttonHeight),
-            contentAlignment = Alignment.Center,
+        Row(
+            modifier = Modifier.padding(horizontal = dimens.l),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+            if (icon != null) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(dimens.s))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
 
-/**
- * A control that changes or destroys data. It is the only button allowed to carry hue, and it is
- * never the default action in a dialog.
- */
+/** Destructive confirmation: tinted red, never a solid block, and only when it destroys something. */
 @Composable
 fun DangerActionButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Button(
+    Surface(
         onClick = onClick,
-        enabled = enabled,
         modifier = modifier.heightIn(min = dimens.buttonHeight),
+        enabled = enabled,
         shape = LocalPulseShapes.current.control,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colors.destructive,
-            contentColor = com.pulse.intervalcoach.ui.theme.legibleOn(colors.destructive),
-            disabledContainerColor = colors.surfaceHover,
-            disabledContentColor = colors.textDisabled,
-        ),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = dimens.l),
+        color = colors.dangerTint,
+        contentColor = if (enabled) colors.error else colors.textDisabled,
+        border = BorderStroke(dimens.borderWidth, colors.error.copy(alpha = 0.32f)),
     ) {
-        Text(text = text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        Row(
+            modifier = Modifier.padding(horizontal = dimens.l),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (icon != null) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(dimens.s))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
-/**
- * An icon-only button. It always carries a content description, and on pointer-driven devices it
- * gains a tooltip automatically, so an icon that is obvious to one person is still legible to the
- * next.
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** A 40 dp icon button with a guaranteed 48 dp touch target. */
 @Composable
 fun PulseIconButton(
     icon: ImageVector,
@@ -241,49 +260,29 @@ fun PulseIconButton(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    val button: @Composable () -> Unit = {
-        IconButton(
-            onClick = onClick,
-            enabled = enabled,
-            // Material's IconButton already guarantees a 48 dp touch target around its content, so
-            // the visual box can stay at the compact control size without losing the tap area.
-            modifier = Modifier.size(dimens.iconButtonSize).then(modifier),
-            colors = IconButtonDefaults.iconButtonColors(
-                contentColor = tint ?: colors.textSecondary,
-                disabledContentColor = colors.textDisabled,
-            ),
-        ) {
-            Icon(icon, contentDescription = contentDescription, modifier = Modifier.size(18.dp))
-        }
-    }
-    if (tooltip == null) {
-        button()
-    } else {
-        TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-            tooltip = {
-                PlainTooltip(
-                    containerColor = colors.surfaceOverlay,
-                    contentColor = colors.textPrimary,
-                ) {
-                    Text(tooltip, style = MaterialTheme.typography.bodySmall)
-                }
-            },
-            state = rememberTooltipState(),
-        ) {
-            button()
-        }
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .size(dimens.minTouchTarget)
+            .then(if (tooltip != null) Modifier.semantics { this.contentDescription = tooltip } else Modifier),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint ?: colors.textSecondary,
+            modifier = Modifier.size(22.dp),
+        )
     }
 }
 
-// ---------------------------------------------------------------------------------------------
-// Text input
-// ---------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// Fields
+// -------------------------------------------------------------------------------------------------
 
 /**
- * The text field. One visual treatment everywhere: a raised fill, a one-pixel control boundary that
- * turns into the accent on focus, and a monospaced-free body face so typed text matches the rest of
- * the interface.
+ * A text field. Rounded, raised, with the label above rather than floating inside — the value is
+ * what you came to read, so nothing is ever drawn on top of it.
  */
 @Composable
 fun PulseTextField(
@@ -301,60 +300,87 @@ fun PulseTextField(
     isError: Boolean = false,
 ) {
     val colors = LocalPulseColors.current
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        enabled = enabled,
-        isError = isError,
-        singleLine = singleLine,
-        minLines = minLines,
-        shape = LocalPulseShapes.current.control,
-        textStyle = MaterialTheme.typography.bodyLarge,
-        label = label?.let { { Text(it, style = MaterialTheme.typography.labelLarge) } },
-        placeholder = placeholder?.let {
-            { Text(it, style = MaterialTheme.typography.bodyMedium) }
-        },
-        leadingIcon = leadingIcon?.let {
-            { Icon(it, contentDescription = null, modifier = Modifier.size(18.dp)) }
-        },
-        trailingIcon = trailing,
-        keyboardOptions = keyboardOptions,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = colors.textPrimary,
-            unfocusedTextColor = colors.textPrimary,
-            disabledTextColor = colors.textDisabled,
-            errorTextColor = colors.textPrimary,
-            focusedContainerColor = colors.surfaceRaised,
-            unfocusedContainerColor = colors.surfaceRaised,
-            disabledContainerColor = colors.surface,
-            errorContainerColor = colors.surfaceRaised,
-            cursorColor = colors.accent,
-            errorCursorColor = colors.destructive,
-            focusedBorderColor = colors.accent,
-            unfocusedBorderColor = colors.outline,
-            disabledBorderColor = colors.border,
-            errorBorderColor = colors.destructive,
-            focusedLabelColor = colors.accent,
-            unfocusedLabelColor = colors.textMuted,
-            errorLabelColor = colors.destructive,
-            focusedPlaceholderColor = colors.textMuted,
-            unfocusedPlaceholderColor = colors.textMuted,
-            focusedLeadingIconColor = colors.textSecondary,
-            unfocusedLeadingIconColor = colors.textMuted,
-        ),
-    )
+    val dimens = LocalPulseDimens.current
+    Column(modifier.fillMaxWidth()) {
+        if (label != null) {
+            Text(
+                text = label.uppercase(),
+                style = PulseType.SectionLabel,
+                color = colors.textMuted,
+                modifier = Modifier.padding(start = dimens.s, bottom = dimens.xs),
+            )
+        }
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = LocalPulseShapes.current.control,
+            color = if (enabled) colors.surfaceRaised else colors.surfaceHover,
+            border = BorderStroke(
+                dimens.borderWidth,
+                if (isError) colors.error else colors.border,
+            ),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimens.l, vertical = dimens.s),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (leadingIcon != null) {
+                    Icon(
+                        imageVector = leadingIcon,
+                        contentDescription = null,
+                        tint = colors.textMuted,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(Modifier.width(dimens.m))
+                }
+                androidx.compose.foundation.text.BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    enabled = enabled,
+                    singleLine = singleLine,
+                    minLines = if (singleLine) 1 else minLines,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        color = if (enabled) colors.textPrimary else colors.textDisabled,
+                    ),
+                    keyboardOptions = keyboardOptions,
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = dimens.controlHeight - dimens.m),
+                    decorationBox = { inner ->
+                        Box(contentAlignment = Alignment.CenterStart) {
+                            if (value.isEmpty() && placeholder != null) {
+                                Text(
+                                    text = placeholder,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = colors.textDisabled,
+                                )
+                            }
+                            inner()
+                        }
+                    },
+                )
+                if (trailing != null) {
+                    Spacer(Modifier.width(dimens.s))
+                    trailing()
+                }
+            }
+        }
+    }
 }
 
-// ---------------------------------------------------------------------------------------------
-// Selectors
-// ---------------------------------------------------------------------------------------------
+/** Remembers a text field's value without a ViewModel. For dialogs and one-shot inputs. */
+@Composable
+fun rememberFieldState(initial: String = ""): Pair<String, (String) -> Unit> {
+    var value by remember(initial) { mutableStateOf(initial) }
+    return value to { value = it }
+}
 
-/**
- * A radio row: exactly one option, always visible, no dropdown. The segmented control is the
- * default because it shows the whole choice set at a glance; it degrades to a scrollable chip row
- * once there are more than four options, which is where equal columns stop being readable.
- */
+// -------------------------------------------------------------------------------------------------
+// Pickers
+// -------------------------------------------------------------------------------------------------
+
+/** A label with a row of pill options beside it. Used in forms and in the settings screens. */
 @Composable
 fun <T> OptionRow(
     label: String,
@@ -366,40 +392,33 @@ fun <T> OptionRow(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(modifier.fillMaxWidth()) {
-        if (label.isNotBlank()) {
-            Text(
-                text = label.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(dimens.s))
-        }
-        if (options.size <= 4) {
-            PulseSegmented(options = options, selected = selected, onSelect = onSelect)
-        } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(dimens.s),
-            ) {
-                options.forEach { (value, text) ->
-                    PulseChoiceChip(
-                        text = text,
-                        selected = value == selected,
-                        onClick = { onSelect(value) },
-                    )
-                }
+        Text(
+            text = label.uppercase(),
+            style = PulseType.SectionLabel,
+            color = colors.textMuted,
+            modifier = Modifier.padding(start = dimens.s, bottom = dimens.s),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
+        ) {
+            options.forEach { (value, text) ->
+                PulseChoiceChip(
+                    text = text,
+                    selected = value == selected,
+                    onClick = { onSelect(value) },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
 }
 
 /**
- * The segmented control: a single track, one raised segment for the active choice. It is the same
- * shape language as the input it usually sits under, which is the point.
+ * A segmented control: a pill track with a filled pill for the selected segment.
+ *
+ * The selected segment is filled rather than outlined because at this size an outline reads as a
+ * border around nothing — the fill is what makes "you are here" legible at a glance.
  */
 @Composable
 fun <T> PulseSegmented(
@@ -412,33 +431,33 @@ fun <T> PulseSegmented(
     val dimens = LocalPulseDimens.current
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = LocalPulseShapes.current.control,
+        shape = LocalPulseShapes.current.chip,
         color = colors.surfaceRaised,
         border = BorderStroke(dimens.borderWidth, colors.border),
     ) {
         Row(
-            modifier = Modifier.padding(2.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.padding(dimens.xs),
+            horizontalArrangement = Arrangement.spacedBy(dimens.xs),
         ) {
             options.forEach { (value, text) ->
                 val isSelected = value == selected
+                val container by animateColorAsState(
+                    targetValue = if (isSelected) colors.accentTint else Color.Transparent,
+                    label = "segment",
+                )
                 Surface(
                     onClick = { onSelect(value) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(6.dp),
-                    color = if (isSelected) colors.surface else Color.Transparent,
-                    border = if (isSelected) BorderStroke(dimens.borderWidth, colors.border) else null,
-                    contentColor = if (isSelected) colors.textPrimary else colors.textMuted,
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = dimens.controlHeight),
+                    shape = LocalPulseShapes.current.chip,
+                    color = container,
+                    contentColor = if (isSelected) colors.accent else colors.textMuted,
                 ) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(32.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
+                    Box(contentAlignment = Alignment.Center) {
                         Text(
                             text = text,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -449,36 +468,52 @@ fun <T> PulseSegmented(
     }
 }
 
-/** A single toggleable chip inside a scrollable option row. */
+/** A filter pill. Round, because a small element is the one place a full radius is honest. */
 @Composable
 fun PulseChoiceChip(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    leadingIcon: ImageVector? = null,
+    accent: Color? = null,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val tint = accent ?: colors.accent
+    val container by animateColorAsState(
+        targetValue = if (selected) tint else colors.surfaceRaised,
+        label = "chip",
+    )
+    val content = if (selected) colors.onAccentGradient else colors.textSecondary
     Surface(
         onClick = onClick,
-        modifier = modifier,
-        shape = LocalPulseShapes.current.control,
-        color = if (selected) colors.accentTint else colors.surfaceRaised,
-        contentColor = if (selected) colors.accent else colors.textSecondary,
-        border = BorderStroke(
-            dimens.borderWidth,
-            if (selected) colors.accent else colors.border,
-        ),
+        modifier = modifier.heightIn(min = 36.dp),
+        shape = LocalPulseShapes.current.chip,
+        color = container,
+        contentColor = content,
+        border = if (selected) {
+            null
+        } else {
+            BorderStroke(dimens.borderWidth, colors.border)
+        },
     ) {
-        Box(
-            modifier = Modifier
-                .height(32.dp)
-                .padding(horizontal = dimens.m),
-            contentAlignment = Alignment.Center,
+        Row(
+            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.xs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
         ) {
+            if (leadingIcon != null) {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null,
+                    modifier = Modifier.size(15.dp),
+                )
+                Spacer(Modifier.width(dimens.xs))
+            }
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -486,10 +521,11 @@ fun PulseChoiceChip(
     }
 }
 
-/**
- * A settings switch: title, optional explanation, and the control itself. The whole row is the tap
- * target, which is the behaviour people actually expect from a settings list.
- */
+// -------------------------------------------------------------------------------------------------
+// Toggles, sliders, steppers
+// -------------------------------------------------------------------------------------------------
+
+/** A labelled switch row with an optional hint underneath. */
 @Composable
 fun ToggleRow(
     label: String,
@@ -501,38 +537,53 @@ fun ToggleRow(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled) { onCheckedChange(!checked) }
-            .defaultMinSize(minHeight = dimens.minTouchTarget)
-            .padding(vertical = dimens.s),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        onClick = { if (enabled) onCheckedChange(!checked) },
+        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+        color = Color.Transparent,
+        contentColor = colors.textPrimary,
     ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleMedium,
-                color = if (enabled) colors.textPrimary else colors.textDisabled,
-            )
-            if (hint != null) {
-                Text(text = hint, style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = dimens.listRowHeight)
+                .padding(vertical = dimens.m),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimens.microGap)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (enabled) colors.textPrimary else colors.textDisabled,
+                )
+                if (hint != null) {
+                    Text(
+                        text = hint,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textMuted,
+                    )
+                }
             }
+            Spacer(Modifier.width(dimens.m))
+            Switch(
+                checked = checked,
+                onCheckedChange = if (enabled) onCheckedChange else null,
+                enabled = enabled,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = colors.onAccentGradient,
+                    checkedTrackColor = colors.accent,
+                    checkedBorderColor = Color.Transparent,
+                    uncheckedThumbColor = colors.textMuted,
+                    uncheckedTrackColor = colors.surfaceHover,
+                    uncheckedBorderColor = Color.Transparent,
+                ),
+            )
         }
-        Spacer(Modifier.width(dimens.m))
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            modifier = Modifier.semantics { contentDescription = label },
-        )
     }
 }
 
-/**
- * A labelled slider (voice rate, pitch, sound volume): the value is always visible as a monospaced
- * number so the user can tell what they are setting.
- */
+/** A labelled slider with a live value readout. */
 @Composable
 fun PulseSliderRow(
     label: String,
@@ -541,47 +592,51 @@ fun PulseSliderRow(
     valueRange: ClosedFloatingPointRange<Float>,
     modifier: Modifier = Modifier,
     valueLabel: String,
+    steps: Int = 0,
     onValueChangeFinished: (() -> Unit)? = null,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.textPrimary,
                 modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
+            Spacer(Modifier.width(dimens.s))
             Text(
                 text = valueLabel,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontFamily = PulseFonts.Mono,
-                    fontFeatureSettings = TABULAR_FIGURES,
-                ),
-                color = colors.textSecondary,
+                style = PulseType.NumericSmall,
+                color = colors.accent,
             )
         }
+        Spacer(Modifier.height(dimens.xs))
         Slider(
             value = value,
             onValueChange = onValueChange,
             valueRange = valueRange,
+            steps = steps,
             onValueChangeFinished = onValueChangeFinished,
+            modifier = Modifier.fillMaxWidth(),
             colors = SliderDefaults.colors(
-                thumbColor = colors.actionFill,
+                thumbColor = colors.accent,
                 activeTrackColor = colors.accent,
                 inactiveTrackColor = colors.track,
+                activeTickColor = colors.onAccentGradient,
+                inactiveTickColor = colors.track,
             ),
         )
-        Spacer(Modifier.height(dimens.xs))
     }
 }
 
-// ---------------------------------------------------------------------------------------------
-// Steppers
-// ---------------------------------------------------------------------------------------------
-
-/** A duration field with explicit minus/plus controls — never a keyboard, never a date picker. */
+/** A duration field with − / + buttons. The value is monospaced so the layout never shifts. */
 @Composable
 fun DurationStepper(
     label: String,
@@ -596,20 +651,20 @@ fun DurationStepper(
     val min = if (allowZero) 0L else stepMillis
     StepperField(
         label = label,
-        value = formatDuration(millis),
-        valueDescription = "$label ${formatDuration(millis)}",
+        value = formatStepperDuration(millis),
+        valueDescription = label + " duration",
         decreaseDescription = "Decrease $label",
         increaseDescription = "Increase $label",
         atMin = millis <= min,
         atMax = millis >= maxMillis,
         enabled = enabled,
+        onDecrease = { onChange((millis - stepMillis).coerceAtLeast(min)) },
+        onIncrease = { onChange((millis + stepMillis).coerceAtMost(maxMillis)) },
         modifier = modifier,
-        onDecrease = { onChange((millis - stepMillis).coerceIn(min, maxMillis)) },
-        onIncrease = { onChange((millis + stepMillis).coerceIn(min, maxMillis)) },
     )
 }
 
-/** A counted field (rounds, repetitions). Same geometry as [DurationStepper] on purpose. */
+/** A count field with − / + buttons. */
 @Composable
 fun NumberStepper(
     label: String,
@@ -623,15 +678,15 @@ fun NumberStepper(
     StepperField(
         label = label,
         value = value.toString(),
-        valueDescription = "$label $value",
+        valueDescription = label + " count",
         decreaseDescription = "Decrease $label",
         increaseDescription = "Increase $label",
         atMin = value <= min,
         atMax = value >= max,
         enabled = enabled,
+        onDecrease = { onChange((value - 1).coerceAtLeast(min)) },
+        onIncrease = { onChange((value + 1).coerceAtMost(max)) },
         modifier = modifier,
-        onDecrease = { onChange((value - 1).coerceIn(min, max)) },
-        onIncrease = { onChange((value + 1).coerceIn(min, max)) },
     )
 }
 
@@ -651,50 +706,40 @@ private fun StepperField(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Surface(
+    Row(
         modifier = modifier.fillMaxWidth(),
-        shape = LocalPulseShapes.current.control,
-        color = colors.surfaceRaised,
-        border = BorderStroke(dimens.borderWidth, colors.border),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.padding(start = dimens.m, top = dimens.xs, bottom = 2.dp)) {
+        Column(Modifier.weight(1f)) {
             Text(
                 text = label.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
+                style = PulseType.SectionLabel,
                 color = colors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                StepperButton(
-                    icon = Icons.Filled.Remove,
-                    description = decreaseDescription,
-                    enabled = enabled && !atMin,
-                    onClick = onDecrease,
-                )
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { contentDescription = valueDescription },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontFamily = PulseFonts.Mono,
-                            fontFeatureSettings = TABULAR_FIGURES,
-                        ),
-                        color = if (enabled) colors.textPrimary else colors.textDisabled,
-                        maxLines = 1,
-                    )
-                }
-                StepperButton(
-                    icon = Icons.Filled.Add,
-                    description = increaseDescription,
-                    enabled = enabled && !atMax,
-                    onClick = onIncrease,
-                )
-            }
+            Spacer(Modifier.height(dimens.xs))
+            Text(
+                text = value,
+                style = PulseType.StepperValue,
+                color = if (enabled) colors.textPrimary else colors.textDisabled,
+                modifier = Modifier.semantics { contentDescription = valueDescription },
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(dimens.s),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            StepperButton(
+                icon = Icons.Filled.Remove,
+                description = decreaseDescription,
+                enabled = enabled && !atMin,
+                onClick = onDecrease,
+            )
+            StepperButton(
+                icon = Icons.Filled.Add,
+                description = increaseDescription,
+                enabled = enabled && !atMax,
+                onClick = onIncrease,
+            )
         }
     }
 }
@@ -705,28 +750,33 @@ private fun StepperButton(
     description: String,
     enabled: Boolean,
     onClick: () -> Unit,
-    size: Dp = 32.dp,
+    size: Dp = 40.dp,
 ) {
     val colors = LocalPulseColors.current
-    IconButton(
+    Surface(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier.size(size),
+        shape = LocalPulseShapes.current.control,
+        color = if (enabled) colors.surfaceRaised else colors.surfaceHover,
+        contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
+        border = BorderStroke(LocalPulseDimens.current.borderWidth, colors.border),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = description,
-            tint = if (enabled) colors.textSecondary else colors.textDisabled,
-            modifier = Modifier.size(16.dp),
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = description,
+                modifier = Modifier.size(20.dp),
+            )
+        }
     }
 }
 
-// ---------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Menus
-// ---------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
-/** A dropdown menu. Its surface colour comes from the scheme's overlay role, so menus match dialogs. */
+/** A dropdown menu surface: overlay fill, 18 dp radius, hairline border. */
 @Composable
 fun PulseDropdown(
     expanded: Boolean,
@@ -734,15 +784,19 @@ fun PulseDropdown(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    DropdownMenu(
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    androidx.compose.material3.DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        modifier = modifier,
+        modifier = modifier
+            .background(colors.surfaceOverlay, LocalPulseShapes.current.panel)
+            .border(dimens.borderWidth, colors.border, LocalPulseShapes.current.panel),
         content = content,
     )
 }
 
-/** One entry in a [PulseDropdown]. Text and icon colours are explicit so a menu cannot fall back. */
+/** One entry in a [PulseDropdown]. */
 @Composable
 fun PulseDropdownItem(
     text: String,
@@ -752,34 +806,81 @@ fun PulseDropdownItem(
     selected: Boolean = false,
 ) {
     val colors = LocalPulseColors.current
-    DropdownMenuItem(
+    val dimens = LocalPulseDimens.current
+    androidx.compose.material3.DropdownMenuItem(
         text = {
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleSmall,
                 color = if (selected) colors.accent else colors.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         },
         onClick = onClick,
         modifier = modifier,
-        leadingIcon = leadingIcon?.let {
+        leadingIcon = if (leadingIcon != null) {
             {
                 Icon(
-                    imageVector = it,
+                    imageVector = leadingIcon,
                     contentDescription = null,
                     tint = if (selected) colors.accent else colors.textSecondary,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
+        } else {
+            null
         },
+        contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.xs),
     )
 }
 
-/** Kept public so callers that build their own menu can reuse the field treatment. */
+// -------------------------------------------------------------------------------------------------
+// Helpers
+// -------------------------------------------------------------------------------------------------
+
+/** `1:05`, `12:30`, `1:02:03` — the stepper readout. */
+private fun formatStepperDuration(millis: Long): String {
+    if (millis <= 0L) return "0:00"
+    val totalSeconds = (millis + 999) / 1000
+    val h = totalSeconds / 3600
+    val m = (totalSeconds % 3600) / 60
+    val s = totalSeconds % 60
+    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
+}
+
+/** Shared text style for a control's inner label, so no control picks its own size. */
 @Composable
-fun rememberFieldState(initial: String = ""): Pair<String, (String) -> Unit> {
-    var value by remember { mutableStateOf(initial) }
-    return value to { value = it }
+fun ControlLabelText(text: String, modifier: Modifier = Modifier) {
+    val colors = LocalPulseColors.current
+    ProvideTextStyle(MaterialTheme.typography.labelLarge) {
+        Text(text = text, color = colors.textPrimary, modifier = modifier, textAlign = TextAlign.Center)
+    }
+}
+
+/** A quiet clickable tile used by the builders' interval rows. */
+@Composable
+fun SelectableTile(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    val shape = RoundedCornerShape(dimens.panelRadius)
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+            )
+            .background(if (selected) colors.accentTint else colors.surfaceRaised, shape)
+            .border(
+                width = dimens.borderWidth,
+                color = if (selected) colors.accent else colors.border,
+                shape = shape,
+            )
+            .padding(dimens.m),
+    ) { content() }
 }

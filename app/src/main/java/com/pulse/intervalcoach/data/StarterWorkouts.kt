@@ -22,9 +22,15 @@ import java.util.UUID
  */
 object StarterWorkouts {
 
+    /**
+     * A bundled starting point.
+     *
+     * There is deliberately no icon or colour here: the plan's category supplies both, which is why
+     * a template and a saved workout of the same category look identical without this file knowing
+     * anything about icons.
+     */
     data class Template(
         val plan: WorkoutPlan,
-        val iconKey: String,
         val tags: List<String>,
     )
 
@@ -91,7 +97,6 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = true,
                 ),
-                iconKey = "tabata",
                 tags = listOf("HIIT", "4 minutes", "no equipment"),
             ),
             Template(
@@ -112,7 +117,6 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = false,
                 ),
-                iconKey = "hiit",
                 tags = listOf("HIIT", "beginner", "6 minutes"),
             ),
             Template(
@@ -137,7 +141,6 @@ object StarterWorkouts {
                     includeFinalRest = false,
                     equipment = "Gloves, wraps, bag or pads",
                 ),
-                iconKey = "boxing",
                 tags = listOf("boxing", "conditioning", "11 minutes"),
             ),
             Template(
@@ -170,7 +173,6 @@ object StarterWorkouts {
                     includeFinalRest = false,
                     equipment = "Mat (optional)",
                 ),
-                iconKey = "circuit",
                 tags = listOf("circuit", "bodyweight", "17 minutes"),
             ),
             Template(
@@ -193,7 +195,6 @@ object StarterWorkouts {
                     includeFinalRest = false,
                     equipment = "Kettlebell or dumbbell",
                 ),
-                iconKey = "emom",
                 tags = listOf("EMOM", "conditioning", "10 minutes"),
             ),
             Template(
@@ -217,7 +218,6 @@ object StarterWorkouts {
                         ),
                     ),
                 ),
-                iconKey = "amrap",
                 tags = listOf("AMRAP", "conditioning", "12 minutes"),
             ),
             Template(
@@ -252,7 +252,6 @@ object StarterWorkouts {
                     includeFinalRest = false,
                     equipment = "Barbell or dumbbells",
                 ),
-                iconKey = "strength",
                 tags = listOf("strength", "sets", "~7 minutes"),
             ),
             Template(
@@ -273,7 +272,6 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = false,
                 ),
-                iconKey = "run",
                 tags = listOf("running", "walking", "28 minutes"),
             ),
             Template(
@@ -321,7 +319,6 @@ object StarterWorkouts {
                     includeFinalRest = false,
                     equipment = "Mat",
                 ),
-                iconKey = "stretch",
                 tags = listOf("stretching", "mobility", "7 minutes"),
             ),
             Template(
@@ -345,7 +342,6 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = false,
                 ),
-                iconKey = "breathing",
                 tags = listOf("breathing", "recovery", "2 minutes"),
             ),
             Template(
@@ -369,7 +365,6 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = false,
                 ),
-                iconKey = "focus",
                 tags = listOf("focus", "work", "2 hours 10 minutes"),
             ),
             Template(
@@ -393,7 +388,6 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = false,
                 ),
-                iconKey = "ladder",
                 tags = listOf("mobility", "progressive", "6 minutes"),
             ),
             Template(
@@ -417,7 +411,6 @@ object StarterWorkouts {
                         ),
                     ),
                 ).copy(periodicCueMillis = 60_000),
-                iconKey = "cue",
                 tags = listOf("desk", "habit", "open-ended"),
             ),
             Template(
@@ -439,7 +432,6 @@ object StarterWorkouts {
                         ),
                     ),
                 ),
-                iconKey = "stopwatch",
                 tags = listOf("stopwatch", "open-ended"),
             ),
             Template(
@@ -474,7 +466,6 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = false,
                 ),
-                iconKey = "compound",
                 tags = listOf("compound", "full session", "11 minutes"),
             ),
         )

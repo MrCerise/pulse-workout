@@ -41,7 +41,7 @@ The visual refactor has its own pass/fail criteria, all of which are machine-che
 
 | Check | How it is checked | Result |
 | --- | --- | --- |
-| One design reference, applied everywhere | `docs/DESIGN.md` states the reference (Linear) and the rules; every screen imports its styling from `ui/components` | **verified** — no screen constructs a button, card, field or chip of its own |
+| One design reference, applied everywhere | `docs/DESIGN.md` states the reference (Prism) and the rules; every screen imports its styling from `ui/components` | **verified** — no screen constructs a button, card, field or chip of its own |
 | No hardcoded styles | Token usage is the only path: `LocalPulseColors` / `LocalPulseDimens` / `LocalPulseShapes`; the raw palette is `internal` to `ui/theme` | **verified** — the screens contain no colour literals, and spacing is `LocalPulseDimens.current` |
 | Centralised tokens | `colors.xml` ↔ `Palette.kt` name-for-name comparison | **verified** — `scripts/contrast_check.py` exits 2 on any drift |
 | Readable contrast in dark, OLED and light | 81 measured pairings | **verified** — exit 0, see `docs/CONTRAST.md` |

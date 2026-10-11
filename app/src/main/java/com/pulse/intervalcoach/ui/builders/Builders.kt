@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -55,10 +54,13 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.data.PlanCodec
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
+import com.pulse.intervalcoach.data.category
+import com.pulse.intervalcoach.ui.components.CategoryPicker
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
 import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.PulseTextField
+import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NumberStepper
@@ -217,16 +219,11 @@ fun QuickBuilderScreen(
     val plan = remember(state) { viewModel.buildPlan("preview") }
     val duration = remember(plan) { runCatching { TimelineExpander.expand(plan).knownMillis }.getOrDefault(0L) }
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = stringResource(R.string.builder_quick_title),
-                subtitle = "Work · rest · rounds — the workout builds itself",
-                onBack = { if (state.dirty) showDiscard = true else onBack() },
-                backDescription = stringResource(R.string.back),
-            )
-        },
+    PulseScaffold(
+        title = stringResource(R.string.builder_quick_title),
+        subtitle = "Work · rest · rounds — the workout builds itself",
+        onBack = { if (state.dirty) showDiscard = true else onBack() },
+        backDescription = stringResource(R.string.back),
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -611,32 +608,27 @@ fun AdvancedBuilderScreen(
 
     val expanded = remember(state.plan) { runCatching { TimelineExpander.expand(state.plan) }.getOrNull() }
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = if (workoutId == null) "New workout" else "Edit workout",
-                subtitle = "Order, cues and structure — undo anything",
-                onBack = { if (state.dirty) showDiscard = true else onBack() },
-                backDescription = stringResource(R.string.back),
-                actions = {
-                    PulseIconButton(
-                        icon = Icons.Filled.Undo,
-                        contentDescription = stringResource(R.string.builder_undo),
-                        tooltip = stringResource(R.string.builder_undo),
-                        onClick = viewModel::undo,
-                        enabled = state.canUndo,
-                    )
-                    PulseIconButton(
-                        icon = Icons.Filled.Redo,
-                        contentDescription = stringResource(R.string.builder_redo),
-                        tooltip = stringResource(R.string.builder_redo),
-                        onClick = viewModel::redo,
-                        enabled = state.canRedo,
-                    )
-                },
-            )
-        },
+    PulseScaffold(
+        title = if (workoutId == null) "New workout" else "Edit workout",
+        subtitle = "Order, cues and structure — undo anything",
+        onBack = { if (state.dirty) showDiscard = true else onBack() },
+        backDescription = stringResource(R.string.back),
+        actions = {
+                PulseIconButton(
+                    icon = Icons.Filled.Undo,
+                    contentDescription = stringResource(R.string.builder_undo),
+                    tooltip = stringResource(R.string.builder_undo),
+                    onClick = viewModel::undo,
+                    enabled = state.canUndo,
+                )
+                PulseIconButton(
+                    icon = Icons.Filled.Redo,
+                    contentDescription = stringResource(R.string.builder_redo),
+                    tooltip = stringResource(R.string.builder_redo),
+                    onClick = viewModel::redo,
+                    enabled = state.canRedo,
+                )
+            },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -667,16 +659,9 @@ fun AdvancedBuilderScreen(
             item {
                 PulseCard {
                     Column {
-                        OptionRow(
-                            label = stringResource(R.string.builder_type),
-                            options = listOf(
-                                WorkoutType.HIIT, WorkoutType.TABATA, WorkoutType.CIRCUIT, WorkoutType.BOXING,
-                                WorkoutType.EMOM, WorkoutType.AMRAP, WorkoutType.STRENGTH, WorkoutType.RUN_WALK,
-                                WorkoutType.STRETCHING, WorkoutType.BREATHING, WorkoutType.FOCUS,
-                                WorkoutType.CUSTOM_SEQUENCE, WorkoutType.COMPOUND, WorkoutType.STOPWATCH, WorkoutType.CUE_TIMER,
-                            ).map { it to it.displayName },
-                            selected = state.plan.type,
-                            onSelect = viewModel::setType,
+                        CategoryPicker(
+                            selected = state.plan.category,
+                            onSelect = { viewModel.setType(it.type) },
                         )
                         Spacer(Modifier.height(LocalPulseDimens.current.cardGap))
                         PulseTextField(

@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * PULSE type system — v1.4 "Graphite".
+ * PULSE type system — "Prism".
  *
  * Two families, both of which the platform already ships, so the app adds no font assets and no
  * download step:
@@ -15,11 +15,12 @@ import androidx.compose.ui.unit.sp
  *  - **Sans** ([FontFamily.Default]) for every piece of prose and every label;
  *  - **Mono** ([FontFamily.Monospace]) for anything numeric — countdowns, durations, interval
  *    counts, heart-rate numbers. Monospaced digits are the reason a countdown that ticks from
- *    `1:00` to `0:59` does not shift a single pixel, and the reason the interface reads like a
- *    tool an engineer would use rather than a marketing page.
+ *    `1:00` to `0:59` does not shift a single pixel, and the reason the interface reads like a tool
+ *    an engineer would use rather than a marketing page.
  *
- * The scale is deliberately tight: a 1.33 step between headings, 13–14 sp for body copy. Sizes are
- * paired with line heights and, for headings, slightly negative tracking, which is what separates a
+ * Prism is a louder scale than the one it replaced: a 1.45 step between headings, 15 sp body copy,
+ * and headings that go to 44–64 sp on the two screens that earn a hero (Today and the player).
+ * Sizes are paired with line heights and slightly negative tracking, which is what separates a
  * designed scale from a list of font sizes.
  */
 object PulseFonts {
@@ -39,9 +40,9 @@ object PulseType {
     val NumericDisplay = TextStyle(
         fontFamily = PulseFonts.Mono,
         fontWeight = FontWeight.Bold,
-        fontSize = 56.sp,
-        lineHeight = 60.sp,
-        letterSpacing = (-1.0).sp,
+        fontSize = 68.sp,
+        lineHeight = 72.sp,
+        letterSpacing = (-2.0).sp,
         fontFeatureSettings = TABULAR_FIGURES,
     )
 
@@ -49,9 +50,9 @@ object PulseType {
     val NumericLarge = TextStyle(
         fontFamily = PulseFonts.Mono,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 28.sp,
-        lineHeight = 34.sp,
-        letterSpacing = (-0.4).sp,
+        fontSize = 34.sp,
+        lineHeight = 40.sp,
+        letterSpacing = (-0.8).sp,
         fontFeatureSettings = TABULAR_FIGURES,
     )
 
@@ -59,8 +60,8 @@ object PulseType {
     val NumericMedium = TextStyle(
         fontFamily = PulseFonts.Mono,
         fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
         fontFeatureSettings = TABULAR_FIGURES,
     )
 
@@ -76,18 +77,18 @@ object PulseType {
     /** Field label above a control, and the section label above a group of controls. */
     val SectionLabel = TextStyle(
         fontFamily = PulseFonts.Sans,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 11.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.9.sp,
+        letterSpacing = 1.1.sp,
     )
 
     /** Value shown by a stepper. */
     val StepperValue = TextStyle(
         fontFamily = PulseFonts.Mono,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 15.sp,
-        lineHeight = 20.sp,
+        fontSize = 17.sp,
+        lineHeight = 22.sp,
         fontFeatureSettings = TABULAR_FIGURES,
     )
 }
@@ -108,23 +109,30 @@ fun pulseTypography(): Typography {
         displayLarge = base.displayLarge.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Bold,
-            fontSize = 56.sp,
-            lineHeight = 60.sp,
-            letterSpacing = (-1.2).sp,
+            fontSize = 64.sp,
+            lineHeight = 68.sp,
+            letterSpacing = (-1.8).sp,
         ),
         displayMedium = base.displayMedium.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Bold,
-            fontSize = 40.sp,
-            lineHeight = 46.sp,
-            letterSpacing = (-0.8).sp,
+            fontSize = 44.sp,
+            lineHeight = 48.sp,
+            letterSpacing = (-1.2).sp,
         ),
         displaySmall = base.displaySmall.copy(
             fontFamily = PulseFonts.Sans,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 28.sp,
-            lineHeight = 34.sp,
-            letterSpacing = (-0.4).sp,
+            fontWeight = FontWeight.Bold,
+            fontSize = 32.sp,
+            lineHeight = 38.sp,
+            letterSpacing = (-0.8).sp,
+        ),
+        headlineLarge = base.headlineLarge.copy(
+            fontFamily = PulseFonts.Sans,
+            fontWeight = FontWeight.Bold,
+            fontSize = 26.sp,
+            lineHeight = 32.sp,
+            letterSpacing = (-0.5).sp,
         ),
         headlineMedium = base.headlineMedium.copy(
             fontFamily = PulseFonts.Sans,
@@ -143,15 +151,15 @@ fun pulseTypography(): Typography {
         titleLarge = base.titleLarge.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
-            lineHeight = 22.sp,
+            fontSize = 17.sp,
+            lineHeight = 24.sp,
             letterSpacing = 0.sp,
         ),
         titleMedium = base.titleMedium.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Medium,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
             letterSpacing = 0.sp,
         ),
         titleSmall = base.titleSmall.copy(
@@ -164,44 +172,44 @@ fun pulseTypography(): Typography {
         bodyLarge = base.bodyLarge.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            lineHeight = 21.sp,
+            fontSize = 15.sp,
+            lineHeight = 23.sp,
             letterSpacing = 0.sp,
         ),
         bodyMedium = base.bodyMedium.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Normal,
-            fontSize = 13.sp,
-            lineHeight = 19.sp,
+            fontSize = 14.sp,
+            lineHeight = 21.sp,
             letterSpacing = 0.sp,
         ),
         bodySmall = base.bodySmall.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Normal,
             fontSize = 12.sp,
-            lineHeight = 17.sp,
+            lineHeight = 18.sp,
             letterSpacing = 0.1.sp,
         ),
         labelLarge = base.labelLarge.copy(
             fontFamily = PulseFonts.Sans,
-            fontWeight = FontWeight.Medium,
-            fontSize = 13.sp,
-            lineHeight = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            lineHeight = 20.sp,
             letterSpacing = 0.1.sp,
         ),
         labelMedium = base.labelMedium.copy(
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Medium,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             lineHeight = 16.sp,
             letterSpacing = 0.6.sp,
         ),
         labelSmall = base.labelSmall.copy(
             fontFamily = PulseFonts.Sans,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Bold,
             fontSize = 11.sp,
             lineHeight = 14.sp,
-            letterSpacing = 0.9.sp,
+            letterSpacing = 1.0.sp,
         ),
     )
 }

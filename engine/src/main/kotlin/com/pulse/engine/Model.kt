@@ -48,7 +48,15 @@ enum class SoundCue { NONE, TICK, BEEP, DOUBLE_BEEP, BELL, WHISTLE, CHIME, BUZZ 
 /** Vibration behaviour baked into an interval. */
 enum class HapticCue { NONE, LIGHT, DOUBLE, STRONG, PATTERN_321 }
 
-/** Workout family. Drives builder defaults, template filtering and player copy. */
+/**
+ * Workout family.
+ *
+ * This is a *semantic key* and nothing else: it is what gets serialised into a plan and stored in
+ * the database, and the only thing it knows about itself is whether it can report a finish time.
+ * Everything a human reads about a category — its name, description, icon, colour, builder defaults
+ * and capabilities — lives in `WorkoutCategories` on the app side, so there is exactly one place
+ * where a category is defined.
+ */
 enum class WorkoutType {
     HIIT,
     TABATA,
@@ -66,26 +74,6 @@ enum class WorkoutType {
     COMPOUND,
     STOPWATCH,
     CUE_TIMER;
-
-    val displayName: String
-        get() = when (this) {
-            HIIT -> "HIIT"
-            TABATA -> "Tabata"
-            CIRCUIT -> "Circuit"
-            BOXING -> "Boxing / MMA"
-            EMOM -> "EMOM"
-            E2MOM -> "E2MOM"
-            AMRAP -> "AMRAP"
-            STRENGTH -> "Strength"
-            RUN_WALK -> "Run / Walk"
-            STRETCHING -> "Stretching"
-            BREATHING -> "Breathing"
-            FOCUS -> "Focus / Pomodoro"
-            CUSTOM_SEQUENCE -> "Custom sequence"
-            COMPOUND -> "Compound"
-            STOPWATCH -> "Stopwatch"
-            CUE_TIMER -> "Repeating cue"
-        }
 
     /** Open-ended types never report a known finish time. */
     val isOpenEnded: Boolean get() = this == STOPWATCH
@@ -193,7 +181,9 @@ data class WorkoutPlan(
     val voiceProfileId: String? = null,
     val folderId: String? = null,
     val tags: List<String> = emptyList(),
-    val iconKey: String = "bolt",
+    // There is deliberately no icon or colour field here. Presentation used to leak into the plan
+    // as an `iconKey` string that every layer disagreed about; it now lives entirely in
+    // `WorkoutCategories`, which maps this type to a glyph, a hue, a name and a set of defaults.
     val colorArgb: Long? = null,
     val isFavorite: Boolean = false,
     val createdAt: Long = 0L,
