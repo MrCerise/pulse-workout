@@ -63,6 +63,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+import androidx.compose.material3.Surface
 
 /**
  * Post-workout summary built from the saved session — real recorded numbers only.

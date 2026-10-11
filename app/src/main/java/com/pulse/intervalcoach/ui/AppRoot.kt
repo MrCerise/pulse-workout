@@ -295,6 +295,7 @@ fun PulseAppRoot(
                             categoryKey = entry.arguments?.getString("key").orEmpty(),
                             onBack = { navController.popBackStack() },
                             onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                            onStart = startSession,
                             onBuild = { navController.navigate(Routes.QUICK_BUILDER) },
                         )
                     }

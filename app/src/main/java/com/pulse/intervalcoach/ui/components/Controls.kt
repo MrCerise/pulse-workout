@@ -265,7 +265,7 @@ fun PulseIconButton(
         enabled = enabled,
         modifier = modifier
             .size(dimens.minTouchTarget)
-            .then(if (tooltip != null) Modifier.semantics { contentDescription = tooltip } else Modifier),
+            .then(if (tooltip != null) Modifier.semantics { this.contentDescription = tooltip } else Modifier),
     ) {
         Icon(
             imageVector = icon,
