@@ -3,7 +3,7 @@ package com.pulse.intervalcoach.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Raw material for the "Prism" design system — the Compose mirror of `res/values/colors.xml`.
+ * Raw material for the "Signal" design system — the Compose mirror of `res/values/colors.xml`.
  *
  * Nothing outside this package should read [PulsePalette] directly: screens and components consume
  * the semantic tokens on [PulseColors] instead, so a hex value can only ever change in one place.
@@ -13,140 +13,175 @@ import androidx.compose.ui.graphics.Color
 object PulsePalette {
 
     // ---------------------------------------------------------------- Ink (dark, default)
+    // A neutral charcoal ramp. Five steps, close together: hierarchy comes from a fill step plus a
+    // hairline, never from a brightness jump. Not pure black, which is what keeps long sessions
+    // comfortable and lets the one shadow on screen mean something.
 
-    val Canvas = Color(0xFF0A0912)
-    val Nav = Color(0xFF120F1C)
-    val Surface = Color(0xFF171423)
-    val SurfaceRaised = Color(0xFF1F1B2E)
-    val SurfaceOverlay = Color(0xFF272137)
-    val SurfaceHover = Color(0xFF2E2842)
-    val Border = Color(0xFF2B2540)
-    val Outline = Color(0xFF8B7FB8)
+    val Canvas = Color(0xFF17181B)
+    val Nav = Color(0xFF1C1D21)
+    val Surface = Color(0xFF202226)
+    val SurfaceRaised = Color(0xFF26282D)
+    val SurfaceOverlay = Color(0xFF2A2D33)
+    val SurfaceHover = Color(0xFF313439)
+    val SurfaceSunken = Color(0xFF1B1C20)
 
-    val TextPrimary = Color(0xFFF6F4FF)
-    val TextSecondary = Color(0xFFB9B2D4)
-    val TextMuted = Color(0xFF948DB4)
-    val TextDisabled = Color(0xFF5E5780)
+    val Border = Color(0xFF34373D)
+    val BorderStrong = Color(0xFF42464D)
+    val Outline = Color(0xFF8A9099)
+
+    val TextPrimary = Color(0xFFF5F6F7)
+    val TextSecondary = Color(0xFFC3C7CC)
+    val TextMuted = Color(0xFF9CA2A9)
+    val TextDisabled = Color(0xFF6E747C)
+
+    /** Slider, ring and chart grooves. Visible, never competing with the fill. */
+    val Track = Color(0xFF3A3E45)
 
     /**
-     * The two-stop accent. [Accent] (violet) carries text, selection and focus; [AccentAlt] (cyan)
-     * is its gradient partner and is only drawn *behind* or *beside* it, never as a label on its
-     * own — which is why it is declared here but never reaches a text token.
+     * The accent. [Accent] (Cloudflare orange) carries text, selection and focus; [AccentAlt] is its
+     * lighter partner and is only drawn as a graphic — a bar, a sweep, a rank badge — never as a
+     * label on its own, which is why it is measured at 3:1 rather than 4.5:1.
      */
-    val Accent = Color(0xFFA78BFA)
-    val AccentAlt = Color(0xFF22D3EE)
-    val AccentTint = Color(0xFF241E3C)
+    val Accent = Color(0xFFF38020)
+    val AccentAlt = Color(0xFFFFC078)
+    val AccentTint = Color(0xFF3A291C)
 
-    val Work = Color(0xFF4ADE80)
-    val WorkTint = Color(0xFF122B1E)
-    val Rest = Color(0xFF38BDF8)
-    val RestTint = Color(0xFF0E2431)
-    val Prepare = Color(0xFFFBBF24)
-    val PrepareTint = Color(0xFF2E2411)
-    val Cooldown = Color(0xFFC084FC)
-    val CooldownTint = Color(0xFF251A38)
-    val Destructive = Color(0xFFFB7185)
-    val DestructiveTint = Color(0xFF331419)
-    val NeutralFill = Color(0xFF2E2842)
+    /** The brand fill and the ink measured against it — one pair, one place. */
+    val Brand = Color(0xFFF38020)
+    val OnBrand = Color(0xFF17181B)
 
-    val ActionFill = Color(0xFFF6F4FF)
-    val ActionText = Color(0xFF0A0912)
-    val OnAccent = Color(0xFF0A0912)
+    /** The ink panel: dark in **both** themes, so a hero card is a feature panel, not a card. */
+    val HeroSurface = Color(0xFF1B1C20)
+    val HeroText = Color(0xFFF5F6F7)
+    val HeroMuted = Color(0xFFAEB4BB)
+
+    val Work = Color(0xFF4CC38A)
+    val WorkTint = Color(0xFF1D2D28)
+    val Rest = Color(0xFF6CABF8)
+    val RestTint = Color(0xFF212A36)
+    val Prepare = Color(0xFFF5B544)
+    val PrepareTint = Color(0xFF322B20)
+    val Cooldown = Color(0xFFB18CFA)
+    val CooldownTint = Color(0xFF292636)
+    val Destructive = Color(0xFFF87171)
+    val DestructiveTint = Color(0xFF322325)
+    val NeutralFill = Color(0xFF2E3138)
+
+    /** Informational state — a different hue from the accent on purpose. */
+    val Info = Color(0xFF7CB7FF)
+    val InfoTint = Color(0xFF232B36)
+
+    val ActionFill = Color(0xFFF38020)
+    val ActionText = Color(0xFF17181B)
+    val OnAccent = Color(0xFF17181B)
 
     // ---------------------------------------------------------------- Paper (light)
+    // The same roles with inverted polarity. Chrome is white; the canvas is one step off it, so a
+    // card edge is legible without a shadow.
 
-    val LightCanvas = Color(0xFFF5F4FA)
+    val LightCanvas = Color(0xFFF5F6F7)
     val LightNav = Color(0xFFFFFFFF)
     val LightSurface = Color(0xFFFFFFFF)
-    val LightSurfaceRaised = Color(0xFFF1EEF9)
+    val LightSurfaceRaised = Color(0xFFF7F8F9)
     val LightSurfaceOverlay = Color(0xFFFFFFFF)
-    val LightSurfaceHover = Color(0xFFE8E4F4)
-    val LightBorder = Color(0xFFE3DEF0)
-    val LightOutline = Color(0xFF6D6690)
+    val LightSurfaceHover = Color(0xFFEDEEF0)
+    val LightSurfaceSunken = Color(0xFFF1F2F4)
+    val LightBorder = Color(0xFFE4E6E8)
+    val LightBorderStrong = Color(0xFFCED2D7)
+    val LightOutline = Color(0xFF6B7280)
 
-    val LightTextPrimary = Color(0xFF1A1626)
-    val LightTextSecondary = Color(0xFF574F74)
-    val LightTextMuted = Color(0xFF6A6288)
-    val LightTextDisabled = Color(0xFFA29BC0)
+    val LightTextPrimary = Color(0xFF1B1E21)
+    val LightTextSecondary = Color(0xFF4B5157)
+    val LightTextMuted = Color(0xFF666C74)
+    val LightTextDisabled = Color(0xFFA6ACB3)
+    val LightTrack = Color(0xFFE3E5E8)
 
-    val LightAccent = Color(0xFF6D28D9)
-    val LightAccentAlt = Color(0xFF0E7490)
-    val LightAccentTint = Color(0xFFEDE9FE)
+    /**
+     * A deeper orange than the brand fill: this one carries *text* (links, selected labels, the
+     * focus ring) and has to clear 4.5:1 on white. The brand fill carries ink and stays #F38020.
+     */
+    val LightAccent = Color(0xFFB23A0B)
+    val LightAccentAlt = Color(0xFF9A3412)
+    val LightAccentTint = Color(0xFFF8ECE7)
+    val LightBrand = Color(0xFFF38020)
+    val LightOnBrand = Color(0xFF1B1E21)
 
-    val LightWork = Color(0xFF147536)
-    val LightWorkTint = Color(0xFFE7F5EB)
-    val LightRest = Color(0xFF0369A1)
-    val LightRestTint = Color(0xFFE4F1F8)
-    val LightPrepare = Color(0xFF965B06)
-    val LightPrepareTint = Color(0xFFFAF1DE)
-    val LightCooldown = Color(0xFF7E22CE)
-    val LightCooldownTint = Color(0xFFF3EAFD)
-    val LightDestructive = Color(0xFFBE123C)
-    val LightDestructiveTint = Color(0xFFFCE9EE)
-    val LightNeutralFill = Color(0xFFEAE6F6)
+    val LightHeroSurface = Color(0xFF1B1E21)
+    val LightHeroText = Color(0xFFF5F6F7)
+    val LightHeroMuted = Color(0xFFAEB4BB)
 
-    val LightActionFill = Color(0xFF1A1626)
-    val LightActionText = Color(0xFFFFFFFF)
+    val LightWork = Color(0xFF12603C)
+    val LightWorkTint = Color(0xFFE7EFEC)
+    val LightRest = Color(0xFF0A56A8)
+    val LightRestTint = Color(0xFFE6EEF6)
+    val LightPrepare = Color(0xFF7A5100)
+    val LightPrepareTint = Color(0xFFF2EEE6)
+    val LightCooldown = Color(0xFF5B21B6)
+    val LightCooldownTint = Color(0xFFEFE9F8)
+    val LightDestructive = Color(0xFFA8291F)
+    val LightDestructiveTint = Color(0xFFF6EAE9)
+    val LightNeutralFill = Color(0xFFE9EBEE)
+    val LightInfo = Color(0xFF0B57C2)
+    val LightInfoTint = Color(0xFFE7EEF9)
+
+    val LightActionFill = Color(0xFFF38020)
+    val LightActionText = Color(0xFF1B1E21)
     val LightOnAccent = Color(0xFFFFFFFF)
 
     // ---------------------------------------------------------------- Void (OLED)
 
     val BlackCanvas = Color(0xFF000000)
     val BlackNav = Color(0xFF000000)
-    val BlackSurface = Color(0xFF0B0A14)
-    val BlackSurfaceRaised = Color(0xFF14121F)
-    val BlackSurfaceOverlay = Color(0xFF1B1826)
-    val BlackSurfaceHover = Color(0xFF221F30)
-    val BlackBorder = Color(0xFF1D1A2A)
+    val BlackSurface = Color(0xFF0B0C0E)
+    val BlackSurfaceRaised = Color(0xFF131518)
+    val BlackSurfaceOverlay = Color(0xFF17191D)
+    val BlackSurfaceHover = Color(0xFF1E2024)
+    val BlackSurfaceSunken = Color(0xFF0B0C0E)
+    val BlackBorder = Color(0xFF23262A)
 
     // ---------------------------------------------------------------- Derived (Compose only)
-    // These are not resource tokens: they are computed or conditional values that no XML surface
-    // needs (the widget renders its own colours from the tokens above). They still live here rather
-    // than in a screen, so "which grey is the groove behind a progress ring" has one answer.
-
-    /** Track behind progress rings, sliders and chart baselines. Visible, never competing. */
-    val Track = Color(0xFF332D4A)
-    val LightTrack = Color(0xFFDAD5EB)
+    // Not resource tokens: computed or conditional values that no XML surface needs (the widget
+    // renders its own colours from the tokens above). They still live here rather than in a screen,
+    // so "which grey is the groove behind a progress ring" has exactly one answer.
 
     /** The "increased contrast" switch: same hues, lifted, and text pushed to the extremes. */
     val HighContrastText = Color(0xFFFFFFFF)
-    val HighContrastTextSecondary = Color(0xFFDCD7EF)
-    val HighContrastOutline = Color(0xFFADA4D2)
-    val HighContrastWork = Color(0xFF7DF0A6)
-    val HighContrastRest = Color(0xFF7DD8FC)
-    val HighContrastPrepare = Color(0xFFFDD97A)
-    val HighContrastCooldown = Color(0xFFDCBEFF)
-    val HighContrastAccent = Color(0xFFC9B6FF)
+    val HighContrastTextSecondary = Color(0xFFE4E7EA)
+    val HighContrastOutline = Color(0xFFB7BDC4)
+    val HighContrastWork = Color(0xFF7FDCA9)
+    val HighContrastRest = Color(0xFF9CC8FF)
+    val HighContrastPrepare = Color(0xFFFBD37E)
+    val HighContrastCooldown = Color(0xFFCDB4FF)
+    val HighContrastAccent = Color(0xFFFFB066)
 
     // ---------------------------------------------------------------- Category hues
     // One hue per workout family, used by the category registry so a HIIT card and a mobility card
-    // are told apart at a glance without the chrome turning into a box of crayons. These are the
-    // *display* hues the registry maps to; like every other colour here they are declared once and
-    // consumed through `PulseColors`.
+    // are told apart at a glance without the chrome turning into a box of crayons. Each ships with
+    // the pre-composited tint it is drawn on.
 
-    val CatCardio = Color(0xFFFB7185)
-    val CatCardioTint = Color(0xFF331419)
-    val CatConditioning = Color(0xFFFBBF24)
-    val CatConditioningTint = Color(0xFF2E2411)
-    val CatStrength = Color(0xFFA78BFA)
-    val CatStrengthTint = Color(0xFF241E3C)
-    val CatMobility = Color(0xFF38BDF8)
-    val CatMobilityTint = Color(0xFF0E2431)
-    val CatMind = Color(0xFF4ADE80)
-    val CatMindTint = Color(0xFF122B1E)
-    val CatTools = Color(0xFF94A3B8)
-    val CatToolsTint = Color(0xFF1F2637)
+    val CatCardio = Color(0xFFF0607A)
+    val CatCardioTint = Color(0xFF312126)
+    val CatConditioning = Color(0xFFF5B544)
+    val CatConditioningTint = Color(0xFF322B20)
+    val CatStrength = Color(0xFFB18CFA)
+    val CatStrengthTint = Color(0xFF292636)
+    val CatMobility = Color(0xFF5BA8F5)
+    val CatMobilityTint = Color(0xFF1F2935)
+    val CatMind = Color(0xFF4CC38A)
+    val CatMindTint = Color(0xFF1D2D28)
+    val CatTools = Color(0xFF98A2B3)
+    val CatToolsTint = Color(0xFF26292D)
 
-    val LightCatCardio = Color(0xFFBE123C)
-    val LightCatCardioTint = Color(0xFFFCE9EE)
-    val LightCatConditioning = Color(0xFF965B06)
-    val LightCatConditioningTint = Color(0xFFFAF1DE)
-    val LightCatStrength = Color(0xFF6D28D9)
-    val LightCatStrengthTint = Color(0xFFEDE9FE)
-    val LightCatMobility = Color(0xFF0369A1)
-    val LightCatMobilityTint = Color(0xFFE4F1F8)
-    val LightCatMind = Color(0xFF147536)
-    val LightCatMindTint = Color(0xFFE7F5EB)
-    val LightCatTools = Color(0xFF475569)
-    val LightCatToolsTint = Color(0xFFE9EDF3)
+    val LightCatCardio = Color(0xFFA3123A)
+    val LightCatCardioTint = Color(0xFFF6E7EB)
+    val LightCatConditioning = Color(0xFF7A5100)
+    val LightCatConditioningTint = Color(0xFFF2EEE6)
+    val LightCatStrength = Color(0xFF5B21B6)
+    val LightCatStrengthTint = Color(0xFFEFE9F8)
+    val LightCatMobility = Color(0xFF0A5C8A)
+    val LightCatMobilityTint = Color(0xFFE6EFF3)
+    val LightCatMind = Color(0xFF106544)
+    val LightCatMindTint = Color(0xFFE7F0EC)
+    val LightCatTools = Color(0xFF3F4753)
+    val LightCatToolsTint = Color(0xFFECEDEE)
 }

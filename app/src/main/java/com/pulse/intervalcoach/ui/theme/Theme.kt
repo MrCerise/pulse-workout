@@ -11,33 +11,35 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
 /**
- * PULSE — "Prism" theme entry point.
+ * PULSE — "Signal" theme entry point.
  *
  * ## Design direction
  *
- * A violet-tinted ink canvas, large soft surfaces with generous radii, a two-stop accent (violet →
- * cyan) that the interface uses as a gradient rather than as a flat swatch, six category hues that
- * make "what kind of session is this" readable before a word is read, and a type scale that goes to
- * 64 sp on the two screens that earn a hero. Dark is the primary theme; light is a first-class
- * sibling built from the same roles rather than an inverted afterthought.
+ * A neutral dashboard: a rich charcoal ramp for the dark theme, a clean paper ramp for the light
+ * one, hairline borders instead of stacked shadows, and one brand accent — the Cloudflare-inspired
+ * orange — spent deliberately on the brand mark, the single primary action per screen, the active
+ * navigation item and the focus ring. Everything else that carries colour carries a *meaning*: an
+ * interval phase, a workout category, a state.
  *
  * ## What that means in practice
  *
- *  - **Chrome is quiet, content is loud.** Navigation, headers and text carry almost no hue; the
- *    accent gradient, the phase colours and the category hues are what the eye lands on.
- *  - **Colour means something.** Interval phases own four hues, workout categories own six more, and
- *    destructive state owns one. Nothing is chromatic for decoration.
- *  - **Radii are large and consistent.** 24 dp cards, 18 dp nested panels, 14 dp controls, pills for
- *    chips. The two silhouettes — big soft panel, small round pill — are deliberately far apart.
- *  - **Depth is earned.** A card is separated by its fill and a hairline. Only chrome that genuinely
- *    floats (the navigation bar, sheets, dialogs) casts a shadow, which is why it still reads.
+ *  - **Chrome is neutral, content is coloured.** Navigation, headers, tables and text use the
+ *    neutral ramp only, so a hue on screen is always information.
+ *  - **Density is a feature.** 16 dp gutters, 40 dp controls, a 56 dp bar and 13–15 sp copy: the
+ *    amount of workout a user can read without scrolling is the point of the redesign.
+ *  - **Depth is a hairline.** A card is separated by its fill and one border. Only menus, dialogs,
+ *    snackbars and the phone navigation bar float.
+ *  - **Radii are restrained.** 6 dp controls, 8 dp cards, 12 dp sheets, pills for chips.
  *
  * Every value lives in [PulsePalette] / [PulseDimens] / [PulseElevation] / [PulseType], and every
  * pairing this theme can produce is measured in `docs/CONTRAST.md` by `scripts/contrast_check.py`.
@@ -87,6 +89,20 @@ fun PulseTheme(
     val dimens = PulseDimens()
     val shapes = PulseShapes()
 
+    // The activity draws edge-to-edge, so the status and navigation bar *icons* are ours to choose.
+    // They follow the theme the user picked, not the system one: choosing Light on a dark device must
+    // not leave white glyphs on white chrome.
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = view.context.findActivity()?.window ?: return@SideEffect
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !dark
+                isAppearanceLightNavigationBars = !dark
+            }
+        }
+    }
+
     CompositionLocalProvider(
         LocalPulseColors provides colors,
         LocalPulseDimens provides dimens,
@@ -129,22 +145,31 @@ fun pulseColors(
             nav = PulsePalette.LightNav,
             surface = PulsePalette.LightSurface,
             surfaceRaised = PulsePalette.LightSurfaceRaised,
+            surfaceSunken = PulsePalette.LightSurfaceSunken,
             surfaceOverlay = PulsePalette.LightSurfaceOverlay,
             surfaceHover = PulsePalette.LightSurfaceHover,
             textPrimary = if (highContrast) Color(0xFF000000) else PulsePalette.LightTextPrimary,
-            textSecondary = if (highContrast) Color(0xFF2E3646) else PulsePalette.LightTextSecondary,
+            textSecondary = if (highContrast) Color(0xFF31383F) else PulsePalette.LightTextSecondary,
             textMuted = PulsePalette.LightTextMuted,
             textDisabled = PulsePalette.LightTextDisabled,
             border = PulsePalette.LightBorder,
+            borderStrong = PulsePalette.LightBorderStrong,
             outline = PulsePalette.LightOutline,
             accent = accentOverride ?: PulsePalette.LightAccent,
             accentAlt = PulsePalette.LightAccentAlt,
             accentTint = PulsePalette.LightAccentTint,
+            brand = PulsePalette.LightBrand,
+            onBrand = PulsePalette.LightOnBrand,
+            heroSurface = PulsePalette.LightHeroSurface,
+            heroText = PulsePalette.LightHeroText,
+            heroMuted = PulsePalette.LightHeroMuted,
             work = PulsePalette.LightWork,
             rest = PulsePalette.LightRest,
             prepare = PulsePalette.LightPrepare,
             cooldown = PulsePalette.LightCooldown,
             destructive = PulsePalette.LightDestructive,
+            info = PulsePalette.LightInfo,
+            infoTint = PulsePalette.LightInfoTint,
             actionFill = PulsePalette.LightActionFill,
             actionText = PulsePalette.LightActionText,
             onAccent = PulsePalette.LightOnAccent,
@@ -158,6 +183,7 @@ fun pulseColors(
         nav = if (trueBlack) PulsePalette.BlackNav else PulsePalette.Nav,
         surface = if (trueBlack) PulsePalette.BlackSurface else PulsePalette.Surface,
         surfaceRaised = if (trueBlack) PulsePalette.BlackSurfaceRaised else PulsePalette.SurfaceRaised,
+        surfaceSunken = if (trueBlack) PulsePalette.BlackSurfaceSunken else PulsePalette.SurfaceSunken,
         surfaceOverlay = if (trueBlack) PulsePalette.BlackSurfaceOverlay else PulsePalette.SurfaceOverlay,
         surfaceHover = if (trueBlack) PulsePalette.BlackSurfaceHover else PulsePalette.SurfaceHover,
         textPrimary = if (highContrast) PulsePalette.HighContrastText else PulsePalette.TextPrimary,
@@ -165,15 +191,23 @@ fun pulseColors(
         textMuted = PulsePalette.TextMuted,
         textDisabled = PulsePalette.TextDisabled,
         border = if (trueBlack) PulsePalette.BlackBorder else PulsePalette.Border,
+        borderStrong = PulsePalette.BorderStrong,
         outline = if (highContrast) PulsePalette.HighContrastOutline else PulsePalette.Outline,
         accent = accentOverride ?: if (highContrast) PulsePalette.HighContrastAccent else PulsePalette.Accent,
         accentAlt = PulsePalette.AccentAlt,
         accentTint = PulsePalette.AccentTint,
+        brand = PulsePalette.Brand,
+        onBrand = PulsePalette.OnBrand,
+        heroSurface = PulsePalette.HeroSurface,
+        heroText = PulsePalette.HeroText,
+        heroMuted = PulsePalette.HeroMuted,
         work = if (highContrast) PulsePalette.HighContrastWork else PulsePalette.Work,
         rest = if (highContrast) PulsePalette.HighContrastRest else PulsePalette.Rest,
         prepare = if (highContrast) PulsePalette.HighContrastPrepare else PulsePalette.Prepare,
         cooldown = if (highContrast) PulsePalette.HighContrastCooldown else PulsePalette.Cooldown,
         destructive = PulsePalette.Destructive,
+        info = PulsePalette.Info,
+        infoTint = PulsePalette.InfoTint,
         actionFill = PulsePalette.ActionFill,
         actionText = PulsePalette.ActionText,
         onAccent = PulsePalette.OnAccent,
@@ -214,11 +248,11 @@ fun PulseColors.toMaterialScheme(): ColorScheme {
         surfaceVariant = surfaceRaised,
         onSurfaceVariant = textSecondary,
         surfaceContainerLowest = background,
-        surfaceContainerLow = background,
+        surfaceContainerLow = surfaceSunken,
         surfaceContainer = surface,
         surfaceContainerHigh = surfaceRaised,
         surfaceContainerHighest = surfaceOverlay,
-        surfaceDim = background,
+        surfaceDim = surfaceSunken,
         surfaceBright = surfaceOverlay,
         outline = outline,
         outlineVariant = border,
@@ -249,4 +283,14 @@ fun contrastRatio(a: Color, b: Color): Double {
  * Used wherever a caller supplies its own background (generated share cards, dynamic accents).
  */
 fun legibleOn(background: Color): Color =
-    if (relativeLuminance(background) > 0.35) PulsePalette.OnAccent else PulsePalette.TextPrimary
+    if (relativeLuminance(background) > 0.35) PulsePalette.OnBrand else PulsePalette.HeroText
+
+/** Walks up a `ContextWrapper` chain to the activity that owns the window. */
+private fun android.content.Context.findActivity(): android.app.Activity? {
+    var context: android.content.Context? = this
+    while (context is android.content.ContextWrapper) {
+        if (context is android.app.Activity) return context
+        context = context.baseContext
+    }
+    return null
+}

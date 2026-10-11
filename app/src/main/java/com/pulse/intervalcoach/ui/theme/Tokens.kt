@@ -37,11 +37,12 @@ enum class CategoryHue {
 
 /**
  * The resolved colour set for one theme. Every field is a token, not an ad-hoc colour: screens read
- * `LocalPulseColors.current`, never a raw hex value, which is what keeps eleven destinations looking
- * like one product.
+ * `LocalPulseColors.current`, never a raw hex value, which is what keeps eighteen destinations
+ * looking like one product.
  *
- * Fields are grouped the way the design system is documented (surfaces → text → borders → accent →
- * phase → category → state) so a new screen can find what it needs without inventing a colour.
+ * Fields are grouped the way the design system is documented (surfaces → text → lines → accent →
+ * brand → hero → phase → category → state) so a new screen can find what it needs without inventing
+ * a colour.
  */
 @Immutable
 data class PulseColors(
@@ -55,12 +56,14 @@ data class PulseColors(
     // --- Surfaces --------------------------------------------------------------------------------
     /** App canvas: the surface behind everything. */
     val background: Color,
-    /** Navigation bars, rails and side chrome. */
+    /** Navigation chrome: the sidebar, the rail, the bottom bar. */
     val nav: Color,
-    /** Cards, panels, list surfaces. */
+    /** Cards, panels and table surfaces. */
     val surface: Color,
     /** Inputs, chips, stat tiles, secondary buttons. */
     val surfaceRaised: Color,
+    /** One step *below* the canvas: table headers, wells, inset groups. */
+    val surfaceSunken: Color,
     /** Dialogs, menus, tooltips, snackbars. */
     val surfaceOverlay: Color,
     /** Hover / pressed fill drawn on top of [surfaceRaised]. */
@@ -75,19 +78,36 @@ data class PulseColors(
     // --- Lines -----------------------------------------------------------------------------------
     /** Decorative hairline separator. Quiet by design. */
     val border: Color,
+    /** One step louder than [border]: the edge of a filled field, a nested divider. Decorative. */
+    val borderStrong: Color,
     /** Meaningful control boundary: inputs, focus rings, toggles. Reaches 3:1 (WCAG 1.4.11). */
     val outline: Color,
 
     // --- Accent ----------------------------------------------------------------------------------
-    /** The interactive accent: links, focus rings, selection, informational state. */
+    /** The interactive accent: links, selection, focus rings, live data. */
     val accent: Color,
     /**
-     * The second stop of the accent gradient. Drawn *behind* or *beside* [accent], never as a label:
-     * it is a graphic colour, so the contrast report measures it at 3:1 rather than 4.5:1.
+     * A lighter stop of the accent. Drawn as a *graphic* — a bar, a sweep, a rank badge — never as a
+     * label, so the contrast report measures it at 3:1 rather than 4.5:1.
      */
     val accentAlt: Color,
-    /** Pre-composited [accent] tint used as a container fill. */
+    /** Pre-composited [accent] tint used as a container fill (selected rows, active nav items). */
     val accentTint: Color,
+
+    // --- Brand -----------------------------------------------------------------------------------
+    /** The brand fill: the primary action and the wordmark. Ink sits on it, never white. */
+    val brand: Color,
+    /** Ink measured against [brand]. */
+    val onBrand: Color,
+
+    // --- Hero ------------------------------------------------------------------------------------
+    /**
+     * The ink panel. Deliberately dark in *both* themes, so a hero card reads as a feature panel
+     * rather than as one more card in the stack.
+     */
+    val heroSurface: Color,
+    val heroText: Color,
+    val heroMuted: Color,
 
     // --- Interval phases -------------------------------------------------------------------------
     val work: Color,
@@ -96,13 +116,18 @@ data class PulseColors(
     val cooldown: Color,
     val destructive: Color,
 
+    // --- Informational state ---------------------------------------------------------------------
+    /** "Here is something to read" — a different hue from "here is the thing to do". */
+    val info: Color,
+    val infoTint: Color,
+
     // --- Solid action surface --------------------------------------------------------------------
-    /** Fill of the primary action (light block in dark themes, dark block in light ones). */
+    /** Fill of the primary action (the brand block). */
     val actionFill: Color,
     /** Label colour on [actionFill]. */
     val actionText: Color,
 
-    /** Text/icon colour drawn on top of a saturated phase fill (dots, live badges). */
+    /** Text/icon colour drawn on top of a saturated fill (dots, badges, brand blocks). */
     val onAccent: Color,
 ) {
     /** The colour that identifies an interval phase. */
@@ -125,10 +150,10 @@ data class PulseColors(
         PhaseKind.REST, PhaseKind.TRANSITION -> if (isDark) PulsePalette.RestTint else PulsePalette.LightRestTint
         PhaseKind.PREPARE -> if (isDark) PulsePalette.PrepareTint else PulsePalette.LightPrepareTint
         PhaseKind.COOLDOWN -> if (isDark) PulsePalette.CooldownTint else PulsePalette.LightCooldownTint
-        PhaseKind.CUSTOM -> if (isDark) PulsePalette.NeutralFill else PulsePalette.LightNeutralFill
+        PhaseKind.CUSTOM -> neutralFill
     }
 
-    // --- Categories --------------------------------------------------------------------------------
+    // --- Categories ------------------------------------------------------------------------------
 
     /** The hue a workout category is drawn in. */
     fun categoryColor(hue: CategoryHue): Color = when (hue) {
@@ -150,14 +175,13 @@ data class PulseColors(
         CategoryHue.TOOLS -> if (isDark) PulsePalette.CatToolsTint else PulsePalette.LightCatToolsTint
     }
 
-    // --- Semantic aliases --------------------------------------------------------------------------
+    // --- Semantic aliases ------------------------------------------------------------------------
     // States reuse the phase hues on purpose: one palette, one meaning per hue, no second family of
     // "status colours" that could drift away from the measured pairings.
 
     val success: Color get() = work
     val warning: Color get() = prepare
     val error: Color get() = destructive
-    val info: Color get() = accent
 
     /**
      * Pre-composited container fills that pair with the semantic aliases above: success (work
@@ -181,22 +205,17 @@ data class PulseColors(
     /** Subtle accent wash for a selected navigation item or an active row. */
     val selection: Color get() = accentTint
 
-    /**
-     * The accent at glow strength. Prism uses a single, deliberate glow — behind the primary action
-     * and behind the live player ring — instead of the small shadows a flat system sprinkles
-     * everywhere, so the one place that glows is the one place the eye should land.
-     */
-    val glow: Color get() = accent.copy(alpha = if (isDark) 0.38f else 0.26f)
+    /** The accent at a low alpha, for the halo behind a live ring or a focused control. */
+    val glow: Color get() = accent.copy(alpha = if (isDark) 0.32f else 0.20f)
 
     /** Dimmer used behind sheets and dialogs. */
-    val scrim: Color get() = Color.Black.copy(alpha = 0.55f)
+    val scrim: Color get() = Color.Black.copy(alpha = 0.56f)
 
     /**
-     * Label colour for text drawn on the accent gradient (violet → cyan). The gradient is light in
-     * dark themes and dark in light ones, so this is ink or paper accordingly — never the phase
-     * palette, which would read as a state rather than as a label.
+     * Ink that stays legible on a chromatic or brand fill. Kept for the call sites that draw their
+     * own block of accent colour; the components use [onBrand] for the brand pair explicitly.
      */
-    val onAccentGradient: Color get() = if (isDark) onAccent else Color.White
+    val onAccentGradient: Color get() = onBrand
 }
 
 val LocalPulseColors = staticCompositionLocalOf {
@@ -207,9 +226,10 @@ val LocalPulseColors = staticCompositionLocalOf {
  * Spacing, sizing and radius scale. Every screen composes from these steps only — a stray `13.dp`
  * in a screen is what makes an interface look hand-assembled, so there is no reason to write one.
  *
- * The base unit is 4 dp. Prism is a roomier system than the one it replaced: 20 dp page gutters,
- * 14 dp between cards, 24 dp card radii and 52 dp primary buttons, because the hierarchy now comes
- * from size and shape rather than from hairlines alone.
+ * The base unit is 4 dp and the ramp is deliberately tighter than a mobile-marketing layout: Signal
+ * is a dashboard, and a dashboard is *dense*. A 16 dp gutter, 16 dp of card padding and 12 dp
+ * between cards put a workout row, its metadata and its action on one comfortable screen without
+ * scroll.
  */
 @Immutable
 data class PulseDimens(
@@ -224,18 +244,18 @@ data class PulseDimens(
     val m: Dp = 12.dp,
     val l: Dp = 16.dp,
     val xl: Dp = 20.dp,
-    val xxl: Dp = 28.dp,
-    val huge: Dp = 40.dp,
-    val massive: Dp = 56.dp,
+    val xxl: Dp = 24.dp,
+    val huge: Dp = 32.dp,
+    val massive: Dp = 48.dp,
 
     /** Horizontal page gutter, shared by every scrolling screen. */
-    val pagePadding: Dp = 20.dp,
+    val pagePadding: Dp = 16.dp,
     /** Interior padding of a card or panel. */
-    val cardPadding: Dp = 18.dp,
+    val cardPadding: Dp = 16.dp,
     /** Vertical gap between sibling cards. */
-    val cardGap: Dp = 14.dp,
+    val cardGap: Dp = 12.dp,
     /** Gap inside a cluster of chips or small controls. */
-    val chipGap: Dp = 8.dp,
+    val chipGap: Dp = 6.dp,
 
     // --- Reusable content metrics ---------------------------------------------------------------
     // These are not spacing: they size a specific kind of content, and a second screen that shows
@@ -243,34 +263,38 @@ data class PulseDimens(
     // stays with that screen.
 
     /** Timeline bar used as a thumbnail inside a card or a builder preview. */
-    val barHeightCompact: Dp = 10.dp,
+    val barHeightCompact: Dp = 8.dp,
     /** Timeline bar used as a screen's main visual. */
-    val barHeightRegular: Dp = 20.dp,
+    val barHeightRegular: Dp = 14.dp,
     /** Activity bar chart in Progress. */
-    val chartHeight: Dp = 132.dp,
+    val chartHeight: Dp = 120.dp,
     /** Minimum cell width for `GridCells.Adaptive`; the grid decides the columns. */
-    val gridCellMin: Dp = 172.dp,
+    val gridCellMin: Dp = 168.dp,
     /** Width of a card in a horizontal carousel — narrow enough for a sliver of the next one. */
-    val carouselCardWidth: Dp = 236.dp,
+    val carouselCardWidth: Dp = 228.dp,
     /** Height of the player's ring panel for each density preference. */
-    val playerPanelCompact: Dp = 208.dp,
-    val playerPanelStandard: Dp = 264.dp,
-    val playerPanelLarge: Dp = 320.dp,
+    val playerPanelCompact: Dp = 196.dp,
+    val playerPanelStandard: Dp = 248.dp,
+    val playerPanelLarge: Dp = 300.dp,
     /** Height of the Today hero card on a phone. */
-    val heroHeight: Dp = 188.dp,
+    val heroHeight: Dp = 168.dp,
 
     /** Control heights. */
-    val controlHeight: Dp = 48.dp,
-    val buttonHeight: Dp = 52.dp,
-    val iconButtonSize: Dp = 40.dp,
-    val topBarHeight: Dp = 64.dp,
-    val listRowHeight: Dp = 64.dp,
-    /** The floating navigation bar. */
-    val navBarHeight: Dp = 72.dp,
-    /** The navigation rail shown on tablets and in landscape. */
-    val railWidth: Dp = 88.dp,
-    /** Corner inset of the floating navigation bar. */
-    val navBarInset: Dp = 16.dp,
+    val controlHeight: Dp = 40.dp,
+    val buttonHeight: Dp = 40.dp,
+    val iconButtonSize: Dp = 36.dp,
+    val topBarHeight: Dp = 56.dp,
+    val listRowHeight: Dp = 56.dp,
+    /** One label/value line in a metric table. */
+    val metricRowHeight: Dp = 44.dp,
+    /** The bottom navigation bar on a phone. */
+    val navBarHeight: Dp = 64.dp,
+    /** The icon rail on a tablet held upright. */
+    val railWidth: Dp = 72.dp,
+    /** The full sidebar, at the largest breakpoint. */
+    val sidebarWidth: Dp = 244.dp,
+    /** Horizontal inset of the bottom navigation bar when it does not span the screen. */
+    val navBarInset: Dp = 12.dp,
 
     /** Minimum touch target. Never draw an interactive element smaller than this. */
     val minTouchTarget: Dp = 48.dp,
@@ -280,16 +304,19 @@ data class PulseDimens(
     val focusRingWidth: Dp = 2.dp,
 
     // --- Radii -----------------------------------------------------------------------------------
-    /** Cards, panels and dialogs — the big, soft Prism silhouette. */
-    val cardRadius: Dp = 24.dp,
+    // Restrained on purpose: 6 dp on controls, 8 dp on cards, 12 dp on the largest surfaces. The
+    // silhouette is a crisp rectangle, which is what reads as "tool" rather than "toy". Chips are
+    // the one exception and stay fully round, because a small element can be.
+    /** Cards and panels — the standard dashboard rectangle. */
+    val cardRadius: Dp = 8.dp,
     /** A surface nested inside a card: one step tighter so nesting reads as nesting. */
-    val panelRadius: Dp = 18.dp,
+    val panelRadius: Dp = 6.dp,
     /** Buttons, inputs, navigation items, icon buttons. */
-    val controlRadius: Dp = 14.dp,
+    val controlRadius: Dp = 6.dp,
     /** Chips, badges, small metadata pills — fully round, because a small element can be. */
     val chipRadius: Dp = 999.dp,
     /** Bottom sheets and the largest surfaces. */
-    val sheetRadius: Dp = 28.dp,
+    val sheetRadius: Dp = 12.dp,
     /** Fully round: avatars and the single round transport control in the player. */
     val pillRadius: Dp = 999.dp,
 )
@@ -299,17 +326,13 @@ val LocalPulseDimens = staticCompositionLocalOf { PulseDimens() }
 /**
  * Shape scale. Compose components read shapes from `MaterialTheme.shapes`, so the tokens are exposed
  * there too and a component can never pick a radius outside the scale.
- *
- * Chips are pills and cards are 24 dp: the two silhouettes are deliberately far apart, so a screen
- * reads as a handful of large soft panels carrying small round pills rather than as a grid of
- * identical rounded rectangles.
  */
 @Immutable
 data class PulseShapes(
-    val control: RoundedCornerShape = RoundedCornerShape(14.dp),
-    val panel: RoundedCornerShape = RoundedCornerShape(18.dp),
-    val card: RoundedCornerShape = RoundedCornerShape(24.dp),
-    val sheet: RoundedCornerShape = RoundedCornerShape(28.dp),
+    val control: RoundedCornerShape = RoundedCornerShape(6.dp),
+    val panel: RoundedCornerShape = RoundedCornerShape(6.dp),
+    val card: RoundedCornerShape = RoundedCornerShape(8.dp),
+    val sheet: RoundedCornerShape = RoundedCornerShape(12.dp),
     val chip: RoundedCornerShape = RoundedCornerShape(999.dp),
     val pill: RoundedCornerShape = RoundedCornerShape(999.dp),
 )
@@ -317,10 +340,11 @@ data class PulseShapes(
 val LocalPulseShapes = staticCompositionLocalOf { PulseShapes() }
 
 /**
- * Elevation. Prism draws depth three ways and each has one job: a tonal fill step separates a
+ * Elevation. Signal draws depth three ways and each has one job: a tonal fill step separates a
  * surface from the canvas, a hairline keeps that edge crisp on any density, and a real shadow is
- * reserved for things that genuinely float above the page — the navigation bar and sheets. Nothing
- * else casts one, which is why the one shadow on screen still means something.
+ * reserved for things that genuinely float above the page — menus, dialogs, snackbars and the phone
+ * navigation bar. Nothing else casts one, which is why the few shadows on screen still mean
+ * something.
  */
 @Immutable
 data class PulseElevation(
@@ -329,35 +353,35 @@ data class PulseElevation(
     /** Interactive surface: a pressed card, a selected row, a text field. */
     val level1: Dp = 1.dp,
     /** Overlay: a menu, a tooltip, a snackbar. */
-    val level2: Dp = 6.dp,
-    /** Floating chrome: the navigation bar, a bottom sheet, a dialog. */
-    val level3: Dp = 18.dp,
+    val level2: Dp = 4.dp,
+    /** Floating chrome: the phone navigation bar, a bottom sheet, a dialog. */
+    val level3: Dp = 12.dp,
 )
 
 val LocalPulseElevation = staticCompositionLocalOf { PulseElevation() }
 
 /**
- * Motion. Prism moves a little further than a flat system — 160 ms for feedback, 260 ms for
- * selection, 380 ms for a sheet — because bigger surfaces and larger radii need a slightly longer
- * beat to settle. The reduced-motion switch collapses every duration to zero, because an
- * accessibility setting that still animates is not an accessibility setting.
+ * Motion. Signal moves quickly and quietly — 150 ms for feedback, 200 ms for selection, 250 ms for a
+ * sheet — because a dashboard should feel immediate rather than choreographed. The reduced-motion
+ * switch collapses every duration to zero, because an accessibility setting that still animates is
+ * not an accessibility setting.
  */
 @Immutable
 data class PulseMotion(val reduced: Boolean) {
-    /** 160 ms — hover, press, colour and elevation feedback. */
-    fun fast(): Int = if (reduced) 0 else 160
+    /** 150 ms — hover, press, colour and elevation feedback. */
+    fun fast(): Int = if (reduced) 0 else 150
 
-    /** 260 ms — selection, expansion, navigation transitions. */
-    fun standard(): Int = if (reduced) 0 else 260
+    /** 200 ms — selection, expansion, navigation transitions. */
+    fun standard(): Int = if (reduced) 0 else 200
 
-    /** 380 ms — sheets, dialogs and the player's ring sweep. */
-    fun slow(): Int = if (reduced) 0 else 380
+    /** 250 ms — sheets, dialogs and the player's ring sweep. */
+    fun slow(): Int = if (reduced) 0 else 250
 
     /** Duration in ms, collapsed to 0 when the user prefers reduced motion. */
     fun duration(normal: Int): Int = if (reduced) 0 else normal
 
-    /** Spring-ish overshoot for emphasis, flattened when motion is reduced. */
-    fun emphasis(): Int = if (reduced) 0 else 320
+    /** Slightly longer beat for a value that travels a long way, flattened when motion is reduced. */
+    fun emphasis(): Int = if (reduced) 0 else 240
 }
 
 val LocalPulseMotion = staticCompositionLocalOf { PulseMotion(reduced = false) }
