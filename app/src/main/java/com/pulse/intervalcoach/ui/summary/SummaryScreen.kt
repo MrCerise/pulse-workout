@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -94,11 +95,16 @@ fun SessionSummaryScreen(
                     .padding(padding)
                     .padding(dimens.pagePadding),
             ) {
-                PulsePageHeader(
-                    title = stringResource(R.string.summary_title),
-                    onBack = onDone,
-                    backLabel = "Close",
-                )
+            PulsePageHeader(
+                title = current.planName,
+                description = if (current.stoppedEarly) {
+                    "Ended early — here is what was recorded."
+                } else {
+                    "Completed session — here is what was recorded."
+                },
+                onBack = onDone,
+                backLabel = "Close",
+            )
                 InfoBanner("No session to summarise — this screen appears right after a workout ends.")
                 Spacer(Modifier.height(dimens.m))
                 PrimaryActionButton(
@@ -139,18 +145,16 @@ fun SessionSummaryScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
-            item {
-                PulsePageHeader(
-                    title = current.planName,
-                    description = if (current.stoppedEarly) {
-                        "Ended early — here is what was recorded."
-                    } else {
-                        "Completed session — here is what was recorded."
-                    },
-                    onBack = onDone,
-                    backLabel = "Close",
-                )
-            }
+            PulsePageHeader(
+                title = current.planName,
+                description = if (current.stoppedEarly) {
+                    "Ended early — here is what was recorded."
+                } else {
+                    "Completed session — here is what was recorded."
+                },
+                onBack = onDone,
+                backLabel = "Close",
+            )
             // --- Hero --------------------------------------------------------------------------
             // The one ink panel on the page, exactly as on Today: a finished session is a headline,
             // and a headline is set in ink rather than painted orange.

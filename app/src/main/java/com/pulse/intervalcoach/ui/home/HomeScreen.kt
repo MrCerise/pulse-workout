@@ -66,6 +66,7 @@ import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseHeroCard
 import com.pulse.intervalcoach.ui.components.PulseListRow
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
@@ -261,9 +262,9 @@ fun HomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
-            // --- Page intro ----------------------------------------------------------------------
+            // --- Page heading -------------------------------------------------------------------
             item {
-                PulsePageIntro(
+                PulsePageHeader(
                     title = greeting(),
                     description = LocalDate.now()
                         .format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())) +

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,6 +81,7 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseTheme
 import com.pulse.intervalcoach.ui.theme.PulseType
+import com.pulse.intervalcoach.ui.theme.pulseColors
 import com.pulse.intervalcoach.ui.theme.ThemeMode
 import com.pulse.intervalcoach.ui.welcome.WelcomeScreen
 import com.pulse.intervalcoach.ui.workouts.CategoryScreen
