@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
+          bash ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
             :engine:test :app:testDebugUnitTest 2>&1 | tee gradle-build.log
 
       - name: Summarize failure diagnostics
@@ -110,7 +110,7 @@ jobs:
           PULSE_RELEASE_STORE_FILE: ${{ runner.temp }}/pulse-release.jks
         run: |
           set -euo pipefail
-          ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
+          bash ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
             :app:assembleDebug :app:assembleRelease 2>&1 | tee gradle-build.log
 
       - name: Prepare release assets
