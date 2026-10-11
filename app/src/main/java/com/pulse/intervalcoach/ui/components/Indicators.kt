@@ -349,19 +349,6 @@ private fun toneTint(colors: PulseColors, tone: PulseTone): Color = when (tone) 
     PulseTone.DANGER -> colors.dangerTint
 }
 
-/** A row of equally sized tiles, so the same three stats align across every screen. */
-@Composable
-fun StatRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m),
-        verticalAlignment = Alignment.CenterVertically,
-        content = content,
-    )
-}
-
-    @Composable get() = PaddingValues(horizontal = LocalPulseDimens.current.s, vertical = 3.dp)
-
 /**
  * A label/value pair on one line — the smallest row of a dashboard table.
  *
