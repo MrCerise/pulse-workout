@@ -241,14 +241,13 @@ adb shell dumpsys package com.pulse.intervalcoach.debug | grep -E "versionName|v
 
 ### Constrained machines
 
-`gradle.properties` ships tuned for a 2 GB CI box (`-Xmx896m`, serial GC, `workers.max=1`,
-in-process Kotlin). On a normal workstation you can raise it:
+`gradle.properties` ships tuned for GitHub-hosted runners and workstations (3 GB heap, parallel
+module builds, Gradle build cache). On a small machine with 4 GB of RAM or less, lower the heap and
+turn parallelism off:
 
 ```properties
-org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g
-org.gradle.workers.max=4
-org.gradle.parallel=true
-kotlin.compiler.execution.strategy=daemon
+org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=512m -XX:+UseSerialGC
+org.gradle.parallel=false
 ```
 
 ## Project layout
@@ -522,7 +521,8 @@ passes unchanged.
 - **`SDK location not found`** — create `local.properties` with `sdk.dir=…`.
 - **`Unsupported class file major version` / JDK errors** — use JDK 17:
   `JAVA_HOME=/path/to/jdk-17 ./gradlew …`
-- **The build is killed on a small machine** — keep the values in `gradle.properties` low and run
-  with `--max-workers=1`; the pre-tuned defaults are the ones the tests above were produced with.
+- **The build is killed on a small machine** — lower `org.gradle.jvmargs` and set
+  `org.gradle.parallel=false` in `gradle.properties` (see *Constrained machines* above), or run with
+  `--max-workers=1`.
 - **`app-release-unsigned.apk` cannot be installed** — that is expected without a keystore; install
   the debug APK instead.
