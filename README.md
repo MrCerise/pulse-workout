@@ -10,9 +10,42 @@ Everything PULSE does itself runs on the device. No account, no ads, no analytic
 only data that ever leaves the phone are the records you explicitly share with a Google health app.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.5.0 (versionCode 8)
+- **Version:** 1.6.0 (versionCode 9)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.6.0 — what changed
+
+- **"Signal": a new design system, aimed at the Cloudflare dashboard rather than at a generic app.**
+  The visual layer moves from Prism (violet ink, large soft surfaces, a two-stop accent gradient) to a
+  neutral, dense, enterprise interface: a warm charcoal ramp in the dark theme, clean paper in the
+  light theme, **one** accent (Cloudflare orange `#F38020`, deepened to `#B23A0B` when it carries text
+  on paper), 6/8/12 dp radii, hairlines instead of shadows, and Inter set in a compact dashboard
+  scale. Gradients are gone from the component layer entirely — the ring, the progress bar and the
+  primary button are flat fills now.
+  Full specification: [`docs/DESIGN.md`](docs/DESIGN.md).
+- **A real application shell.** Three shapes from one `PulseNavItem` list: a 244 dp **sidebar** at
+  ≥ 1000 dp (wordmark, grouped destinations, a 2 dp accent edge on the active row, the appearance
+  switch in its footer), a 72 dp **icon rail** at ≥ 600 dp, and a **bottom bar** on a phone. Above
+  them, a single 56 dp **breadcrumb bar** carries where you are and the global controls — so no screen
+  draws its own title bar any more.
+- **Page headers instead of title bars.** Every destination starts with a `PulsePageHeader`: the way
+  back, the H1, a one-line description and the screen's primary action. Back navigation deliberately
+  lives in the page rather than the shell, so an unsaved builder can still intercept it.
+- **Dense lists, not card soup.** The workout library is one surface with hairline-separated rows
+  (identity, meta, pin, start, overflow) instead of a card per workout, the summary's five stacked
+  stat tiles became one metric table, and `MetricRow` / `PulseListRow` keep those tables aligned on
+  every screen.
+- **Typography is real Inter.** Four static weights subset to Latin (~240 KB, SIL OFL shipped in
+  `res/raw/inter_ofl.txt`) drive the whole scale, and every number is set in **tabular figures**, so a
+  countdown ticking from `1:00` to `0:59` never shifts a pixel.
+- **Accessibility is enforced, and covers more.** `scripts/contrast_check.py` now measures **125
+  pairs** across the ink, void and paper themes — including the primary button's ink-on-orange pair,
+  the hero panel, and every category hue against the tint it ships on. It fails the build on token
+  drift (exit 2) or on any pairing below its WCAG threshold (exit 1).
+- **Nothing about the workouts changed.** Same routes, same engine, same data, same preferences: this
+  release is the interface, and every screen still reads its colours from the theme rather than
+  hardcoding one.
 
 ## v1.5.0 — what changed
 
