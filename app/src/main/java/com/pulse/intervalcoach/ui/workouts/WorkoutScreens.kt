@@ -62,8 +62,8 @@ import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.StarterWorkouts
 import com.pulse.intervalcoach.data.WorkoutCategories
 import com.pulse.intervalcoach.data.WorkoutCategory
-import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.WorkoutSummary
+import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.categoryOrCustom
 import com.pulse.intervalcoach.ui.components.CategoryChip
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
@@ -76,10 +76,12 @@ import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseChoiceChip
+import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseDropdown
 import com.pulse.intervalcoach.ui.components.PulseDropdownItem
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
@@ -211,68 +213,70 @@ fun WorkoutLibraryScreen(
     var showNewMenu by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
 
-    PulseScaffold(
-        title = "Workouts",
-        subtitle = "${state.workouts.size} saved on this device",
-        actions = {
-            Box {
-                PulseIconButton(
-                    icon = Icons.Filled.Sort,
-                    contentDescription = stringResource(R.string.workouts_sort),
-                    tooltip = "Sort",
-                    onClick = { showSortMenu = true },
-                    tint = if (state.sort != LibrarySort.RECENT) colors.accent else colors.textSecondary,
-                )
-                PulseDropdown(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
-                    LibrarySort.entries.forEach { option ->
-                        PulseDropdownItem(
-                            text = option.label(),
-                            selected = option == state.sort,
-                            onClick = { viewModel.setSort(option); showSortMenu = false },
-                        )
-                    }
-                }
-            }
-            PulseIconButton(
-                icon = if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
-                contentDescription = if (state.grid) "List view" else "Grid view",
-                tooltip = if (state.grid) "List view" else "Grid view",
-                onClick = viewModel::toggleGrid,
-            )
-            Box {
-                PulseIconButton(
-                    icon = Icons.Filled.Add,
-                    contentDescription = "New workout",
-                    tooltip = "New workout",
-                    onClick = { showNewMenu = true },
-                    tint = colors.textPrimary,
-                )
-                PulseDropdown(expanded = showNewMenu, onDismissRequest = { showNewMenu = false }) {
-                    PulseDropdownItem(
-                        text = "Quick builder",
-                        leadingIcon = Icons.Filled.FitnessCenter,
-                        onClick = { showNewMenu = false; onQuickBuilder() },
-                    )
-                    PulseDropdownItem(
-                        text = "Advanced builder",
-                        leadingIcon = Icons.Filled.Tune,
-                        onClick = { showNewMenu = false; onAdvancedBuilder() },
-                    )
-                    PulseDropdownItem(
-                        text = "Describe in words",
-                        leadingIcon = Icons.Filled.Spellcheck,
-                        onClick = { showNewMenu = false; onParser() },
-                    )
-                    PulseDropdownItem(
-                        text = "Template gallery",
-                        leadingIcon = Icons.Filled.GridView,
-                        onClick = { showNewMenu = false; onOpenTemplates() },
-                    )
-                }
-            }
-        },
-    ) { padding ->
+    PulseScaffold { padding ->
         Column(Modifier.padding(padding)) {
+            PulsePageHeader(
+                title = "Workouts",
+                description = "${state.workouts.size} saved on this device",
+                trailing = {
+                    Box {
+                        PulseIconButton(
+                            icon = Icons.Filled.Sort,
+                            contentDescription = stringResource(R.string.workouts_sort),
+                            tooltip = "Sort",
+                            onClick = { showSortMenu = true },
+                            tint = if (state.sort != LibrarySort.RECENT) colors.accent else colors.textSecondary,
+                        )
+                        PulseDropdown(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
+                            LibrarySort.entries.forEach { option ->
+                                PulseDropdownItem(
+                                    text = option.label(),
+                                    selected = option == state.sort,
+                                    onClick = { viewModel.setSort(option); showSortMenu = false },
+                                )
+                            }
+                        }
+                    }
+                    PulseIconButton(
+                        icon = if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
+                        contentDescription = if (state.grid) "List view" else "Grid view",
+                        tooltip = if (state.grid) "List view" else "Grid view",
+                        onClick = viewModel::toggleGrid,
+                    )
+                    Box {
+                        PulseIconButton(
+                            icon = Icons.Filled.Add,
+                            contentDescription = "New workout",
+                            tooltip = "New workout",
+                            onClick = { showNewMenu = true },
+                            tint = colors.textPrimary,
+                        )
+                        PulseDropdown(expanded = showNewMenu, onDismissRequest = { showNewMenu = false }) {
+                            PulseDropdownItem(
+                                text = "Quick builder",
+                                leadingIcon = Icons.Filled.FitnessCenter,
+                                onClick = { showNewMenu = false; onQuickBuilder() },
+                            )
+                            PulseDropdownItem(
+                                text = "Advanced builder",
+                                leadingIcon = Icons.Filled.Tune,
+                                onClick = { showNewMenu = false; onAdvancedBuilder() },
+                            )
+                            PulseDropdownItem(
+                                text = "Describe in words",
+                                leadingIcon = Icons.Filled.Spellcheck,
+                                onClick = { showNewMenu = false; onParser() },
+                            )
+                            PulseDropdownItem(
+                                text = "Template gallery",
+                                leadingIcon = Icons.Filled.GridView,
+                                onClick = { showNewMenu = false; onOpenTemplates() },
+                            )
+                        }
+                    }
+                },
+            )
+
             PulseTextField(
                 value = state.query,
                 onValueChange = viewModel::setQuery,
@@ -361,18 +365,31 @@ fun WorkoutLibraryScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
                 ) {
-                    items(state.workouts, key = { it.id }) { workout ->
-                        WorkoutRow(
-                            workout = workout,
-                            onOpen = { onOpenWorkout(workout.id) },
-                            onStart = {
-                                scope.launch { viewModel.plan(workout.id)?.let { container.sessionController.startWorkout(it) } }
-                            },
-                            onFavorite = { viewModel.setFavorite(workout.id, !workout.isFavorite) },
-                            onDuplicate = { viewModel.duplicate(workout.id) },
-                            onDelete = { pendingDelete = workout },
-                            onShare = { shareWorkout(context, container, workout.id) },
-                        )
+                    // One surface for the whole list: rows are separated by hairlines rather than by
+                    // card edges. A workout library is a table of names and numbers, so it is drawn
+                    // as one — the list is a plain loop because a card cannot wrap lazy items, and a
+                    // library of a few hundred rows is still cheap enough to lay out in one pass.
+                    item {
+                        PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.xs)) {
+                            Column {
+                                state.workouts.forEachIndexed { index, workout ->
+                                    WorkoutRow(
+                                        workout = workout,
+                                        onOpen = { onOpenWorkout(workout.id) },
+                                        onStart = {
+                                            scope.launch {
+                                                viewModel.plan(workout.id)?.let { container.sessionController.startWorkout(it) }
+                                            }
+                                        },
+                                        onFavorite = { viewModel.setFavorite(workout.id, !workout.isFavorite) },
+                                        onDuplicate = { viewModel.duplicate(workout.id) },
+                                        onDelete = { pendingDelete = workout },
+                                        onShare = { shareWorkout(context, container, workout.id) },
+                                    )
+                                    if (index != state.workouts.lastIndex) PulseDivider()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -483,7 +500,13 @@ private fun WorkoutGridCard(
     }
 }
 
-/** A workout as a row: identity, category, then the actions that matter. */
+/**
+ * A workout as a row: identity, category, then the actions that matter — all on one 56 dp line.
+ *
+ * The row is deliberately flat: the whole row opens the workout, the trailing icons start it, pin it
+ * or open the overflow menu. A library of twenty workouts therefore reads as a list, not as twenty
+ * stacked cards, which is what keeps a dashboard dense.
+ */
 @Composable
 private fun WorkoutRow(
     workout: WorkoutSummary,
@@ -498,62 +521,45 @@ private fun WorkoutRow(
     val dimens = LocalPulseDimens.current
     val category = workout.categoryOrCustom()
     var menu by remember { mutableStateOf(false) }
-    PulseCard(modifier = Modifier.fillMaxWidth(), tint = colors.categoryColor(category.hue)) {
-        Column {
-            PulseListRow(
-                title = workout.name,
-                subtitle = buildString {
-                    append(if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis))
-                    append(" · ")
-                    append(workout.intervalCount)
-                    append(" intervals")
-                    workout.equipment?.let { append(" · $it") }
-                },
-                leadingIcon = category.icon,
-                leadingTint = colors.categoryColor(category.hue),
-                leadingContainer = colors.categoryTint(category.hue),
-                onClick = onOpen,
-                trailing = {
-                    PulseIconButton(
-                        icon = if (workout.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = if (workout.isFavorite) "Remove from favorites" else "Add to favorites",
-                        tooltip = if (workout.isFavorite) "Remove from favorites" else "Add to favorites",
-                        onClick = onFavorite,
-                        tint = if (workout.isFavorite) colors.work else colors.textMuted,
-                        modifier = Modifier.size(dimens.iconButtonSize),
-                    )
-                },
-            )
-            if (workout.tags.isNotEmpty() || workout.builtIn) {
-                Row(
-                    modifier = Modifier.padding(bottom = dimens.xs),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (workout.builtIn) NeutralChip("starter")
-                    if (workout.tags.isNotEmpty()) {
-                        Text(
-                            text = workout.tags.joinToString(" · "),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colors.textMuted,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                PrimaryActionButton(
-                    text = "Start",
-                    onClick = onStart,
-                    modifier = Modifier.weight(1f),
+    PulseListRow(
+        title = workout.name,
+        subtitle = buildString {
+            append(if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis))
+            append(" · ")
+            append(workout.intervalCount)
+            append(" intervals")
+            workout.equipment?.let { append(" · $it") }
+            if (workout.builtIn) append(" · starter")
+            if (workout.tags.isNotEmpty()) append(" · ").append(workout.tags.joinToString(" · "))
+        },
+        leadingIcon = category.icon,
+        leadingTint = colors.categoryColor(category.hue),
+        leadingContainer = colors.categoryTint(category.hue),
+        onClick = onOpen,
+        trailing = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PulseIconButton(
+                    icon = if (workout.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = if (workout.isFavorite) "Remove from favorites" else "Add to favorites",
+                    tooltip = if (workout.isFavorite) "Remove from favorites" else "Add to favorites",
+                    onClick = onFavorite,
+                    tint = if (workout.isFavorite) colors.accent else colors.textMuted,
+                    modifier = Modifier.size(dimens.iconButtonSize),
+                )
+                PulseIconButton(
                     icon = Icons.Filled.PlayArrow,
+                    contentDescription = "Start ${workout.name}",
+                    tooltip = "Start now",
+                    onClick = onStart,
+                    tint = colors.textPrimary,
+                    modifier = Modifier.size(dimens.iconButtonSize),
                 )
                 Box {
-                    SecondaryActionButton(
-                        text = "More",
-                        onClick = { menu = true },
+                    PulseIconButton(
                         icon = Icons.Filled.MoreVert,
+                        contentDescription = "More actions",
+                        onClick = { menu = true },
+                        modifier = Modifier.size(dimens.iconButtonSize),
                     )
                     PulseDropdown(expanded = menu, onDismissRequest = { menu = false }) {
                         PulseDropdownItem(
@@ -574,8 +580,8 @@ private fun WorkoutRow(
                     }
                 }
             }
-        }
-    }
+        },
+    )
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -608,19 +614,7 @@ fun WorkoutDetailsScreen(
         plan?.let { runCatching { com.pulse.engine.TimelineExpander.expand(it) }.getOrNull() }
     }
 
-    PulseScaffold(
-        title = plan?.name ?: "Workout",
-        subtitle = plan?.category?.title,
-        onBack = onBack,
-        actions = {
-            PulseIconButton(
-                icon = Icons.Filled.Edit,
-                contentDescription = "Edit workout",
-                tooltip = "Edit workout",
-                onClick = { plan?.let { onEdit(it.id) } },
-            )
-        },
-    ) { padding ->
+    PulseScaffold { padding ->
         if (entity != null && (plan == null || expanded == null)) {
             Column(Modifier.padding(padding)) {
                 ErrorState(
@@ -649,6 +643,22 @@ fun WorkoutDetailsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = plan?.name ?: "Workout",
+                    description = plan?.category?.title,
+                    onBack = onBack,
+                    trailing = {
+                        PulseIconButton(
+                            icon = Icons.Filled.Edit,
+                            contentDescription = "Edit workout",
+                            tooltip = "Edit workout",
+                            onClick = { plan?.let { onEdit(it.id) } },
+                        )
+                    },
+                )
+            }
+
             // --- Category hero ------------------------------------------------------------------
             item {
                 PulseCard(tint = hue) {
@@ -839,11 +849,7 @@ fun TemplateGalleryScreen(
         templates.filter { selectedKey == null || WorkoutCategories.byKey(it.plan.type.name).key == selectedKey }
     }
 
-    PulseScaffold(
-        title = stringResource(R.string.workouts_templates),
-        subtitle = "${templates.size} editable starting points",
-        onBack = onBack,
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -854,6 +860,14 @@ fun TemplateGalleryScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = stringResource(R.string.workouts_templates),
+                    description = "${templates.size} editable starting points",
+                    onBack = onBack,
+                )
+            }
+
             item {
                 Text(
                     text = "Editable starting points — tweak anything after you add them. Durations are calculated from each workout's real structure.",
@@ -992,11 +1006,7 @@ fun CategoryScreen(
         summaries.filter { WorkoutCategories.byKey(it.type).key == category.key }
     }
 
-    PulseScaffold(
-        title = category.title,
-        subtitle = category.tagline,
-        onBack = onBack,
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -1007,6 +1017,14 @@ fun CategoryScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = category.title,
+                    description = category.tagline,
+                    onBack = onBack,
+                )
+            }
+
             item {
                 PulseCard(tint = hue) {
                     Column {

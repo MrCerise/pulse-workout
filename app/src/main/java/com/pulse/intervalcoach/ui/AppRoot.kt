@@ -1,20 +1,29 @@
 package com.pulse.intervalcoach.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,10 +38,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -45,9 +55,14 @@ import com.pulse.intervalcoach.DeepLinks
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.ui.builders.AdvancedBuilderScreen
 import com.pulse.intervalcoach.ui.builders.QuickBuilderScreen
+import com.pulse.intervalcoach.ui.components.PulseAppSidebar
+import com.pulse.intervalcoach.ui.components.PulseBreadcrumbBar
 import com.pulse.intervalcoach.ui.components.PulseFloatingNavBar
+import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulseNavGroup
 import com.pulse.intervalcoach.ui.components.PulseNavItem
 import com.pulse.intervalcoach.ui.components.PulseNavRail
+import com.pulse.intervalcoach.ui.components.PulseSegmented
 import com.pulse.intervalcoach.ui.components.PulseSnackbar
 import com.pulse.intervalcoach.ui.health.HealthScreen
 import com.pulse.intervalcoach.ui.home.HomeScreen
@@ -66,6 +81,8 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseTheme
+import com.pulse.intervalcoach.ui.theme.PulseType
+import com.pulse.intervalcoach.ui.theme.ThemeMode
 import com.pulse.intervalcoach.ui.welcome.WelcomeScreen
 import com.pulse.intervalcoach.ui.workouts.CategoryScreen
 import com.pulse.intervalcoach.ui.workouts.TemplateGalleryScreen
@@ -108,12 +125,45 @@ private val primaryDestinations = listOf(
 )
 
 /**
+ * The sidebar's contents: the three destinations a session starts from, then the library and the
+ * system pages. The phone bar and the tablet rail keep the three primary ones, so the shell never
+ * grows chrome where there is no room for it.
+ */
+private val sidebarGroups = listOf(
+    PulseNavGroup(
+        label = null,
+        items = primaryDestinations.take(3),
+    ),
+    PulseNavGroup(
+        label = "Library",
+        items = listOf(
+            PulseNavItem(Routes.TEMPLATES, "Templates", Icons.Filled.GridView),
+            PulseNavItem(Routes.HEALTH, "Health", Icons.Filled.Healing),
+        ),
+    ),
+    PulseNavGroup(
+        label = "System",
+        items = listOf(
+            PulseNavItem(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
+        ),
+    ),
+)
+
+/** Destinations that take the whole window: the running session and onboarding. */
+private val immersiveRoutes = setOf(Routes.PLAYER, Routes.WELCOME)
+
+/**
  * The application frame.
  *
- * The navigation model is adaptive rather than responsive-in-name-only: on a phone the four primary
- * destinations live in a floating pill bar; on a tablet or in landscape the same four become a rail
- * down the left edge, because a bottom bar on a 10-inch screen is the furthest control from the
- * thumb. Both read the same [PulseNavItem] list, so there is one navigation model with two shapes.
+ * One navigation model, three shapes, and the shape follows the window:
+ *
+ *  - **phone** (< 600 dp) — a 52 dp chrome bar with the wordmark, the section name and the account
+ *    controls, and a hairline-separated bottom bar with an indicator behind the active glyph;
+ *  - **tablet portrait** (>= 600 dp) — the same destinations as a 72 dp icon rail;
+ *  - **desktop / tablet landscape** (>= 1000 dp) — the full sidebar: wordmark, grouped destinations
+ *    with a tinted active row and a 2 dp accent edge, and the appearance control in its footer.
+ *
+ * Every shape reads the same [PulseNavItem] list, and none of them casts a shadow.
  */
 @Composable
 fun PulseAppRoot(
@@ -129,7 +179,7 @@ fun PulseAppRoot(
         // First frame: DataStore has not answered yet. Draw the platform background, never a blank
         // white screen.
         PulseTheme(
-            themeMode = com.pulse.intervalcoach.ui.theme.ThemeMode.SYSTEM,
+            themeMode = ThemeMode.SYSTEM,
             dynamicColor = false,
             highContrast = false,
             reducedMotion = false,
@@ -137,7 +187,7 @@ fun PulseAppRoot(
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(com.pulse.intervalcoach.ui.theme.pulseColors(dark = true, trueBlack = false, highContrast = false).background),
+                    .background(pulseColors(dark = true, trueBlack = false, highContrast = false).background),
             )
         }
         return
@@ -170,12 +220,20 @@ fun PulseAppRoot(
         }
         val backStackEntry by navController.currentBackStackEntryAsState()
         val route = backStackEntry?.destination?.route
-        val showNavigation = route in primaryDestinations.map { it.route }
-        // With no bottom bar the snackbar would otherwise sit under the gesture bar.
-        val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        // One breakpoint, one decision: below it the bar floats at the bottom, at or above it the
-        // destinations move to a rail. Anything narrower than a small tablet keeps the bar.
-        val wide = LocalConfiguration.current.screenWidthDp >= 600
+        val onPrimaryDestination = route in primaryDestinations.map { it.route }
+        val immersive = route in immersiveRoutes
+        // One breakpoint ladder, one navigation model: bar, rail, sidebar.
+        val width = LocalConfiguration.current.screenWidthDp
+        val showSidebar = width >= 1000 && !immersive
+        val showRail = !showSidebar && width >= 600 && !immersive
+
+        val select: (String) -> Unit = { destination ->
+            navController.navigate(destination) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
 
         // Deep links from shortcuts, widgets, reminders and notification taps.
         val deeplink by deeplinks.collectAsStateWithLifecycle()
@@ -211,273 +269,433 @@ fun PulseAppRoot(
             if (!current.onboardingComplete) navController.navigate(Routes.WELCOME)
         }
 
+        val currentIsDark = current.themeMode == ThemeMode.DARK || current.themeMode == ThemeMode.TRUE_BLACK
+        val toggleTheme: () -> Unit = {
+            scope.launch {
+                container.preferences.setTheme(if (currentIsDark) ThemeMode.LIGHT else ThemeMode.DARK)
+            }
+        }
+
         Row(Modifier.fillMaxSize()) {
-            if (showNavigation && wide) {
-                PulseNavRail(
-                    items = primaryDestinations,
+            if (showSidebar) {
+                PulseAppSidebar(
+                    groups = sidebarGroups,
                     currentRoute = route,
-                    onSelect = { destination ->
-                        navController.navigate(destination) {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                    onSelect = select,
+                    header = { SidebarHeader() },
+                    footer = {
+                        AppearanceControl(
+                            mode = current.themeMode,
+                            onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
+                        )
                     },
-                    modifier = Modifier.fillMaxHeight(),
-                    header = { PulseWordmark() },
+                )
+            } else if (showRail) {
+                PulseNavRail(
+                    items = primaryDestinations.take(3),
+                    currentRoute = route,
+                    onSelect = select,
+                    header = { PulseMark(size = 32.dp) },
+                    footer = {
+                        PulseIconButton(
+                            icon = if (currentIsDark) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                            contentDescription = if (currentIsDark) "Switch to light theme" else "Switch to dark theme",
+                            onClick = toggleTheme,
+                        )
+                    },
                 )
             }
 
-            Scaffold(
-                modifier = Modifier
+            Column(
+                Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                containerColor = LocalPulseColors.current.background,
-                snackbarHost = {
-                    SnackbarHost(
-                        hostState = snackbarHostState,
-                        modifier = Modifier.padding(bottom = if (showNavigation) 0.dp else navBarInset),
-                    ) { data -> PulseSnackbar(data) }
-                },
-                // Zero here on purpose. Most destinations own their own Scaffold + TopAppBar, and
-                // Material3's Scaffold does not consume the insets it applies — so an outer Scaffold
-                // that applied the system bars would push every inner app bar down a second status-bar
-                // height. Screens without their own Scaffold apply the insets themselves.
-                contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                bottomBar = {
-                    if (showNavigation && !wide) {
-                        PulseFloatingNavBar(
-                            items = primaryDestinations,
-                            currentRoute = route,
-                            onSelect = { destination ->
-                                navController.navigate(destination) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                        )
-                    }
-                },
-            ) { padding ->
-                NavHost(
-                    navController = navController,
-                    startDestination = Routes.HOME,
-                    modifier = Modifier.padding(padding),
-                ) {
-                    composable(Routes.HOME) {
-                        HomeScreen(
-                            container = container,
-                            onOpenWorkout = { navController.navigate(Routes.details(it)) },
-                            onStartWorkout = startSession,
-                            onQuickStart = { navController.navigate(Routes.QUICK_BUILDER) },
-                            onOpenProgress = { navController.navigate(Routes.PROGRESS) },
-                            onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
-                            onResumeSession = { navController.navigate(Routes.PLAYER) },
-                            onOpenHealth = { navController.navigate(Routes.HEALTH) },
-                            onOpenCategory = { navController.navigate(Routes.category(it.key)) },
-                            onOpenLibrary = { navController.navigate(Routes.WORKOUTS) },
-                        )
-                    }
-                    composable(Routes.WORKOUTS) {
-                        WorkoutLibraryScreen(
-                            container = container,
-                            onOpenWorkout = { navController.navigate(Routes.details(it)) },
-                            onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
-                            onQuickBuilder = { navController.navigate(Routes.QUICK_BUILDER) },
-                            onAdvancedBuilder = { navController.navigate(Routes.ADVANCED_BUILDER) },
-                            onParser = { navController.navigate(Routes.PARSER) },
-                        )
-                    }
-                    composable(Routes.CATEGORY) { entry ->
-                        CategoryScreen(
-                            container = container,
-                            categoryKey = entry.arguments?.getString("key").orEmpty(),
-                            onBack = { navController.popBackStack() },
-                            onOpenWorkout = { navController.navigate(Routes.details(it)) },
-                            onStart = startSession,
-                            onBuild = { navController.navigate(Routes.QUICK_BUILDER) },
-                        )
-                    }
-                    composable(Routes.TEMPLATES) {
-                        TemplateGalleryScreen(
-                            container = container,
-                            onBack = { navController.popBackStack() },
-                            onOpenWorkout = { navController.navigate(Routes.details(it)) },
-                        )
-                    }
-                    composable(Routes.DETAILS) { entry ->
-                        WorkoutDetailsScreen(
-                            container = container,
-                            workoutId = entry.arguments?.getString("id").orEmpty(),
-                            onBack = { navController.popBackStack() },
-                            onEdit = { navController.navigate(Routes.ADVANCED_BUILDER) },
-                            onStart = startSession,
-                        )
-                    }
-                    composable(Routes.QUICK_BUILDER) {
-                        QuickBuilderScreen(
-                            container = container,
-                            onBack = { navController.popBackStack() },
-                            onSaved = { id ->
-                                navController.navigate(Routes.details(id)) {
-                                    popUpTo(Routes.QUICK_BUILDER) { inclusive = true }
-                                }
-                            },
-                            onSavedAndStart = startSession,
-                        )
-                    }
-                    composable(Routes.ADVANCED_BUILDER) {
-                        AdvancedBuilderScreen(
-                            container = container,
-                            workoutId = null,
-                            onBack = { navController.popBackStack() },
-                            onSaved = { id ->
-                                navController.navigate(Routes.details(id)) {
-                                    popUpTo(Routes.ADVANCED_BUILDER) { inclusive = true }
-                                }
-                            },
-                        )
-                    }
-                    composable(Routes.PARSER) {
-                        ParserScreen(
-                            container = container,
-                            onBack = { navController.popBackStack() },
-                            onSaved = { id ->
-                                navController.navigate(Routes.details(id)) {
-                                    popUpTo(Routes.PARSER) { inclusive = true }
-                                }
-                            },
-                            onStart = startSession,
-                        )
-                    }
-                    composable(Routes.PLAYER) {
-                        PlayerScreen(
-                            container = container,
-                            onFinished = { navController.navigate(Routes.SUMMARY) { popUpTo(Routes.PLAYER) { inclusive = true } } },
-                            onClose = { navController.popBackStack() },
-                        )
-                    }
-                    composable(Routes.SUMMARY) {
-                        SessionSummaryScreen(
-                            container = container,
-                            onDone = {
-                                sessionController.clearSummary()
-                                navController.navigate(Routes.HOME) { popUpTo(Routes.HOME) { inclusive = true } }
-                            },
-                            onRepeat = { plan ->
-                                scope.launch {
-                                    val result = sessionController.startWorkout(plan)
-                                    if (result.isSuccess) {
-                                        sessionController.clearSummary()
-                                        navController.navigate(Routes.PLAYER) { popUpTo(Routes.SUMMARY) { inclusive = true } }
+            ) {
+                if (!immersive) {
+                    ShellBreadcrumb(
+                        title = routeTitle(route),
+                        parent = routeParent(route) ?: stringResource(R.string.app_name),
+                        showMark = !showSidebar && !showRail,
+                        isDark = currentIsDark,
+                        onToggleTheme = toggleTheme,
+                        onOpenSettings = { select(Routes.SETTINGS) },
+                    )
+                }
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    containerColor = LocalPulseColors.current.background,
+                    // Zero here on purpose: screens own their own insets, and the chrome bar above
+                    // has already consumed the status bar.
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                    snackbarHost = {
+                        SnackbarHost(hostState = snackbarHostState) { data -> PulseSnackbar(data) }
+                    },
+                ) { padding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = Routes.HOME,
+                        modifier = Modifier.padding(padding),
+                    ) {
+                        composable(Routes.HOME) {
+                            HomeScreen(
+                                container = container,
+                                onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                                onStartWorkout = startSession,
+                                onQuickStart = { navController.navigate(Routes.QUICK_BUILDER) },
+                                onOpenProgress = { navController.navigate(Routes.PROGRESS) },
+                                onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
+                                onResumeSession = { navController.navigate(Routes.PLAYER) },
+                                onOpenHealth = { navController.navigate(Routes.HEALTH) },
+                                onOpenCategory = { navController.navigate(Routes.category(it.key)) },
+                                onOpenLibrary = { navController.navigate(Routes.WORKOUTS) },
+                            )
+                        }
+                        composable(Routes.WORKOUTS) {
+                            WorkoutLibraryScreen(
+                                container = container,
+                                onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                                onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
+                                onQuickBuilder = { navController.navigate(Routes.QUICK_BUILDER) },
+                                onAdvancedBuilder = { navController.navigate(Routes.ADVANCED_BUILDER) },
+                                onParser = { navController.navigate(Routes.PARSER) },
+                            )
+                        }
+                        composable(Routes.CATEGORY) { entry ->
+                            CategoryScreen(
+                                container = container,
+                                categoryKey = entry.arguments?.getString("key").orEmpty(),
+                                onBack = { navController.popBackStack() },
+                                onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                                onStart = startSession,
+                                onBuild = { navController.navigate(Routes.QUICK_BUILDER) },
+                            )
+                        }
+                        composable(Routes.TEMPLATES) {
+                            TemplateGalleryScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
+                                onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                            )
+                        }
+                        composable(Routes.DETAILS) { entry ->
+                            WorkoutDetailsScreen(
+                                container = container,
+                                workoutId = entry.arguments?.getString("id").orEmpty(),
+                                onBack = { navController.popBackStack() },
+                                onEdit = { navController.navigate(Routes.ADVANCED_BUILDER) },
+                                onStart = startSession,
+                            )
+                        }
+                        composable(Routes.QUICK_BUILDER) {
+                            QuickBuilderScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
+                                onSaved = { id ->
+                                    navController.navigate(Routes.details(id)) {
+                                        popUpTo(Routes.QUICK_BUILDER) { inclusive = true }
                                     }
-                                }
-                            },
-                        )
+                                },
+                                onSavedAndStart = startSession,
+                            )
+                        }
+                        composable(Routes.ADVANCED_BUILDER) {
+                            AdvancedBuilderScreen(
+                                container = container,
+                                workoutId = null,
+                                onBack = { navController.popBackStack() },
+                                onSaved = { id ->
+                                    navController.navigate(Routes.details(id)) {
+                                        popUpTo(Routes.ADVANCED_BUILDER) { inclusive = true }
+                                    }
+                                },
+                            )
+                        }
+                        composable(Routes.PARSER) {
+                            ParserScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
+                                onSaved = { id ->
+                                    navController.navigate(Routes.details(id)) {
+                                        popUpTo(Routes.PARSER) { inclusive = true }
+                                    }
+                                },
+                                onStart = startSession,
+                            )
+                        }
+                        composable(Routes.PLAYER) {
+                            PlayerScreen(
+                                container = container,
+                                onFinished = { navController.navigate(Routes.SUMMARY) { popUpTo(Routes.PLAYER) { inclusive = true } } },
+                                onClose = { navController.popBackStack() },
+                            )
+                        }
+                        composable(Routes.SUMMARY) {
+                            SessionSummaryScreen(
+                                container = container,
+                                onDone = {
+                                    sessionController.clearSummary()
+                                    navController.navigate(Routes.HOME) { popUpTo(Routes.HOME) { inclusive = true } }
+                                },
+                                onRepeat = { plan ->
+                                    scope.launch {
+                                        val result = sessionController.startWorkout(plan)
+                                        if (result.isSuccess) {
+                                            sessionController.clearSummary()
+                                            navController.navigate(Routes.PLAYER) { popUpTo(Routes.SUMMARY) { inclusive = true } }
+                                        }
+                                    }
+                                },
+                            )
+                        }
+                        composable(Routes.PROGRESS) {
+                            ProgressScreen(
+                                container = container,
+                                onOpenHistory = { navController.navigate(Routes.HISTORY) },
+                                onOpenSession = { navController.navigate(Routes.session(it)) },
+                                onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                                onOpenHealth = { navController.navigate(Routes.HEALTH) },
+                            )
+                        }
+                        composable(Routes.HISTORY) {
+                            HistoryScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
+                                onOpenSession = { navController.navigate(Routes.session(it)) },
+                            )
+                        }
+                        composable(Routes.SESSION_DETAIL) { entry ->
+                            SessionDetailScreen(
+                                container = container,
+                                sessionId = entry.arguments?.getString("id").orEmpty(),
+                                onBack = { navController.popBackStack() },
+                                onRepeat = startSession,
+                            )
+                        }
+                        composable(Routes.SETTINGS) {
+                            SettingsScreen(
+                                container = container,
+                                onOpenVoiceStudio = { navController.navigate(Routes.VOICE_STUDIO) },
+                                onOpenBackup = { navController.navigate(Routes.BACKUP) },
+                                onOpenHelp = { navController.navigate(Routes.HELP) },
+                                onOpenWelcome = { navController.navigate(Routes.WELCOME) },
+                                onOpenParser = { navController.navigate(Routes.PARSER) },
+                                onOpenHealth = { navController.navigate(Routes.HEALTH) },
+                            )
+                        }
+                        composable(Routes.VOICE_STUDIO) {
+                            VoiceStudioScreen(container = container, onBack = { navController.popBackStack() })
+                        }
+                        composable(Routes.BACKUP) {
+                            BackupScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
+                                onMessage = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
+                            )
+                        }
+                        composable(Routes.HELP) {
+                            HelpScreen(container = container, onBack = { navController.popBackStack() })
+                        }
+                        composable(Routes.HEALTH) {
+                            HealthScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
+                            )
+                        }
+                        composable(Routes.WELCOME) {
+                            WelcomeScreen(
+                                container = container,
+                                onDone = {
+                                    navController.navigate(Routes.HOME) {
+                                        popUpTo(Routes.HOME) { inclusive = true }
+                                    }
+                                },
+                                onRequestNotificationPermission = onRequestNotificationPermission,
+                            )
+                        }
                     }
-                    composable(Routes.PROGRESS) {
-                        ProgressScreen(
-                            container = container,
-                            onOpenHistory = { navController.navigate(Routes.HISTORY) },
-                            onOpenSession = { navController.navigate(Routes.session(it)) },
-                            onOpenWorkout = { navController.navigate(Routes.details(it)) },
-                            onOpenHealth = { navController.navigate(Routes.HEALTH) },
-                        )
-                    }
-                    composable(Routes.HISTORY) {
-                        HistoryScreen(
-                            container = container,
-                            onBack = { navController.popBackStack() },
-                            onOpenSession = { navController.navigate(Routes.session(it)) },
-                        )
-                    }
-                    composable(Routes.SESSION_DETAIL) { entry ->
-                        SessionDetailScreen(
-                            container = container,
-                            sessionId = entry.arguments?.getString("id").orEmpty(),
-                            onBack = { navController.popBackStack() },
-                            onRepeat = startSession,
-                        )
-                    }
-                    composable(Routes.SETTINGS) {
-                        SettingsScreen(
-                            container = container,
-                            onOpenVoiceStudio = { navController.navigate(Routes.VOICE_STUDIO) },
-                            onOpenBackup = { navController.navigate(Routes.BACKUP) },
-                            onOpenHelp = { navController.navigate(Routes.HELP) },
-                            onOpenWelcome = { navController.navigate(Routes.WELCOME) },
-                            onOpenParser = { navController.navigate(Routes.PARSER) },
-                            onOpenHealth = { navController.navigate(Routes.HEALTH) },
-                        )
-                    }
-                    composable(Routes.VOICE_STUDIO) {
-                        VoiceStudioScreen(container = container, onBack = { navController.popBackStack() })
-                    }
-                    composable(Routes.BACKUP) {
-                        BackupScreen(
-                            container = container,
-                            onBack = { navController.popBackStack() },
-                            onMessage = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
-                        )
-                    }
-                    composable(Routes.HELP) {
-                        HelpScreen(container = container, onBack = { navController.popBackStack() })
-                    }
-                    composable(Routes.HEALTH) {
-                        HealthScreen(
-                            container = container,
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
-                    composable(Routes.WELCOME) {
-                        WelcomeScreen(
-                            container = container,
-                            onDone = {
-                                navController.navigate(Routes.HOME) {
-                                    popUpTo(Routes.HOME) { inclusive = true }
-                                }
-                            },
-                            onRequestNotificationPermission = onRequestNotificationPermission,
-                        )
-                    }
+                }
+                if (onPrimaryDestination && !showSidebar && !showRail) {
+                    PulseFloatingNavBar(
+                        items = primaryDestinations,
+                        currentRoute = route,
+                        onSelect = select,
+                    )
                 }
             }
         }
     }
 }
 
+/** What the breadcrumb calls the current page. Static per route: no screen has to publish a title. */
+private fun routeTitle(route: String?): String = when (route) {
+    Routes.HOME -> "Today"
+    Routes.WORKOUTS -> "Workouts"
+    Routes.PROGRESS -> "Progress"
+    Routes.SETTINGS -> "Settings"
+    Routes.TEMPLATES -> "Templates"
+    Routes.CATEGORY -> "Category"
+    Routes.QUICK_BUILDER -> "Quick builder"
+    Routes.ADVANCED_BUILDER -> "Builder"
+    Routes.PARSER -> "Text import"
+    Routes.DETAILS -> "Workout"
+    Routes.HEALTH -> "Health"
+    Routes.SUMMARY -> "Session summary"
+    Routes.HISTORY -> "History"
+    Routes.SESSION_DETAIL -> "Session"
+    Routes.VOICE_STUDIO -> "Voice studio"
+    Routes.BACKUP -> "Backup"
+    Routes.HELP -> "Help"
+    else -> "Pulse"
+}
+
 /**
- * The mark at the head of the navigation rail.
+ * The section a pushed page belongs to, shown before the leaf so the path is always legible. On a
+ * top-level destination the section *is* the leaf, so the bar shows the product name as the root
+ * instead — which is also what keeps the breadcrumb and the page heading from saying the same thing
+ * twice.
+ */
+private fun routeParent(route: String?): String? = when (route) {
+    Routes.TEMPLATES, Routes.CATEGORY, Routes.DETAILS, Routes.PARSER,
+    Routes.QUICK_BUILDER, Routes.ADVANCED_BUILDER -> "Workouts"
+    Routes.HISTORY, Routes.SESSION_DETAIL -> "Progress"
+    Routes.VOICE_STUDIO, Routes.BACKUP, Routes.HELP -> "Settings"
+    Routes.HEALTH -> "Today"
+    else -> null
+}
+
+/**
+ * The shell's global bar: a breadcrumb on the left, the account controls on the right.
  *
- * It is the only place in the app that shows a logo, and it is the accent gradient — the same two
- * stops the primary action uses — so the brand, the action and the "you are here" pill are all one
- * gesture.
+ * It is mounted once, above the navigation graph, so the back affordance and the global controls are
+ * in the same place on all eighteen destinations — the shell knows the stack, a page only has to say
+ * what it is (see `PulsePageHeader`). The status bar inset belongs to this bar, which is why no
+ * screen ever has to reason about insets.
  */
 @Composable
-private fun PulseWordmark() {
+private fun ShellBreadcrumb(
+    title: String,
+    parent: String?,
+    showMark: Boolean,
+    isDark: Boolean,
+    onToggleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    PulseBreadcrumbBar(
+        title = title,
+        parent = parent,
+        leading = if (showMark) {
+            { PulseMark(size = 20.dp) }
+        } else {
+            null
+        },
+        actions = {
+            PulseIconButton(
+                icon = if (isDark) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                contentDescription = if (isDark) "Switch to light theme" else "Switch to dark theme",
+                onClick = onToggleTheme,
+            )
+            PulseIconButton(
+                icon = Icons.Filled.Settings,
+                contentDescription = "Settings",
+                onClick = onOpenSettings,
+            )
+        },
+    )
+}
+
+/** The mark: a small brand block. The only place the accent is allowed to be a solid square. */
+@Composable
+private fun PulseMark(size: androidx.compose.ui.unit.Dp) {
     val colors = LocalPulseColors.current
-    val dimens = LocalPulseDimens.current
     Box(
         modifier = Modifier
-            .size(44.dp)
-            .background(
-                Brush.linearGradient(listOf(colors.accent, colors.accentAlt)),
-                LocalPulseShapes.current.control,
-            ),
+            .size(size)
+            .clip(LocalPulseShapes.current.control)
+            .background(colors.accent),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = Icons.Filled.Bolt,
             contentDescription = null,
-            tint = colors.onAccentGradient,
-            modifier = Modifier.size(24.dp),
+            tint = colors.onBrand,
+            modifier = Modifier.size(size * 0.58f),
         )
     }
-    Text(
-        text = stringResource(R.string.app_name),
-        style = MaterialTheme.typography.labelSmall,
-        color = colors.textMuted,
-        modifier = Modifier.padding(top = dimens.xs),
-    )
+}
+
+/** The sidebar's head: the mark and the wordmark, on one 32 dp line. */
+@Composable
+private fun SidebarHeader() {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PulseMark(size = 24.dp)
+        Spacer(Modifier.width(dimens.s))
+        Column {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = PulseType.SectionLabel,
+                color = colors.textPrimary,
+                maxLines = 1,
+            )
+            Text(
+                text = "Interval coach",
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.textMuted,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+/**
+ * The appearance control in the sidebar footer. The Settings screen remains the place where the
+ * theme is *configured*; this is the shortcut every dashboard has for the one setting people change
+ * twice a day.
+ */
+@Composable
+private fun AppearanceControl(mode: ThemeMode, onSelect: (ThemeMode) -> Unit) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = dimens.s),
+        verticalArrangement = Arrangement.spacedBy(dimens.s),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = if (mode == ThemeMode.LIGHT) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                contentDescription = null,
+                tint = colors.textMuted,
+                modifier = Modifier.size(14.dp),
+            )
+            Spacer(Modifier.width(dimens.s))
+            Text(
+                text = "Appearance",
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.textMuted,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        PulseSegmented(
+            options = listOf(
+                ThemeMode.SYSTEM to "Auto",
+                ThemeMode.LIGHT to "Light",
+                ThemeMode.DARK to "Dark",
+            ),
+            selected = if (mode == ThemeMode.TRUE_BLACK) ThemeMode.DARK else mode,
+            onSelect = onSelect,
+        )
+    }
 }

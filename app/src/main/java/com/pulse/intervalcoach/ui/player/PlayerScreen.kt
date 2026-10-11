@@ -309,7 +309,7 @@ fun PlayerScreen(
                         color = accent,
                         trackColor = colors.track,
                         strokeWidth = 10.dp,
-                        gradient = true,
+                        showRemainder = true,
                         modifier = Modifier.size(minOf(available, preferred)),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {

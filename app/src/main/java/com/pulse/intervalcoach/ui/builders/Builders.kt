@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -52,16 +53,13 @@ import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.WorkoutType
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
+import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.PlanCodec
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.ui.components.CategoryPicker
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
-import com.pulse.intervalcoach.ui.components.PulseTone
-import com.pulse.intervalcoach.ui.components.PulseTextField
-import com.pulse.intervalcoach.ui.components.PulseScaffold
-import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
@@ -69,6 +67,10 @@ import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
+import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseTextField
+import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.TimelineBar
@@ -76,16 +78,14 @@ import com.pulse.intervalcoach.ui.components.ToggleRow
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.PulseType
+import java.io.File
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.util.UUID
-import androidx.compose.ui.res.stringResource
-import com.pulse.intervalcoach.R
 
 /**
  * Unfinished editor drafts.
@@ -219,12 +219,7 @@ fun QuickBuilderScreen(
     val plan = remember(state) { viewModel.buildPlan("preview") }
     val duration = remember(plan) { runCatching { TimelineExpander.expand(plan).knownMillis }.getOrDefault(0L) }
 
-    PulseScaffold(
-        title = stringResource(R.string.builder_quick_title),
-        subtitle = "Work · rest · rounds — the workout builds itself",
-        onBack = { if (state.dirty) showDiscard = true else onBack() },
-        backDescription = stringResource(R.string.back),
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -235,6 +230,14 @@ fun QuickBuilderScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = stringResource(R.string.builder_quick_title),
+                    description = "Work · rest · rounds — the workout builds itself",
+                    onBack = { if (state.dirty) showDiscard = true else onBack() },
+                )
+            }
+
             item {
                 PulseTextField(
                     value = state.name,
@@ -608,28 +611,7 @@ fun AdvancedBuilderScreen(
 
     val expanded = remember(state.plan) { runCatching { TimelineExpander.expand(state.plan) }.getOrNull() }
 
-    PulseScaffold(
-        title = if (workoutId == null) "New workout" else "Edit workout",
-        subtitle = "Order, cues and structure — undo anything",
-        onBack = { if (state.dirty) showDiscard = true else onBack() },
-        backDescription = stringResource(R.string.back),
-        actions = {
-                PulseIconButton(
-                    icon = Icons.Filled.Undo,
-                    contentDescription = stringResource(R.string.builder_undo),
-                    tooltip = stringResource(R.string.builder_undo),
-                    onClick = viewModel::undo,
-                    enabled = state.canUndo,
-                )
-                PulseIconButton(
-                    icon = Icons.Filled.Redo,
-                    contentDescription = stringResource(R.string.builder_redo),
-                    tooltip = stringResource(R.string.builder_redo),
-                    onClick = viewModel::redo,
-                    enabled = state.canRedo,
-                )
-            },
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -640,6 +622,30 @@ fun AdvancedBuilderScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = if (workoutId == null) "New workout" else "Edit workout",
+                    description = "Order, cues and structure — undo anything",
+                    onBack = { if (state.dirty) showDiscard = true else onBack() },
+                    trailing = {
+                        PulseIconButton(
+                            icon = Icons.Filled.Undo,
+                            contentDescription = stringResource(R.string.builder_undo),
+                            tooltip = stringResource(R.string.builder_undo),
+                            onClick = viewModel::undo,
+                            enabled = state.canUndo,
+                        )
+                        PulseIconButton(
+                            icon = Icons.Filled.Redo,
+                            contentDescription = stringResource(R.string.builder_redo),
+                            tooltip = stringResource(R.string.builder_redo),
+                            onClick = viewModel::redo,
+                            enabled = state.canRedo,
+                        )
+                    },
+                )
+            }
+
             item {
                 PulseTextField(
                     value = state.plan.name,
