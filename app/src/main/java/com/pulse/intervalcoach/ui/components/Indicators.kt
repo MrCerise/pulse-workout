@@ -43,10 +43,11 @@ import com.pulse.intervalcoach.ui.theme.TABULAR_FIGURES
 /**
  * Chips, badges, stat tiles and banners — the small pieces that carry state.
  *
- * Colour appears here and in the category tiles, and nowhere else in the chrome: a phase chip and a
- * category pill are the two places a hue is the message. Every chip is a *tinted* pill — hue for the
- * label, its pre-composited tint for the fill — rather than a saturated block, which keeps a screen
- * with twenty chips calm and keeps the measured contrast in `docs/CONTRAST.md` exactly true.
+ * Colour appears here and in the category tiles, and nowhere else in the chrome: a phase chip, a
+ * category pill and a status badge are the places a hue *is* the message. Every chip is a *tinted*
+ * pill — hue for the glyph, its pre-composited tint for the fill, a hairline to keep the edge crisp
+ * on a white card — rather than a saturated block, which keeps a screen with twenty chips calm and
+ * keeps the measured contrast in `docs/CONTRAST.md` exactly true.
  */
 
 /** Tone shared by [StatusBadge] and [InfoBanner]. */
@@ -68,13 +69,13 @@ fun PhaseChip(kind: PhaseKind, name: String?, modifier: Modifier = Modifier) {
         color = colors.phaseTint(kind),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.size(6.dp).background(accent, CircleShape))
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(5.dp))
             Text(
-                text = label.uppercase(),
+                text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = accent,
                 maxLines = 1,
@@ -95,7 +96,7 @@ fun NeutralChip(text: String, modifier: Modifier = Modifier, icon: ImageVector? 
         color = colors.neutralFill,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) {
@@ -103,9 +104,9 @@ fun NeutralChip(text: String, modifier: Modifier = Modifier, icon: ImageVector? 
                     imageVector = icon,
                     contentDescription = null,
                     tint = colors.textSecondary,
-                    modifier = Modifier.size(13.dp),
+                    modifier = Modifier.size(12.dp),
                 )
-                Spacer(Modifier.width(5.dp))
+                Spacer(Modifier.width(4.dp))
             }
             Text(
                 text = text,
@@ -140,17 +141,17 @@ fun CategoryChip(
         contentColor = hue,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = category.icon,
                 contentDescription = null,
                 tint = hue,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(13.dp),
             )
             if (showTitle) {
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(5.dp))
                 Text(
                     text = category.title,
                     style = MaterialTheme.typography.labelMedium,
@@ -181,7 +182,7 @@ fun StatusBadge(
         contentColor = colors.textSecondary,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.size(6.dp).background(toneAccent(colors, tone), CircleShape))
@@ -196,8 +197,11 @@ fun StatusBadge(
 }
 
 /**
- * A measured value. The label is a tracked uppercase caption; the value is monospaced and tabular so
- * a column of tiles scans like a table instead of a jumble of widths.
+ * A measured value — the dashboard's smallest unit of data.
+ *
+ * The label is a quiet 12 sp line, the value is a tabular figure one step larger than the body copy,
+ * and the caption explains it if asked. A row of tiles therefore reads like a table: same height,
+ * same baseline, no jitter when a number changes.
  *
  * [accent] and [icon] are optional and mutually compatible: a tile with neither is a number, a tile
  * with both is a headline.
@@ -216,12 +220,12 @@ fun StatTile(
     val valueColor = accent ?: colors.textPrimary
     Surface(
         modifier = modifier,
-        shape = LocalPulseShapes.current.panel,
-        color = colors.surfaceRaised,
+        shape = LocalPulseShapes.current.card,
+        color = colors.surface,
         border = BorderStroke(dimens.borderWidth, colors.border),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = dimens.l, vertical = dimens.m),
+            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.m),
             verticalArrangement = Arrangement.spacedBy(dimens.xs),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -230,13 +234,13 @@ fun StatTile(
                         imageVector = icon,
                         contentDescription = null,
                         tint = accent ?: colors.textMuted,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(14.dp),
                     )
                     Spacer(Modifier.width(dimens.xs))
                 }
                 Text(
-                    text = label.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
                     color = colors.textMuted,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -264,9 +268,9 @@ fun StatTile(
 }
 
 /**
- * An inline message: an explanation, a warning, a failed import. The tone lives in the glyph and the
- * container tint while the sentence itself stays in primary text, so a long explanation is never
- * rendered in a low-contrast accent colour.
+ * An inline message: an explanation, a warning, a failed import. The tone lives in the glyph, the
+ * container tint and the left edge while the sentence itself stays in primary text, so a long
+ * explanation is never rendered in a low-contrast accent colour.
  */
 @Composable
 fun InfoBanner(
@@ -281,7 +285,7 @@ fun InfoBanner(
     val accent = toneAccent(colors, tone)
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = LocalPulseShapes.current.panel,
+        shape = LocalPulseShapes.current.card,
         color = toneTint(colors, tone),
         border = BorderStroke(
             dimens.borderWidth,
@@ -289,7 +293,7 @@ fun InfoBanner(
         ),
     ) {
         Row(
-            modifier = Modifier.padding(dimens.l),
+            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.m),
             verticalAlignment = Alignment.Top,
         ) {
             if (icon != null) {
@@ -298,20 +302,20 @@ fun InfoBanner(
                     contentDescription = null,
                     tint = accent,
                     modifier = Modifier
-                        .padding(top = 2.dp)
-                        .size(18.dp),
+                        .padding(top = 1.dp)
+                        .size(16.dp),
                 )
-                Spacer(Modifier.width(dimens.m))
+                Spacer(Modifier.width(dimens.s))
             } else {
                 Box(
                     Modifier
-                        .padding(top = 7.dp)
+                        .padding(top = 6.dp)
                         .size(7.dp)
                         .background(accent, CircleShape),
                 )
-                Spacer(Modifier.width(dimens.l))
+                Spacer(Modifier.width(dimens.m))
             }
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(dimens.microGap)) {
                 if (title != null) {
                     Text(
                         text = title,
@@ -338,8 +342,8 @@ private fun toneAccent(colors: PulseColors, tone: PulseTone): Color = when (tone
 }
 
 private fun toneTint(colors: PulseColors, tone: PulseTone): Color = when (tone) {
-    PulseTone.NEUTRAL -> colors.surfaceRaised
-    PulseTone.INFO -> colors.accentTint
+    PulseTone.NEUTRAL -> colors.surfaceSunken
+    PulseTone.INFO -> colors.infoTint
     PulseTone.SUCCESS -> colors.successTint
     PulseTone.WARNING -> colors.warningTint
     PulseTone.DANGER -> colors.dangerTint
@@ -356,21 +360,76 @@ fun StatRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> U
     )
 }
 
-/** Shared padding for a pill's interior. Kept here so both pill components agree. */
-val pillPadding: PaddingValues
-    @Composable get() = PaddingValues(horizontal = LocalPulseDimens.current.m, vertical = 5.dp)
+    @Composable get() = PaddingValues(horizontal = LocalPulseDimens.current.s, vertical = 3.dp)
 
-/** Kept for call sites that build a numeric label by hand. */
-val chipNumberStyle = PulseType.NumericSmall.copy(fontFamily = PulseFonts.Mono, fontFeatureSettings = TABULAR_FIGURES)
+/**
+ * A label/value pair on one line — the smallest row of a dashboard table.
+ *
+ * Screens stack these inside one [PulseCard] with [PulseDivider]s between them instead of stacking
+ * five separate stat cards: the numbers still align in a column, and the page stops looking like a
+ * pile of boxes. The value is set in tabular figures, so a column of them stays flush.
+ */
+@Composable
+fun MetricRow(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color? = null,
+    icon: ImageVector? = null,
+    caption: String? = null,
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = dimens.metricRowHeight),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = colors.textMuted,
+                modifier = Modifier.size(15.dp),
+            )
+            Spacer(Modifier.width(dimens.s))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimens.microGap)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (caption != null) {
+                Text(
+                    text = caption,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        Spacer(Modifier.width(dimens.m))
+        Text(
+            text = value,
+            style = PulseType.NumericSmall.copy(fontFamily = PulseFonts.Numeric, fontFeatureSettings = TABULAR_FIGURES),
+            color = valueColor ?: colors.textPrimary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
 
 /**
  * The category picker: a grid of every registered category, in the registry's own order.
  *
- * It replaces what used to be a hard-coded list of enum constants in the builder. That list had to
- * be kept in step with the engine by hand, and it could not show an icon or a colour because neither
- * lived anywhere central. Now the picker is generated from [WorkoutCategories.all], shows each
- * category's glyph in its own hue, and states the chosen category's tagline underneath — so picking
- * a category in the builder and reading one in the library are visibly the same act.
+ * It is generated from [WorkoutCategories.all], shows each category's glyph in its own hue, and
+ * states the chosen category's tagline underneath — so picking a category in the builder and reading
+ * one in the library are visibly the same act.
  *
  * [enabledFor] lets a caller grey out categories the current builder cannot express yet.
  */
@@ -390,7 +449,7 @@ fun CategoryPicker(
             text = "Category",
             style = PulseType.SectionLabel,
             color = colors.textMuted,
-            modifier = Modifier.padding(start = dimens.s, bottom = dimens.s),
+            modifier = Modifier.padding(start = dimens.xs, bottom = dimens.s),
         )
         Column(verticalArrangement = Arrangement.spacedBy(dimens.chipGap)) {
             WorkoutCategories.all.chunked(2).forEach { row ->
@@ -407,12 +466,16 @@ fun CategoryPicker(
                             enabled = enabled,
                             modifier = Modifier
                                 .weight(1f)
-                                .heightIn(min = 60.dp),
-                            shape = shapes.panel,
+                                .heightIn(min = 48.dp),
+                            shape = shapes.card,
                             color = when {
                                 isSelected -> colors.categoryTint(category.hue)
-                                else -> colors.surfaceRaised
+                                else -> colors.surface
                             },
+                            border = BorderStroke(
+                                dimens.borderWidth,
+                                if (isSelected) hue.copy(alpha = 0.44f) else colors.border,
+                            ),
                             contentColor = if (enabled) hue else colors.textDisabled,
                         ) {
                             Row(
@@ -423,7 +486,7 @@ fun CategoryPicker(
                                     imageVector = category.icon,
                                     contentDescription = null,
                                     tint = if (enabled) hue else colors.textDisabled,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(Modifier.width(dimens.s))
                                 Text(
@@ -439,7 +502,7 @@ fun CategoryPicker(
                                         imageVector = Icons.Filled.Check,
                                         contentDescription = null,
                                         tint = hue,
-                                        modifier = Modifier.size(18.dp),
+                                        modifier = Modifier.size(16.dp),
                                     )
                                 }
                             }
@@ -458,7 +521,7 @@ fun CategoryPicker(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colors.categoryTint(selected.hue), shapes.chip)
+                    .background(colors.categoryTint(selected.hue), shapes.panel)
                     .padding(horizontal = dimens.m, vertical = dimens.s),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -466,7 +529,7 @@ fun CategoryPicker(
                     imageVector = selected.icon,
                     contentDescription = null,
                     tint = colors.categoryColor(selected.hue),
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(15.dp),
                 )
                 Spacer(Modifier.width(dimens.s))
                 Text(
