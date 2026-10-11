@@ -44,10 +44,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.DeepLinks
 import com.pulse.intervalcoach.R
@@ -99,7 +101,19 @@ object Routes {
     const val TEMPLATES = "templates"
     const val CATEGORY = "category/{key}"
     const val QUICK_BUILDER = "builder/quick"
-    const val ADVANCED_BUILDER = "builder/advanced"
+
+    /**
+     * The advanced builder, with the workout to edit as an optional query argument.
+     *
+     * `?workoutId={workoutId}` rather than a path segment because the same destination serves two
+     * jobs — "build a new workout" (no argument) and "edit this one" (the id) — and an optional
+     * argument is what lets one route express both. Without it the builder had no way to know which
+     * workout it was opened for, so *Edit* on a details screen always produced a new workout.
+     */
+    const val ADVANCED_BUILDER = "builder/advanced?workoutId={workoutId}"
+
+    /** The builder without its optional argument: where "new workout" navigates. */
+    private const val ADVANCED_BUILDER_PATH = "builder/advanced"
     const val PARSER = "parser"
     const val DETAILS = "workout/{id}"
     const val PLAYER = "player"
@@ -116,6 +130,38 @@ object Routes {
     fun details(id: String) = "workout/$id"
     fun session(id: String) = "session/$id"
     fun category(key: String) = "category/$key"
+
+    /** The builder for a new workout when [workoutId] is null, or the editor for that workout. */
+    fun advancedBuilder(workoutId: String?): String =
+        if (workoutId == null) {
+            ADVANCED_BUILDER_PATH
+        } else {
+            "$ADVANCED_BUILDER_PATH?workoutId=${escapeRouteArg(workoutId)}"
+        }
+}
+
+/**
+ * Percent-encodes what a URI query cannot carry.
+ *
+ * Ids are UUIDs and registry slugs in practice, so this is only a guard for a workout whose id
+ * arrived in a hand-edited import file — but an unescaped space or `&` in that id would otherwise
+ * split the route and silently drop the argument, which is precisely the "it opened a new workout"
+ * failure the argument exists to avoid.
+ */
+private fun escapeRouteArg(value: String): String {
+    return buildString {
+        value.toByteArray(Charsets.UTF_8).forEach { byte ->
+            val code = byte.toInt() and 0xFF
+            val char = code.toChar()
+            val unreserved = code in 0x30..0x39 || code in 0x41..0x5A || code in 0x61..0x7A ||
+                char == '-' || char == '_' || char == '.' || char == '~'
+            if (unreserved) {
+                append(char)
+            } else {
+                append('%').append(code.toString(16).uppercase().padStart(2, '0'))
+            }
+        }
+    }
 }
 
 private val primaryDestinations = listOf(
@@ -360,7 +406,8 @@ fun PulseAppRoot(
                                 onOpenWorkout = { navController.navigate(Routes.details(it)) },
                                 onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
                                 onQuickBuilder = { navController.navigate(Routes.QUICK_BUILDER) },
-                                onAdvancedBuilder = { navController.navigate(Routes.ADVANCED_BUILDER) },
+                                onAdvancedBuilder = { navController.navigate(Routes.advancedBuilder(null)) },
+                                onEdit = { navController.navigate(Routes.advancedBuilder(it)) },
                                 onParser = { navController.navigate(Routes.PARSER) },
                             )
                         }
@@ -386,7 +433,9 @@ fun PulseAppRoot(
                                 container = container,
                                 workoutId = entry.arguments?.getString("id").orEmpty(),
                                 onBack = { navController.popBackStack() },
-                                onEdit = { navController.navigate(Routes.ADVANCED_BUILDER) },
+                                // The id travels with the route, so the builder edits *this* workout
+                                // instead of opening a blank one that saves as a new entry.
+                                onEdit = { id -> navController.navigate(Routes.advancedBuilder(id)) },
                                 onStart = startSession,
                             )
                         }
@@ -402,14 +451,35 @@ fun PulseAppRoot(
                                 onSavedAndStart = startSession,
                             )
                         }
-                        composable(Routes.ADVANCED_BUILDER) {
+                        composable(
+                            route = Routes.ADVANCED_BUILDER,
+                            arguments = listOf(
+                                navArgument("workoutId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                    defaultValue = null
+                                },
+                            ),
+                        ) { entry ->
+                            val editingId = entry.arguments?.getString("workoutId")
                             AdvancedBuilderScreen(
                                 container = container,
-                                workoutId = null,
+                                workoutId = editingId,
                                 onBack = { navController.popBackStack() },
                                 onSaved = { id ->
-                                    navController.navigate(Routes.details(id)) {
-                                        popUpTo(Routes.ADVANCED_BUILDER) { inclusive = true }
+                                    // An edit belongs back on the details page it was opened from,
+                                    // which re-renders itself from the observed row — so that page is
+                                    // returned to rather than stacked a second time. A new workout has
+                                    // nowhere to go back to, so it opens its details instead.
+                                    val origin = navController.previousBackStackEntry
+                                    if (editingId != null && origin?.destination?.route == Routes.DETAILS &&
+                                        origin.arguments?.getString("id") == id
+                                    ) {
+                                        navController.popBackStack()
+                                    } else {
+                                        navController.navigate(Routes.details(id)) {
+                                            popUpTo(Routes.ADVANCED_BUILDER) { inclusive = true }
+                                        }
                                     }
                                 },
                             )

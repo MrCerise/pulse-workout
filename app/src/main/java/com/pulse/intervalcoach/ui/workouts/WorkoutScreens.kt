@@ -201,6 +201,8 @@ fun WorkoutLibraryScreen(
     onOpenTemplates: () -> Unit,
     onQuickBuilder: () -> Unit,
     onAdvancedBuilder: () -> Unit,
+    /** Opens the builder *for* an existing workout — the library's own route into editing. */
+    onEdit: (String) -> Unit,
     onParser: () -> Unit,
 ) {
     val viewModel: LibraryViewModel = viewModel(initializer = { LibraryViewModel(container) })
@@ -381,6 +383,7 @@ fun WorkoutLibraryScreen(
                                                 viewModel.plan(workout.id)?.let { container.sessionController.startWorkout(it) }
                                             }
                                         },
+                                        onEdit = { onEdit(workout.id) },
                                         onFavorite = { viewModel.setFavorite(workout.id, !workout.isFavorite) },
                                         onDuplicate = { viewModel.duplicate(workout.id) },
                                         onDelete = { pendingDelete = workout },
@@ -467,7 +470,9 @@ private fun WorkoutGridCard(
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .background(colors.categoryTint(category.hue), LocalPulseShapes.current.chip),
+                    // The same category tile the details hero draws, one size step down: a square,
+                    // because the grid card and the details page describe one workout the same way.
+                    .background(colors.categoryTint(category.hue), LocalPulseShapes.current.control),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -512,6 +517,7 @@ private fun WorkoutRow(
     workout: WorkoutSummary,
     onOpen: () -> Unit,
     onStart: () -> Unit,
+    onEdit: () -> Unit,
     onFavorite: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
@@ -562,6 +568,11 @@ private fun WorkoutRow(
                         modifier = Modifier.size(dimens.iconButtonSize),
                     )
                     PulseDropdown(expanded = menu, onDismissRequest = { menu = false }) {
+                        PulseDropdownItem(
+                            text = stringResource(R.string.action_edit),
+                            leadingIcon = Icons.Filled.Edit,
+                            onClick = { menu = false; onEdit() },
+                        )
                         PulseDropdownItem(
                             text = stringResource(R.string.action_duplicate),
                             leadingIcon = Icons.Filled.ContentCopy,

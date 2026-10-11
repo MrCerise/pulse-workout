@@ -126,17 +126,30 @@ class WorkoutRepository(
 
     suspend fun plan(id: String): WorkoutPlan? = workoutDao.byId(id)?.let { runCatching { PlanCodec.decode(it.planJson) }.getOrNull() }
 
-    suspend fun save(plan: WorkoutPlan, folderId: String? = null, tags: List<String> = emptyList()): String {
+    /**
+     * Inserts or updates the row for [plan] — the id is the identity, so saving a plan that already
+     * exists edits it instead of creating a copy.
+     *
+     * [folderId] and [tags] are the two parts of a workout that live in their own tables rather than
+     * in the plan JSON. `null` means "leave what is stored alone", which is what an edit from the
+     * builder wants; an explicit list (even an empty one) replaces the stored tags. Passing
+     * `emptyList()` by default used to clear a workout's tags on every save, which silently dropped
+     * it out of the library's tag search.
+     */
+    suspend fun save(plan: WorkoutPlan, folderId: String? = null, tags: List<String>? = null): String {
         val problems = Validation.validate(plan, EngineLimits())
         check(problems.isEmpty()) { problems.joinToString(" ") }
         val now = System.currentTimeMillis()
         val existing = workoutDao.byId(plan.id)
+        val revision = (existing?.revision ?: 0) + 1
+        // The encoded plan carries the same revision as the row, so a session snapshot taken before
+        // an edit can be recognised as an older version of the workout.
         val entity = WorkoutEntity(
             id = plan.id,
             name = plan.name,
             description = plan.description,
             type = plan.type.name,
-            planJson = PlanCodec.encode(plan),
+            planJson = PlanCodec.encode(plan.copy(revision = revision)),
             folderId = folderId ?: existing?.folderId,
             // Derived from the category registry rather than stored on the plan, so the icon a
             // workout shows can never disagree with the category it belongs to.
@@ -148,17 +161,19 @@ class WorkoutRepository(
             builtIn = existing?.builtIn ?: false,
             createdAt = existing?.createdAt ?: plan.createdAt.takeIf { it > 0 } ?: now,
             updatedAt = now,
-            revision = (existing?.revision ?: 0) + 1,
+            revision = revision,
             lastUsedAt = existing?.lastUsedAt,
             useCount = existing?.useCount ?: 0,
         )
         db.withTransaction {
             workoutDao.upsert(entity)
-            tagDao.clearLinks(plan.id)
-            tags.filter { it.isNotBlank() }.forEach { tagName ->
-                val tagId = tagIdFor(tagName)
-                tagDao.upsert(TagEntity(tagId, tagName.trim()))
-                tagDao.link(WorkoutTagCrossRef(plan.id, tagId))
+            if (tags != null) {
+                tagDao.clearLinks(plan.id)
+                tags.filter { it.isNotBlank() }.forEach { tagName ->
+                    val tagId = tagIdFor(tagName)
+                    tagDao.upsert(TagEntity(tagId, tagName.trim()))
+                    tagDao.link(WorkoutTagCrossRef(plan.id, tagId))
+                }
             }
         }
         return plan.id
@@ -173,7 +188,10 @@ class WorkoutRepository(
             isFavorite = false,
             revision = 1,
         )
-        save(copy, folderId = workoutDao.byId(source.id)?.folderId)
+        // A copy starts from the plan the user is looking at, so its own tags and the source's
+        // folder travel with it; everything else (favourites, use count, last used) deliberately does
+        // not, because a copy has not been run yet.
+        save(copy, folderId = workoutDao.byId(source.id)?.folderId, tags = copy.tags)
         return copy
     }
 

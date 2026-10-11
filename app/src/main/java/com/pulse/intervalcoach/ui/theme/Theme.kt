@@ -114,7 +114,10 @@ fun PulseTheme(
             colorScheme = colors.toMaterialScheme(),
             typography = pulseTypography(),
             shapes = Shapes(
-                extraSmall = shapes.chip,
+                // `extraSmall` is the smallest *structural* radius, not a pill: Material components
+                // that build their own shape (a text field's body, a menu item's highlight) read it,
+                // and pointing it at `shapes.chip` rendered every one of them as a capsule.
+                extraSmall = shapes.panel,
                 small = shapes.control,
                 medium = shapes.card,
                 large = shapes.sheet,

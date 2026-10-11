@@ -320,8 +320,14 @@ fun QuickBuilderScreen(
 // Advanced builder
 // ---------------------------------------------------------------------------------------------
 
-/** Immutable snapshot used for undo/redo. */
-data class BuilderSnapshot(val nodes: List<Node>, val name: String, val includeFinalRest: Boolean, val shuffle: Boolean)
+/**
+ * Immutable snapshot used for undo/redo.
+ *
+ * A snapshot is the *whole* plan rather than the four fields the builder happened to edit first:
+ * undoing an interval has to leave the name, category, description, equipment and creation date of
+ * the workout alone, or an edit that undoes one step quietly rewrites the rest of the workout.
+ */
+data class BuilderSnapshot(val plan: WorkoutPlan)
 
 class AdvancedBuilderViewModel(
     private val container: AppContainer,
@@ -349,16 +355,21 @@ class AdvancedBuilderViewModel(
     init {
         viewModelScope.launch {
             val existing = withContext(Dispatchers.IO) { drafts.load(draftId) }
+            // A draft id that is not the "new-…" sentinel *is* the workout being edited, so the id is
+            // re-stamped on whichever source wins: a draft written by an earlier session (or a row a
+            // restore re-created) can never end up saved as a brand-new workout with the wrong id.
+            val editingId = draftId.takeIf { !it.startsWith("new") }
             val source = existing
-                ?: (draftId.takeIf { !it.startsWith("new") }?.let { container.workouts.plan(it) })
+                ?: editingId?.let { container.workouts.plan(it) }
                 ?: WorkoutPlan(
-                    id = UUID.randomUUID().toString(),
-                    name = "New workout",
+                    id = editingId ?: UUID.randomUUID().toString(),
+                    name = if (editingId == null) "New workout" else "Restored workout",
                     nodes = listOf(defaultInterval()),
                     createdAt = System.currentTimeMillis(),
                     updatedAt = System.currentTimeMillis(),
                 )
-            _state.value = AdvancedState(plan = source, dirty = existing != null, loaded = true)
+            val plan = if (editingId == null) source else source.copy(id = editingId)
+            _state.value = AdvancedState(plan = plan, dirty = existing != null, loaded = true)
         }
     }
 
@@ -380,13 +391,19 @@ class AdvancedBuilderViewModel(
             canRedo = false,
             problems = Validation.validate(updated),
         )
-        viewModelScope.launch(Dispatchers.IO) { drafts.save(draftId, updated) }
+        persist()
+    }
+
+    /** Mirrors the current plan into the draft file, so a process kill never costs an edit. */
+    private fun persist() {
+        val plan = _state.value.plan
+        viewModelScope.launch(Dispatchers.IO) { drafts.save(draftId, plan) }
     }
 
     fun undo() {
         val previous = undoStack.removeLastOrNull() ?: return
         redoStack.addLast(_state.value.plan.toSnapshot())
-        val plan = previous.toPlan(_state.value.plan.id)
+        val plan = previous.plan
         _state.value = _state.value.copy(
             plan = plan,
             canUndo = undoStack.isNotEmpty(),
@@ -394,12 +411,13 @@ class AdvancedBuilderViewModel(
             problems = Validation.validate(plan),
             dirty = true,
         )
+        persist()
     }
 
     fun redo() {
         val next = redoStack.removeLastOrNull() ?: return
         undoStack.addLast(_state.value.plan.toSnapshot())
-        val plan = next.toPlan(_state.value.plan.id)
+        val plan = next.plan
         _state.value = _state.value.copy(
             plan = plan,
             canUndo = true,
@@ -407,6 +425,7 @@ class AdvancedBuilderViewModel(
             problems = Validation.validate(plan),
             dirty = true,
         )
+        persist()
     }
 
     fun rename(name: String) = mutate { it.copy(name = name) }
@@ -561,13 +580,19 @@ class AdvancedBuilderViewModel(
     }
 
     suspend fun save(): Result<WorkoutPlan> {
-        val plan = _state.value.plan.copy(createdAt = System.currentTimeMillis())
+        // The plan keeps its own `createdAt`: it is either the timestamp the workout was first
+        // stored under (an edit) or the one this session's new plan was built with. Overwriting it
+        // with "now" on every save is what made an edited workout look like it had been re-created.
+        val plan = _state.value.plan
         val problems = Validation.validate(plan)
         if (problems.isNotEmpty()) {
             _state.value = _state.value.copy(problems = problems)
             return Result.failure(IllegalArgumentException(problems.joinToString(" ")))
         }
         return runCatching {
+            // No `tags` argument on purpose: the builder edits a workout's structure, and a save that
+            // passed an explicit (empty) list would clear the tags the library filters and searches
+            // by. `null` tells the repository to leave the stored tags and folder alone.
             container.workouts.save(plan)
             withContext(Dispatchers.IO) { drafts.clear(draftId) }
             _state.value = _state.value.copy(dirty = false, savedId = plan.id)
@@ -579,14 +604,7 @@ class AdvancedBuilderViewModel(
         viewModelScope.launch(Dispatchers.IO) { drafts.clear(draftId) }
     }
 
-    private fun WorkoutPlan.toSnapshot() = BuilderSnapshot(nodes, name, includeFinalRest, shuffleEager)
-    private fun BuilderSnapshot.toPlan(id: String) = WorkoutPlan(
-        id = id,
-        name = name,
-        nodes = nodes,
-        includeFinalRest = includeFinalRest,
-        shuffleEager = shuffle,
-    )
+    private fun WorkoutPlan.toSnapshot() = BuilderSnapshot(this)
 }
 
 @Composable
