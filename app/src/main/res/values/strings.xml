@@ -306,7 +306,7 @@
     <string name="backup_created">Backup written to %1$s</string>
 
     <!-- Text parser -->
-    <string name="parser_title">Describe a workout</string>
+    <string name="parser_title">Workout description</string>
     <string name="parser_hint">6 rounds, 40 seconds work, 20 seconds rest, 1 minute warm-up</string>
     <string name="parser_parse">Preview</string>
     <string name="parser_preview_title">Parsed preview</string>

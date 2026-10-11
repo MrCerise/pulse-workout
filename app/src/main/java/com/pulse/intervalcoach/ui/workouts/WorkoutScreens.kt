@@ -263,7 +263,7 @@ fun WorkoutLibraryScreen(
                                 onClick = { showNewMenu = false; onAdvancedBuilder() },
                             )
                             PulseDropdownItem(
-                                text = "Describe in words",
+                                text = "Use text description",
                                 leadingIcon = Icons.Filled.Spellcheck,
                                 onClick = { showNewMenu = false; onParser() },
                             )

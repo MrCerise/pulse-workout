@@ -53,6 +53,7 @@ import com.pulse.intervalcoach.DeepLinks
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.ui.builders.AdvancedBuilderScreen
 import com.pulse.intervalcoach.ui.builders.QuickBuilderScreen
+import com.pulse.intervalcoach.ui.goals.GoalsScreen
 import com.pulse.intervalcoach.ui.components.PulseAppSidebar
 import com.pulse.intervalcoach.ui.components.PulseBreadcrumbBar
 import com.pulse.intervalcoach.ui.components.PulseFloatingNavBar
@@ -110,6 +111,7 @@ object Routes {
     const val HELP = "settings/help"
     const val HEALTH = "health"
     const val WELCOME = "welcome"
+    const val GOALS = "goals"
 
     fun details(id: String) = "workout/$id"
     fun session(id: String) = "session/$id"
@@ -345,6 +347,7 @@ fun PulseAppRoot(
                                 onQuickStart = { navController.navigate(Routes.QUICK_BUILDER) },
                                 onOpenProgress = { navController.navigate(Routes.PROGRESS) },
                                 onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
+                                onOpenGoals = { navController.navigate(Routes.GOALS) },
                                 onResumeSession = { navController.navigate(Routes.PLAYER) },
                                 onOpenHealth = { navController.navigate(Routes.HEALTH) },
                                 onOpenCategory = { navController.navigate(Routes.category(it.key)) },
@@ -446,6 +449,12 @@ fun PulseAppRoot(
                                         }
                                     }
                                 },
+                            )
+                        }
+                        composable(Routes.GOALS) {
+                            GoalsScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
                             )
                         }
                         composable(Routes.PROGRESS) {

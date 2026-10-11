@@ -232,6 +232,7 @@ fun HomeScreen(
     onQuickStart: () -> Unit,
     onOpenProgress: () -> Unit,
     onOpenTemplates: () -> Unit,
+    onOpenGoals: () -> Unit,
     onResumeSession: () -> Unit,
     onOpenHealth: () -> Unit,
     onOpenCategory: ((WorkoutCategory) -> Unit)? = null,
@@ -439,6 +440,7 @@ fun HomeScreen(
 
             // --- Weekly activity -----------------------------------------------------------------
             item { SectionHeader(text = "This week", actionLabel = "Progress", onAction = onOpenProgress) }
+            item { SectionHeader(text = "Goals", actionLabel = "Goals", onAction = onOpenGoals) }
             item {
                 PulseCard {
                     Column(Modifier.fillMaxWidth()) {
