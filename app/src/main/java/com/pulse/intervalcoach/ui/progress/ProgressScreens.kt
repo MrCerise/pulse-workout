@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -42,10 +42,10 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.DailyActivity
-import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.STATUS_COMPLETED
 import com.pulse.intervalcoach.data.STATUS_INTERRUPTED
 import com.pulse.intervalcoach.data.STATUS_STOPPED
+import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.db.ReminderEntity
 import com.pulse.intervalcoach.data.db.SessionEntity
 import com.pulse.intervalcoach.data.db.SessionEventEntity
@@ -58,25 +58,25 @@ import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
-import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
-import com.pulse.intervalcoach.ui.components.PulseTopBar
-import com.pulse.intervalcoach.ui.components.SectionHeader
+import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
+import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -158,10 +158,7 @@ fun ProgressScreen(
             .take(5)
     }
 
-    PulseScaffold(
-        title = "Progress",
-        subtitle = "Real numbers from your saved sessions",
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -172,6 +169,13 @@ fun ProgressScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = "Progress",
+                    description = "Real numbers from your saved sessions",
+                )
+            }
+
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                     StatTile("Streak", "${state.streak}d", accent = colors.success, modifier = Modifier.weight(1f))
@@ -464,12 +468,7 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
     val dimens = LocalPulseDimens.current
     val sessions by container.sessions.history.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    PulseScaffold(
-        title = stringResource(R.string.progress_history),
-        subtitle = "${sessions.size} recorded sessions",
-        onBack = onBack,
-        backDescription = stringResource(R.string.back),
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -480,6 +479,14 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.s),
         ) {
+            item {
+                PulsePageHeader(
+                    title = stringResource(R.string.progress_history),
+                    description = "${sessions.size} recorded sessions",
+                    onBack = onBack,
+                )
+            }
+
             if (sessions.isEmpty()) {
                 item {
                     EmptyState(
@@ -513,12 +520,7 @@ fun SessionDetailScreen(
     var confirmDelete by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    PulseScaffold(
-        title = stringResource(R.string.session_detail_title),
-        subtitle = session?.workoutName,
-        onBack = onBack,
-        backDescription = stringResource(R.string.back),
-    ) { padding ->
+    PulseScaffold { padding ->
         val current = session
         if (current == null) {
             Column(Modifier.padding(padding)) {
@@ -536,6 +538,14 @@ fun SessionDetailScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = stringResource(R.string.session_detail_title),
+                    description = session?.workoutName,
+                    onBack = onBack,
+                )
+            }
+
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                     Text(current.workoutName, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)

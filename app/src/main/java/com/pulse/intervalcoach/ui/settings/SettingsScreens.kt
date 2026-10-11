@@ -44,24 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.SoundCue
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.BuildConfig
-import com.pulse.intervalcoach.ui.components.ConfirmDialog
-import com.pulse.intervalcoach.ui.components.DurationStepper
-import com.pulse.intervalcoach.ui.components.InfoBanner
-import com.pulse.intervalcoach.ui.components.NeutralChip
-import com.pulse.intervalcoach.ui.components.NumberStepper
-import com.pulse.intervalcoach.ui.components.OptionRow
-import com.pulse.intervalcoach.ui.components.PrimaryActionButton
-import com.pulse.intervalcoach.ui.components.PulseCard
-import com.pulse.intervalcoach.ui.components.PulseSliderRow
-import com.pulse.intervalcoach.ui.components.PulseTone
-import com.pulse.intervalcoach.ui.components.PulseScaffold
-import com.pulse.intervalcoach.ui.components.PulseTopBar
-import com.pulse.intervalcoach.ui.components.SecondaryActionButton
-import com.pulse.intervalcoach.ui.components.SectionHeader
-import com.pulse.intervalcoach.ui.components.ToggleRow
-import com.pulse.intervalcoach.ui.theme.LocalPulseColors
-import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import com.pulse.intervalcoach.ui.theme.ThemeMode
+import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.audio.DuckPhase
 import com.pulse.intervalcoach.audio.SpeechAvailability
 import com.pulse.intervalcoach.data.AudioInterruptionBehavior
@@ -71,13 +54,31 @@ import com.pulse.intervalcoach.data.PlayerDensity
 import com.pulse.intervalcoach.data.VoiceVerbosity
 import com.pulse.intervalcoach.data.WeightUnit
 import com.pulse.intervalcoach.data.db.AudioAssetEntity
-import kotlinx.coroutines.launch
+import com.pulse.intervalcoach.ui.components.ConfirmDialog
+import com.pulse.intervalcoach.ui.components.DangerActionButton
+import com.pulse.intervalcoach.ui.components.DurationStepper
+import com.pulse.intervalcoach.ui.components.InfoBanner
+import com.pulse.intervalcoach.ui.components.NeutralChip
+import com.pulse.intervalcoach.ui.components.NumberStepper
+import com.pulse.intervalcoach.ui.components.OptionRow
+import com.pulse.intervalcoach.ui.components.PrimaryActionButton
+import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
+import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseSliderRow
+import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.SecondaryActionButton
+import com.pulse.intervalcoach.ui.components.SectionHeader
+import com.pulse.intervalcoach.ui.components.ToggleRow
+import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.ThemeMode
 import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import com.pulse.intervalcoach.R
+import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------------------------------------
 // Settings
@@ -101,10 +102,7 @@ fun SettingsScreen(
     var confirmDeleteSessions by remember { mutableStateOf(false) }
     val current = prefs
 
-    PulseScaffold(
-        title = stringResource(R.string.nav_settings),
-        subtitle = "Everything on this screen applies instantly",
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -115,6 +113,13 @@ fun SettingsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = stringResource(R.string.nav_settings),
+                    description = "Everything on this screen applies instantly",
+                )
+            }
+
             if (current == null) return@LazyColumn
 
             // --- Health sync (the real thing now) ---
@@ -270,7 +275,7 @@ fun SettingsScreen(
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         SecondaryActionButton("Import / export & backups", onOpenBackup, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        SecondaryActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
+                        DangerActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         ToggleRow(
                             label = stringResource(R.string.settings_backup_auto),
@@ -415,12 +420,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
         }
     }
 
-    PulseScaffold(
-        title = "Voice & audio",
-        subtitle = "Speech, cue tones and music ducking",
-        onBack = onBack,
-        backDescription = stringResource(R.string.back),
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -431,6 +431,14 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
             ),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = "Voice & audio",
+                    description = "Speech, cue tones and music ducking",
+                    onBack = onBack,
+                )
+            }
+
             if (current == null) return@LazyColumn
 
             item { SectionHeader("Speech engine") }
@@ -841,12 +849,7 @@ fun BackupScreen(
         }
     }
 
-    PulseScaffold(
-        title = "Backups & import",
-        subtitle = "Nothing is written until you confirm",
-        onBack = onBack,
-        backDescription = stringResource(R.string.back),
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -857,6 +860,14 @@ fun BackupScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = "Backups & import",
+                    description = "Nothing is written until you confirm",
+                    onBack = onBack,
+                )
+            }
+
             item { SectionHeader("Export") }
             item {
                 PulseCard {
@@ -994,12 +1005,7 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
     val colors = LocalPulseColors.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
 
-    PulseScaffold(
-        title = stringResource(R.string.help_title),
-        subtitle = "Voice setup, accessibility and data",
-        onBack = onBack,
-        backDescription = stringResource(R.string.back),
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -1010,6 +1016,14 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
             ),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = stringResource(R.string.help_title),
+                    description = "Voice setup, accessibility and data",
+                    onBack = onBack,
+                )
+            }
+
             item { SectionHeader("Voice setup") }
             item {
                 PulseCard {

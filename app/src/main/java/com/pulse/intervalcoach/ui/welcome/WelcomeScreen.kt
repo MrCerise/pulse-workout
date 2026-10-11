@@ -13,7 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -31,11 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.SoundCue
 import com.pulse.engine.formatDuration
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material3.Icon
-import androidx.compose.ui.graphics.Brush
-import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.StarterWorkouts
@@ -43,9 +43,12 @@ import com.pulse.intervalcoach.ui.components.GhostActionButton
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.ProgressRing
+import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulsePanel
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import com.pulse.intervalcoach.ui.theme.ThemeMode
 import kotlinx.coroutines.launch
@@ -54,8 +57,10 @@ import kotlinx.coroutines.launch
  * Short, skippable welcome flow: theme choice, an optional voice sample, and a ready-to-start
  * example workout. Nothing here is mandatory — "Skip" finishes onboarding from any step.
  *
- * The step indicator is three short bars rather than dots, because a bar can encode position and
- * progress at a glance and matches the timeline language used in the player.
+ * The screen is deliberately quiet: one column on the canvas, no chrome, the accent spent on a single
+ * brand block and the step indicator. The step indicator is three bars rather than dots, because a
+ * bar can encode position and progress at a glance and matches the timeline language used in the
+ * player.
  */
 @Composable
 fun WelcomeScreen(
@@ -66,6 +71,7 @@ fun WelcomeScreen(
     var step by remember { mutableIntStateOf(0) }
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val shapes = LocalPulseShapes.current
     val scope = rememberCoroutineScope()
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val example = remember { StarterWorkouts.templates.first { it.plan.name == "HIIT Starter" } }
@@ -76,33 +82,36 @@ fun WelcomeScreen(
             .fillMaxSize()
             .background(colors.background)
             .safeDrawingPadding()
-            .padding(dimens.xl),
+            .padding(horizontal = dimens.xl, vertical = dimens.l),
     ) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+        ) {
             when (step) {
                 0 -> {
-                    // A gradient mark rather than a word: onboarding is the one screen where the
-                    // app introduces itself, and the two accent stops are the whole identity.
+                    // The brand block: one flat accent square. The identity of the app is the mark
+                    // plus the wordmark, not a gradient.
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
-                            .background(
-                                Brush.linearGradient(listOf(colors.accent, colors.accentAlt)),
-                                LocalPulseShapes.current.control,
-                            ),
+                            .size(48.dp)
+                            .clip(shapes.control)
+                            .background(colors.accent),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Bolt,
                             contentDescription = null,
-                            tint = colors.onAccentGradient,
-                            modifier = Modifier.size(30.dp),
+                            tint = colors.onAccent,
+                            modifier = Modifier.size(26.dp),
                         )
                     }
-                    Spacer(Modifier.height(dimens.l))
+                    Spacer(Modifier.height(dimens.xl))
                     Text(
                         text = stringResource(R.string.app_tagline),
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.displaySmall,
                         color = colors.textPrimary,
                     )
                     Spacer(Modifier.height(dimens.m))
@@ -141,21 +150,35 @@ fun WelcomeScreen(
                     Spacer(Modifier.height(dimens.xl))
                     ProgressRing(
                         progress = 0.35f,
-                        color = colors.work,
+                        color = colors.accent,
                         trackColor = colors.track,
-                        strokeWidth = 8.dp,
-                        gradient = true,
+                        strokeWidth = 6.dp,
                         modifier = Modifier
                             .size(168.dp)
                             .align(Alignment.CenterHorizontally),
                     ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "20",
+                                style = PulseType.NumericDisplay,
+                                color = colors.textPrimary,
+                            )
+                            Text(
+                                text = "work",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.textMuted,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(dimens.l))
+                    PulsePanel {
                         Text(
-                            text = "20",
-                            style = PulseType.NumericDisplay,
-                            color = colors.textPrimary,
+                            text = "Round one. Work, twenty seconds. Three, two, one, go.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.textSecondary,
                         )
                     }
-                    Spacer(Modifier.height(dimens.xl))
+                    Spacer(Modifier.height(dimens.l))
                     SecondaryActionButton(
                         text = "Play voice sample",
                         onClick = {
@@ -182,13 +205,32 @@ fun WelcomeScreen(
                     )
                     Spacer(Modifier.height(dimens.s))
                     Text(
-                        text = "${example.plan.name} · ${formatDuration(exampleDuration)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = colors.textPrimary,
+                        text = "A ready-made session is saved to your library, so the first workout is one tap away.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textSecondary,
                     )
-                    Spacer(Modifier.height(6.dp))
-                    Text(example.plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-                    Spacer(Modifier.height(dimens.xl))
+                    Spacer(Modifier.height(dimens.l))
+                    PulseCard {
+                        Column(verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
+                            Text(
+                                text = example.plan.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.textPrimary,
+                            )
+                            Text(
+                                text = formatDuration(exampleDuration),
+                                style = PulseType.NumericSmall,
+                                color = colors.textMuted,
+                            )
+                            Spacer(Modifier.height(dimens.xs))
+                            Text(
+                                text = example.plan.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.textSecondary,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(dimens.l))
                     SecondaryActionButton(
                         text = stringResource(R.string.welcome_notifications_allow),
                         onClick = onRequestNotificationPermission,
@@ -202,21 +244,27 @@ fun WelcomeScreen(
                     )
                 }
             }
+            Spacer(Modifier.height(dimens.massive))
         }
 
-        Column(Modifier.align(Alignment.BottomCenter), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.semantics { contentDescription = "Step ${step + 1} of 3" },
             ) {
                 repeat(3) { index ->
                     Box(
                         Modifier
-                            .size(width = if (index == step) 32.dp else 10.dp, height = 10.dp)
-                            .background(
-                                color = if (index <= step) colors.accent else colors.track,
-                                shape = LocalPulseShapes.current.chip,
-                            ),
+                            .size(
+                                width = if (index == step) dimens.xl else dimens.s,
+                                height = dimens.xs,
+                            )
+                            .clip(shapes.chip)
+                            .background(if (index <= step) colors.accent else colors.track),
                     )
                 }
             }
@@ -240,7 +288,6 @@ fun WelcomeScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.width(dimens.s))
             GhostActionButton(
                 text = stringResource(R.string.welcome_skip),
                 onClick = {

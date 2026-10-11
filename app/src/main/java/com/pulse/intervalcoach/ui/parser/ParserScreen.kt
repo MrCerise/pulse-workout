@@ -32,12 +32,14 @@ import com.pulse.intervalcoach.parser.WorkoutTextParser
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
+import com.pulse.intervalcoach.ui.components.PulseDivider
+import com.pulse.intervalcoach.ui.components.PulsePanel
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseListRow
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
-import com.pulse.intervalcoach.ui.components.PulseTopBar
-import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
@@ -68,12 +70,7 @@ fun ParserScreen(
     val parsed = result?.plan
     val expanded = remember(parsed) { parsed?.let { runCatching { TimelineExpander.expand(it) }.getOrNull() } }
 
-    PulseScaffold(
-        title = stringResource(R.string.parser_title),
-        subtitle = "Describe it in words, preview exactly what was matched",
-        onBack = onBack,
-        backDescription = stringResource(R.string.back),
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -84,6 +81,12 @@ fun ParserScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = stringResource(R.string.parser_title),
+                    description = "Describe it in words — the preview shows exactly what was matched.",
+                )
+            }
             item {
                 PulseTextField(
                     value = text,
@@ -124,10 +127,15 @@ fun ParserScreen(
             }
 
             if (parsed != null && expanded != null) {
-                item { SectionHeader("Parsed preview") }
                 item {
                     PulseCard {
                         Column {
+                            Text(
+                                text = "Parsed preview",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colors.textMuted,
+                            )
+                            Spacer(Modifier.height(dimens.xs))
                             Text(
                                 text = expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}",
                                 style = PulseType.NumericLarge,
@@ -159,38 +167,25 @@ fun ParserScreen(
                 }
                 item {
                     // A plain Column keeps this preview inside the scrolling list (no nested scroll).
-                    Column {
-                        expanded.steps.take(12).forEach { step ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = dimens.s),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
-                                    Text(
-                                        text = step.name,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = colors.textPrimary,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                    Text(
-                                        text = if (step.isIndefinite) "manual" else formatDuration(step.durationMillis),
-                                        style = PulseType.NumericSmall,
-                                        color = colors.textMuted,
-                                    )
-                                }
-                                Spacer(Modifier.width(dimens.s))
-                                PhaseChip(kind = step.kind, name = null)
+                    PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.xs)) {
+                        Column {
+                            expanded.steps.take(12).forEachIndexed { index, step ->
+                                PulseListRow(
+                                    title = step.name,
+                                    subtitle = if (step.isIndefinite) "manual" else formatDuration(step.durationMillis),
+                                    onClick = null,
+                                    trailing = { PhaseChip(kind = step.kind, name = null) },
+                                )
+                                if (index != expanded.steps.take(12).lastIndex) PulseDivider()
                             }
-                        }
-                        if (expanded.steps.size > 12) {
-                            Text(
-                                text = "+ ${expanded.steps.size - 12} more intervals",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textMuted,
-                            )
+                            if (expanded.steps.size > 12) {
+                                Text(
+                                    text = "+ ${expanded.steps.size - 12} more intervals",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.textMuted,
+                                    modifier = Modifier.padding(vertical = dimens.m),
+                                )
+                            }
                         }
                     }
                 }
@@ -224,13 +219,15 @@ fun ParserScreen(
 
             if (result == null) {
                 item {
-                    Text(
-                        text = "Supported patterns: \u201C6 rounds\u201D, \u201C40 seconds work\u201D, \u201C20 seconds rest\u201D, \u201C1 minute warm-up\u201D, " +
-                            "\u201Ccool down 3 minutes\u201D, \u201Cget ready 10 seconds\u201D, \u201Ctabata\u201D, \u201Cemom 10 minutes\u201D, \u201Camrap 12 minutes\u201D, " +
-                            "plus durations like \u201C90 seconds\u201D, \u201C1:30\u201D or \u201C2m\u201D.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textMuted,
-                    )
+                    PulsePanel {
+                        Text(
+                            text = "Supported patterns: \u201C6 rounds\u201D, \u201C40 seconds work\u201D, \u201C20 seconds rest\u201D, \u201C1 minute warm-up\u201D, " +
+                                "\u201Ccool down 3 minutes\u201D, \u201Cget ready 10 seconds\u201D, \u201Ctabata\u201D, \u201Cemom 10 minutes\u201D, \u201Camrap 12 minutes\u201D, " +
+                                "plus durations like \u201C90 seconds\u201D, \u201C1:30\u201D or \u201C2m\u201D.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
+                        )
+                    }
                 }
             }
         }

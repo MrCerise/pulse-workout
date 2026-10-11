@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -33,7 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -59,9 +60,13 @@ import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.LoadingBox
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
+import com.pulse.intervalcoach.ui.components.ProgressBar
 import com.pulse.intervalcoach.ui.components.ProgressRing
 import com.pulse.intervalcoach.ui.components.PulseCard
-import com.pulse.intervalcoach.ui.components.PulseGradientCard
+import com.pulse.intervalcoach.ui.components.PulseDivider
+import com.pulse.intervalcoach.ui.components.PulseHeroCard
+import com.pulse.intervalcoach.ui.components.PulseListRow
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
@@ -70,17 +75,17 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -201,19 +206,23 @@ val homeStartableCategories: List<WorkoutCategory>
 private const val WEEKLY_GOAL_MILLIS = 150L * 60L * 1000L // WHO 150 min/week guideline
 
 /**
- * Today.
+ * Today — the dashboard's overview page.
  *
- * The screen answers one question — "what do I do right now?" — so it is ordered by urgency and
- * every section is a decision rather than a report:
+ * The page answers one question — "what do I do right now?" — so it is ordered by urgency and every
+ * section is a decision rather than a report:
  *
- * 1. a **hero** with the greeting, the week's progress and the one button that starts something;
- * 2. a **live session** card when a workout is running;
- * 3. a **category rail**, because most people know the *kind* of session they want before they know
+ * 1. a **page intro** that names the page and dates it;
+ * 2. a **hero panel** (ink in both themes) with the week against the 150-minute guideline and the
+ *    one primary action on the page;
+ * 3. a **live session** row when a workout is running;
+ * 4. a **category rail**, because most people know the *kind* of session they want before they know
  *    its name;
- * 4. **quick start** with the four presets and the custom work/rest/rounds steppers;
- * 5. the week's chart, health, favourites, what is planned next and what you did last.
+ * 5. **quick start** with the four presets and the custom work/rest/rounds steppers;
+ * 6. the week's chart, health, favourites and a **table-like recent list**.
  *
- * Every number on it is a recorded one; nothing is estimated.
+ * Density is deliberate: rows are 56 dp, sections are 12 dp apart, and a list of what you did last
+ * week fits in one screen without a scroll. Every number on it is a recorded one; nothing is
+ * estimated.
  */
 @Composable
 fun HomeScreen(
@@ -244,17 +253,26 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(padding)
-                .statusBarsPadding(),
+                .padding(padding),
             contentPadding = PaddingValues(
                 start = dimens.pagePadding,
                 end = dimens.pagePadding,
                 top = dimens.s,
-                bottom = dimens.xxl,
+                bottom = dimens.huge,
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
-            // --- Hero ---------------------------------------------------------------------------
+            // --- Page heading -------------------------------------------------------------------
+            item {
+                PulsePageHeader(
+                    title = greeting(),
+                    description = LocalDate.now()
+                        .format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())) +
+                        weekSummarySuffix(state.weekSessions, state.weekMillis),
+                )
+            }
+
+            // --- Hero ----------------------------------------------------------------------------
             item {
                 TodayHero(
                     weekMillis = state.weekMillis,
@@ -263,12 +281,12 @@ fun HomeScreen(
                 )
             }
 
-            // --- Live session -------------------------------------------------------------------
+            // --- Live session --------------------------------------------------------------------
             if (activeSession != null) {
                 item {
                     PulseCard(onClick = onResumeSession) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            HeroIconTile(icon = Icons.Filled.PlayArrow, tint = colors.accent, container = colors.accentTint)
+                            IconTile(icon = Icons.Filled.PlayArrow, tint = colors.accent, container = colors.accentTint)
                             Spacer(Modifier.width(dimens.m))
                             Column(
                                 Modifier.weight(1f),
@@ -300,7 +318,7 @@ fun HomeScreen(
             item {
                 SectionHeader(
                     text = "Start by category",
-                    actionLabel = if (onOpenLibrary != null) "All" else null,
+                    actionLabel = if (onOpenLibrary != null) "All workouts" else null,
                     onAction = onOpenLibrary,
                 )
             }
@@ -327,7 +345,7 @@ fun HomeScreen(
                 PulseCard {
                     Column(Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            HeroIconTile(icon = Icons.Filled.Bolt, tint = colors.accent, container = colors.accentTint)
+                            IconTile(icon = Icons.Filled.Bolt, tint = colors.accent, container = colors.accentTint)
                             Spacer(Modifier.width(dimens.m))
                             Column(Modifier.weight(1f)) {
                                 Text(
@@ -372,8 +390,8 @@ fun HomeScreen(
                         }
 
                         Spacer(Modifier.height(dimens.l))
-                        SectionHeader(text = "Custom · ${formatDuration(quickTotal(quick))}")
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        SectionHeader(text = "Custom", trailing = formatDuration(quickTotal(quick)))
+                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
                             DurationStepper(
                                 label = "Work",
                                 millis = quick.work,
@@ -387,8 +405,8 @@ fun HomeScreen(
                                 modifier = Modifier.weight(1f),
                             )
                         }
-                        Spacer(Modifier.height(dimens.s))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        Spacer(Modifier.height(dimens.m))
+                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
                             NumberStepper(
                                 label = "Rounds",
                                 value = quick.rounds,
@@ -402,7 +420,7 @@ fun HomeScreen(
                                 modifier = Modifier.weight(1f),
                             )
                         }
-                        Spacer(Modifier.height(dimens.m))
+                        Spacer(Modifier.height(dimens.l))
                         PrimaryActionButton(
                             text = "Start now",
                             onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
@@ -427,11 +445,10 @@ fun HomeScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             ProgressRing(
                                 progress = (state.weekMillis.toFloat() / WEEKLY_GOAL_MILLIS).coerceIn(0f, 1f),
-                                color = colors.work,
+                                color = colors.accent,
                                 trackColor = colors.track,
-                                strokeWidth = 7.dp,
-                                gradient = true,
-                                modifier = Modifier.size(84.dp),
+                                strokeWidth = 6.dp,
+                                modifier = Modifier.size(72.dp),
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
@@ -449,7 +466,7 @@ fun HomeScreen(
                             Spacer(Modifier.width(dimens.l))
                             Column(
                                 Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(dimens.microGap),
+                                verticalArrangement = Arrangement.spacedBy(dimens.xs),
                             ) {
                                 Text(
                                     text = "${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}",
@@ -457,9 +474,14 @@ fun HomeScreen(
                                     color = colors.textPrimary,
                                 )
                                 Text(
-                                    text = "${formatDuration(state.weekMillis)} of the 150 min goal",
+                                    text = "of the 150 min weekly guideline",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.textMuted,
+                                )
+                                Spacer(Modifier.height(dimens.xs))
+                                ProgressBar(
+                                    progress = state.weekMillis.toFloat() / WEEKLY_GOAL_MILLIS,
+                                    height = 4.dp,
                                 )
                             }
                         }
@@ -471,8 +493,9 @@ fun HomeScreen(
                                     value = it.activeMillis,
                                 )
                             },
-                            height = dimens.chartHeight - 40.dp,
+                            height = dimens.chartHeight - 48.dp,
                             emptyLabel = "No sessions recorded this week yet.",
+                            color = colors.accent,
                         )
                     }
                 }
@@ -515,71 +538,46 @@ fun HomeScreen(
                 }
             }
 
-            // --- Next planned ----------------------------------------------------------------------
-            state.nextPlanned?.let { planned ->
-                item { SectionHeader("Next planned") }
+            // --- Next planned & recent: one table, two sections ------------------------------------
+            if (state.nextPlanned != null || state.recent.isNotEmpty()) {
+                item { SectionHeader("Recent activity", actionLabel = "History", onAction = onOpenProgress) }
                 item {
-                    PulseCard(onClick = { onOpenWorkout(planned.reminder.workoutId) }) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            HeroIconTile(
-                                icon = Icons.Filled.Schedule,
-                                tint = colors.prepare,
-                                container = colors.warningTint,
-                            )
-                            Spacer(Modifier.width(dimens.m))
-                            Column(
-                                Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(dimens.microGap),
-                            ) {
-                                Text(
-                                    text = planned.workoutName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.textPrimary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                    PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.xs)) {
+                        Column(Modifier.fillMaxWidth()) {
+                            state.nextPlanned?.let { planned ->
+                                PulseListRow(
+                                    title = planned.workoutName,
+                                    subtitle = formatPlanned(planned.reminder.scheduledAt),
+                                    leadingIcon = Icons.Filled.Schedule,
+                                    leadingTint = colors.prepare,
+                                    leadingContainer = colors.warningTint,
+                                    onClick = { onOpenWorkout(planned.reminder.workoutId) },
+                                    trailing = {
+                                        Icon(
+                                            Icons.Filled.ChevronRight,
+                                            contentDescription = null,
+                                            tint = colors.textMuted,
+                                        )
+                                    },
                                 )
-                                Text(
-                                    text = formatPlanned(planned.reminder.scheduledAt),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
-                                )
+                                if (state.recent.isNotEmpty()) PulseDivider()
                             }
-                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
-                        }
-                    }
-                }
-            }
-
-            // --- Recent ----------------------------------------------------------------------------
-            if (state.recent.isNotEmpty()) {
-                item { SectionHeader("Recent") }
-                items(state.recent, key = { it.id }) { workout ->
-                    PulseCard(onClick = { onOpenWorkout(workout.id) }) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CategoryChip(
-                                category = workout.categoryOrCustom(),
-                                showTitle = false,
-                            )
-                            Spacer(Modifier.width(dimens.m))
-                            Column(
-                                Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(dimens.microGap),
-                            ) {
-                                Text(
-                                    text = workout.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.textPrimary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    text = "${workout.intervalCount} intervals · " +
+                            state.recent.forEachIndexed { index, workout ->
+                                val category = workout.categoryOrCustom()
+                                PulseListRow(
+                                    title = workout.name,
+                                    subtitle = "${workout.intervalCount} intervals · " +
                                         (if (workout.hasOpenEnded) "open-ended" else formatDuration(workout.knownDurationMillis)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
+                                    leadingIcon = category.icon,
+                                    leadingTint = colors.categoryColor(category.hue),
+                                    leadingContainer = colors.categoryTint(category.hue),
+                                    onClick = { onOpenWorkout(workout.id) },
+                                    trailing = {
+                                        CategoryChip(category = category, showTitle = false)
+                                    },
                                 )
+                                if (index != state.recent.lastIndex) PulseDivider()
                             }
-                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
                         }
                     }
                 }
@@ -591,13 +589,16 @@ fun HomeScreen(
 
             if (state.favorites.isEmpty() && state.recent.isEmpty() && !state.loading) {
                 item {
-                    EmptyState(
-                        title = "Nothing here yet",
-                        body = "Star a workout to pin it here, or press Start on Quick start above. Your finished sessions will appear once you complete one.",
-                        icon = Icons.Filled.FitnessCenter,
-                        actionLabel = "Browse templates",
-                        onAction = onOpenTemplates,
-                    )
+                    PulseCard {
+                        EmptyState(
+                            title = "Nothing here yet",
+                            body = "Star a workout to pin it here, or press Start on Quick start above. " +
+                                "Your finished sessions will appear once you complete one.",
+                            icon = Icons.Filled.FitnessCenter,
+                            actionLabel = "Browse templates",
+                            onAction = onOpenTemplates,
+                        )
+                    }
                 }
             }
         }
@@ -605,11 +606,11 @@ fun HomeScreen(
 }
 
 /**
- * The gradient hero: the greeting, the week's progress against the 150-minute guideline, and the one
- * button on the screen that starts a session.
+ * The hero: the week against the 150-minute guideline, on an ink panel.
  *
- * It is the only place the accent gradient is used at this scale, which is deliberate — on a screen
- * with a dozen cards, the hero is the one that should be impossible to miss.
+ * It is deliberately dark in both themes — the one panel on the page that is not a card — so the
+ * single primary action sits on a surface nothing else can imitate. No gradient, no glow: ink, a
+ * hairline, and the accent used exactly once.
  */
 @Composable
 private fun TodayHero(
@@ -619,84 +620,55 @@ private fun TodayHero(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    PulseGradientCard {
+    PulseHeroCard {
         Column(Modifier.fillMaxWidth()) {
-            Text(
-                text = greeting(),
-                style = MaterialTheme.typography.headlineLarge,
-                color = colors.onAccentGradient,
-            )
-            Spacer(Modifier.height(dimens.microGap))
-            Text(
-                text = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.onAccentGradient.copy(alpha = 0.82f),
-            )
-            Spacer(Modifier.height(dimens.l))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "This week",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.heroMuted,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = if (weekSessions == 0) "Not started" else "$weekSessions session${if (weekSessions == 1) "" else "s"}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.heroMuted,
+                )
+            }
+            Spacer(Modifier.height(dimens.m))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = "${(weekMillis / 60000L).toInt()}",
                     style = PulseType.NumericLarge,
-                    color = colors.onAccentGradient,
+                    color = colors.heroText,
                 )
-                Spacer(Modifier.width(dimens.xs))
+                Spacer(Modifier.width(dimens.s))
                 Text(
-                    text = "/ 150 min this week",
+                    text = "of 150 active minutes",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = colors.onAccentGradient.copy(alpha = 0.82f),
-                    modifier = Modifier.padding(bottom = 4.dp),
+                    color = colors.heroMuted,
+                    modifier = Modifier.padding(bottom = dimens.xs),
                 )
             }
-            Spacer(Modifier.height(dimens.s))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(dimens.barHeightCompact)
-                    .background(
-                        colors.onAccentGradient.copy(alpha = 0.28f),
-                        LocalPulseShapes.current.chip,
-                    ),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth((weekMillis.toFloat() / WEEKLY_GOAL_MILLIS).coerceIn(0f, 1f))
-                        .height(dimens.barHeightCompact)
-                        .background(colors.onAccentGradient, LocalPulseShapes.current.chip),
-                )
-            }
+            Spacer(Modifier.height(dimens.m))
+            ProgressBar(
+                progress = weekMillis.toFloat() / WEEKLY_GOAL_MILLIS,
+                height = 4.dp,
+                trackColor = colors.heroMuted.copy(alpha = 0.28f),
+            )
             Spacer(Modifier.height(dimens.l))
-            Surface(
+            PrimaryActionButton(
+                text = if (weekSessions == 0) "Start your first session" else "Quick start",
                 onClick = onStart,
-                shape = LocalPulseShapes.current.chip,
-                color = colors.onAccentGradient,
-                contentColor = colors.accent,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(vertical = dimens.m),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = null,
-                        tint = colors.background,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Spacer(Modifier.width(dimens.s))
-                    Text(
-                        text = if (weekSessions == 0) "Start your first session" else "Quick start",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = colors.background,
-                    )
-                }
-            }
+                icon = Icons.Filled.PlayArrow,
+            )
         }
     }
 }
 
 /**
- * A one-tap category tile: the category's glyph in its own hue.
+ * A one-tap category tile: the category's glyph in its own hue on its own tint.
  *
  * The rail exists because most people decide "intervals" or "a run" before they decide "HIIT
  * Starter 3", and because the registry makes the tile free to build for any category.
@@ -713,8 +685,8 @@ private fun CategoryStartTile(
     val hue = colors.categoryColor(category.hue)
     Surface(
         onClick = onClick,
-        modifier = modifier.width(112.dp),
-        shape = LocalPulseShapes.current.panel,
+        modifier = modifier.width(132.dp),
+        shape = LocalPulseShapes.current.card,
         color = colors.categoryTint(category.hue),
         contentColor = hue,
     ) {
@@ -727,12 +699,12 @@ private fun CategoryStartTile(
                 imageVector = category.icon,
                 contentDescription = null,
                 tint = hue,
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(20.dp),
             )
             Text(
                 text = category.title,
-                style = MaterialTheme.typography.labelMedium,
-                color = hue,
+                style = MaterialTheme.typography.titleSmall,
+                color = colors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -746,7 +718,7 @@ private fun CategoryStartTile(
     }
 }
 
-/** A favourite in the horizontal rail, with its category hue on the card. */
+/** A favourite in the horizontal rail, with its category hue on the icon tile. */
 @Composable
 private fun FavoriteCard(
     workout: WorkoutSummary,
@@ -759,27 +731,25 @@ private fun FavoriteCard(
     PulseCard(
         modifier = Modifier.width(dimens.carouselCardWidth),
         onClick = onOpen,
-        tint = colors.categoryColor(category.hue),
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = category.icon,
-                    contentDescription = null,
+                IconTile(
+                    icon = category.icon,
                     tint = colors.categoryColor(category.hue),
-                    modifier = Modifier.size(16.dp),
+                    container = colors.categoryTint(category.hue),
                 )
-                Spacer(Modifier.width(dimens.xs))
+                Spacer(Modifier.width(dimens.s))
                 Text(
                     text = category.title,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = colors.textMuted,
                     maxLines = 1,
                     modifier = Modifier.weight(1f),
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(Modifier.height(dimens.xs))
+            Spacer(Modifier.height(dimens.m))
             Text(
                 text = workout.name,
                 style = MaterialTheme.typography.titleMedium,
@@ -805,24 +775,24 @@ private fun FavoriteCard(
 }
 
 /**
- * The 40 dp icon tile used at the head of a card: a tinted rounded square that identifies the
- * section without introducing decoration. The tint carries meaning (accent for live, prepare for
- * scheduled).
+ * The 32 dp icon tile used at the head of a row: a tinted rounded square that identifies the section
+ * without introducing decoration. The tint carries meaning (accent for live, warning for scheduled).
  */
 @Composable
-private fun HeroIconTile(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tint: androidx.compose.ui.graphics.Color,
-    container: androidx.compose.ui.graphics.Color? = null,
+private fun IconTile(
+    icon: ImageVector,
+    tint: Color,
+    container: Color? = null,
 ) {
     val colors = LocalPulseColors.current
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .background(container ?: colors.neutralFill, RoundedCornerShape(14.dp)),
+            .size(32.dp)
+            .clip(RoundedCornerShape(LocalPulseDimens.current.controlRadius))
+            .background(container ?: colors.neutralFill),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(17.dp))
     }
 }
 
@@ -830,9 +800,9 @@ private fun HeroIconTile(
 @Composable
 private fun PresetTile(
     title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    hue: androidx.compose.ui.graphics.Color,
-    tint: androidx.compose.ui.graphics.Color,
+    icon: ImageVector,
+    hue: Color,
+    tint: Color,
     duration: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -851,14 +821,7 @@ private fun PresetTile(
             modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.m),
             verticalArrangement = Arrangement.spacedBy(dimens.xs),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(hue.copy(alpha = 0.18f), LocalPulseShapes.current.chip),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = hue, modifier = Modifier.size(18.dp))
-            }
+            Icon(icon, contentDescription = null, tint = hue, modifier = Modifier.size(18.dp))
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
@@ -881,6 +844,10 @@ private fun greeting(): String = when (java.time.LocalTime.now(ZoneId.systemDefa
     in 12..17 -> "Good afternoon"
     else -> "Good evening"
 }
+
+/** The parenthetical after the date: only shown once there is something to report. */
+private fun weekSummarySuffix(sessions: Int, millis: Long): String =
+    if (sessions == 0) "" else " · ${formatDuration(millis)} trained this week"
 
 private fun presetDuration(plan: WorkoutPlan): String = runCatching {
     com.pulse.engine.TimelineExpander.expand(plan).let {

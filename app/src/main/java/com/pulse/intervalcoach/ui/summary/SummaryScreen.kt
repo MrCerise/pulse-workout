@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,10 +26,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.WorkoutPlan
@@ -37,25 +39,23 @@ import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.health.HrStats
 import com.pulse.intervalcoach.ui.components.InfoBanner
+import com.pulse.intervalcoach.ui.components.MetricRow
 import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
-import com.pulse.intervalcoach.ui.components.PulseGradientCard
+import com.pulse.intervalcoach.ui.components.PulseDivider
+import com.pulse.intervalcoach.ui.components.PulseHeroCard
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
+import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.PulseTone
-import com.pulse.intervalcoach.ui.components.PulseScaffold
-import com.pulse.intervalcoach.ui.components.PulseTopBar
-import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
+import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
+import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Instant
@@ -63,7 +63,10 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
-import androidx.compose.material3.Surface
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Post-workout summary built from the saved session — real recorded numbers only.
@@ -84,14 +87,14 @@ fun SessionSummaryScreen(
     val scope = rememberCoroutineScope()
     var notes by remember(summary?.sessionId) { mutableStateOf("") }
 
-    PulseScaffold(
-        title = stringResource(R.string.summary_title),
-        onBack = onDone,
-        backDescription = "Close summary",
-    ) { padding ->
+    PulseScaffold { padding ->
         val current = summary
         if (current == null) {
-            Column(Modifier.padding(padding).padding(dimens.pagePadding)) {
+            Column(
+                Modifier
+                    .padding(padding)
+                    .padding(dimens.pagePadding),
+            ) {
                 InfoBanner("No session to summarise — this screen appears right after a workout ends.")
                 Spacer(Modifier.height(dimens.m))
                 PrimaryActionButton(
@@ -132,68 +135,78 @@ fun SessionSummaryScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            PulsePageHeader(
+                title = current.planName,
+                description = if (current.stoppedEarly) {
+                    "Ended early — here is what was recorded."
+                } else {
+                    "Completed session — here is what was recorded."
+                },
+                onBack = onDone,
+                backLabel = "Close",
+            )
             // --- Hero --------------------------------------------------------------------------
-            // The second of the two places Prism allows the accent gradient at this scale (the
-            // other is the Today hero). A finished session is the one moment the app is allowed to
-            // celebrate, and the gradient is what makes it feel like one.
-            PulseGradientCard {
+            // The one ink panel on the page, exactly as on Today: a finished session is a headline,
+            // and a headline is set in ink rather than painted orange.
+            PulseHeroCard {
                 Column {
-                    Text(
-                        text = current.planName,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = colors.onAccentGradient,
-                    )
-                    Spacer(Modifier.height(dimens.s))
-                    Surface(
-                        shape = LocalPulseShapes.current.chip,
-                        color = colors.onAccentGradient.copy(alpha = 0.22f),
-                        contentColor = colors.onAccentGradient,
-                    ) {
-                        Text(
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        StatusBadge(
                             text = if (current.stoppedEarly) "Ended early" else "Completed",
+                            tone = if (current.stoppedEarly) PulseTone.WARNING else PulseTone.SUCCESS,
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = stringResource(R.string.summary_title),
                             style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(horizontal = dimens.m, vertical = 5.dp),
+                            color = colors.heroMuted,
                         )
                     }
                     Spacer(Modifier.height(dimens.l))
                     Text(
                         text = formatDuration(current.activeMillis),
                         style = PulseType.NumericLarge,
-                        color = colors.onAccentGradient,
+                        color = colors.heroText,
                     )
                     Text(
                         text = "active time",
                         style = MaterialTheme.typography.labelSmall,
-                        color = colors.onAccentGradient.copy(alpha = 0.82f),
+                        color = colors.heroMuted,
                     )
                 }
             }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                StatTile(
-                    label = "Completion",
-                    value = "${if (current.totalIntervals == 0) 0 else (current.completedIntervals * 100 / current.totalIntervals)}%",
-                    modifier = Modifier.weight(1f),
-                )
-                StatTile(
-                    label = "Intervals",
-                    value = "${current.completedIntervals}/${current.totalIntervals}",
-                    modifier = Modifier.weight(1f),
-                )
-                StatTile(label = "Skipped", value = current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
-            }
-            StatTile("Total time (incl. pauses)", formatDuration(current.wallMillis), modifier = Modifier.fillMaxWidth())
-            if (current.roundsLogged > 0) {
-                StatTile("Rounds", current.roundsLogged.toString(), modifier = Modifier.fillMaxWidth())
+            PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.s)) {
+                Column(Modifier.fillMaxWidth()) {
+                    MetricRow(
+                        label = "Completion",
+                        value = "${if (current.totalIntervals == 0) 0 else (current.completedIntervals * 100 / current.totalIntervals)}%",
+                    )
+                    PulseDivider()
+                    MetricRow(
+                        label = "Intervals completed",
+                        value = "${current.completedIntervals} / ${current.totalIntervals}",
+                    )
+                    PulseDivider()
+                    MetricRow(label = "Skipped", value = current.skippedIntervals.toString())
+                    PulseDivider()
+                    MetricRow(label = "Total time (incl. pauses)", value = formatDuration(current.wallMillis))
+                    if (current.roundsLogged > 0) {
+                        PulseDivider()
+                        MetricRow(label = "Rounds", value = current.roundsLogged.toString())
+                    }
+                }
             }
 
             // --- Heart rate (real data only, when a connected app recorded it) ---
             val stats = hrStats
             if (stats != null && stats.sampleCount >= 4) {
                 SectionHeader("Heart rate")
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    StatTile("Average", "${stats.average} bpm", accent = colors.success, modifier = Modifier.weight(1f))
-                    StatTile("Peak", "${stats.max} bpm", accent = colors.warning, modifier = Modifier.weight(1f))
+                PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.s)) {
+                    Column(Modifier.fillMaxWidth()) {
+                        MetricRow("Average", "${stats.average} bpm", valueColor = colors.success)
+                        PulseDivider()
+                        MetricRow("Peak", "${stats.max} bpm", valueColor = colors.warning)
+                    }
                 }
             }
 
@@ -271,11 +284,11 @@ object SummaryImage {
 
     // Token values mirrored from ui/theme/Palette.kt (the shared card is drawn outside Compose, so
     // it cannot read the composition locals).
-    private const val CANVAS = "#08090A"
-    private const val TEXT_PRIMARY = "#F7F8F8"
-    private const val TEXT_MUTED = "#7A818F"
+    private const val CANVAS = "#17181B"
+    private const val TEXT_PRIMARY = "#F5F6F7"
+    private const val TEXT_MUTED = "#9CA2A9"
     private const val WORK = "#4CC38A"
-    private const val PREPARE = "#E3B341"
+    private const val PREPARE = "#F5B544"
 
     fun render(summary: com.pulse.intervalcoach.session.SessionSummaryData): Bitmap {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)

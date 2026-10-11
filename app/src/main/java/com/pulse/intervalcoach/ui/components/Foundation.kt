@@ -1,7 +1,11 @@
 package com.pulse.intervalcoach.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,46 +19,46 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
 /**
- * Surfaces, headers and rows — the structural half of the Prism design system.
+ * Surfaces, headers and rows — the structural half of the Signal design system.
  *
  * The rules these components encode:
  *
- *  - A surface is separated from the canvas by its **fill and a hairline**. Only chrome that
- *    genuinely floats (the navigation bar, sheets, dialogs) casts a shadow, which is why the one
- *    shadow on screen still reads.
- *  - There are four radii: 24 dp cards, 18 dp nested panels, 14 dp controls and pills for chips.
- *    A screen reads as a handful of large soft panels carrying small round pills.
- *  - A list row is 64 dp tall and its tap target is the whole row, which is what makes the app
- *    usable with one hand.
+ *  - A surface is separated from the canvas by its **fill and a hairline**. Nothing in a page
+ *    scroll casts a shadow; only menus, dialogs, snackbars and the phone navigation bar float, which
+ *    is why the few shadows on screen still mean something.
+ *  - Radii are restrained: 6 dp panels and controls, 8 dp cards, 12 dp overlays. The silhouette is a
+ *    crisp rectangle, which is what reads as a tool rather than a toy.
+ *  - A list row is 56 dp tall and its tap target is the whole row.
+ *  - Interactive surfaces answer the pointer: a pressed or hovered card lifts to `surfaceHover`, so
+ *    the affordance is visible before the tap lands.
  */
 
 /**
@@ -83,11 +87,19 @@ fun PulseCard(
         Box(Modifier.padding(contentPadding)) { content() }
     }
     if (onClick != null) {
+        val interaction = remember { MutableInteractionSource() }
+        val pressed by interaction.collectIsPressedAsState()
+        val hovered by interaction.collectIsHoveredAsState()
+        val fill by animateColorAsState(
+            targetValue = if (pressed || hovered) wash(background, colors.textPrimary, 0.05f) else background,
+            label = "cardFill",
+        )
         Surface(
             onClick = onClick,
+            interactionSource = interaction,
             modifier = modifier.fillMaxWidth(),
             shape = shape,
-            color = background,
+            color = fill,
             contentColor = colors.textPrimary,
             border = border,
         ) { body() }
@@ -103,77 +115,75 @@ fun PulseCard(
 }
 
 /**
- * A hero surface: the two-stop accent gradient, used exactly twice in the app (the Today hero and
- * the session summary banner). Because it is one component with one brush, the gradient can never
- * drift between the two screens that use it.
+ * The ink panel: a deliberately dark surface that stays dark in **both** themes.
+ *
+ * It is the one place a screen raises its voice, which is why it is used twice in the whole app —
+ * the Today hero and the session summary banner. It is a feature panel, not a card: no gradient, no
+ * glow, just ink, a hairline and the accent used once inside it.
  */
 @Composable
-fun PulseGradientCard(
+fun PulseHeroCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    startColor: Color = LocalPulseColors.current.accent,
-    endColor: Color = LocalPulseColors.current.accentAlt,
     contentPadding: PaddingValues = PaddingValues(LocalPulseDimens.current.cardPadding),
     content: @Composable () -> Unit,
 ) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     val shape = LocalPulseShapes.current.card
     val body: @Composable () -> Unit = {
         Box(Modifier.padding(contentPadding)) { content() }
     }
-    val brush = Brush.linearGradient(listOf(startColor, endColor))
     if (onClick != null) {
+        val interaction = remember { MutableInteractionSource() }
+        val pressed by interaction.collectIsPressedAsState()
         Surface(
             onClick = onClick,
+            interactionSource = interaction,
             modifier = modifier.fillMaxWidth(),
             shape = shape,
-            color = Color.Transparent,
-            contentColor = colors.actionText,
-        ) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .background(brush, shape),
-            ) { body() }
-        }
+            color = colors.heroSurface,
+            contentColor = colors.heroText,
+            border = BorderStroke(dimens.borderWidth, colors.heroMuted.copy(alpha = 0.22f)),
+        ) { body() }
     } else {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .clip(shape)
-                .background(brush),
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            shape = shape,
+            color = colors.heroSurface,
+            contentColor = colors.heroText,
+            border = BorderStroke(dimens.borderWidth, colors.heroMuted.copy(alpha = 0.22f)),
         ) { body() }
     }
 }
 
 /**
- * Same silhouette as [PulseCard] but one step up the ramp and one step tighter in radius. Use it for
- * a group nested inside a card, or where the content should read as an inset control rather than as
- * a peer panel.
+ * A well: a surface *below* the canvas, used to nest a group inside a card without adding another
+ * border. Where [PulseCard] steps up the ramp, [PulsePanel] steps down, so nesting reads as nesting
+ * rather than as two competing panels.
  */
 @Composable
 fun PulsePanel(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(LocalPulseDimens.current.l),
+    contentPadding: PaddingValues = PaddingValues(LocalPulseDimens.current.m),
     content: @Composable () -> Unit,
 ) {
     val colors = LocalPulseColors.current
-    val dimens = LocalPulseDimens.current
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = LocalPulseShapes.current.panel,
-        color = colors.surfaceRaised,
+        color = colors.surfaceSunken,
         contentColor = colors.textPrimary,
-        border = BorderStroke(dimens.borderWidth, colors.border),
+        border = BorderStroke(LocalPulseDimens.current.borderWidth, colors.border),
     ) {
         Box(Modifier.padding(contentPadding)) { content() }
     }
 }
 
 /**
- * Section label. Small, bold, tracked and muted — it labels a group of content without competing
- * with the content's own titles. [action] puts a single quiet control on the trailing edge ("See
- * all"), so a section header is never followed by a lonely button on its own line.
+ * Section label. A quiet, tight header for a group of content: 13 sp semibold in primary text, with
+ * an optional count on the trailing edge and an optional quiet action ("See all") in the accent, so
+ * a section header is never followed by a lonely button on its own line.
  */
 @Composable
 fun SectionHeader(
@@ -192,9 +202,9 @@ fun SectionHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = text.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.textMuted,
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            color = colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),
@@ -203,7 +213,7 @@ fun SectionHeader(
             Spacer(Modifier.width(dimens.s))
             Text(
                 text = trailing,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelMedium,
                 color = colors.textMuted,
                 maxLines = 1,
             )
@@ -212,7 +222,7 @@ fun SectionHeader(
         if (actionLabel != null && onAction != null) {
             Surface(
                 onClick = onAction,
-                shape = LocalPulseShapes.current.chip,
+                shape = LocalPulseShapes.current.control,
                 color = Color.Transparent,
                 contentColor = colors.accent,
             ) {
@@ -238,9 +248,9 @@ fun PulseDivider(modifier: Modifier = Modifier) {
 }
 
 /**
- * A generic information row: optional leading glyph in a tinted tile, a title, a supporting line and
- * trailing content. Used for settings entries, workout rows and history rows so they all share one
- * rhythm.
+ * A generic information row: an optional leading glyph in a tinted tile, a title, a supporting line
+ * and trailing content. Used for settings entries, workout rows and history rows so they all share
+ * one rhythm and one density.
  */
 @Composable
 fun PulseListRow(
@@ -260,22 +270,22 @@ fun PulseListRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = dimens.listRowHeight)
-                .padding(vertical = dimens.m),
+                .padding(vertical = dimens.s),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (leadingIcon != null) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(32.dp)
                         .clip(RoundedCornerShape(dimens.controlRadius))
-                        .background(leadingContainer ?: colors.surfaceHover),
+                        .background(leadingContainer ?: colors.surfaceRaised),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = leadingIcon,
                         contentDescription = null,
                         tint = leadingTint ?: colors.textSecondary,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(18.dp),
                     )
                 }
                 Spacer(Modifier.width(dimens.m))
@@ -305,10 +315,18 @@ fun PulseListRow(
         }
     }
     if (onClick != null) {
+        val interaction = remember { MutableInteractionSource() }
+        val pressed by interaction.collectIsPressedAsState()
+        val hovered by interaction.collectIsHoveredAsState()
+        val fill by animateColorAsState(
+            targetValue = if (pressed || hovered) colors.surfaceHover else Color.Transparent,
+            label = "rowFill",
+        )
         Surface(
             onClick = onClick,
+            interactionSource = interaction,
             modifier = modifier.fillMaxWidth(),
-            color = Color.Transparent,
+            color = fill,
             contentColor = colors.textPrimary,
         ) { row() }
     } else {
@@ -317,84 +335,173 @@ fun PulseListRow(
 }
 
 /**
- * The screen header.
+ * The shell's breadcrumb bar.
  *
- * Every pushed destination uses this so the back affordance, the title size, the subtitle position
- * and the hairline under the bar are identical everywhere. It wraps Material's [TopAppBar] rather
- * than replacing it, so window insets and accessibility behaviour stay on the framework's path.
+ * It is the *only* horizontal chrome in the app: one 52 dp row, pinned above the content, carrying
+ * where you are on the left and the global controls on the right. Pushed destinations get a back
+ * chevron and the section they came from, which is why no screen has to build a title bar of its
+ * own — the shell knows the navigation stack, the page only has to say what it *is* (see
+ * [PulsePageHeader]).
+ *
+ * The status bar inset belongs to this bar, not to the pages below it, so a screen never has to
+ * reason about insets.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PulseTopBar(
+fun PulseBreadcrumbBar(
     title: String,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
-    onBack: (() -> Unit)? = null,
-    backDescription: String = "Back",
+    parent: String? = null,
+    leading: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalPulseColors.current
-    Column(modifier.fillMaxWidth()) {
-        TopAppBar(
-            title = {
-                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+    val dimens = LocalPulseDimens.current
+    Column(
+        modifier
+            .fillMaxWidth()
+            .background(colors.background),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .height(dimens.topBarHeight)
+                .padding(end = dimens.s),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (leading != null) {
+                Box(
+                    modifier = Modifier.padding(start = dimens.m),
+                    contentAlignment = Alignment.Center,
+                ) { leading() }
+                Spacer(Modifier.width(dimens.m))
+            }
+            if (leading == null) {
+                Spacer(Modifier.width(dimens.l))
+            }
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (parent != null) {
                     Text(
-                        text = title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = colors.textPrimary,
+                        text = parent,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colors.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.ChevronRight,
+                        contentDescription = null,
+                        tint = colors.textDisabled,
+                        modifier = Modifier
+                            .padding(horizontal = dimens.xs)
+                            .size(14.dp),
+                    )
+                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.textPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+            actions()
+        }
+        PulseDivider()
+    }
+}
+
+/**
+ * The page header: the way back, the H1, the one-line description and the actions of a page.
+ *
+ * Every destination starts with one of these inside its own content — the shell above it carries the
+ * breadcrumb, so the header is free to be a real heading rather than a title bar. The back link is
+ * deliberately *in the page* rather than in the shell: a page knows whether leaving it needs a
+ * confirmation (an unsaved builder does), and the shell does not.
+ */
+@Composable
+fun PulsePageHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    onBack: (() -> Unit)? = null,
+    backLabel: String = "Back",
+    trailing: @Composable (() -> Unit)? = null,
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Column(modifier.fillMaxWidth().padding(top = dimens.m, bottom = dimens.l)) {
+        if (onBack != null) {
+            Surface(
+                onClick = onBack,
+                shape = LocalPulseShapes.current.control,
+                color = Color.Transparent,
+                contentColor = colors.textSecondary,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .height(dimens.iconButtonSize)
+                        .padding(end = dimens.s),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                    )
+                    Spacer(Modifier.width(dimens.xs))
+                    Text(
+                        text = backLabel,
+                        style = MaterialTheme.typography.labelLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    if (subtitle != null) {
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textMuted,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
                 }
-            },
-            navigationIcon = {
-                if (onBack != null) {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = backDescription,
-                        )
-                    }
-                }
-            },
-            actions = actions,
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-                titleContentColor = colors.textPrimary,
-                navigationIconContentColor = colors.textSecondary,
-                actionIconContentColor = colors.textSecondary,
-            ),
-            modifier = Modifier.height(LocalPulseDimens.current.topBarHeight),
-        )
-        PulseDivider()
+            }
+            Spacer(Modifier.height(dimens.s))
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineLarge,
+                color = colors.textPrimary,
+            )
+            if (description != null) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.textSecondary,
+                )
+            }
+        }
+        if (trailing != null) {
+            Spacer(Modifier.width(dimens.m))
+            trailing()
+        }
+        }
     }
 }
 
 /**
  * The shared screen frame.
  *
- * Every destination in PULSE is a [PulseScaffold]: one background, one optional header, one
- * optional bottom bar, and content that is handed its padding rather than guessing at it. That is
- * what makes eleven screens share a page gutter without any of them owning one.
+ * Every destination in PULSE is a [PulseScaffold]: one background, one optional bottom bar, and
+ * content that is handed its padding rather than guessing at it. The header is **not** part of it —
+ * the shell owns the breadcrumb bar, and a page owns its header ([PulsePageHeader]) — which is what
+ * makes eighteen destinations share one gutter and one hierarchy without any of them owning either.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PulseScaffold(
     modifier: Modifier = Modifier,
-    title: String? = null,
-    subtitle: String? = null,
-    onBack: (() -> Unit)? = null,
-    backDescription: String = "Back",
-    actions: @Composable RowScope.() -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
@@ -408,34 +515,20 @@ fun PulseScaffold(
         snackbarHost = snackbarHost,
         floatingActionButton = floatingActionButton,
         bottomBar = bottomBar,
-        topBar = {
-            if (title != null) {
-                PulseTopBar(
-                    title = title,
-                    subtitle = subtitle,
-                    onBack = onBack,
-                    backDescription = backDescription,
-                    actions = actions,
-                )
-            }
-        },
         content = content,
     )
 }
-
-/** Vertical breathing room, named so a screen never has to spell out a raw dp value. */
-@Composable
-fun VerticalSpacer(height: Dp) = Spacer(Modifier.height(height))
 
 /**
  * Composites a colour wash: `overlay` at a small, fixed alpha over `base`. Used instead of
  * `copy(alpha = …)` on a surface so the result is a real pre-composited colour — the same trick the
  * palette uses for phase tints, and the reason a washed card's text contrast is not an estimate.
  */
-private fun wash(base: Color, overlay: Color, strength: Float = 0.14f): Color =
+private fun wash(base: Color, overlay: Color, strength: Float = 0.06f): Color =
     Color(
         red = base.red * (1 - strength) + overlay.red * strength,
         green = base.green * (1 - strength) + overlay.green * strength,
         blue = base.blue * (1 - strength) + overlay.blue * strength,
         alpha = base.alpha,
     )
+

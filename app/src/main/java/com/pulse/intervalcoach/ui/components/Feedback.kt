@@ -1,5 +1,6 @@
 package com.pulse.intervalcoach.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Refresh
@@ -24,13 +26,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
 /**
@@ -39,11 +43,14 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
  * These are the screens a user sees when something is missing or something broke, so they follow one
  * rule: an empty or error state that can be resolved always offers the action that resolves it, and
  * the action is a real [PrimaryActionButton] rather than a piece of text that happens to be tappable.
+ *
+ * Visually they are the calmest screens in the app — a quiet glyph in a sunken well, a 17 sp title, a
+ * 14 sp explanation — because a dead end should look deliberate, not broken.
  */
 
 /**
- * The "nothing here yet" state. The glyph sits in a tinted circle so an empty screen still looks
- * designed rather than broken.
+ * The "nothing here yet" state. The glyph sits in a sunken well so the screen still reads as a
+ * designed surface rather than as a blank one.
  */
 @Composable
 fun EmptyState(
@@ -65,18 +72,16 @@ fun EmptyState(
     ) {
         Box(
             modifier = Modifier
-                .size(76.dp)
-                .background(
-                    Brush.linearGradient(listOf(colors.accent.copy(alpha = 0.30f), colors.accentAlt.copy(alpha = 0.30f))),
-                    LocalPulseShapes.current.card,
-                ),
+                .size(56.dp)
+                .clip(LocalPulseShapes.current.card)
+                .background(colors.surfaceSunken),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon ?: Icons.Filled.Flag,
                 contentDescription = null,
-                tint = colors.accent,
-                modifier = Modifier.size(34.dp),
+                tint = colors.textMuted,
+                modifier = Modifier.size(24.dp),
             )
         }
         Text(
@@ -113,8 +118,8 @@ fun LoadingBox(modifier: Modifier = Modifier, label: String? = null) {
         CircularProgressIndicator(
             color = colors.accent,
             trackColor = colors.track,
-            strokeWidth = 3.dp,
-            modifier = Modifier.size(32.dp),
+            strokeWidth = 2.dp,
+            modifier = Modifier.size(24.dp),
         )
         if (label != null) {
             Text(
@@ -147,15 +152,16 @@ fun ErrorState(
     ) {
         Box(
             modifier = Modifier
-                .size(76.dp)
-                .background(colors.dangerTint, LocalPulseShapes.current.card),
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(colors.dangerTint),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.Refresh,
                 contentDescription = null,
                 tint = colors.error,
-                modifier = Modifier.size(34.dp),
+                modifier = Modifier.size(24.dp),
             )
         }
         Text(
@@ -193,16 +199,18 @@ fun ConfirmDialog(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val elevation = LocalPulseElevation.current
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = LocalPulseShapes.current.card,
+            shape = LocalPulseShapes.current.sheet,
             color = colors.surfaceOverlay,
             contentColor = colors.textPrimary,
-            tonalElevation = 6.dp,
+            border = BorderStroke(dimens.borderWidth, colors.border),
+            shadowElevation = elevation.level3,
         ) {
             Column(
                 modifier = Modifier.padding(dimens.xl),
-                verticalArrangement = Arrangement.spacedBy(dimens.m),
+                verticalArrangement = Arrangement.spacedBy(dimens.s),
             ) {
                 Text(
                     text = title,
@@ -214,7 +222,7 @@ fun ConfirmDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.textSecondary,
                 )
-                Spacer(Modifier.height(dimens.xs))
+                Spacer(Modifier.height(dimens.s))
                 if (destructive) {
                     DangerActionButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
                 } else {
@@ -236,21 +244,22 @@ fun ConfirmDialog(
     }
 }
 
-/** The snackbar. Overlay fill, 18 dp radius, accent action. */
+/** The snackbar: overlay fill, hairline, the app's floating elevation, an accent action. */
 @Composable
 fun PulseSnackbar(data: SnackbarData, modifier: Modifier = Modifier) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val elevation = LocalPulseElevation.current
     Surface(
         modifier = modifier.padding(horizontal = dimens.l, vertical = dimens.s),
-        shape = LocalPulseShapes.current.panel,
+        shape = LocalPulseShapes.current.card,
         color = colors.surfaceOverlay,
         contentColor = colors.textPrimary,
-        tonalElevation = 6.dp,
-        shadowElevation = 6.dp,
+        border = androidx.compose.foundation.BorderStroke(dimens.borderWidth, colors.border),
+        shadowElevation = elevation.level2,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = dimens.l, vertical = dimens.m),
+            modifier = Modifier.padding(start = dimens.l, end = dimens.s, top = dimens.s, bottom = dimens.s),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -261,15 +270,17 @@ fun PulseSnackbar(data: SnackbarData, modifier: Modifier = Modifier) {
             )
             val actionLabel = data.visuals.actionLabel
             if (actionLabel != null) {
-                Spacer(Modifier.width(dimens.m))
-                TextButton(
+                Spacer(Modifier.width(dimens.s))
+                Surface(
                     onClick = { data.performAction() },
-                    shape = LocalPulseShapes.current.chip,
+                    shape = LocalPulseShapes.current.control,
+                    color = Color.Transparent,
+                    contentColor = colors.accent,
                 ) {
                     Text(
                         text = actionLabel,
                         style = MaterialTheme.typography.labelLarge,
-                        color = colors.accent,
+                        modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.xs),
                     )
                 }
             }

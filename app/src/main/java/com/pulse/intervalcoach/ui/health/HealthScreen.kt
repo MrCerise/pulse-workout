@@ -31,28 +31,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.intervalcoach.AppContainer
-import com.pulse.intervalcoach.health.HC_REQUESTED_PERMISSIONS
+import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.health.FitAvailability
+import com.pulse.intervalcoach.health.HC_REQUESTED_PERMISSIONS
 import com.pulse.intervalcoach.health.HcAvailability
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseIconButton
-import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
-import com.pulse.intervalcoach.ui.components.PulseTopBar
+import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import com.pulse.intervalcoach.R
-import kotlinx.coroutines.flow.first
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -85,20 +85,7 @@ fun HealthScreen(
 
     var backfill by remember { mutableStateOf<String?>(null) }
 
-    PulseScaffold(
-        title = "Health",
-        subtitle = "Connect once — PULSE reads, writes, and says what happened",
-        onBack = onBack,
-        backDescription = stringResource(R.string.back),
-        actions = {
-                PulseIconButton(
-                    icon = Icons.Filled.Refresh,
-                    contentDescription = "Refresh health status",
-                    tooltip = "Refresh health status",
-                    onClick = { container.health.refresh() },
-                )
-            },
-    ) { padding ->
+    PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(
@@ -109,6 +96,22 @@ fun HealthScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
+            item {
+                PulsePageHeader(
+                    title = "Health",
+                    description = "Connect once — PULSE reads, writes, and says what happened",
+                    onBack = onBack,
+                    trailing = {
+                        PulseIconButton(
+                            icon = Icons.Filled.Refresh,
+                            contentDescription = "Refresh health status",
+                            tooltip = "Refresh health status",
+                            onClick = { container.health.refresh() },
+                        )
+                    },
+                )
+            }
+
             // --- What is connected right now ---
             item {
                 PulseCard {
