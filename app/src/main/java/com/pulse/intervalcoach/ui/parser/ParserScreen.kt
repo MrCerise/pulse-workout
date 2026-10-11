@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +35,7 @@ import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
@@ -68,16 +68,11 @@ fun ParserScreen(
     val parsed = result?.plan
     val expanded = remember(parsed) { parsed?.let { runCatching { TimelineExpander.expand(it) }.getOrNull() } }
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = stringResource(R.string.parser_title),
-                subtitle = "Describe it in words, preview exactly what was matched",
-                onBack = onBack,
-                backDescription = stringResource(R.string.back),
-            )
-        },
+    PulseScaffold(
+        title = stringResource(R.string.parser_title),
+        subtitle = "Describe it in words, preview exactly what was matched",
+        onBack = onBack,
+        backDescription = stringResource(R.string.back),
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),

@@ -138,7 +138,9 @@ class WorkoutRepository(
             type = plan.type.name,
             planJson = PlanCodec.encode(plan),
             folderId = folderId ?: existing?.folderId,
-            iconKey = plan.iconKey,
+            // Derived from the category registry rather than stored on the plan, so the icon a
+            // workout shows can never disagree with the category it belongs to.
+            iconKey = WorkoutCategories.forType(plan.type).key,
             colorArgb = plan.colorArgb,
             equipment = plan.equipment,
             voiceProfileId = plan.voiceProfileId,
@@ -249,7 +251,9 @@ class WorkoutRepository(
                 description = plan.description,
                 type = plan.type.name,
                 planJson = PlanCodec.encode(plan),
-                iconKey = template.iconKey,
+                // The icon key is derived from the category registry, never hand-written per
+                // template, so a template and a saved workout always agree about their category.
+                iconKey = WorkoutCategories.forType(plan.type).key,
                 equipment = plan.equipment,
                 isFavorite = false,
                 builtIn = true,

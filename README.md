@@ -10,9 +10,47 @@ Everything PULSE does itself runs on the device. No account, no ads, no analytic
 only data that ever leaves the phone are the records you explicitly share with a Google health app.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.4.4 (versionCode 7)
+- **Version:** 1.5.0 (versionCode 8)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.5.0 — what changed
+
+- **"Prism": a new design system, rebuilt rather than reskinned.** The visual layer moves from
+  Graphite (near-black, hairline borders, small radii, no gradients) to a violet-tinted ink canvas,
+  large soft surfaces (24 dp cards, 18 dp panels, 14 dp controls, round chips), a 64 sp hero type
+  scale, and a two-stop accent gradient that appears in exactly three places — the Today hero, the
+  finished-session hero and the primary action. Because it is rare, it still means "look here".
+  Full specification: [`docs/DESIGN.md`](docs/DESIGN.md).
+- **Categories are data now.** There used to be two unrelated notions of "category": a
+  `WorkoutType` enum that spelled its own name, and a free-text `iconKey` hand-written per starter
+  workout and ignored everywhere else. Both are gone. `data/Categories.kt` defines one
+  [WorkoutCategory](app/src/main/java/com/pulse/intervalcoach/data/Categories.kt) record per
+  category — name, tagline, description, glyph, colour family, default timings, capabilities and
+  search keywords — and the registry is the single source for the library's filter rail, the
+  builder's category picker, the Today presets, the player header, the Progress breakdown and every
+  card, chip and row. `WorkoutType` shrinks to a semantic key that knows nothing about names or
+  colours. Adding a category is now a two-file change.
+- **A new category screen.** Every category has a landing page (`pulse://`-style route
+  `category/{key}`) with its icon, hue, tagline, description, default timings, a one-tap start from
+  those defaults, and everything you already have in that category — generated entirely from the
+  registry record.
+- **Adaptive navigation.** The four primary destinations now live in a **floating pill bar** on a
+  phone and become a **navigation rail** down the left edge on tablets and in landscape (≥ 600 dp).
+  One `PulseNavItem` list, two shapes, nothing to keep in step.
+- **Rebuilt screens.** Today gains a gradient hero with the week's progress against the 150-minute
+  guideline and a "start by category" rail; Workouts gains a category filter rail and
+  category-tinted cards; the workout detail header becomes a category statement; the template gallery
+  inherits the same rail; Progress gains a "where your time went" breakdown grouped by category; the
+  player's transport carries the live phase colour and its ring sweeps with the accent gradient;
+  onboarding and the session summary gain gradient heroes.
+- **One screen frame.** Every destination is now a `PulseScaffold` — one background, one optional
+  header, one optional bottom bar, content handed its padding — so eleven screens share a page gutter
+  without any of them owning one.
+- **Accessibility and contrast are still enforced, and now cover more.** `scripts/contrast_check.py`
+  measures **97 pairs** across the ink, void and paper themes, including the gradient's second stop
+  and all six category hues against the container tints that ship. It fails on token drift or on any
+  pairing below its WCAG threshold.
 
 ## v1.4.4 — what changed
 
@@ -198,11 +236,16 @@ pulse/
 │       │                                     (secondary) bridge — reads HR/steps, writes sessions
 │       ├── session/                          CueScript (what gets said), SessionController,
 │       │                                     WorkoutService (foreground service), music
+│       ├── data/Categories.kt                the workout category registry — one record per
+│       │                                     category: name, glyph, hue, defaults, capabilities
 │       ├── ui/theme/                         the design system: Palette.kt (raw tokens),
-│       │                                     Tokens.kt (colour/spacing/radius/motion locals),
-│       │                                     Typography.kt, Theme.kt (theming + WCAG helpers)
-│       ├── ui/components/                    the shared component library: Foundation, Controls,
-│       │                                     Indicators, DataDisplay, Feedback, Navigation
+│       │                                     Tokens.kt (colour/spacing/radius/elevation/motion
+│       │                                     locals + CategoryHue), Typography.kt,
+│       │                                     Theme.kt (theming + WCAG helpers)
+│       ├── ui/components/                    the shared component library: Foundation (incl.
+│       │                                     PulseScaffold), Controls, Indicators (incl. the
+│       │                                     category chip and picker), DataDisplay, Feedback,
+│       │                                     Navigation (floating bar + rail)
 │       ├── ui/                               Compose screens: home (Today), workouts, builders,
 │       │                                     player, summary, progress, settings, health,
 │       │                                     welcome, parser

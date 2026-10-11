@@ -59,8 +59,10 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.PlayerDensity
+import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.health.HrZones
 import com.pulse.intervalcoach.session.formatClock
+import com.pulse.intervalcoach.ui.components.CategoryChip
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.GhostActionButton
@@ -183,10 +185,11 @@ fun PlayerScreen(
         ) {
             // --- Interval progress, readable from across the room -----------------------------
             Box(
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .height(LocalPulseDimens.current.xs)
-                    .background(colors.surfaceHover),
+                    .padding(horizontal = dimens.pagePadding, vertical = dimens.s)
+                    .height(dimens.barHeightCompact)
+                    .background(colors.track, LocalPulseShapes.current.chip),
             ) {
                 Box(
                     Modifier
@@ -194,8 +197,8 @@ fun PlayerScreen(
                             if (snapshot.status == TimerStatus.AWAITING_MANUAL) 1f
                             else snapshot.intervalProgress.coerceIn(0f, 1f),
                         )
-                        .height(LocalPulseDimens.current.xs)
-                        .background(accent)
+                        .height(dimens.barHeightCompact)
+                        .background(accent, LocalPulseShapes.current.chip)
                         .semantics {
                             contentDescription = "Interval progress ${(snapshot.intervalProgress * 100).toInt()} percent"
                         },
@@ -218,11 +221,10 @@ fun PlayerScreen(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        Text(
-                            text = if (cuesMuted) "Cues muted" else "Voice & sound on",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.textMuted,
-                        )
+                        Spacer(Modifier.height(dimens.xs))
+                        // The category chip carries the same icon and hue the library showed for
+                        // this workout, so the player is recognisably the same session mid-effort.
+                        active?.plan?.let { plan -> CategoryChip(category = plan.category) }
                     }
                     liveHr?.let { bpm ->
                         HeartRateBadge(bpm = bpm, modifier = Modifier.padding(end = dimens.s))
@@ -306,7 +308,8 @@ fun PlayerScreen(
                         progress = if (snapshot.status == TimerStatus.AWAITING_MANUAL) 0f else snapshot.intervalProgress,
                         color = accent,
                         trackColor = colors.track,
-                        strokeWidth = 8.dp,
+                        strokeWidth = 10.dp,
+                        gradient = true,
                         modifier = Modifier.size(minOf(available, preferred)),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -346,8 +349,8 @@ fun PlayerScreen(
                 // --- Next interval ---
                 snapshot.nextStep?.let { next ->
                     Surface(
-                        shape = LocalPulseShapes.current.control,
-                        color = colors.surface,
+                        shape = LocalPulseShapes.current.panel,
+                        color = colors.surfaceRaised,
                         border = BorderStroke(dimens.borderWidth, colors.border),
                     ) {
                         Row(
@@ -384,6 +387,7 @@ fun PlayerScreen(
                     kinds = timelineKinds,
                     currentIndex = snapshot.stepIndex,
                     progressInStep = snapshot.intervalProgress,
+                    height = dimens.barHeightRegular,
                 )
 
                 Spacer(Modifier.weight(1f))
@@ -405,6 +409,7 @@ fun PlayerScreen(
                         TransportButton(
                             paused = snapshot.status == TimerStatus.PAUSED,
                             manual = snapshot.status == TimerStatus.AWAITING_MANUAL,
+                            accent = accent,
                             onClick = {
                                 if (snapshot.status == TimerStatus.AWAITING_MANUAL) controller.completeManual() else controller.togglePause()
                             },
@@ -494,7 +499,12 @@ fun PlayerScreen(
  * unmistakably the transport, and it is the only element on the screen with a circular shape.
  */
 @Composable
-private fun TransportButton(paused: Boolean, manual: Boolean, onClick: () -> Unit) {
+private fun TransportButton(
+    paused: Boolean,
+    manual: Boolean,
+    accent: Color,
+    onClick: () -> Unit,
+) {
     val colors = LocalPulseColors.current
     val description = when {
         manual -> "Complete this interval"
@@ -504,11 +514,13 @@ private fun TransportButton(paused: Boolean, manual: Boolean, onClick: () -> Uni
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .size(72.dp)
+            .size(76.dp)
             .semantics { contentDescription = description },
         shape = CircleShape,
-        color = colors.actionFill,
-        contentColor = colors.actionText,
+        // The transport is the phase: one round control, filled with the colour of the interval it
+        // is controlling, which is the only place Prism lets a big saturated shape carry meaning.
+        color = accent,
+        contentColor = colors.onAccent,
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Icon(
@@ -518,7 +530,7 @@ private fun TransportButton(paused: Boolean, manual: Boolean, onClick: () -> Uni
                     else -> Icons.Filled.Pause
                 },
                 contentDescription = null,
-                modifier = Modifier.size(30.dp),
+                modifier = Modifier.size(32.dp),
             )
         }
     }
@@ -616,7 +628,7 @@ private fun InstructorOverlay(
             Spacer(Modifier.height(dimens.xl))
             Text(
                 text = formatClock(remaining),
-                style = PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 2.2f),
+                style = PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 2.4f),
                 color = accent,
             )
             Spacer(Modifier.height(dimens.m))

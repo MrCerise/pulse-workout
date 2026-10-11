@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PULSE contrast checker (v1.4 "Graphite" design system).
+PULSE contrast checker (v1.5 "Prism" design system).
 
 Parses the palette out of the app's own resources (`app/src/main/res/values/colors.xml`), verifies
 that the Compose mirror in `ui/theme/Palette.kt` declares exactly the same values, and computes
@@ -46,7 +46,21 @@ REQUIRED_TOKENS = [
     "pulse_black_surface_overlay", "pulse_black_border",
     # Control boundaries and accent
     "pulse_outline", "pulse_light_outline", "pulse_accent", "pulse_light_accent",
+    "pulse_accent_alt", "pulse_light_accent_alt",
     "pulse_accent_tint", "pulse_light_accent_tint",
+    # Workout category hues and their pre-composited tints
+    "pulse_cat_cardio", "pulse_cat_cardio_tint",
+    "pulse_cat_conditioning", "pulse_cat_conditioning_tint",
+    "pulse_cat_strength", "pulse_cat_strength_tint",
+    "pulse_cat_mobility", "pulse_cat_mobility_tint",
+    "pulse_cat_mind", "pulse_cat_mind_tint",
+    "pulse_cat_tools", "pulse_cat_tools_tint",
+    "pulse_light_cat_cardio", "pulse_light_cat_cardio_tint",
+    "pulse_light_cat_conditioning", "pulse_light_cat_conditioning_tint",
+    "pulse_light_cat_strength", "pulse_light_cat_strength_tint",
+    "pulse_light_cat_mobility", "pulse_light_cat_mobility_tint",
+    "pulse_light_cat_mind", "pulse_light_cat_mind_tint",
+    "pulse_light_cat_tools", "pulse_light_cat_tools_tint",
     # Phases and their pre-composited tints
     "pulse_work", "pulse_rest", "pulse_prepare", "pulse_cooldown", "pulse_destructive",
     "pulse_work_tint", "pulse_rest_tint", "pulse_prepare_tint", "pulse_cooldown_tint",
@@ -96,7 +110,33 @@ KOTLIN_MIRROR = {
     "Outline": "pulse_outline",
     "LightOutline": "pulse_light_outline",
     "Accent": "pulse_accent",
+    "AccentAlt": "pulse_accent_alt",
     "LightAccent": "pulse_light_accent",
+    "LightAccentAlt": "pulse_light_accent_alt",
+    "CatCardio": "pulse_cat_cardio",
+    "CatCardioTint": "pulse_cat_cardio_tint",
+    "CatConditioning": "pulse_cat_conditioning",
+    "CatConditioningTint": "pulse_cat_conditioning_tint",
+    "CatStrength": "pulse_cat_strength",
+    "CatStrengthTint": "pulse_cat_strength_tint",
+    "CatMobility": "pulse_cat_mobility",
+    "CatMobilityTint": "pulse_cat_mobility_tint",
+    "CatMind": "pulse_cat_mind",
+    "CatMindTint": "pulse_cat_mind_tint",
+    "CatTools": "pulse_cat_tools",
+    "CatToolsTint": "pulse_cat_tools_tint",
+    "LightCatCardio": "pulse_light_cat_cardio",
+    "LightCatCardioTint": "pulse_light_cat_cardio_tint",
+    "LightCatConditioning": "pulse_light_cat_conditioning",
+    "LightCatConditioningTint": "pulse_light_cat_conditioning_tint",
+    "LightCatStrength": "pulse_light_cat_strength",
+    "LightCatStrengthTint": "pulse_light_cat_strength_tint",
+    "LightCatMobility": "pulse_light_cat_mobility",
+    "LightCatMobilityTint": "pulse_light_cat_mobility_tint",
+    "LightCatMind": "pulse_light_cat_mind",
+    "LightCatMindTint": "pulse_light_cat_mind_tint",
+    "LightCatTools": "pulse_light_cat_tools",
+    "LightCatToolsTint": "pulse_light_cat_tools_tint",
     "AccentTint": "pulse_accent_tint",
     "LightAccentTint": "pulse_light_accent_tint",
     "Work": "pulse_work",
@@ -206,6 +246,17 @@ DARK_PAIRS = [
     # Primary buttons are solid: light fill with ink label (dark theme) and the reverse in light.
     ("Primary button label", "pulse_action_text", "pulse_action_fill", TEXT_MIN, "the solid primary action"),
     ("Neutral chip label", "pulse_text_primary", "pulse_neutral_fill", TEXT_MIN, "type badges, neutral metadata"),
+    # The gradient partner is never a label: it only ever sits behind or beside the violet accent,
+    # so it is measured as a large graphic element rather than as text.
+    ("Accent gradient stop on canvas", "pulse_accent_alt", "pulse_canvas", NON_TEXT_MIN, "the second gradient stop"),
+    ("Accent gradient stop on card", "pulse_accent_alt", "pulse_surface", NON_TEXT_MIN, "gradient fills inside cards"),
+    # Category chips: one hue per workout family, label drawn on the pre-composited tint.
+    ("Cardio category label", "pulse_cat_cardio", "pulse_cat_cardio_tint", TEXT_MIN, "category chips and cards"),
+    ("Conditioning category label", "pulse_cat_conditioning", "pulse_cat_conditioning_tint", TEXT_MIN, "category chips and cards"),
+    ("Strength category label", "pulse_cat_strength", "pulse_cat_strength_tint", TEXT_MIN, "category chips and cards"),
+    ("Mobility category label", "pulse_cat_mobility", "pulse_cat_mobility_tint", TEXT_MIN, "category chips and cards"),
+    ("Mind category label", "pulse_cat_mind", "pulse_cat_mind_tint", TEXT_MIN, "category chips and cards"),
+    ("Tools category label", "pulse_cat_tools", "pulse_cat_tools_tint", TEXT_MIN, "category chips and cards"),
 ]
 
 TRUE_BLACK_PAIRS = [
@@ -257,6 +308,14 @@ LIGHT_PAIRS = [
     ("Accent chip label", "pulse_light_accent", "pulse_light_accent_tint", TEXT_MIN, "selected filters, info badges"),
     ("Primary button label", "pulse_light_action_text", "pulse_light_action_fill", TEXT_MIN, "the solid primary action"),
     ("Neutral chip label", "pulse_light_text_primary", "pulse_light_neutral_fill", TEXT_MIN, "type badges, neutral metadata"),
+    ("Accent gradient stop on canvas", "pulse_light_accent_alt", "pulse_light_canvas", NON_TEXT_MIN, "the second gradient stop"),
+    ("Accent gradient stop on card", "pulse_light_accent_alt", "pulse_light_surface", NON_TEXT_MIN, "gradient fills inside cards"),
+    ("Cardio category label", "pulse_light_cat_cardio", "pulse_light_cat_cardio_tint", TEXT_MIN, "category chips and cards"),
+    ("Conditioning category label", "pulse_light_cat_conditioning", "pulse_light_cat_conditioning_tint", TEXT_MIN, "category chips and cards"),
+    ("Strength category label", "pulse_light_cat_strength", "pulse_light_cat_strength_tint", TEXT_MIN, "category chips and cards"),
+    ("Mobility category label", "pulse_light_cat_mobility", "pulse_light_cat_mobility_tint", TEXT_MIN, "category chips and cards"),
+    ("Mind category label", "pulse_light_cat_mind", "pulse_light_cat_mind_tint", TEXT_MIN, "category chips and cards"),
+    ("Tools category label", "pulse_light_cat_tools", "pulse_light_cat_tools_tint", TEXT_MIN, "category chips and cards"),
 ]
 
 

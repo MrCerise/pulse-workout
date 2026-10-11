@@ -1,20 +1,19 @@
 package com.pulse.intervalcoach.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,25 +24,26 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
 /**
- * Loading, empty, error and confirmation states.
+ * Empty, loading, error and confirmation states.
  *
- * These are the screens people actually see when something is missing, so they get the same care as
- * a populated view: an explanation of the state, and — where one exists — the action that resolves
- * it. There are no illustrations and no large decorative glyphs; a single muted icon and a sentence
- * is enough.
+ * These are the screens a user sees when something is missing or something broke, so they follow one
+ * rule: an empty or error state that can be resolved always offers the action that resolves it, and
+ * the action is a real [PrimaryActionButton] rather than a piece of text that happens to be tappable.
  */
 
 /**
- * The empty state. [actionLabel] plus [onAction] resolve the state; a state that cannot be resolved
- * offers no button at all rather than a dead end.
+ * The "nothing here yet" state. The glyph sits in a tinted circle so an empty screen still looks
+ * designed rather than broken.
  */
 @Composable
 fun EmptyState(
@@ -59,76 +59,75 @@ fun EmptyState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = dimens.xl, horizontal = dimens.l),
+            .padding(horizontal = dimens.xl, vertical = dimens.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(dimens.m),
     ) {
-        if (icon != null) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(colors.surfaceRaised, LocalPulseShapes.current.control),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = colors.textMuted,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-            Spacer(Modifier.height(dimens.m))
+        Box(
+            modifier = Modifier
+                .size(76.dp)
+                .background(
+                    Brush.linearGradient(listOf(colors.accent.copy(alpha = 0.30f), colors.accentAlt.copy(alpha = 0.30f))),
+                    LocalPulseShapes.current.card,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon ?: Icons.Filled.Flag,
+                contentDescription = null,
+                tint = colors.accent,
+                modifier = Modifier.size(34.dp),
+            )
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.headlineSmall,
             color = colors.textPrimary,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(6.dp))
         Text(
             text = body,
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.textMuted,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textSecondary,
             textAlign = TextAlign.Center,
         )
         if (actionLabel != null && onAction != null) {
-            Spacer(Modifier.height(dimens.m))
-            SecondaryActionButton(text = actionLabel, onClick = onAction)
+            Spacer(Modifier.height(dimens.xs))
+            PrimaryActionButton(text = actionLabel, onClick = onAction)
         }
     }
 }
 
-/** A loading state that says what is loading. */
+/** A centred spinner with an optional line of context. */
 @Composable
 fun LoadingBox(modifier: Modifier = Modifier, label: String? = null) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = dimens.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(dimens.m),
     ) {
         CircularProgressIndicator(
             color = colors.accent,
             trackColor = colors.track,
-            strokeWidth = 2.dp,
-            modifier = Modifier.size(24.dp),
+            strokeWidth = 3.dp,
+            modifier = Modifier.size(32.dp),
         )
         if (label != null) {
-            Spacer(Modifier.height(dimens.m))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.textMuted,
+                textAlign = TextAlign.Center,
             )
         }
     }
 }
 
-/**
- * The error state. It always names what failed and, when retrying is possible, offers the retry —
- * an error message without a way forward is just an apology.
- */
+/** The "this went wrong" state, with a retry when there is something to retry. */
 @Composable
 fun ErrorState(
     title: String,
@@ -142,42 +141,45 @@ fun ErrorState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = dimens.xl, horizontal = dimens.l),
+            .padding(horizontal = dimens.xl, vertical = dimens.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(dimens.m),
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .background(colors.dangerTint, LocalPulseShapes.current.control),
+                .size(76.dp)
+                .background(colors.dangerTint, LocalPulseShapes.current.card),
             contentAlignment = Alignment.Center,
         ) {
-            Box(Modifier.size(8.dp).background(colors.error, CircleShape))
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = null,
+                tint = colors.error,
+                modifier = Modifier.size(34.dp),
+            )
         }
-        Spacer(Modifier.height(dimens.m))
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.headlineSmall,
             color = colors.textPrimary,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(6.dp))
         Text(
             text = body,
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.textMuted,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textSecondary,
             textAlign = TextAlign.Center,
         )
         if (onRetry != null) {
-            Spacer(Modifier.height(dimens.m))
-            SecondaryActionButton(text = retryLabel, onClick = onRetry)
+            Spacer(Modifier.height(dimens.xs))
+            SecondaryActionButton(text = retryLabel, onClick = onRetry, icon = Icons.Filled.Refresh)
         }
     }
 }
 
 /**
- * A confirmation dialog. Destructive confirmations read from the same tokens as everything else, and
- * the confirm button is only red when the action actually destroys something — a dialog that shouts
- * on every action stops being a signal.
+ * A confirmation dialog. It is only red when it destroys something — [destructive] is required for
+ * the destructive styling, so a routine confirmation cannot accidentally look like a warning.
  */
 @Composable
 fun ConfirmDialog(
@@ -190,54 +192,65 @@ fun ConfirmDialog(
     destructive: Boolean = false,
 ) {
     val colors = LocalPulseColors.current
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = LocalPulseShapes.current.card,
-        containerColor = colors.surfaceOverlay,
-        titleContentColor = colors.textPrimary,
-        textContentColor = colors.textSecondary,
-        title = {
-            Text(text = title, style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
-        },
-        text = {
-            Text(text = body, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
+    val dimens = LocalPulseDimens.current
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = LocalPulseShapes.current.card,
+            color = colors.surfaceOverlay,
+            contentColor = colors.textPrimary,
+            tonalElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(dimens.xl),
+                verticalArrangement = Arrangement.spacedBy(dimens.m),
+            ) {
                 Text(
-                    text = confirmLabel,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (destructive) colors.error else colors.accent,
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = colors.textPrimary,
                 )
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
                 Text(
-                    text = dismissLabel,
-                    style = MaterialTheme.typography.labelLarge,
+                    text = body,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = colors.textSecondary,
                 )
+                Spacer(Modifier.height(dimens.xs))
+                if (destructive) {
+                    DangerActionButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+                } else {
+                    PrimaryActionButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+                }
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = LocalPulseShapes.current.control,
+                ) {
+                    Text(
+                        text = dismissLabel,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colors.textSecondary,
+                    )
+                }
             }
-        },
-    )
+        }
+    }
 }
 
-/**
- * The app's toast. Rendered through `SnackbarHost { PulseSnackbar(it) }` so every transient message
- * in the application has the same surface, radius and typography.
- */
+/** The snackbar. Overlay fill, 18 dp radius, accent action. */
 @Composable
 fun PulseSnackbar(data: SnackbarData, modifier: Modifier = Modifier) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
     Surface(
-        modifier = modifier.padding(horizontal = LocalPulseDimens.current.l),
-        shape = LocalPulseShapes.current.control,
+        modifier = modifier.padding(horizontal = dimens.l, vertical = dimens.s),
+        shape = LocalPulseShapes.current.panel,
         color = colors.surfaceOverlay,
-        border = BorderStroke(LocalPulseDimens.current.borderWidth, colors.border),
+        contentColor = colors.textPrimary,
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = LocalPulseDimens.current.m, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = dimens.l, vertical = dimens.m),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -246,11 +259,15 @@ fun PulseSnackbar(data: SnackbarData, modifier: Modifier = Modifier) {
                 color = colors.textPrimary,
                 modifier = Modifier.weight(1f),
             )
-            data.visuals.actionLabel?.let { label ->
-                Spacer(Modifier.width(LocalPulseDimens.current.s))
-                TextButton(onClick = { data.performAction() }) {
+            val actionLabel = data.visuals.actionLabel
+            if (actionLabel != null) {
+                Spacer(Modifier.width(dimens.m))
+                TextButton(
+                    onClick = { data.performAction() },
+                    shape = LocalPulseShapes.current.chip,
+                ) {
                     Text(
-                        text = label,
+                        text = actionLabel,
                         style = MaterialTheme.typography.labelLarge,
                         color = colors.accent,
                     )

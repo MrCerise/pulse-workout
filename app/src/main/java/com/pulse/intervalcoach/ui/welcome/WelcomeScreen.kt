@@ -31,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.SoundCue
 import com.pulse.engine.formatDuration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Brush
+import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.StarterWorkouts
@@ -76,15 +81,28 @@ fun WelcomeScreen(
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
             when (step) {
                 0 -> {
-                    Text(
-                        text = stringResource(R.string.app_name).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.accent,
-                    )
-                    Spacer(Modifier.height(dimens.s))
+                    // A gradient mark rather than a word: onboarding is the one screen where the
+                    // app introduces itself, and the two accent stops are the whole identity.
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(
+                                Brush.linearGradient(listOf(colors.accent, colors.accentAlt)),
+                                LocalPulseShapes.current.control,
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Bolt,
+                            contentDescription = null,
+                            tint = colors.onAccentGradient,
+                            modifier = Modifier.size(30.dp),
+                        )
+                    }
+                    Spacer(Modifier.height(dimens.l))
                     Text(
                         text = stringResource(R.string.app_tagline),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.displayMedium,
                         color = colors.textPrimary,
                     )
                     Spacer(Modifier.height(dimens.m))
@@ -111,7 +129,7 @@ fun WelcomeScreen(
                 1 -> {
                     Text(
                         text = stringResource(R.string.welcome_voice),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineMedium,
                         color = colors.textPrimary,
                     )
                     Spacer(Modifier.height(dimens.s))
@@ -125,7 +143,8 @@ fun WelcomeScreen(
                         progress = 0.35f,
                         color = colors.work,
                         trackColor = colors.track,
-                        strokeWidth = 6.dp,
+                        strokeWidth = 8.dp,
+                        gradient = true,
                         modifier = Modifier
                             .size(168.dp)
                             .align(Alignment.CenterHorizontally),
@@ -158,7 +177,7 @@ fun WelcomeScreen(
                 else -> {
                     Text(
                         text = "Start with an example",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineMedium,
                         color = colors.textPrimary,
                     )
                     Spacer(Modifier.height(dimens.s))
@@ -193,10 +212,10 @@ fun WelcomeScreen(
                 repeat(3) { index ->
                     Box(
                         Modifier
-                            .size(width = 28.dp, height = 3.dp)
+                            .size(width = if (index == step) 32.dp else 10.dp, height = 10.dp)
                             .background(
-                                color = if (index <= step) colors.accent else colors.border,
-                                shape = RoundedCornerShape(2.dp),
+                                color = if (index <= step) colors.accent else colors.track,
+                                shape = LocalPulseShapes.current.chip,
                             ),
                     )
                 }

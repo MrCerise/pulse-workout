@@ -1,132 +1,145 @@
-# PULSE design system — "Graphite"
+# PULSE design system — "Prism"
 
-Design reference: **Linear**. One reference, applied consistently: the calm near-black chrome, the
-hairline separators instead of shadows, the tight type scale with monospaced numerals, the small
-number of radii, and a single accent that only ever means "interactive". No Linear asset, logo,
-font or colour value is reproduced — what is borrowed is the *approach*, and every value below is
-PULSE's own.
-
-The system is deliberately small. It has one neutral ramp, one accent, five signal colours and eight
-spacing steps, and every screen composes from those. If a screen needs something that does not exist
-here, the answer is to add a token, not a literal.
-
----
+Prism is the third generation of the PULSE visual layer and the first built around **categories as
+data**. It replaced "Graphite" (near-black chrome, hairline borders, monochrome chrome, small radii,
+no gradients) with a system that is louder where it should be — the hero, the primary action, the
+running timer — and quieter everywhere else.
 
 ## 1. Principles
 
-1. **Chrome is monochrome.** Navigation, headers, buttons, borders and text never carry hue.
-2. **Colour means something.** The only chromatic elements are interval phases (work, rest,
-   prepare, cool-down) and state (destructive). A screen with twenty chips stays calm because
-   chips are tinted containers, not saturated blocks.
-3. **Elevation is a border, not a shadow.** A surface is separated from the canvas by its fill plus
-   a one-pixel border. That renders identically on every density, in every theme, and never blurs
-   text underneath it.
-4. **Small radii, consistently.** 12 dp surfaces, 8 dp controls, 6 dp chips, 16 dp sheets.
-   Nothing is a pill unless it is genuinely round (the transport button).
-5. **The primary action inverts the text ramp.** A light block in dark themes, a dark block in
-   light themes. This keeps the accent free to mean "interactive/selected" rather than "brand".
-6. **Motion is felt, not watched.** 120 ms for feedback, 180 ms for selection and expansion, and
-   zero when the user asks for reduced motion.
+1. **The gradient is a privilege.** The accent gradient (violet → cyan) appears in exactly three
+   places at scale: the Today hero, the session-summary hero, and the primary action. It is never a
+   background texture, never a border, never a chart fill. Because it is rare, it still means
+   "look here".
+2. **Depth is earned.** A card is separated from the canvas by its fill and a hairline. Only chrome
+   that genuinely floats — the navigation bar, sheets, dialogs — casts a shadow. One shadow on a
+   screen is a signal; six are noise.
+3. **Big panels, small pills.** Cards are 24 dp, nested panels 18 dp, controls 14 dp, chips fully
+   round. The two silhouettes are deliberately far apart, so a screen reads as a handful of large
+   soft surfaces carrying small round pills.
+4. **Colour means something.** Interval phases own four hues, workout categories own six families,
+   destructive state owns one. Nothing is chromatic for decoration, and every hue ships with the
+   pre-composited container tint it is drawn on.
+5. **Motion is felt, not watched.** 160 ms for feedback, 260 ms for selection, 380 ms for a sheet —
+   and zero when the user asks for reduced motion.
 
 ## 2. Colour
 
 Defined once in `app/src/main/res/values/colors.xml` and mirrored value-for-value in
-`ui/theme/Palette.kt`. `scripts/contrast_check.py` exits **2** if the two ever disagree (token
-drift) and exits **1** if any measured pairing drops below its WCAG 2.1 AA threshold.
+`ui/theme/Palette.kt`. `scripts/contrast_check.py` exits **2** if the two ever disagree (token drift)
+and exits **1** if any measured pairing drops below its WCAG 2.1 AA threshold. The current run
+measures **97 pairs** across the ink, void and paper themes.
 
-### Neutral ramp (dark — default)
+### Neutral ramp — Ink (dark, default)
 
 | Token | Value | Role |
 | --- | --- | --- |
-| `pulse_canvas` | `#08090A` | app background |
-| `pulse_nav` | `#0B0C0E` | top bar, bottom bar |
-| `pulse_surface` | `#101114` | cards, panels |
-| `pulse_surface_raised` | `#16181B` | inputs, stat tiles, steppers |
-| `pulse_surface_overlay` | `#1D1F23` | dialogs, menus, snackbars |
-| `pulse_surface_hover` | `#222429` | neutral chip fill, hover |
-| `pulse_border` | `#24272C` | hairline separators (decorative) |
-| `pulse_outline` | `#5F6470` | control boundaries (measured at 3:1) |
-| `pulse_text_primary` | `#F7F8F8` | titles, body, values |
-| `pulse_text_secondary` | `#9BA1AE` | supporting copy |
-| `pulse_text_muted` | `#7A818F` | labels, captions, timestamps |
-| `pulse_text_disabled` | `#4B5058` | disabled only (exempt from 4.5:1) |
+| `pulse_canvas` | `#0A0912` | app background |
+| `pulse_nav` | `#120F1C` | navigation bar and rail |
+| `pulse_surface` | `#171423` | cards, panels |
+| `pulse_surface_raised` | `#1F1B2E` | inputs, stat tiles, chips |
+| `pulse_surface_overlay` | `#272137` | dialogs, menus, snackbars |
+| `pulse_surface_hover` | `#2E2842` | hover and pressed fill |
+| `pulse_border` | `#2B2540` | hairline separators (decorative) |
+| `pulse_outline` | `#8B7FB8` | control boundaries (measured at 3:1) |
+| `pulse_text_primary` | `#F6F4FF` | titles, body, values |
+| `pulse_text_secondary` | `#B9B2D4` | supporting copy |
+| `pulse_text_muted` | `#948DB4` | labels, captions, timestamps |
+| `pulse_text_disabled` | `#5E5780` | disabled only (exempt from 4.5:1) |
 
-The light ramp is the same structure with inverted polarity (`pulse_light_*`), and the OLED ramp
-replaces only the surfaces with pure black equivalents (`pulse_black_*`).
+The **Paper** ramp (`pulse_light_*`) is the same structure with inverted polarity and a cool paper
+canvas (`#F5F4FA`), and the **Void** ramp (`pulse_black_*`) replaces only the surfaces with pure
+black for OLED panels.
+
+### Accent
+
+| Token | Value | Role |
+| --- | --- | --- |
+| `pulse_accent` | `#A78BFA` | interactive violet: selection, links, focus, live data |
+| `pulse_accent_alt` | `#22D3EE` | the gradient's second stop — graphic only, never a label |
+| `pulse_accent_tint` | `#241E3C` | pre-composited container for accent text |
+
+`pulse_accent_alt` is measured at 3:1 rather than 4.5:1 on purpose: it is a *fill*, and the only
+text drawn on the gradient uses `PulseColors.onAccentGradient` (ink in dark themes, paper in light
+ones).
 
 ### Signal colours
 
-| Meaning | Dark | Light | Container |
+| Meaning | Ink | Paper | Container |
 | --- | --- | --- | --- |
-| Accent (selection, links, focus) | `#7C8CFF` | `#3D4FD6` | `pulse_accent_tint` |
-| Work / success | `#4CC38A` | `#177245` | `pulse_work_tint` |
-| Rest | `#5BC8E8` | `#0B6E85` | `pulse_rest_tint` |
-| Prepare / warning | `#E3B341` | `#8A5A00` | `pulse_prepare_tint` |
-| Cool-down | `#A78BFA` | `#5B3FD1` | `pulse_cooldown_tint` |
-| Destructive / error | `#F2555A` | `#BE2F3C` | `pulse_destructive_tint` |
+| Work / success | `#4ADE80` | `#147536` | `*_work_tint` |
+| Rest | `#38BDF8` | `#0369A1` | `*_rest_tint` |
+| Prepare / warning | `#FBBF24` | `#965B06` | `*_prepare_tint` |
+| Cool-down | `#C084FC` | `#7E22CE` | `*_cooldown_tint` |
+| Destructive / error | `#FB7185` | `#BE123C` | `*_destructive_tint` |
 
-Tints are **pre-composited values**, not runtime alpha: `docs/CONTRAST.md` therefore measures the
-chip label against the exact colour that ships.
+### Category hues
+
+| Family | Ink | Paper | Container | Categories |
+| --- | --- | --- | --- | --- |
+| Conditioning | `#FBBF24` | `#965B06` | `*_cat_conditioning_tint` | HIIT, Tabata, Circuit, Boxing, EMOM, E2MOM, AMRAP |
+| Cardio | `#FB7185` | `#BE123C` | `*_cat_cardio_tint` | Run / Walk |
+| Strength | `#A78BFA` | `#6D28D9` | `*_cat_strength_tint` | Strength |
+| Mobility | `#38BDF8` | `#0369A1` | `*_cat_mobility_tint` | Stretching |
+| Mind | `#4ADE80` | `#147536` | `*_cat_mind_tint` | Breathing, Focus |
+| Tools | `#94A3B8` | `#475569` | `*_cat_tools_tint` | Custom sequence, Compound, Stopwatch, Repeating cue |
 
 ## 3. Typography
 
 Two families, both already on the device — no font assets, no download step:
 
 - **Sans** (`FontFamily.Default`) for prose and labels.
-- **Mono** (`FontFamily.Monospace`) for every number: countdowns, durations, interval counts, BPM.
-
-Monospaced digits with tabular figures (`tnum`) are why a countdown ticking from `1:00` to `0:59`
-does not shift a single pixel.
+- **Mono** (`FontFamily.Monospace`) with tabular figures for every number, so a countdown ticking
+  from `1:00` to `0:59` does not shift a single pixel.
 
 | Role | Size / line height / weight | Used for |
 | --- | --- | --- |
-| `displayLarge` | 56 / 60 / Bold | player countdown (via `PulseType.NumericDisplay`) |
-| `displaySmall` | 28 / 34 / SemiBold | welcome hero |
-| `headlineSmall` | 18 / 24 / SemiBold | screen headlines |
-| `titleLarge` | 16 / 22 / SemiBold | top-bar titles, card headings |
-| `titleMedium` | 14 / 20 / Medium | list row titles |
+| `displayLarge` | 64 / 68 / Bold | reserved |
+| `displayMedium` | 44 / 48 / Bold | the onboarding headline |
+| `displaySmall` | 32 / 38 / Bold | reserved |
+| `headlineLarge` | 26 / 32 / Bold | the Today hero greeting |
+| `headlineMedium` | 22 / 28 / SemiBold | pushed-screen headlines, category screen titles |
+| `headlineSmall` | 18 / 24 / SemiBold | top-bar titles |
+| `titleLarge` | 17 / 24 / SemiBold | card headings |
+| `titleMedium` | 15 / 22 / Medium | list row titles |
 | `titleSmall` | 13 / 18 / Medium | tile values, dense headings |
-| `bodyLarge` | 14 / 21 / Normal | field text, primary body copy |
-| `bodyMedium` | 13 / 19 / Normal | card body copy |
-| `bodySmall` | 12 / 17 / Normal | captions, hints |
-| `labelLarge` | 13 / 18 / Medium | button labels |
-| `labelMedium` | 11 / 16 / Medium, +0.6 sp | chips, metadata |
-| `labelSmall` | 11 / 14 / Medium, +0.9 sp | section labels (uppercased by the component) |
+| `bodyLarge` | 15 / 23 / Normal | field text, primary body copy |
+| `bodyMedium` | 14 / 21 / Normal | card body copy |
+| `bodySmall` | 12 / 18 / Normal | captions, hints |
+| `labelLarge` | 15 / 20 / SemiBold | button labels |
+| `labelMedium` | 12 / 16 / Medium, +0.6 sp | chips, metadata |
+| `labelSmall` | 11 / 14 / Bold, +1.0 sp | section labels (uppercased by the component) |
 
 Numeric styles live in `PulseType` (`NumericDisplay`, `NumericLarge`, `NumericMedium`,
-`NumericSmall`) rather than in the Material role scale, because a timer is data, not prose.
+`NumericSmall`, `StepperValue`) rather than in the Material role scale, because a timer is data, not
+prose.
 
 ## 4. Spacing, size and radii
 
-Base unit 4 dp. Steps: `xs 4`, `s 8`, `m 12`, `l 16`, `xl 24`, `xxl 32`, `huge 48`.
+Base unit 4 dp. Steps: `microGap 2`, `xs 4`, `s 8`, `m 12`, `l 16`, `xl 20`, `xxl 28`, `huge 40`,
+`massive 56`.
 
 | Purpose | Token | Value |
 | --- | --- | --- |
-| Page gutter (every screen) | `pagePadding` | 16 dp |
-| Card interior | `cardPadding` | 16 dp |
-| Gap between sibling cards | `cardGap` | 12 dp |
-| Button / input height | `controlHeight`, `buttonHeight` | 40 dp |
-| Icon button | `iconButtonSize` | 36 dp visual, 48 dp touch |
-| Top bar | `topBarHeight` | 56 dp |
-| List row | `listRowHeight` | 56 dp |
+| Page gutter (every screen) | `pagePadding` | 20 dp |
+| Card interior | `cardPadding` | 18 dp |
+| Gap between sibling cards | `cardGap` | 14 dp |
+| Gap inside a chip cluster | `chipGap` | 8 dp |
+| Button height | `buttonHeight` | 52 dp |
+| Input / stepper height | `controlHeight` | 48 dp |
+| Icon button (visual) | `iconButtonSize` | 40 dp |
+| Top bar | `topBarHeight` | 64 dp |
+| List row | `listRowHeight` | 64 dp |
+| Floating navigation bar | `navBarHeight` | 72 dp |
+| Navigation rail width | `railWidth` | 88 dp |
 | Minimum touch target | `minTouchTarget` | 48 dp |
-| Radii | `cardRadius` 12, `controlRadius` 8, `chipRadius` 6, `sheetRadius` 16, `pillRadius` 999 |
-| Micro gap (a caption under its title) | `microGap` | 2 dp |
-| Shared content metrics | `barHeightCompact` 8, `barHeightRegular` 48, `chartHeight` 112, `gridCellMin` 160, `carouselCardWidth` 220 | — |
-| Player density presets | `playerPanelCompact` 200, `playerPanelStandard` 260, `playerPanelLarge` 320 | — |
+| Radii | `cardRadius` 24, `panelRadius` 18, `controlRadius` 14, `chipRadius` 999, `sheetRadius` 28 | — |
+| Shared content metrics | `barHeightCompact` 10, `barHeightRegular` 20, `chartHeight` 132, `gridCellMin` 172, `carouselCardWidth` 236 | — |
+| Player density presets | `playerPanelCompact` 208, `playerPanelStandard` 264, `playerPanelLarge` 320 | — |
+| Today hero height | `heroHeight` | 188 dp |
 
-A screen never writes a raw `dp` for **spacing or for a shared metric**: gutters, gaps, padding,
-control heights and everything in the table above are read from `LocalPulseDimens.current`. Values
-that size one screen's own artwork — the home ring's diameter, the welcome illustration, the player's
-transport button, the density presets' panel height — stay in that screen as `LocalPulseDimens`
-tokens where they are shared (`playerPanelCompact`, `chartHeight`, `gridCellMin`, `carouselCardWidth`)
-and as plain literals where they are not, because a name used once adds indirection rather than
-information.
-
-Inside a single component the rule is deliberately looser: a dot is 5–6 dp, a glyph inside a badge is
-16 dp, a progress stroke is 2 dp. Those are optical adjustments to one control, not spacing between
-blocks, so they live in the component that draws them and never leak to a call site — no screen passes
-a radius, a stroke width or a dot size to a component.
+A screen never writes a raw `dp` for spacing or for a shared metric. Values that size one screen's
+own artwork stay with that screen.
 
 ## 5. Components
 
@@ -135,29 +148,29 @@ screen-local restyling of a button, card or field.
 
 | File | Contents |
 | --- | --- |
-| `Foundation.kt` | `PulseCard`, `PulsePanel`, `SectionHeader`, `PulseDivider`, `PulseListRow`, `PulseTopBar`, `VerticalSpacer` |
-| `Controls.kt` | `PrimaryActionButton`, `SecondaryActionButton`, `GhostActionButton`, `DangerActionButton`, `PulseIconButton` (+ tooltip), `PulseTextField`, `PulseSegmented`, `PulseChoiceChip`, `OptionRow`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper`, `PulseDropdown` / `PulseDropdownItem` |
-| `Indicators.kt` | `PhaseChip`, `NeutralChip`, `StatusBadge`, `StatTile`, `InfoBanner` |
-| `DataDisplay.kt` | `TimelineBar`, `ProgressRing`, `ActivityChart` |
+| `Foundation.kt` | `PulseScaffold`, `PulseCard`, `PulseGradientCard`, `PulsePanel`, `PulseTopBar`, `SectionHeader`, `PulseDivider`, `PulseListRow`, `VerticalSpacer` |
+| `Controls.kt` | `PrimaryActionButton`, `SecondaryActionButton`, `GhostActionButton`, `DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseSegmented`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper`, `PulseDropdown` / `PulseDropdownItem`, `SelectableTile` |
+| `Indicators.kt` | `PhaseChip`, `NeutralChip`, `CategoryChip`, `StatusBadge`, `StatTile`, `InfoBanner`, `StatRow`, `CategoryPicker` |
+| `DataDisplay.kt` | `TimelineBar`, `ProgressRing`, `ActivityChart`, `GradientProgressBar` |
 | `Feedback.kt` | `EmptyState`, `LoadingBox`, `ErrorState`, `ConfirmDialog`, `PulseSnackbar` |
-| `Navigation.kt` | `PulseBottomBar`, `PulseNavItem` |
+| `Navigation.kt` | `PulseFloatingNavBar`, `PulseNavRail`, `PulseNavItem`, `PulseRailDivider` |
 
 Rules encoded in the components themselves, so a screen cannot get them wrong:
 
-- A card is 12 dp, a control 8 dp, a chip 6 dp — there is no API to pass any other radius.
-- An icon button carries a content description *and* an optional tooltip.
-- A destructive confirmation is only red when it destroys something (`destructive = true`).
+- There is no API to pass a radius: a card is 24 dp, a panel 18, a control 14, a chip round.
+- A destructive confirmation is only red when `destructive = true`.
 - An empty or error state that can be resolved always offers the action that resolves it.
-- Every chip, badge and banner draws its colours from a named tone, never from a raw hex.
+- Every chip, badge and banner draws its colours from a named tone or hue, never from a raw hex.
 
 ## 6. Layout
 
-- **Phone:** single column, 16 dp gutters, 12 dp between cards, bottom navigation on the four
-  primary destinations (Today, Workouts, Progress, Settings). Pushed screens own their header and
-  get a back affordance in the same place every time.
-- **Tablet and landscape:** the same components are driven by content width. Adaptive grids are
-  used where a list would otherwise stretch (`GridCells.Adaptive`), and wide stat clusters collapse
-  to rows that wrap rather than to a separate layout.
+- **Phone:** single column, 20 dp gutters, 14 dp between cards, and a **floating pill bar** on the
+  four primary destinations (Today, Workouts, Progress, Settings).
+- **Tablet and landscape (≥ 600 dp):** the same four destinations become a **rail** down the left
+  edge with the wordmark at its head. One navigation model, two shapes — both read the same
+  `PulseNavItem` list, so there is nothing to keep in step.
+- **Every screen is a `PulseScaffold`.** One background, one optional header, one optional bottom
+  bar, and content that is handed its padding rather than guessing at it.
 - **No layout shift.** Tabular numerals, fixed row heights and `heightIn` controls mean nothing
   moves when a value changes.
 
@@ -166,22 +179,57 @@ Rules encoded in the components themselves, so a screen cannot get them wrong:
 | State | Treatment |
 | --- | --- |
 | Hover / pressed | M3 ripple plus a `surfaceHover` fill on raised controls |
-| Selected | `accentTint` container with accent content and an accent border |
-| Focused | 2 dp accent boundary on the focused control (M3 focus indicator) |
+| Selected | the element's own hue as the container, its hue as the content |
+| Focused | 2 dp accent boundary (M3 focus indicator) |
 | Disabled | `textDisabled` / `surfaceHover` fill, never a dimmed colour |
-| Transition | 120 ms feedback, 180 ms selection/expansion, 0 ms when reduced motion is on |
+| Transition | 160 ms feedback, 260 ms selection, 380 ms sheets, 0 ms when reduced motion is on |
 
-## 8. Accessibility
+## 8. Categories
 
-- Text clears 4.5:1 in both themes; control boundaries clear 3:1. Every pairing is measured in
+`WorkoutType` in the engine is a **semantic key**: it is what is serialised into a plan and stored in
+the database, and the only thing it knows about itself is whether it can report a finish time.
+Everything a human reads lives in `data/Categories.kt`:
+
+```kotlin
+WorkoutCategory(
+    type = WorkoutType.HIIT,
+    title = "HIIT",
+    tagline = "Hard efforts, short recoveries",
+    description = "…",
+    hue = CategoryHue.CONDITIONING,
+    icon = Icons.Filled.LocalFireDepartment,
+    defaults = CategoryDefaults(workMillis = 40_000, …),
+    capabilities = CategoryCapabilities(supportsLadder = true, …),
+    keywords = listOf("interval", "cardio", …),
+)
+```
+
+The registry (`WorkoutCategories`) is the single source for:
+
+- the library's **category rail**, generated from the registry rather than from the workouts that
+  happen to exist, so a category with no workouts yet is still part of the vocabulary;
+- the **category picker** in the builder, which shows each category's glyph in its own hue with a
+  check on the selected one — and replaced a hard-coded list of enum constants;
+- the **category screen** (`Routes.CATEGORY`), which needs nothing but a key to render a hero, the
+  default timings and everything you already have in that category;
+- the **Today presets** and the "where your time went" breakdown in Progress;
+- the icon and hue on every card, chip, row and player header.
+
+Adding a category is a two-file change: add the member to `WorkoutType`, add the record to
+`WorkoutCategories`, and every screen, filter, default and icon follows automatically.
+
+## 9. Accessibility
+
+- Text clears 4.5:1 in every theme; control boundaries clear 3:1. Every pairing is measured in
   [`CONTRAST.md`](CONTRAST.md).
-- Colour is never the only signal: a phase also has a name, a dot and a position in the timeline.
-- All interactive elements expose at least a 48 dp touch target, even when drawn at 36 dp.
+- Colour is never the only signal: a phase has a name, a dot and a position in the timeline; a
+  category has a name and a glyph.
+- All interactive elements expose at least a 48 dp touch target, even when drawn at 40 dp.
 - Icon-only controls always have a content description; tooltips are additive.
 - `highContrast` lifts the accents and pushes text to the extremes; `reducedMotion` collapses every
   duration to zero.
 
-## 9. Extending the system
+## 10. Extending the system
 
 1. Add the token to `colors.xml`.
 2. Mirror it in `Palette.kt` with the same name in `PulsePalette`.
@@ -190,3 +238,4 @@ Rules encoded in the components themselves, so a screen cannot get them wrong:
 4. Run `python3 scripts/contrast_check.py` — it must exit 0 before anything else runs.
 5. Surfacing it in a screen: use a component, or a composition local. A hex literal in a screen is
    how a design system stops being one.
+6. Adding a *category*: `WorkoutType` + `WorkoutCategories`. Nothing else needs to know.

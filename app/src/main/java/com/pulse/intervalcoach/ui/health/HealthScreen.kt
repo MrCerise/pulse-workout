@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +39,7 @@ import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
@@ -85,24 +85,19 @@ fun HealthScreen(
 
     var backfill by remember { mutableStateOf<String?>(null) }
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = "Health",
-                subtitle = "Connect once — PULSE reads, writes, and says what happened",
-                onBack = onBack,
-                backDescription = stringResource(R.string.back),
-                actions = {
-                    PulseIconButton(
-                        icon = Icons.Filled.Refresh,
-                        contentDescription = "Refresh health status",
-                        tooltip = "Refresh health status",
-                        onClick = { container.health.refresh() },
-                    )
-                },
-            )
-        },
+    PulseScaffold(
+        title = "Health",
+        subtitle = "Connect once — PULSE reads, writes, and says what happened",
+        onBack = onBack,
+        backDescription = stringResource(R.string.back),
+        actions = {
+                PulseIconButton(
+                    icon = Icons.Filled.Refresh,
+                    contentDescription = "Refresh health status",
+                    tooltip = "Refresh health status",
+                    onClick = { container.health.refresh() },
+                )
+            },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),

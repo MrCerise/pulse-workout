@@ -1,6 +1,8 @@
 package com.pulse.intervalcoach.ui.progress
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,8 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,6 +41,7 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.DailyActivity
+import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.STATUS_COMPLETED
 import com.pulse.intervalcoach.data.STATUS_INTERRUPTED
 import com.pulse.intervalcoach.data.STATUS_STOPPED
@@ -55,6 +58,7 @@ import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
 import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
@@ -62,6 +66,7 @@ import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -138,15 +143,23 @@ fun ProgressScreen(
         val weekAgo = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
         state.sessions.filter { it.startedAt >= weekAgo }.sumOf { it.activeMillis }
     }
+    // "Where your time went" is a join between finished sessions and the library, resolved through
+    // the category registry — the same record that gives each workout its icon and hue everywhere
+    // else, so the breakdown cannot disagree with the library about what a category is called.
+    val categoryTotals = remember(state.sessions, summaries) {
+        val categoryById = summaries.associate { it.id to com.pulse.intervalcoach.data.WorkoutCategories.byKey(it.type) }
+        state.sessions
+            .mapNotNull { session -> categoryById[session.workoutId]?.let { it to session.activeMillis } }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, values) -> values.sum() }
+            .toList()
+            .sortedByDescending { it.second }
+            .take(5)
+    }
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = "Progress",
-                subtitle = "Real numbers from your saved sessions",
-            )
-        },
+    PulseScaffold(
+        title = "Progress",
+        subtitle = "Real numbers from your saved sessions",
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -191,6 +204,66 @@ fun ProgressScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textMuted,
                         )
+                    }
+                }
+            }
+
+            // --- Where the time went, by category ---------------------------------------------
+            if (categoryTotals.isNotEmpty()) {
+                item { SectionHeader(text = "Where your time went") }
+                item {
+                    PulseCard {
+                        Column(verticalArrangement = Arrangement.spacedBy(dimens.m)) {
+                            val top = categoryTotals.first().second.coerceAtLeast(1L)
+                            categoryTotals.forEach { (category, millis) ->
+                                val hue = colors.categoryColor(category.hue)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        imageVector = category.icon,
+                                        contentDescription = null,
+                                        tint = hue,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Spacer(Modifier.width(dimens.s))
+                                    Text(
+                                        text = category.title,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = colors.textPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    Spacer(Modifier.width(dimens.s))
+                                    Text(
+                                        text = formatDuration(millis),
+                                        style = PulseType.NumericSmall,
+                                        color = colors.textMuted,
+                                    )
+                                }
+                                Spacer(Modifier.height(dimens.xs))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(dimens.barHeightCompact)
+                                        .background(colors.track, LocalPulseShapes.current.chip),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth((millis.toFloat() / top.toFloat()).coerceIn(0f, 1f))
+                                            .height(dimens.barHeightCompact)
+                                            .background(hue, LocalPulseShapes.current.chip),
+                                    )
+                                }
+                            }
+                            Text(
+                                text = "Minutes you actually spent training, grouped by the category of each workout.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.textMuted,
+                            )
+                        }
                     }
                 }
             }
@@ -390,16 +463,11 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
     val dimens = LocalPulseDimens.current
     val sessions by container.sessions.history.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = stringResource(R.string.progress_history),
-                subtitle = "${sessions.size} recorded sessions",
-                onBack = onBack,
-                backDescription = stringResource(R.string.back),
-            )
-        },
+    PulseScaffold(
+        title = stringResource(R.string.progress_history),
+        subtitle = "${sessions.size} recorded sessions",
+        onBack = onBack,
+        backDescription = stringResource(R.string.back),
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -444,23 +512,18 @@ fun SessionDetailScreen(
     var confirmDelete by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = stringResource(R.string.session_detail_title),
-                subtitle = session?.workoutName,
-                onBack = onBack,
-                backDescription = stringResource(R.string.back),
-            )
-        },
+    PulseScaffold(
+        title = stringResource(R.string.session_detail_title),
+        subtitle = session?.workoutName,
+        onBack = onBack,
+        backDescription = stringResource(R.string.back),
     ) { padding ->
         val current = session
         if (current == null) {
             Column(Modifier.padding(padding)) {
                 EmptyState(title = "Session not found", body = "It may have been deleted.")
             }
-            return@Scaffold
+            return@PulseScaffold
         }
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -537,7 +600,7 @@ fun SessionDetailScreen(
                         )
                         Spacer(Modifier.height(dimens.xs))
                         Text(
-                            text = snapshotPlan?.let { "${it.name} · ${it.type.displayName}" } ?: "Snapshot unavailable",
+                            text = snapshotPlan?.let { "${it.name} · ${it.category.title}" } ?: "Snapshot unavailable",
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.textPrimary,
                         )

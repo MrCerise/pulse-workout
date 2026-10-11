@@ -13,33 +13,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
 /**
- * PULSE — v1.4 "Graphite" theme entry point.
+ * PULSE — "Prism" theme entry point.
  *
  * ## Design direction
  *
- * The application is styled after a modern developer tool: a near-black canvas, a neutral slate
- * ramp for every surface, one-pixel separators instead of shadows, a tight type scale with
- * monospaced numerals, and colour reserved for meaning. Dark is the primary theme; light is a
- * first-class sibling built from the same ramp rather than an inverted afterthought.
+ * A violet-tinted ink canvas, large soft surfaces with generous radii, a two-stop accent (violet →
+ * cyan) that the interface uses as a gradient rather than as a flat swatch, six category hues that
+ * make "what kind of session is this" readable before a word is read, and a type scale that goes to
+ * 64 sp on the two screens that earn a hero. Dark is the primary theme; light is a first-class
+ * sibling built from the same roles rather than an inverted afterthought.
  *
  * ## What that means in practice
  *
- *  - **Chrome is monochrome.** Navigation, headers, buttons and text never carry hue.
- *  - **Colour means something.** Only interval phases (work / rest / prepare / cool-down) and state
- *    (destructive, accent) are chromatic.
- *  - **Radii are small and consistent.** 12 dp for surfaces, 8 dp for controls, 6 dp for chips.
- *    Nothing is a pill unless it is genuinely round.
- *  - **Elevation is a border, not a shadow.** A card is separated from the canvas by its fill and a
- *    hairline, which stays crisp on every density and in every theme.
+ *  - **Chrome is quiet, content is loud.** Navigation, headers and text carry almost no hue; the
+ *    accent gradient, the phase colours and the category hues are what the eye lands on.
+ *  - **Colour means something.** Interval phases own four hues, workout categories own six more, and
+ *    destructive state owns one. Nothing is chromatic for decoration.
+ *  - **Radii are large and consistent.** 24 dp cards, 18 dp nested panels, 14 dp controls, pills for
+ *    chips. The two silhouettes — big soft panel, small round pill — are deliberately far apart.
+ *  - **Depth is earned.** A card is separated by its fill and a hairline. Only chrome that genuinely
+ *    floats (the navigation bar, sheets, dialogs) casts a shadow, which is why it still reads.
  *
- * Every value lives in [PulsePalette] / [PulseDimens] / [PulseType], and every pairing this theme
- * can produce is measured in `docs/CONTRAST.md` by `scripts/contrast_check.py`.
+ * Every value lives in [PulsePalette] / [PulseDimens] / [PulseElevation] / [PulseType], and every
+ * pairing this theme can produce is measured in `docs/CONTRAST.md` by `scripts/contrast_check.py`.
  */
 @Composable
 fun PulseTheme(
@@ -76,7 +77,12 @@ fun PulseTheme(
     }
 
     val colors = pulseColors(dark = dark, trueBlack = trueBlack, highContrast = highContrast)
-        .let { base -> if (dynamicAccent == null) base else base.copy(accent = dynamicAccent) }
+        .let { base ->
+            if (dynamicAccent == null) base else base.copy(
+                accent = dynamicAccent,
+                accentAlt = dynamicAccent.copy(alpha = 0.72f),
+            )
+        }
 
     val dimens = PulseDimens()
     val shapes = PulseShapes()
@@ -85,6 +91,7 @@ fun PulseTheme(
         LocalPulseColors provides colors,
         LocalPulseDimens provides dimens,
         LocalPulseShapes provides shapes,
+        LocalPulseElevation provides PulseElevation(),
         LocalPulseMotion provides PulseMotion(reducedMotion),
     ) {
         MaterialTheme(
@@ -131,6 +138,7 @@ fun pulseColors(
             border = PulsePalette.LightBorder,
             outline = PulsePalette.LightOutline,
             accent = accentOverride ?: PulsePalette.LightAccent,
+            accentAlt = PulsePalette.LightAccentAlt,
             accentTint = PulsePalette.LightAccentTint,
             work = PulsePalette.LightWork,
             rest = PulsePalette.LightRest,
@@ -158,7 +166,8 @@ fun pulseColors(
         textDisabled = PulsePalette.TextDisabled,
         border = if (trueBlack) PulsePalette.BlackBorder else PulsePalette.Border,
         outline = if (highContrast) PulsePalette.HighContrastOutline else PulsePalette.Outline,
-        accent = accentOverride ?: PulsePalette.Accent,
+        accent = accentOverride ?: if (highContrast) PulsePalette.HighContrastAccent else PulsePalette.Accent,
+        accentAlt = PulsePalette.AccentAlt,
         accentTint = PulsePalette.AccentTint,
         work = if (highContrast) PulsePalette.HighContrastWork else PulsePalette.Work,
         rest = if (highContrast) PulsePalette.HighContrastRest else PulsePalette.Rest,
@@ -215,7 +224,7 @@ fun PulseColors.toMaterialScheme(): ColorScheme {
         outlineVariant = border,
         inverseSurface = textPrimary,
         inverseOnSurface = background,
-        scrim = Color.Black,
+        scrim = scrim,
     )
 }
 

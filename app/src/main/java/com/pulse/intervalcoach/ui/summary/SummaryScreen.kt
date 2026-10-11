@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
@@ -40,14 +40,17 @@ import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseGradientCard
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -80,15 +83,10 @@ fun SessionSummaryScreen(
     val scope = rememberCoroutineScope()
     var notes by remember(summary?.sessionId) { mutableStateOf("") }
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = stringResource(R.string.summary_title),
-                onBack = onDone,
-                backDescription = "Close summary",
-            )
-        },
+    PulseScaffold(
+        title = stringResource(R.string.summary_title),
+        onBack = onDone,
+        backDescription = "Close summary",
     ) { padding ->
         val current = summary
         if (current == null) {
@@ -101,7 +99,7 @@ fun SessionSummaryScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            return@Scaffold
+            return@PulseScaffold
         }
 
         val entity by container.sessions.observeSession(current.sessionId).collectAsStateWithLifecycle(initialValue = null)
@@ -133,26 +131,39 @@ fun SessionSummaryScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
-            // --- Hero ---
-            PulseCard {
+            // --- Hero --------------------------------------------------------------------------
+            // The second of the two places Prism allows the accent gradient at this scale (the
+            // other is the Today hero). A finished session is the one moment the app is allowed to
+            // celebrate, and the gradient is what makes it feel like one.
+            PulseGradientCard {
                 Column {
                     Text(
                         text = current.planName,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = colors.textPrimary,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = colors.onAccentGradient,
                     )
                     Spacer(Modifier.height(dimens.s))
-                    NeutralChip(if (current.stoppedEarly) "Ended early" else "Completed")
+                    Surface(
+                        shape = LocalPulseShapes.current.chip,
+                        color = colors.onAccentGradient.copy(alpha = 0.22f),
+                        contentColor = colors.onAccentGradient,
+                    ) {
+                        Text(
+                            text = if (current.stoppedEarly) "Ended early" else "Completed",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = dimens.m, vertical = 5.dp),
+                        )
+                    }
                     Spacer(Modifier.height(dimens.l))
                     Text(
                         text = formatDuration(current.activeMillis),
                         style = PulseType.NumericLarge,
-                        color = colors.textPrimary,
+                        color = colors.onAccentGradient,
                     )
                     Text(
                         text = "active time",
                         style = MaterialTheme.typography.labelSmall,
-                        color = colors.textMuted,
+                        color = colors.onAccentGradient.copy(alpha = 0.82f),
                     )
                 }
             }

@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -55,6 +54,7 @@ import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseSliderRow
 import com.pulse.intervalcoach.ui.components.PulseTone
+import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTopBar
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
@@ -101,14 +101,9 @@ fun SettingsScreen(
     var confirmDeleteSessions by remember { mutableStateOf(false) }
     val current = prefs
 
-    Scaffold(
-        containerColor = colors.background,
-        topBar = {
-            PulseTopBar(
-                title = stringResource(R.string.nav_settings),
-                subtitle = "Everything on this screen applies instantly",
-            )
-        },
+    PulseScaffold(
+        title = stringResource(R.string.nav_settings),
+        subtitle = "Everything on this screen applies instantly",
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -420,15 +415,11 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            PulseTopBar(
-                title = "Voice & audio",
-                subtitle = "Speech, cue tones and music ducking",
-                onBack = onBack,
-                backDescription = stringResource(R.string.back),
-            )
-        },
+    PulseScaffold(
+        title = "Voice & audio",
+        subtitle = "Speech, cue tones and music ducking",
+        onBack = onBack,
+        backDescription = stringResource(R.string.back),
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -850,15 +841,11 @@ fun BackupScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            PulseTopBar(
-                title = "Backups & import",
-                subtitle = "Nothing is written until you confirm",
-                onBack = onBack,
-                backDescription = stringResource(R.string.back),
-            )
-        },
+    PulseScaffold(
+        title = "Backups & import",
+        subtitle = "Nothing is written until you confirm",
+        onBack = onBack,
+        backDescription = stringResource(R.string.back),
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
@@ -1007,15 +994,11 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
     val colors = LocalPulseColors.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
 
-    Scaffold(
-        topBar = {
-            PulseTopBar(
-                title = stringResource(R.string.help_title),
-                subtitle = "Voice setup, accessibility and data",
-                onBack = onBack,
-                backDescription = stringResource(R.string.back),
-            )
-        },
+    PulseScaffold(
+        title = stringResource(R.string.help_title),
+        subtitle = "Voice setup, accessibility and data",
+        onBack = onBack,
+        backDescription = stringResource(R.string.back),
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
