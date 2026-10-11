@@ -123,32 +123,49 @@ data class LibraryUiState(
 
 class LibraryViewModel(private val container: AppContainer) : ViewModel() {
 
+    /** The five filter controls, folded into one value so the category can join them. */
+    private data class Criteria(
+        val workouts: List<WorkoutSummary>,
+        val query: String,
+        val sort: LibrarySort,
+        val favoritesOnly: Boolean,
+        val grid: Boolean,
+    )
+
     private val query = MutableStateFlow("")
     private val sort = MutableStateFlow(LibrarySort.RECENT)
     private val favoritesOnly = MutableStateFlow(false)
     private val grid = MutableStateFlow(false)
     private val categoryKey = MutableStateFlow<String?>(null)
 
-    val state = combine(
-        container.workouts.summaries, query, sort, favoritesOnly, grid, categoryKey,
-    ) { workouts, q, s, favOnly, isGrid, category ->
-        val filtered = workouts
-            .filter { !favOnly || it.isFavorite }
+    // `combine` tops out at five sources, so the five filter controls are folded into one stream and
+    // the category joins it in a second pass. The alternative — a hand-rolled flow — would duplicate
+    // the combinator's cancellation and back-pressure behaviour for no benefit.
+    private val criteria = combine(
+        container.workouts.summaries, query, sort, favoritesOnly, grid,
+    ) { workouts, q, s, favOnly, isGrid ->
+        Criteria(workouts, q, s, favOnly, isGrid)
+    }
+
+    val state = combine(criteria, categoryKey) { criteria, category ->
+        val filtered = criteria.workouts
+            .filter { !criteria.favoritesOnly || it.isFavorite }
             // Filtering by category is a lookup in the registry, not a `when` over an enum, so a new
             // category is filterable the moment it is registered.
             .filter { category == null || WorkoutCategories.byKey(it.type).key == category }
             .filter { workout ->
-                q.isBlank() || WorkoutCategories.searchTerms(workout).any { it.contains(q, ignoreCase = true) }
+                criteria.query.isBlank() ||
+                    WorkoutCategories.searchTerms(workout).any { it.contains(criteria.query, ignoreCase = true) }
             }
             .let { list ->
-                when (s) {
+                when (criteria.sort) {
                     LibrarySort.RECENT -> list.sortedByDescending { it.lastUsedAt ?: it.updatedAt }
                     LibrarySort.NAME -> list.sortedBy { it.name.lowercase() }
                     LibrarySort.DURATION -> list.sortedBy { if (it.hasOpenEnded) Long.MAX_VALUE else it.knownDurationMillis }
                     LibrarySort.CREATED -> list.sortedByDescending { it.updatedAt }
                 }
             }
-        LibraryUiState(filtered, q, s, favOnly, isGrid, category)
+        LibraryUiState(filtered, criteria.query, criteria.sort, criteria.favoritesOnly, criteria.grid, category)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryUiState())
 
     fun setQuery(value: String) { query.value = value }
