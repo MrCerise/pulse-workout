@@ -54,6 +54,25 @@ The visual refactor has its own pass/fail criteria, all of which are machine-che
 Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
 environment); the local gates above are the ones that can run before it.
 
+## v1.6.3 editing and control-shape checks
+
+Two defects were closed in v1.6.3: *Edit workout* created a second workout instead of changing the one
+it was opened from, and the chips you tap in the builder and in the library's filters were pills. The
+first has an automated test for the part that broke (the route that carries the id) and needs a device
+for the rest; the second is a shape decision, so it is checked against the design rules.
+
+| Check | How it is checked | Result |
+| --- | --- | --- |
+| The builder destination declares an optional `workoutId` | `BuilderRouteTest.the builder destination declares an optional workout id` | **verified** |
+| *Edit* puts the workout's id in the route; *new* reaches the same destination without one | `BuilderRouteTest.editing a workout puts its id in the route`, `a new workout reaches the same destination with no argument` | **verified** |
+| An id a URI query cannot carry survives the trip | `BuilderRouteTest.an id the query cannot carry is escaped rather than dropped` | **verified** |
+| Saving an edited plan updates the row: same id, `createdAt`, folder and tags | `WorkoutRepository.save` upserts on `plan.id`, keeps `existing.createdAt` / `folderId`, and only rewrites tags the caller actually reports | **implemented** — compiling and device-verifying is CI's job; no Robolectric or Room-in-JVM harness here |
+| Undo/redo cannot rewrite plan metadata it did not touch | `BuilderSnapshot` holds the whole `WorkoutPlan`, so no field is reconstructed from a subset | **verified by construction** |
+| A tappable chip is a rectangle | `PulseChoiceChip` draws `LocalPulseShapes.current.control` (6 dp); `docs/DESIGN.md` §1.3 states the rule by function, not by size | **verified** — the only remaining `shapes.chip` call sites are labels, badges and tracks |
+| A builder option is readable, not ellipsized | `OptionRow` lays its choices out two to a row, the same grid `CategoryPicker` uses | **verified by construction** — seven equal columns on a 360 dp phone leave ~5 dp of text per option |
+| Material's own surfaces follow the tokens | `PulseTheme` maps `Shapes(extraSmall = shapes.panel, …)`; `MaterialTheme.shapes.extraSmall` is what a `DropdownMenu` draws its container with, and it used to be the 999 dp pill | **verified** — the library's sort, new-workout and overflow menus now take the 6 dp panel radius like `PulseDropdown` states |
+| Documentation and code agree | `scripts/check_ui.py`, `scripts/kotlin_xref_gate.py` | **verified** — 0 problems |
+
 ## v1.4.4 audio-ducking checks
 
 Ducking was added in v1.4.4 together with the wiring that makes background audio play at all. The

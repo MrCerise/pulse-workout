@@ -22,8 +22,10 @@ Nothing in this document is aspirational: every token, size and rule below is im
 2. **A hairline beats a shadow.** Surfaces are separated from the canvas by one fill step plus a
    1 dp border. Shadows are reserved for chrome that genuinely floats above the page — menus,
    dialogs, snackbars — so the few shadows on screen still carry meaning.
-3. **Rectangles, not pills.** 6 dp controls, 8 dp cards, 12 dp overlays. Only chips, badges and
-   progress bars are fully round, because a small element can afford to be.
+3. **Rectangles, not pills.** 6 dp controls, 8 dp cards, 12 dp overlays. The one exception is granted
+   by *function*, not by size: whatever you tap is a rectangle — a button, a field, a stepper, and a
+   filter or option chip too — while a chip that only labels something (a phase tag, a category name,
+   a status badge, a progress track) may be fully round, because it carries no action.
 4. **Dense, not cramped.** 4 dp base unit, 16 dp page gutter, 16 dp card padding, 56 dp list rows,
    40 dp controls. A dashboard fits a workout, its metadata and its action on one screen.
 5. **Colour always means something.** Four interval phases, six category families, four semantic
@@ -189,7 +191,7 @@ place a fixed advance width is genuinely wanted (the cue-script preview).
 | `topBarHeight` | 56 dp | breadcrumb bar (before the status-bar inset) |
 | `navBarHeight` | 64 dp | phone bottom bar |
 | `railWidth` / `sidebarWidth` | 72 / 244 dp | tablet rail, desktop sidebar |
-| radii | 6 / 8 / 12 / full | controls and panels / cards / overlays / chips |
+| radii | 6 / 8 / 12 / full | controls, panels and every tappable chip / cards / overlays / label chips only |
 | elevation | 0 / 1 / 4 / 12 dp | flat / interactive / overlay / floating chrome |
 | motion | 150 / 200 / 250 ms | feedback / selection / overlay — 0 under reduced motion |
 
@@ -237,6 +239,11 @@ Rules the components encode:
   numbers is one card with `MetricRow`s and `PulseDivider`s between them — not five stacked tiles.
 * **The whole row is the tap target.** Rows, cards and chips answer the pointer (hover → `surfaceHover`,
   press → a slightly deeper wash) before the tap lands.
+* **A chip you tap is a control.** `PulseChoiceChip` — the library's filters and the builder's option
+  rows — draws `shapes.control` with a hairline border, exactly like a button; `PhaseChip`,
+  `CategoryChip`, `NeutralChip` and `StatusBadge` label something and may draw the full `shapes.chip`.
+  `OptionRow` lays its choices out two to a row, because an option whose label is ellipsized is not a
+  choice.
 * **States are explicit.** Every interactive component defines hover, pressed, focused, selected and
   disabled; focus is a 2 dp accent ring, disabled is `text_disabled` with no ripple.
 * **Empty, loading and error states are components**, not ad-hoc text: `EmptyState`, `LoadingBox`,

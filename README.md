@@ -10,9 +10,36 @@ Everything PULSE does itself runs on the device. No account, no ads, no analytic
 only data that ever leaves the phone are the records you explicitly share with a Google health app.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.6.2 (versionCode 10)
+- **Version:** 1.6.3 (versionCode 11)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.6.3 — what changed
+
+- **Editing a workout now edits it.** *Edit* on a workout used to open the builder with no idea which
+  workout it was opened for, so it started a blank "New workout" and saving created a second one —
+  the workout you meant to change stayed untouched. The builder destination now carries the workout id
+  (`builder/advanced?workoutId={workoutId}`), the details screen and the library row menu both pass it,
+  and a save after an edit updates the existing row in place: same id, same creation date, same tags.
+  Saving an edit returns you to that workout's details page instead of stacking a second copy of it.
+- **An edit cannot lose what it did not touch.** `WorkoutRepository.save` no longer clears a workout's
+  tags when the caller has none to report (the builder, the parser, a scaled clone), the row's
+  `revision` is now mirrored inside the stored plan so a session snapshot taken before an edit reads
+  as an older version, undo/redo snapshots hold the whole plan (undoing one interval no longer rewrote
+  the name, category, description or equipment), and the builder no longer stamps `createdAt` with
+  "now" on every save.
+- **Filter and option chips are rectangles.** A chip you *tap* is a control, and controls are 6 dp
+  rounded rectangles: the library's category rail, its Favorites/Templates filters and every option
+  row in the builder (phase, sound cue, haptic cue) now match the buttons and fields around them
+  instead of reading as pills. Labels that carry no action — a phase tag, a category name, a status
+  badge, a progress track — keep the full radius, and the grid card's category tile matches the one on
+  the details page. The theme also stopped mapping Material's `extraSmall` shape onto the pill token,
+  which had been inflating every framework-drawn surface with it — the library's sort menu, its
+  "new workout" menu and each row's overflow menu were capsules.
+- **Builder options are two per row, and readable.** The option rows shared one row between every
+  choice, so the seven phases were each given ~37 dp and ellipsized to a letter or two. `OptionRow`
+  now lays its choices out in the same two-column grid the category picker already uses, which fits a
+  label like "Cool-down" or "Double beep" on a phone.
 
 ## v1.6.2 — what changed
 
@@ -521,7 +548,7 @@ locally are run and are listed below with their real output.
 | Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
 | Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
 | Engine unit tests (unchanged module) | CI `./gradlew :engine:test` | final gate |
-| App unit tests (parser, factory, backups, cue gate, ducking, DB migration v2) | CI `./gradlew :app:testDebugUnitTest` | final gate |
+| App unit tests (parser, factory, backups, cue gate, ducking, DB migration v2, builder route) | CI `./gradlew :app:testDebugUnitTest` | final gate |
 | Compilation, lint, debug + release APK (SDK 37) | CI workflow | final gate |
 | Install / smoke test | — | **not run** — no emulator or device in this environment |
 

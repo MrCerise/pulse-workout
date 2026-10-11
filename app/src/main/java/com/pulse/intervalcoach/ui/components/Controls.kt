@@ -398,7 +398,14 @@ fun PulseTextField(
 // Pickers
 // -------------------------------------------------------------------------------------------------
 
-/** A label with a row of pill options beside it. Used in forms and in the settings screens. */
+/**
+ * A label with its options beneath it, two per row. Used in forms and in the settings screens.
+ *
+ * Two columns rather than one stretched row because that is what the width allows: the builder's
+ * phase list has seven entries, and seven equal columns on a phone ellipsize every one of them. An
+ * option you cannot read is not an option. The grid also matches [CategoryPicker], which offers the
+ * same kind of choice two cells at a time.
+ */
 @Composable
 fun <T> OptionRow(
     label: String,
@@ -409,24 +416,33 @@ fun <T> OptionRow(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Column(modifier.fillMaxWidth()) {
+    val optionsPerRow = 2
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(dimens.chipGap),
+    ) {
         Text(
             text = label,
             style = PulseType.SectionLabel,
             color = colors.textMuted,
-            modifier = Modifier.padding(start = dimens.xs, bottom = dimens.s),
+            modifier = Modifier.padding(start = dimens.xs),
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
-        ) {
-            options.forEach { (value, text) ->
-                PulseChoiceChip(
-                    text = text,
-                    selected = value == selected,
-                    onClick = { onSelect(value) },
-                    modifier = Modifier.weight(1f),
-                )
+        options.chunked(optionsPerRow).forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
+            ) {
+                row.forEach { (value, text) ->
+                    PulseChoiceChip(
+                        text = text,
+                        selected = value == selected,
+                        onClick = { onSelect(value) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                // A short final row pads itself out to the same two columns, so the last option is
+                // never stretched across a width the others did not get.
+                repeat(optionsPerRow - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
@@ -495,7 +511,15 @@ fun <T> PulseSegmented(
     }
 }
 
-/** A filter pill. Round, because a small element is the one place a full radius is honest. */
+/**
+ * A selectable filter / option chip.
+ *
+ * It is a **rectangle**, not a pill: a chip you tap is a control, and controls in this system all
+ * share one 6 dp radius, one 40 dp-or-under height and a hairline border. Only the labels that carry
+ * no action (a phase tag, a category name, a status badge) are allowed to be fully round — see
+ * `docs/DESIGN.md` §1.3. This is what the builder's option rows and the library's filter rail are
+ * built from, so both read as a row of small buttons rather than a row of bubbles.
+ */
 @Composable
 fun PulseChoiceChip(
     text: String,
@@ -515,7 +539,7 @@ fun PulseChoiceChip(
     Surface(
         onClick = onClick,
         modifier = modifier.heightIn(min = 32.dp),
-        shape = LocalPulseShapes.current.chip,
+        shape = LocalPulseShapes.current.control,
         color = container,
         contentColor = if (selected) tint else colors.textSecondary,
         border = BorderStroke(

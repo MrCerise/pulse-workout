@@ -305,15 +305,17 @@ data class PulseDimens(
 
     // --- Radii -----------------------------------------------------------------------------------
     // Restrained on purpose: 6 dp on controls, 8 dp on cards, 12 dp on the largest surfaces. The
-    // silhouette is a crisp rectangle, which is what reads as "tool" rather than "toy". Chips are
-    // the one exception and stay fully round, because a small element can be.
+    // silhouette is a crisp rectangle, which is what reads as "tool" rather than "toy". The rule for
+    // the one exception is by *function*, not by size: anything you tap is a rectangle — including
+    // a filter or option chip — and only a chip that merely labels something (a phase tag, a status
+    // badge, a progress track) is allowed the full radius.
     /** Cards and panels — the standard dashboard rectangle. */
     val cardRadius: Dp = 8.dp,
     /** A surface nested inside a card: one step tighter so nesting reads as nesting. */
     val panelRadius: Dp = 6.dp,
-    /** Buttons, inputs, navigation items, icon buttons. */
+    /** Buttons, inputs, navigation items, icon buttons — and every selectable chip. */
     val controlRadius: Dp = 6.dp,
-    /** Chips, badges, small metadata pills — fully round, because a small element can be. */
+    /** Label chips, badges and pill-shaped bars — fully round, because they carry no action. */
     val chipRadius: Dp = 999.dp,
     /** Bottom sheets and the largest surfaces. */
     val sheetRadius: Dp = 12.dp,
@@ -329,11 +331,17 @@ val LocalPulseDimens = staticCompositionLocalOf { PulseDimens() }
  */
 @Immutable
 data class PulseShapes(
+    /** Buttons, fields, steppers, navigation items — and every chip you can tap. */
     val control: RoundedCornerShape = RoundedCornerShape(6.dp),
+    /** A surface nested inside a card, and the smallest radius Material's own components get. */
     val panel: RoundedCornerShape = RoundedCornerShape(6.dp),
+    /** Cards. */
     val card: RoundedCornerShape = RoundedCornerShape(8.dp),
+    /** Sheets, dialogs, the largest surfaces. */
     val sheet: RoundedCornerShape = RoundedCornerShape(12.dp),
+    /** Labels only: a phase tag, a category pill, a status badge, a progress track. Never a control. */
     val chip: RoundedCornerShape = RoundedCornerShape(999.dp),
+    /** Fully round: avatars and the single round transport control in the player. */
     val pill: RoundedCornerShape = RoundedCornerShape(999.dp),
 )
 
