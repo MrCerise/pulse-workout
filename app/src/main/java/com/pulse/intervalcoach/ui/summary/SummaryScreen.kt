@@ -95,16 +95,6 @@ fun SessionSummaryScreen(
                     .padding(padding)
                     .padding(dimens.pagePadding),
             ) {
-            PulsePageHeader(
-                title = current.planName,
-                description = if (current.stoppedEarly) {
-                    "Ended early — here is what was recorded."
-                } else {
-                    "Completed session — here is what was recorded."
-                },
-                onBack = onDone,
-                backLabel = "Close",
-            )
                 InfoBanner("No session to summarise — this screen appears right after a workout ends.")
                 Spacer(Modifier.height(dimens.m))
                 PrimaryActionButton(
