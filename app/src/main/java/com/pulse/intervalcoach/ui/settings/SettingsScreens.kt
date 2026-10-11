@@ -302,7 +302,7 @@ fun SettingsScreen(
             item { SectionHeader("Create workouts") }
             item {
                 PulseCard {
-                    SecondaryActionButton("Describe a workout in words", onOpenParser, Modifier.fillMaxWidth())
+                    SecondaryActionButton("Add workout description", onOpenParser, Modifier.fillMaxWidth())
                 }
             }
 

@@ -84,14 +84,14 @@ fun ParserScreen(
             item {
                 PulsePageHeader(
                     title = stringResource(R.string.parser_title),
-                    description = "Describe it in words — the preview shows exactly what was matched.",
+                    description = "Enter workout details — the preview shows exactly what was matched.",
                 )
             }
             item {
                 PulseTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = "Describe the workout",
+                    label = "Workout name",
                     placeholder = stringResource(R.string.parser_hint),
                     minLines = 3,
                 )
