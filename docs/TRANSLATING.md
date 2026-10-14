@@ -12,10 +12,11 @@ resource names or the PULSE brand. Review translations in context on a device wh
 
 `crowdin.yml` maps the English source `app/src/main/res/values/strings.xml` to Android resource
 folders using Crowdin's `%android_code%` placeholder, including region/script qualifiers.
-The workflow uploads sources after relevant changes on main and downloads approved translations
-daily or on manual dispatch. Unapproved/missing translations export as English, keeping the
-existing complete French table compatible with `scripts/check_ui.py`. Android also falls back to
-English for missing resources. All locale folders are packaged, not just English and French.
+Crowdin's native GitHub integration reads this configuration, uploads sources from main and
+opens pull requests with approved translations. The file mapping exports unapproved/missing
+translations as English, keeping the existing complete French table compatible with
+`scripts/check_ui.py`. Android also falls back to English for missing resources. All locale
+folders are packaged, not just English and French.
 
 Translation updates open a PR against main, never merge automatically, and go through the same
 unit tests as code changes. Source wording should be edited in Git, not in Crowdin. Do not rename
@@ -23,22 +24,24 @@ existing resource keys unnecessarily: doing so loses translation history.
 
 ## Maintainer setup (required before first sync)
 
-1. In the Crowdin project settings, confirm English is the source language, enable French and
-   any desired target languages, and copy the **numeric project ID** (not `pulse-workout`).
-2. Set these GitHub repository Actions secrets through the repository settings:
-   - `CROWDIN_PROJECT_ID`: the numeric ID.
-   - `CROWDIN_PERSONAL_TOKEN`: a Crowdin token with access to this project's source upload,
-     translation import/export and build operations.
-   - `CROWDIN_GITHUB_TOKEN`: a dedicated bot's fine-grained GitHub token restricted to this
-     repository, with Contents and Pull requests read/write. A bot token is necessary because
-     PRs created with the default `GITHUB_TOKEN` do not trigger the PR CI workflow.
-3. Run **Crowdin translations** on **main**, selecting **seed_translations** once to import
-   the existing French translations. Imported suggestions are not automatically approved;
-   review/approve them in Crowdin before merging exported changes. Inspect the first PR for
-   unintended replacement of existing French wording with English.
-4. Subsequent scheduled runs upload English and download approved translations only; they do
-   not reimport Git translations. Review PR diffs and CI before merging.
+1. In the Crowdin project settings, confirm English is the source language and enable French
+   and any desired target languages.
+2. In **Integrations → GitHub**, authorize the Crowdin GitHub app for
+   `MrCerise/pulse-workout`, select **main** as the source branch and use the repository-root
+   **crowdin.yml** configuration. Authentication is managed by the integration; no project ID,
+   API token or GitHub token belongs in this file or in Actions secrets.
+3. Configure the integration to push translations to **l10n/crowdin** and open PRs against
+   **main**, rather than pushing directly to main. Enable automatic source synchronization and
+   choose a translation synchronization schedule in Crowdin. Keep automatic merging disabled.
+4. Import the existing French `app/src/main/res/values-fr/strings.xml` translations through
+   Crowdin's translation upload before the first export. Do not automatically approve imported
+   suggestions; review/approve them in Crowdin before merging exported changes. Inspect the
+   first PR for unintended replacement of existing French wording with English.
+5. Confirm the integration's translation PR triggers the normal resource checks and unit tests.
+   Review PR diffs and CI before merging; subsequent syncs should not reimport Git translations.
 
-Secrets must never be put in `crowdin.yml`, committed, or shared in issues. Missing secrets fail
-with setup instructions; they do not affect normal PR tests or the release build. Crowdin is
-build-time tooling only: the installed app remains offline-first with no Crowdin SDK or calls.
+The old **Crowdin translations** Actions workflow is removed to avoid competing synchronization.
+Once the integration works, remove unused `CROWDIN_PROJECT_ID`, `CROWDIN_PERSONAL_TOKEN` and
+`CROWDIN_GITHUB_TOKEN` repository Actions secrets and revoke any tokens dedicated to that workflow.
+Secrets must never be committed or shared in issues. Crowdin is build-time tooling only: the
+installed app remains offline-first with no Crowdin SDK or calls.
