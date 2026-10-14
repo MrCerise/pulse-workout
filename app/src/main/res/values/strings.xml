@@ -213,13 +213,13 @@
     <string name="voice_vibration">Vibration</string>
     <string name="voice_duck_music">Lower music during cues</string>
     <string name="voice_duck_title">Audio ducking</string>
-    <string name="voice_duck_hint">Lowers your background audio while the coach speaks or a cue sounds, then brings it back.</string>
-    <string name="voice_duck_level">Ducking depth</string>
-    <string name="voice_duck_active">Music lowered</string>
-    <string name="voice_duck_idle">Music at full volume</string>
+    <string name="voice_duck_hint">Lowers selected background audio during cues. Other music apps are asked to duck via Android audio focus; support varies by player.</string>
+    <string name="voice_duck_level">Selected audio volume during cues</string>
+    <string name="voice_duck_active">Ducking requested</string>
+    <string name="voice_duck_idle">No ducking requested</string>
     <string name="voice_duck_phase">Ducking: %1$s</string>
     <string name="voice_duck_test">Test ducking</string>
-    <string name="voice_duck_test_hint">Drops the audio for a moment and speaks a sample line, so you can hear the setting.</string>
+    <string name="voice_duck_test_hint">Play music first, then test. The depth applies to the file selected in PULSE; Android controls attenuation in other apps.</string>
     <string name="voice_music_title">Background audio</string>
     <string name="voice_music_pick">Choose audio file…</string>
     <string name="voice_music_none">No background audio selected</string>
@@ -273,7 +273,7 @@
     <string name="audio_interrupt_duck">Keep timing, duck other audio</string>
     <string name="settings_headphone_unplug">When headphones are unplugged</string>
     <string name="settings_volume_keys">Volume keys control the workout</string>
-    <string name="settings_volume_keys_hint">Volume up skips to the next interval, volume down pauses or resumes. Off = the keys set the volume.</string>
+    <string name="settings_volume_keys_hint">Volume buttons always adjust media volume. Use the on-screen or notification controls to change intervals.</string>
     <string name="headphone_pause">Pause the workout</string>
     <string name="headphone_continue">Keep going, speaker cues</string>
     <string name="settings_data">Data</string>
@@ -407,4 +407,16 @@
     <string name="json_import_count">Import %1$d workout(s)</string>
     <string name="json_file_error">The selected file could not be opened. Choose it again.</string>
     <string name="json_clipboard_error">Could not copy the prompt. Please try again.</string>
+    <string name="summary_share_title">Share workout</string>
+    <string name="summary_share_preparing">Preparing image…</string>
+    <string name="summary_share_error">Could not share the image. Please try again.</string>
+    <string name="share_completed">Session complete</string>
+    <string name="share_ended_early">Ended early · effort recorded</string>
+    <string name="share_active_time">ACTIVE TIME</string>
+    <string name="share_completion">Completion</string>
+    <string name="share_intervals">Intervals completed</string>
+    <string name="share_total_time">Total time · incl. pauses</string>
+    <string name="share_skipped">Intervals skipped</string>
+    <string name="share_rounds">Rounds logged</string>
+    <string name="share_recorded">Recorded with PULSE</string>
 </resources>

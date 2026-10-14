@@ -254,4 +254,39 @@ class DuckingTest {
         assertEquals(1f, engine.stateAt(now).scale, 0.0001f)
         assertFalse(engine.isDucking(now))
     }
+    @Test
+    fun `tone during recovery ramps down from the current level`() {
+        val engine = engine()
+        engine.duckFor(100)
+        now = 600 // halfway through recovery
+        val before = engine.stateAt().scale
+        engine.duckFor(200)
+        assertEquals(before, engine.stateAt().scale, 0.0001f)
+        now += 100
+        assertEquals(config.level, engine.stateAt().scale, 0.0001f)
+    }
+
+    @Test
+    fun `speech finishing cannot shorten a preceding long tone`() {
+        val engine = engine()
+        engine.duckFor(1300)
+        now = 50
+        engine.beginDuck()
+        now = 200
+        engine.release()
+        now = 1400
+        assertEquals(DuckPhase.HELD, engine.stateAt().phase)
+        now = 2000
+        assertFalse(engine.isDucking())
+    }
+
+    @Test
+    fun `disabled cues do not become stale ducks when enabled`() {
+        val engine = engine(config.copy(enabled = false))
+        engine.beginDuck()
+        engine.duckFor(1000)
+        engine.update(config)
+        assertFalse(engine.isDucking())
+        assertEquals(DuckConfig.DEFAULT_LEVEL, DuckConfig(level = Float.NaN).clampedLevel)
+    }
 }

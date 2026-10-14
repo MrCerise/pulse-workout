@@ -21,7 +21,6 @@ import com.pulse.intervalcoach.audio.CueSoundPlayer
 import com.pulse.intervalcoach.audio.FocusEvent
 import com.pulse.intervalcoach.audio.Haptics
 import com.pulse.intervalcoach.audio.SpeechCoach
-import com.pulse.intervalcoach.audio.AudioFocusController
 import com.pulse.intervalcoach.data.AudioInterruptionBehavior
 import com.pulse.intervalcoach.data.HeadphoneBehavior
 import com.pulse.intervalcoach.data.PreferencesRepository
@@ -68,6 +67,7 @@ data class SessionSummaryData(
     val skippedIntervals: Int,
     val roundsLogged: Int,
     val stoppedEarly: Boolean,
+    val endedAt: Long = 0L,
 )
 
 /**
@@ -117,9 +117,9 @@ class SessionController(
     private var tickerJob: Job? = null
     private var previewJob: Job? = null
     private var wakeLock: PowerManager.WakeLock? = null
-    private var focusController: AudioFocusController? = null
     private var lastHeartbeatAt = 0L
     private var mutedByFocus = false
+    private var mutedByUser = false
 
     private val eventChannel = Channel<TimerEvent>(capacity = Channel.UNLIMITED)
 
@@ -129,17 +129,17 @@ class SessionController(
             // work happens here. Everything else is handed to the reducer channel.
             eventChannel.trySend(event)
         }
-        // Ducking follows the speech engine itself rather than an estimate: the music drops when an
-        // utterance is handed over and comes back once the queue is empty.
-        speech.onSpeechStarted = { estimatedMillis -> music.onSpeechStarted(estimatedMillis) }
-        speech.onSpeechFinished = { music.onSpeechFinished() }
+        music.onFocusEvent = ::onFocusEvent
         scope.launch { consumeEvents() }
         scope.launch {
             prefs.flow.collect {
                 prefsSnapshot = it
-                // Settings changed mid-workout (ducking off, louder music) apply immediately.
-                music.configure(it)
-                music.setVolume(it.musicVolume)
+                // Keep live coaching controls in sync too; music observes prefs in AppContainer.
+                speech.rate = it.voiceRate
+                speech.pitch = it.voicePitch
+                speech.verbose = it.verbosity
+                soundPlayer.volume = it.cueVolume
+                haptics.enabled = it.vibrationEnabled
             }
         }
     }
@@ -190,7 +190,6 @@ class SessionController(
         music.configure(current)
         music.start()
         acquireWakeLockIfNeeded(current)
-        requestAudioFocus()
         ensureTicker()
         WorkoutService.start(context)
         return Result.success(session)
@@ -198,23 +197,24 @@ class SessionController(
 
     /** Pause because the app lost audio focus / headphones were unplugged, honouring prefs. */
     fun onFocusEvent(event: FocusEvent) {
+        if (_active.value == null) return
         val behavior = prefsSnapshot.audioInterruptionBehavior
         when (event) {
             FocusEvent.LOSS -> when (behavior) {
                 AudioInterruptionBehavior.PAUSE -> pause()
-                AudioInterruptionBehavior.KEEP_TIMING_MUTE_CUES -> muteCues(true)
-                AudioInterruptionBehavior.KEEP_TIMING_DUCK -> muteCues(true)
+                AudioInterruptionBehavior.KEEP_TIMING_MUTE_CUES -> setFocusMuted(true)
+                AudioInterruptionBehavior.KEEP_TIMING_DUCK -> setFocusMuted(true)
             }
             FocusEvent.LOSS_TRANSIENT -> when (behavior) {
                 AudioInterruptionBehavior.PAUSE -> pause()
-                else -> muteCues(true)
+                else -> setFocusMuted(true)
             }
             // The other app only needs room to be heard (a navigation prompt): lower the music and
             // keep coaching, which is what "may duck" means. Cues stay audible.
             FocusEvent.LOSS_TRANSIENT_CAN_DUCK -> music.setExternalDuck(true)
             FocusEvent.GAIN -> {
                 music.setExternalDuck(false)
-                if (mutedByFocus) muteCues(false)
+                if (mutedByFocus) setFocusMuted(false)
             }
         }
     }
@@ -278,11 +278,19 @@ class SessionController(
         publish()
     }
 
-    fun toggleCuesMuted() = muteCues(!_cuesMuted.value)
+    fun toggleCuesMuted() {
+        mutedByUser = !mutedByUser
+        updateCueMute()
+    }
 
-    private fun muteCues(muted: Boolean) {
+    private fun setFocusMuted(muted: Boolean) {
         mutedByFocus = muted
-        _cuesMuted.value = muted
+        updateCueMute()
+    }
+
+    private fun updateCueMute() {
+        _cuesMuted.value = mutedByUser || mutedByFocus
+        if (_cuesMuted.value) speech.stop()
     }
 
     /** Ends the session. [stoppedEarly] distinguishes "finish early" from a completed timeline. */
@@ -343,6 +351,7 @@ class SessionController(
             skippedIntervals = snapshot.skippedSteps,
             roundsLogged = snapshot.laps,
             stoppedEarly = stoppedEarly,
+            endedAt = endedAt,
         )
         teardown()
     }
@@ -351,13 +360,13 @@ class SessionController(
         tickerJob?.cancel()
         tickerJob = null
         releaseWakeLock()
-        focusController?.abandon()
-        focusController = null
         soundPlayer.release()
         speech.stop()
         music.stop()
         haptics.cancel()
         _active.value = null
+        mutedByUser = false
+        mutedByFocus = false
         _cuesMuted.value = false
         WorkoutService.stop(context)
     }
@@ -430,6 +439,7 @@ class SessionController(
     private var lastAnnounceAt = 0L
 
     private suspend fun handleCues(event: TimerEvent) {
+        if (_cuesMuted.value) return
         val cuesMutedNow = _cuesMuted.value
         when (event) {
             is TimerEvent.StepStarted -> {
@@ -453,6 +463,7 @@ class SessionController(
             }
             is TimerEvent.PeriodicCue -> {
                 if (!cuesMutedNow) {
+                    music.onCue(CueSoundPlayer.durationMillis(com.pulse.engine.SoundCue.CHIME))
                     soundPlayer.play(com.pulse.engine.SoundCue.CHIME)
                     speech.speak(CueScript.periodicCue(engine.snapshot().step), CuePriority.INFO)
                 }
@@ -503,16 +514,8 @@ class SessionController(
     private fun playCue(step: TimelineStep) {
         val cue = if (step.kind == com.pulse.engine.PhaseKind.REST) com.pulse.engine.SoundCue.BEEP else step.sound
         if (step.isIndefinite) return
-        soundPlayer.play(cue)
-        // The music drops for exactly as long as the tone sounds, then climbs back.
         music.onCue(CueSoundPlayer.durationMillis(cue))
-    }
-
-    private fun requestAudioFocus() {
-        focusController?.abandon()
-        val controller = AudioFocusController(context) { focusEvent -> onFocusEvent(focusEvent) }
-        controller.request()
-        focusController = controller
+        soundPlayer.play(cue)
     }
 
     // -------------------------------------------------------------------------------------------

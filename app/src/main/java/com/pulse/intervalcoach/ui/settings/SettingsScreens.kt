@@ -253,12 +253,7 @@ fun SettingsScreen(
                             selected = current.headphoneBehavior,
                             onSelect = { value -> scope.launch { container.preferences.setHeadphoneBehavior(value) } },
                         )
-                        ToggleRow(
-                            label = stringResource(R.string.settings_volume_keys),
-                            hint = stringResource(R.string.settings_volume_keys_hint),
-                            checked = current.volumeKeysControlSession,
-                            onCheckedChange = { scope.launch { container.preferences.setVolumeKeysControl(it) } },
-                        )
+                        Text(stringResource(R.string.settings_volume_keys_hint))
                         TextButton(onClick = onOpenVoiceStudio) { Text("Open Voice & audio studio") }
                     }
                 }
@@ -682,8 +677,9 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         SecondaryActionButton(
                             text = stringResource(R.string.voice_duck_test),
                             onClick = {
-                                container.music.previewDuck()
-                                container.speech.speakPreview(duckTestLine)
+                                if (!container.speech.speakPreview(duckTestLine)) {
+                                    container.music.previewDuck()
+                                }
                             },
                             modifier = Modifier.fillMaxWidth(),
                         )
