@@ -11,9 +11,18 @@ data that leaves the app is what you explicitly share, such as health records or
 you copy into an external AI tool.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.6.6 (versionCode 14)
+- **Version:** 1.6.7 (versionCode 15)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.6.7 — security and reliability
+
+- Bounded backup imports and made preview/import use the same snapshot; imported ID collisions no
+  longer overwrite existing records.
+- Hardened nested workout expansion, draft storage paths and external workout-start confirmation.
+- Made repository validation reads and contrast-report writes bounded and symlink-resistant.
+
+See [v1.6.7 release verification](docs/RELEASE_1.6.7.md).
 
 ## v1.6.6 — a cleaner PULSE
 
