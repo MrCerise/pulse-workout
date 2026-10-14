@@ -1,0 +1,40 @@
+name: Accessibility problem
+description: Something is hard or impossible to use with TalkBack, large text, low vision, motor limitations, etc.
+labels: ["accessibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We want PULSE to work for everyone, so thank you for flagging this. You don't need to know the WCAG guidelines. Just tell us what got in your way.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem?
+      placeholder: TalkBack reads "button" for the skip control in the player, with no label…
+    validations:
+      required: true
+
+  - type: input
+    id: screen
+    attributes:
+      label: Which screen?
+      placeholder: Player, Workouts, Settings → Voice Studio…
+    validations:
+      required: false
+
+  - type: input
+    id: setup
+    attributes:
+      label: What are you using?
+      description: For example TalkBack, Switch Access, font size or display size settings, high contrast text, a particular theme.
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: PULSE version, device and Android version
+      placeholder: 1.6.6, Galaxy S23, Android 15
+    validations:
+      required: true

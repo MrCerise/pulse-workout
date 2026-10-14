@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in PULSE isn't working the way it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Please check the [open issues](https://github.com/MrCerise/pulse-workout/issues) first in case it's already been reported.
+
+        **Security problems shouldn't go here.** See [SECURITY.md](https://github.com/MrCerise/pulse-workout/blob/main/SECURITY.md) for how to report them privately.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Tell us what went wrong and what you expected to happen instead.
+      placeholder: When I lock the screen during a Tabata, the voice cues stop after the second round…
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start the "Tabata" preset
+        2. Lock the screen
+        3. Wait about 1 minute
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: PULSE version
+      description: Shown at the bottom of Settings.
+      placeholder: "1.6.6"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 8, Android 16
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app?
+      options:
+        - Timer / player
+        - Voice cues, sounds or music
+        - Workout builder or library
+        - JSON / AI import
+        - Backups, import or export
+        - Health Connect / Google Fit
+        - Progress, goals or history
+        - Widgets, shortcuts or notifications
+        - Appearance / themes
+        - Something else
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: |
+        Logs, screenshots, your TTS engine, Bluetooth headphones, battery saver settings. Anything that might be related.
+        Please remove personal health data before attaching files. Don't upload a full personal backup.
+    validations:
+      required: false

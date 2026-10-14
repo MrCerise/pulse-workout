@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an idea or an improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea? Great. A quick note first: PULSE is offline-first, with no accounts, ads, analytics or backend, and that's not going to change. Ideas that depend on a server or on tracking probably won't make it in, but feel free to ask if you're unsure.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the problem or the situation rather than the solution. It helps us find the best way to handle it.
+      placeholder: I do EMOM workouts and I have to keep restarting the timer every round…
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like PULSE to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Have you found a workaround?
+      description: Optional. Things you've tried, or how other apps handle it.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Want to help build it?
+      options:
+        - label: I'd be up for opening a pull request for this
+          required: false
