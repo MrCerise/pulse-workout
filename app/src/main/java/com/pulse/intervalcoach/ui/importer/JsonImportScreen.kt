@@ -53,6 +53,7 @@ import com.pulse.intervalcoach.ui.components.LoadingBox
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
