@@ -380,4 +380,35 @@
     <string name="notif_action_stop">Arrêter</string>
     <string name="notif_backup_channel">Sauvegardes</string>
     <string name="notif_backup_channel_desc">Résultats des sauvegardes locales hebdomadaires</string>
+
+    <!-- Portable workout import -->
+    <string name="json_title">Importer un entraînement JSON / IA</string>
+    <string name="json_intro">Collez ou ouvrez un fichier. Vérifiez les entraînements avant de les enregistrer.</string>
+    <string name="json_ai_title">1. Générer avec votre outil IA (facultatif)</string>
+    <string name="json_ai_help">Décrivez vos objectifs, votre temps, votre matériel et votre expérience. Copiez le prompt dans ChatGPT, Claude, Gemini ou une autre IA, puis collez sa réponse JSON ci-dessous.</string>
+    <string name="json_request">Votre demande</string>
+    <string name="json_request_hint">Un entraînement débutant de 10 minutes au poids du corps, avec échauffement et retour au calme…</string>
+    <string name="json_copied">Prompt copié — collez-le dans votre IA</string>
+    <string name="json_copy_prompt">Copier le prompt IA + format JSON</string>
+    <string name="json_privacy">PULSE ne contacte aucun service IA et ne demande aucune clé API. Seul le prompt que vous partagez quitte l’application. Évitez les données de santé personnelles. Vérifiez les entraînements IA et adaptez-les à vos capacités.</string>
+    <string name="json_input_title">2. Importer le JSON</string>
+    <string name="json_choose_file">Choisir un fichier JSON</string>
+    <string name="json_input">JSON des entraînements (256 Kio maximum)</string>
+    <string name="json_example">Utiliser un exemple JSON</string>
+    <string name="json_working">Traitement en cours…</string>
+    <string name="json_saved">%1$d entraînement(s) enregistré(s). Les entraînements existants restent inchangés.</string>
+    <string name="json_view_saved">Voir les entraînements enregistrés</string>
+    <string name="json_validate">Valider et prévisualiser</string>
+    <string name="json_preview_title">3. Vérifier %1$d entraînement(s)</string>
+    <string name="json_review">Rien n’est encore enregistré. L’import ajoute de nouvelles copies avec les tags et les consignes. Réimporter le même fichier crée des doublons.</string>
+    <string name="json_equipment">Matériel : %1$s</string>
+    <string name="json_summary">%1$d intervalles · %2$s de durée chronométrée</string>
+    <string name="json_manual_warning">Contient des intervalles manuels : la durée totale est un minimum. Passez vous-même à l’intervalle suivant.</string>
+    <string name="json_manual">Manuel — appuyez sur Suivant pour terminer</string>
+    <string name="json_reps">%1$d répétitions</string>
+    <string name="json_show_all">Afficher tous les intervalles</string>
+    <string name="json_show_less">Afficher moins d’intervalles</string>
+    <string name="json_import_count">Importer %1$d entraînement(s)</string>
+    <string name="json_file_error">Impossible d’ouvrir le fichier. Sélectionnez-le à nouveau.</string>
+    <string name="json_clipboard_error">Impossible de copier le prompt. Réessayez.</string>
 </resources>

@@ -7,12 +7,28 @@ sessions — and, since v1.3, live heart rate and workout sync through **Health 
 **Google Fit** as a best-effort secondary).
 
 Everything PULSE does itself runs on the device. No account, no ads, no analytics, no backend. The
-only data that ever leaves the phone are the records you explicitly share with a Google health app.
+data that leaves the app is what you explicitly share, such as health records or a workout prompt
+you copy into an external AI tool.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.6.3 (versionCode 11)
+- **Version:** 1.6.4 (versionCode 12)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.6.4 — what changed
+
+- **JSON workout import** from a pasted response or a UTF-8 file, accessible from Workouts → + and
+  Settings → Create workouts. Versioned `pulse.workouts` format supports batches, nested repeats,
+  timed/manual intervals, tags, equipment and spoken coaching notes.
+- **Bring your own AI.** Customize and copy a schema-aware prompt for ChatGPT, Claude, Gemini or
+  another tool, then import its response. No API keys, backend or automatic data sharing.
+- **Validate before saving.** Preview every workout and its expanded timeline, then explicitly save
+  the entire batch in one transaction with fresh identities. Invalid input does not modify your
+  library. Bounded file reading and symbolic expansion checks reject oversized/unsafe documents.
+- **English and French import UI**, plus parser and import-state regression tests.
+
+See the [JSON format and AI workflow guide](docs/WORKOUT_JSON.md),
+[JSON Schema](docs/workout-import.schema.json) and [example file](docs/examples/beginner-workout.json).
 
 ## v1.6.3 — what changed
 

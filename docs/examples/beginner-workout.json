@@ -1,0 +1,18 @@
+{
+  "format": "pulse.workouts",
+  "version": 1,
+  "workouts": [{
+    "name": "Beginner bodyweight intervals",
+    "description": "Move at a comfortable pace and stop if you feel pain.",
+    "type": "HIIT",
+    "tags": ["bodyweight", "beginner"],
+    "steps": [
+      {"name": "Easy marching", "kind": "WARM_UP", "seconds": 120},
+      {"name": "Circuit", "repeat": 4, "steps": [
+        {"name": "Chair squats", "kind": "WORK", "seconds": 30, "notes": "Use a stable chair."},
+        {"name": "Recover", "kind": "REST", "seconds": 30}
+      ]},
+      {"name": "Gentle walking", "kind": "COOLDOWN", "seconds": 120}
+    ]
+  }]
+}

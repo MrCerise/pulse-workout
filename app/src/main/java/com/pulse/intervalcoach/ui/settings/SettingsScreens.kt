@@ -92,6 +92,7 @@ fun SettingsScreen(
     onOpenHelp: () -> Unit,
     onOpenWelcome: () -> Unit,
     onOpenParser: () -> Unit,
+    onJsonImport: () -> Unit,
     onOpenHealth: () -> Unit,
 ) {
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
@@ -300,6 +301,11 @@ fun SettingsScreen(
             }
 
             item { SectionHeader("Create workouts") }
+            item {
+                PulseCard {
+                    SecondaryActionButton(stringResource(R.string.json_title), onJsonImport, Modifier.fillMaxWidth())
+                }
+            }
             item {
                 PulseCard {
                     SecondaryActionButton("Add workout description", onOpenParser, Modifier.fillMaxWidth())
