@@ -204,6 +204,7 @@ fun WorkoutLibraryScreen(
     /** Opens the builder *for* an existing workout — the library's own route into editing. */
     onEdit: (String) -> Unit,
     onParser: () -> Unit,
+    onJsonImport: () -> Unit,
 ) {
     val viewModel: LibraryViewModel = viewModel(initializer = { LibraryViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -263,6 +264,11 @@ fun WorkoutLibraryScreen(
                                 text = "Advanced builder",
                                 leadingIcon = Icons.Filled.Tune,
                                 onClick = { showNewMenu = false; onAdvancedBuilder() },
+                            )
+                            PulseDropdownItem(
+                                text = stringResource(R.string.json_title),
+                                leadingIcon = Icons.Filled.ContentCopy,
+                                onClick = { showNewMenu = false; onJsonImport() },
                             )
                             PulseDropdownItem(
                                 text = "Use text description",

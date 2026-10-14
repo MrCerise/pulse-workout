@@ -179,6 +179,16 @@ class WorkoutRepository(
         return plan.id
     }
 
+    /** Validate the whole exchange document before writing; a failed batch leaves no partial rows.
+     * The exchange codec creates fresh identities, never accepting database IDs from the file.
+     */
+    suspend fun importJson(text: String): List<String> {
+        val preview = com.pulse.engine.WorkoutImport.parse(text)
+        return db.withTransaction {
+            preview.plans.map { plan -> save(plan, tags = plan.tags) }
+        }
+    }
+
     suspend fun duplicate(source: WorkoutPlan, newName: String? = null): WorkoutPlan {
         val copy = source.copy(
             id = UUID.randomUUID().toString(),

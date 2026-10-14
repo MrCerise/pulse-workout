@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PULSE workout exchange v1",
+  "description": "Byte size, trimmed text, nesting and expanded count/duration limits are additionally enforced by PULSE. See WORKOUT_JSON.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "workouts"
+  ],
+  "properties": {
+    "format": {
+      "const": "pulse.workouts"
+    },
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "workouts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/workout"
+      }
+    }
+  },
+  "$defs": {
+    "workout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "steps"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000
+        },
+        "type": {
+          "enum": [
+            "HIIT",
+            "TABATA",
+            "CIRCUIT",
+            "BOXING",
+            "EMOM",
+            "E2MOM",
+            "AMRAP",
+            "STRENGTH",
+            "RUN_WALK",
+            "STRETCHING",
+            "BREATHING",
+            "FOCUS",
+            "CUSTOM_SEQUENCE",
+            "COMPOUND",
+            "STOPWATCH",
+            "CUE_TIMER"
+          ],
+          "default": "CUSTOM_SEQUENCE"
+        },
+        "equipment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "step": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/interval"
+        },
+        {
+          "$ref": "#/$defs/group"
+        }
+      ]
+    },
+    "interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "kind": {
+          "enum": [
+            "PREPARE",
+            "WARM_UP",
+            "WORK",
+            "REST",
+            "TRANSITION",
+            "COOLDOWN",
+            "CUSTOM"
+          ]
+        },
+        "seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        },
+        "manual": {
+          "type": "boolean",
+          "default": false
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000
+        },
+        "speechText": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "reps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "equipment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "sideLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        }
+      },
+      "if": {
+        "required": [
+          "manual"
+        ],
+        "properties": {
+          "manual": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "seconds": {
+            "const": 0
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "seconds"
+        ],
+        "properties": {
+          "seconds": {
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repeat",
+        "steps"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "repeat": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    }
+  }
+}

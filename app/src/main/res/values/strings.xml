@@ -376,4 +376,35 @@
     <string name="notif_action_stop">Stop</string>
     <string name="notif_backup_channel">Backups</string>
     <string name="notif_backup_channel_desc">Weekly local backup results</string>
+
+    <!-- Portable workout import -->
+    <string name="json_title">Import JSON / AI workout</string>
+    <string name="json_intro">Paste or open a workout file. Review it before saving to your library.</string>
+    <string name="json_ai_title">1. Generate with your AI tool (optional)</string>
+    <string name="json_ai_help">Describe your goals, time, equipment and experience. Copy the prompt into ChatGPT, Claude, Gemini or another AI, then paste its JSON response below.</string>
+    <string name="json_request">Your workout request</string>
+    <string name="json_request_hint">A 10-minute beginner bodyweight workout, with warm-up and cool-down…</string>
+    <string name="json_copied">Prompt copied — paste it into your AI</string>
+    <string name="json_copy_prompt">Copy AI prompt + JSON format</string>
+    <string name="json_privacy">PULSE does not contact an AI service or require an API key. Only the prompt you choose to share leaves the app. Avoid personal health details. AI workouts may be unsuitable; review them and adapt to your ability.</string>
+    <string name="json_input_title">2. Import JSON</string>
+    <string name="json_choose_file">Choose JSON file</string>
+    <string name="json_input">Workout JSON (up to 256 KiB)</string>
+    <string name="json_example">Use sample JSON</string>
+    <string name="json_working">Processing…</string>
+    <string name="json_saved">%1$d workout(s) saved. Existing workouts were not changed.</string>
+    <string name="json_view_saved">View saved workouts</string>
+    <string name="json_validate">Validate &amp; preview</string>
+    <string name="json_preview_title">3. Review %1$d workout(s)</string>
+    <string name="json_review">Nothing is saved yet. Import adds all workouts as new copies, including tags and coaching notes. Importing the same file again creates duplicates.</string>
+    <string name="json_equipment">Equipment: %1$s</string>
+    <string name="json_summary">%1$d intervals · %2$s timed duration</string>
+    <string name="json_manual_warning">Includes manual intervals: total time is a minimum. Advance these intervals yourself.</string>
+    <string name="json_manual">Manual — tap Next to finish</string>
+    <string name="json_reps">%1$d reps</string>
+    <string name="json_show_all">Show every interval</string>
+    <string name="json_show_less">Show fewer intervals</string>
+    <string name="json_import_count">Import %1$d workout(s)</string>
+    <string name="json_file_error">The selected file could not be opened. Choose it again.</string>
+    <string name="json_clipboard_error">Could not copy the prompt. Please try again.</string>
 </resources>

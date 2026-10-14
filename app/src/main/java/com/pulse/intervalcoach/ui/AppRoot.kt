@@ -68,6 +68,7 @@ import com.pulse.intervalcoach.ui.components.PulseSnackbar
 import com.pulse.intervalcoach.ui.health.HealthScreen
 import com.pulse.intervalcoach.ui.home.HomeScreen
 import com.pulse.intervalcoach.ui.parser.ParserScreen
+import com.pulse.intervalcoach.ui.importer.JsonImportScreen
 import com.pulse.intervalcoach.ui.player.PlayerScreen
 import com.pulse.intervalcoach.ui.progress.HistoryScreen
 import com.pulse.intervalcoach.ui.progress.ProgressScreen
@@ -115,6 +116,7 @@ object Routes {
     /** The builder without its optional argument: where "new workout" navigates. */
     private const val ADVANCED_BUILDER_PATH = "builder/advanced"
     const val PARSER = "parser"
+    const val JSON_IMPORT = "json-import"
     const val DETAILS = "workout/{id}"
     const val PLAYER = "player"
     const val SUMMARY = "summary"
@@ -409,6 +411,7 @@ fun PulseAppRoot(
                                 onAdvancedBuilder = { navController.navigate(Routes.advancedBuilder(null)) },
                                 onEdit = { navController.navigate(Routes.advancedBuilder(it)) },
                                 onParser = { navController.navigate(Routes.PARSER) },
+                                onJsonImport = { navController.navigate(Routes.JSON_IMPORT) },
                             )
                         }
                         composable(Routes.CATEGORY) { entry ->
@@ -480,6 +483,23 @@ fun PulseAppRoot(
                                         navController.navigate(Routes.details(id)) {
                                             popUpTo(Routes.ADVANCED_BUILDER) { inclusive = true }
                                         }
+                                    }
+                                },
+                            )
+                        }
+                        composable(Routes.JSON_IMPORT) {
+                            JsonImportScreen(
+                                container = container,
+                                onBack = { navController.popBackStack() },
+                                onOpenWorkout = { id ->
+                                    navController.navigate(Routes.details(id)) {
+                                        popUpTo(Routes.JSON_IMPORT) { inclusive = true }
+                                    }
+                                },
+                                onOpenLibrary = {
+                                    navController.navigate(Routes.WORKOUTS) {
+                                        popUpTo(Routes.WORKOUTS) { inclusive = true }
+                                        launchSingleTop = true
                                     }
                                 },
                             )
@@ -559,6 +579,7 @@ fun PulseAppRoot(
                                 onOpenHelp = { navController.navigate(Routes.HELP) },
                                 onOpenWelcome = { navController.navigate(Routes.WELCOME) },
                                 onOpenParser = { navController.navigate(Routes.PARSER) },
+                                onJsonImport = { navController.navigate(Routes.JSON_IMPORT) },
                                 onOpenHealth = { navController.navigate(Routes.HEALTH) },
                             )
                         }
@@ -617,6 +638,7 @@ private fun routeTitle(route: String?): String = when (route) {
     Routes.QUICK_BUILDER -> "Quick builder"
     Routes.ADVANCED_BUILDER -> "Builder"
     Routes.PARSER -> "Text import"
+    Routes.JSON_IMPORT -> "JSON / AI import"
     Routes.DETAILS -> "Workout"
     Routes.HEALTH -> "Health"
     Routes.SUMMARY -> "Session summary"
@@ -635,7 +657,7 @@ private fun routeTitle(route: String?): String = when (route) {
  * twice.
  */
 private fun routeParent(route: String?): String? = when (route) {
-    Routes.TEMPLATES, Routes.CATEGORY, Routes.DETAILS, Routes.PARSER,
+    Routes.TEMPLATES, Routes.CATEGORY, Routes.DETAILS, Routes.PARSER, Routes.JSON_IMPORT,
     Routes.QUICK_BUILDER, Routes.ADVANCED_BUILDER -> "Workouts"
     Routes.HISTORY, Routes.SESSION_DETAIL -> "Progress"
     Routes.VOICE_STUDIO, Routes.BACKUP, Routes.HELP -> "Settings"
