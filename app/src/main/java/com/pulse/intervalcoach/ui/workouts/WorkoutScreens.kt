@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Icon
@@ -203,7 +202,6 @@ fun WorkoutLibraryScreen(
     onAdvancedBuilder: () -> Unit,
     /** Opens the builder *for* an existing workout — the library's own route into editing. */
     onEdit: (String) -> Unit,
-    onParser: () -> Unit,
     onJsonImport: () -> Unit,
 ) {
     val viewModel: LibraryViewModel = viewModel(initializer = { LibraryViewModel(container) })
@@ -220,7 +218,6 @@ fun WorkoutLibraryScreen(
         Column(Modifier.padding(padding)) {
             PulsePageHeader(
                 title = "Workouts",
-                description = "${state.workouts.size} saved on this device",
                 trailing = {
                     Box {
                         PulseIconButton(
@@ -269,11 +266,6 @@ fun WorkoutLibraryScreen(
                                 text = stringResource(R.string.json_title),
                                 leadingIcon = Icons.Filled.ContentCopy,
                                 onClick = { showNewMenu = false; onJsonImport() },
-                            )
-                            PulseDropdownItem(
-                                text = "Use text description",
-                                leadingIcon = Icons.Filled.Spellcheck,
-                                onClick = { showNewMenu = false; onParser() },
                             )
                             PulseDropdownItem(
                                 text = "Template gallery",
@@ -340,9 +332,9 @@ fun WorkoutLibraryScreen(
                             }.trim()
                         },
                         body = if (state.query.isBlank() && state.categoryKey == null) {
-                            "Build one in under a minute, or start from the template gallery."
+                            stringResource(R.string.workouts_empty_body)
                         } else {
-                            "Try another category or a different word — search covers names, tags and equipment."
+                            "Try another category or search."
                         },
                         icon = Icons.Filled.FitnessCenter,
                         actionLabel = "Open templates",
@@ -408,7 +400,7 @@ fun WorkoutLibraryScreen(
     pendingDelete?.let { workout ->
         ConfirmDialog(
             title = stringResource(R.string.delete_workout_title),
-            body = "“${workout.name}” will be removed. Finished sessions keep their own copy of the workout, so your history stays readable.",
+            body = "Delete “${workout.name}”? Session history is kept.",
             confirmLabel = stringResource(R.string.action_delete),
             dismissLabel = stringResource(R.string.cancel),
             destructive = true,
@@ -636,8 +628,7 @@ fun WorkoutDetailsScreen(
             Column(Modifier.padding(padding)) {
                 ErrorState(
                     title = "This workout could not be opened",
-                    body = "Its saved structure is unreadable, which usually means the file was truncated " +
-                        "by a failed restore. Export a backup before deleting anything, then re-import it.",
+                    body = "Workout data is unreadable. Export a backup before deleting it.",
                 )
             }
             return@PulseScaffold
@@ -663,7 +654,6 @@ fun WorkoutDetailsScreen(
             item {
                 PulsePageHeader(
                     title = plan?.name ?: "Workout",
-                    description = plan?.category?.title,
                     onBack = onBack,
                     trailing = {
                         PulseIconButton(
@@ -703,13 +693,6 @@ fun WorkoutDetailsScreen(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
-                                Text(
-                                    text = category.tagline,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
                             }
                             entity?.let { e ->
                                 PulseIconButton(
@@ -737,10 +720,6 @@ fun WorkoutDetailsScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.textMuted,
                         )
-                        if (plan.description.isNotBlank()) {
-                            Spacer(Modifier.height(dimens.m))
-                            Text(plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
-                        }
                         Spacer(Modifier.height(dimens.l))
                         Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                             StatTile("Intervals", expanded.steps.size.toString(), modifier = Modifier.weight(1f))
@@ -753,7 +732,7 @@ fun WorkoutDetailsScreen(
                         }
                         if (expanded.hasOpenEnded) {
                             Spacer(Modifier.height(dimens.m))
-                            InfoBanner("Includes intervals that wait for you — total time is a minimum.")
+                            InfoBanner(stringResource(R.string.details_open_ended_note))
                         }
                     }
                 }
@@ -880,18 +859,10 @@ fun TemplateGalleryScreen(
             item {
                 PulsePageHeader(
                     title = stringResource(R.string.workouts_templates),
-                    description = "${templates.size} editable starting points",
                     onBack = onBack,
                 )
             }
 
-            item {
-                Text(
-                    text = "Editable starting points — tweak anything after you add them. Durations are calculated from each workout's real structure.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.textMuted,
-                )
-            }
             item {
                 CategoryFilterRail(
                     categories = WorkoutCategories.all,
@@ -922,8 +893,6 @@ fun TemplateGalleryScreen(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        Spacer(Modifier.height(dimens.s))
-                        Text(template.plan.description, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
                         template.plan.equipment?.let {
                             Spacer(Modifier.height(dimens.xs))
                             Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
@@ -971,7 +940,6 @@ private fun shareWorkout(context: android.content.Context, container: AppContain
         val expanded = runCatching { com.pulse.engine.TimelineExpander.expand(plan) }.getOrNull() ?: return@launch
         val text = buildString {
             appendLine(plan.name)
-            appendLine(plan.description)
             appendLine()
             expanded.steps.forEach { step ->
                 append(if (step.isIndefinite) "manual" else formatDuration(step.durationMillis))
@@ -1037,7 +1005,6 @@ fun CategoryScreen(
             item {
                 PulsePageHeader(
                     title = category.title,
-                    description = category.tagline,
                     onBack = onBack,
                 )
             }
@@ -1063,18 +1030,6 @@ fun CategoryScreen(
                             text = category.title,
                             style = MaterialTheme.typography.headlineMedium,
                             color = colors.textPrimary,
-                        )
-                        Spacer(Modifier.height(dimens.xs))
-                        Text(
-                            text = category.tagline,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = hue,
-                        )
-                        Spacer(Modifier.height(dimens.m))
-                        Text(
-                            text = category.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.textSecondary,
                         )
                         Spacer(Modifier.height(dimens.l))
                         Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
@@ -1165,7 +1120,7 @@ fun CategoryScreen(
                 item {
                     EmptyState(
                         title = "No ${category.title} workouts yet",
-                        body = "Start one from the defaults above, or build one in the quick builder and it will appear here.",
+                        body = "Create a workout or use the defaults above.",
                         icon = category.icon,
                         actionLabel = "Build one",
                         onAction = onBuild,

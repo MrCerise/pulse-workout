@@ -3,7 +3,6 @@
   "version": 1,
   "workouts": [{
     "name": "Beginner bodyweight intervals",
-    "description": "Move at a comfortable pace and stop if you feel pain.",
     "type": "HIIT",
     "tags": ["bodyweight", "beginner"],
     "steps": [

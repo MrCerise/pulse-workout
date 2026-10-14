@@ -70,6 +70,7 @@ import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.ToggleRow
+import com.pulse.intervalcoach.ui.components.ThemePicker
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.ThemeMode
@@ -91,7 +92,6 @@ fun SettingsScreen(
     onOpenBackup: () -> Unit,
     onOpenHelp: () -> Unit,
     onOpenWelcome: () -> Unit,
-    onOpenParser: () -> Unit,
     onJsonImport: () -> Unit,
     onOpenHealth: () -> Unit,
 ) {
@@ -117,7 +117,6 @@ fun SettingsScreen(
             item {
                 PulsePageHeader(
                     title = stringResource(R.string.nav_settings),
-                    description = "Everything on this screen applies instantly",
                 )
             }
 
@@ -143,17 +142,15 @@ fun SettingsScreen(
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         Text(
                             when {
-                                healthSnapshot.source == null -> "Connect in the Health setup screen to share finished workouts, and to show live heart rate and daily steps."
-                                else -> "Connected via ${healthSnapshot.source}." +
-                                    (if (healthSnapshot.lastSyncAt > 0) " Last sync " + formatSync(healthSnapshot.lastSyncAt) + "." else "")
+                                healthSnapshot.source == null -> "Not connected"
+                                else -> if (healthSnapshot.lastSyncAt > 0) "Last sync " + formatSync(healthSnapshot.lastSyncAt) else "Not synced yet"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         ToggleRow(
-                            label = "Share finished workouts to health apps",
-                            hint = "Writes workout sessions with per-interval segments and calories burned. Off = nothing is written.",
+                            label = "Sync workouts",
                             checked = current.healthSyncSessions,
                             onCheckedChange = { scope.launch { container.preferences.setHealthSyncSessions(it) } },
                         )
@@ -165,15 +162,13 @@ fun SettingsScreen(
             item {
                 PulseCard {
                     Column {
-                        OptionRow(
-                            label = stringResource(R.string.settings_theme),
-                            options = ThemeMode.entries.map { it to it.label() },
+                        ThemePicker(
                             selected = current.themeMode,
                             onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
                         )
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
                         ToggleRow(
                             label = stringResource(R.string.settings_dynamic_color),
-                            hint = stringResource(R.string.settings_dynamic_color_hint),
                             checked = current.dynamicColor,
                             onCheckedChange = { scope.launch { container.preferences.setDynamicColor(it) } },
                         )
@@ -189,7 +184,6 @@ fun SettingsScreen(
                         )
                         ToggleRow(
                             label = stringResource(R.string.settings_left_handed),
-                            hint = "Mirrors the main controls for one-handed use.",
                             checked = current.leftHandedPlayer,
                             onCheckedChange = { scope.launch { container.preferences.setLeftHanded(it) } },
                         )
@@ -237,7 +231,6 @@ fun SettingsScreen(
                         )
                         ToggleRow(
                             label = stringResource(R.string.settings_screen_off_cues),
-                            hint = "Runs the workout in a foreground service with a partial wake lock.",
                             checked = current.continueCuesScreenOff,
                             onCheckedChange = { scope.launch { container.preferences.setContinueCuesScreenOff(it) } },
                         )
@@ -253,8 +246,7 @@ fun SettingsScreen(
                             selected = current.headphoneBehavior,
                             onSelect = { value -> scope.launch { container.preferences.setHeadphoneBehavior(value) } },
                         )
-                        Text(stringResource(R.string.settings_volume_keys_hint))
-                        TextButton(onClick = onOpenVoiceStudio) { Text("Open Voice & audio studio") }
+                        TextButton(onClick = onOpenVoiceStudio) { Text("Voice & audio") }
                     }
                 }
             }
@@ -263,11 +255,6 @@ fun SettingsScreen(
             item {
                 PulseCard {
                     Column {
-                        Text(
-                            "Everything stays on this device. No account, no ads, no analytics, no cloud.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         SecondaryActionButton("Import / export & backups", onOpenBackup, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
@@ -275,7 +262,6 @@ fun SettingsScreen(
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         ToggleRow(
                             label = stringResource(R.string.settings_backup_auto),
-                            hint = "A dated JSON backup is written weekly with WorkManager.",
                             checked = current.autoBackupEnabled,
                             onCheckedChange = { scope.launch { container.preferences.setAutoBackup(it) } },
                         )
@@ -286,7 +272,7 @@ fun SettingsScreen(
                                     ZoneId.systemDefault(),
                                 ).format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm"))
                             } else {
-                                "No automatic backup has run yet."
+                                "No backups yet"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
@@ -301,26 +287,15 @@ fun SettingsScreen(
                     SecondaryActionButton(stringResource(R.string.json_title), onJsonImport, Modifier.fillMaxWidth())
                 }
             }
-            item {
-                PulseCard {
-                    SecondaryActionButton("Add workout description", onOpenParser, Modifier.fillMaxWidth())
-                }
-            }
-
             item { SectionHeader("Help & about") }
             item {
                 PulseCard {
                     Column {
-                        SecondaryActionButton("Help, voice setup & shortcuts", onOpenHelp, Modifier.fillMaxWidth())
+                        SecondaryActionButton("Help", onOpenHelp, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        SecondaryActionButton("Show the welcome tour again", onOpenWelcome, Modifier.fillMaxWidth())
+                        SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         Text("PULSE Interval Coach ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-                        Text(
-                            "Offline interval timer · Health Connect first, Google Fit best-effort (deprecated by Google as of 2026) · package ${BuildConfig.APPLICATION_ID}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                     }
                 }
             }
@@ -330,7 +305,7 @@ fun SettingsScreen(
     if (confirmDeleteSessions) {
         ConfirmDialog(
             title = "Delete all sessions?",
-            body = "This permanently removes every saved session and their events. Workouts are kept.",
+            body = "Session history will be permanently deleted. Workouts are kept.",
             confirmLabel = "Delete sessions",
             dismissLabel = stringResource(R.string.cancel),
             destructive = true,
@@ -350,13 +325,6 @@ private fun formatSync(millis: Long): String {
     } else {
         then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
     }
-}
-
-private fun ThemeMode.label(): String = when (this) {
-    ThemeMode.SYSTEM -> "System"
-    ThemeMode.LIGHT -> "Light"
-    ThemeMode.DARK -> "Dark"
-    ThemeMode.TRUE_BLACK -> "True black"
 }
 
 private fun PlayerDensity.label(): String = when (this) {
@@ -435,7 +403,6 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
             item {
                 PulsePageHeader(
                     title = "Voice & audio",
-                    description = "Speech, cue tones and music ducking",
                     onBack = onBack,
                 )
             }
@@ -463,9 +430,9 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         }
                         Text(
                             when {
-                                speechInfo.offlineVoiceInstalled -> "Offline voice installed — coaching works in airplane mode."
-                                availability is SpeechAvailability.NoEngine -> "PULSE falls back to sound cues. Install a voice in Android Settings → System → Languages & input → Text-to-speech."
-                                else -> "No offline voice found yet. Install voice data for offline coaching — the app still works online or with sound cues only."
+                                speechInfo.offlineVoiceInstalled -> "Offline voice installed"
+                                availability is SpeechAvailability.NoEngine -> "No voice installed. Sound cues will be used."
+                                else -> "Install an offline voice for coaching without a connection."
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
@@ -551,11 +518,9 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             }
                         }
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        Text(
-                            if (container.haptics.isAvailable) "Vibration is available on this device." else "This device has no vibrator — cues stay audible only.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
+                        if (!container.haptics.isAvailable) {
+                            Text("Vibration unavailable", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        }
                     }
                 }
             }
@@ -569,11 +534,6 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                                 ?: stringResource(R.string.voice_music_none),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.textPrimary,
-                        )
-                        Text(
-                            stringResource(R.string.voice_music_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
                         )
                         musicUnavailable?.let { reason ->
                             Spacer(Modifier.height(LocalPulseDimens.current.xs))
@@ -628,11 +588,6 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             enabled = current.musicUri != null,
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        Text(
-                            stringResource(R.string.voice_music_preview_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                     }
                 }
             }
@@ -683,11 +638,6 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             },
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        Text(
-                            stringResource(R.string.voice_duck_test_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                     }
                 }
             }
@@ -696,11 +646,6 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
             item {
                 PulseCard {
                     Column {
-                        Text(
-                            "Record short spoken cues (for example \u201Cswitch sides\u201D) and PULSE stores them as private app files.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         if (recording == null) {
                             SecondaryActionButton(
@@ -838,7 +783,7 @@ fun BackupScreen(
             error = null
             val stream = runCatching { context.contentResolver.openInputStream(uri) }.getOrNull()
             if (stream == null) {
-                error = "The selected file could not be read (permission revoked, or the file was removed)."
+                error = "Cannot read this file. Choose it again."
                 return@launch
             }
             val result = runCatching { stream.use { repository.preview(it).getOrThrow() } }
@@ -865,7 +810,6 @@ fun BackupScreen(
             item {
                 PulsePageHeader(
                     title = "Backups & import",
-                    description = "Nothing is written until you confirm",
                     onBack = onBack,
                 )
             }
@@ -874,11 +818,6 @@ fun BackupScreen(
             item {
                 PulseCard {
                     Column {
-                        Text(
-                            "Exports a plain JSON file with your workouts, sessions, tags and settings. It contains no secrets and no media files — only references.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         PrimaryActionButton(
                             text = stringResource(R.string.settings_export_all),
@@ -893,11 +832,6 @@ fun BackupScreen(
             item {
                 PulseCard {
                     Column {
-                        Text(
-                            "Import shows a preview first and never overwrites existing workouts: colliding entries get new IDs.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         SecondaryActionButton(
                             text = stringResource(R.string.settings_import),
@@ -913,7 +847,7 @@ fun BackupScreen(
                 PulseCard {
                     Column {
                         if (backups.isEmpty()) {
-                            Text("No automatic backups yet. They run weekly while the app is installed.", color = colors.textSecondary)
+                            Text("No backups yet", color = colors.textSecondary)
                         } else {
                             backups.take(5).forEach { file ->
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -942,7 +876,7 @@ fun BackupScreen(
                         }
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         SecondaryActionButton(
-                            text = "Write a backup now",
+                            text = "Back up now",
                             onClick = {
                                 scope.launch {
                                     runCatching { repository.writeAutomaticBackup() }
@@ -959,7 +893,7 @@ fun BackupScreen(
             error?.let { message ->
                 item {
                     InfoBanner(
-                        text = "Import failed: $message Nothing was changed.",
+                        text = message,
                         tone = PulseTone.DANGER,
                     )
                 }
@@ -970,7 +904,7 @@ fun BackupScreen(
     preview?.let { info ->
         ConfirmDialog(
             title = stringResource(R.string.import_preview_title),
-            body = "The file contains ${info.workouts} workouts, ${info.sessions} sessions and ${info.tags} tags. Nothing is written until you confirm." +
+            body = "${info.workouts} workouts · ${info.sessions} sessions · ${info.tags} tags" +
                 info.warnings.takeIf { it.isNotEmpty() }?.joinToString(" ") { " ⚠ $it" }.orEmpty(),
             confirmLabel = stringResource(R.string.import_confirm),
             dismissLabel = stringResource(R.string.cancel),
@@ -1005,7 +939,6 @@ fun BackupScreen(
 @Composable
 fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
     val colors = LocalPulseColors.current
-    val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
 
     PulseScaffold { padding ->
         LazyColumn(
@@ -1021,96 +954,26 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
             item {
                 PulsePageHeader(
                     title = stringResource(R.string.help_title),
-                    description = "Voice setup, accessibility and data",
                     onBack = onBack,
                 )
             }
 
-            item { SectionHeader("Voice setup") }
-            item {
-                PulseCard {
-                    Text(
-                        "PULSE uses the text-to-speech engine installed on your device. For coaching that works in flight mode, install an offline voice: " +
-                            "Android Settings → System → Languages & input → Text-to-speech → your engine → Install voice data. If no engine is present, PULSE falls " +
-                            "back to sound cues and says so in Voice Studio.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                }
-            }
-            item { SectionHeader("Health Connect & Google Fit") }
-            item {
-                PulseCard {
-                    Text(
-                        "Health Connect is the primary integration: finished workouts (with per-interval segments and calories) are written to it, and live " +
-                            "heart rate plus daily steps are read for the player and Today screen. Google Fit is best-effort on top — Google has deprecated the " +
-                            "on-device Fit API as of 2026 and no longer accepts new signups, so treat Fit extras as optional. Nothing is ever sent to the cloud " +
-                            "by PULSE itself; only the Google services you connect to.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                }
-            }
-            item { SectionHeader("Background operation") }
-            item {
-                PulseCard {
-                    Text(
-                        "A workout runs in a foreground service with a media notification, so timing and cues continue with the screen off. Android can still restart " +
-                            "the process in extreme low-memory situations; if that happens PULSE marks the session as interrupted instead of pretending it completed. " +
-                            "This build keeps cues running with the screen off: " + if (prefs?.continueCuesScreenOff == true) "yes" else "no (you turned it off in Settings)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                }
-            }
-            item { SectionHeader("Audio troubleshooting") }
-            item {
-                PulseCard {
-                    Text(
-                        "Cues are mixed at the volume set in Voice Studio. If you cannot hear them: raise media volume, check that Do Not Disturb is not blocking media, " +
-                            "and confirm PULSE is not muted in the notification shade. Other apps are ducked, not stopped. Bluetooth cues can arrive a little later on " +
-                            "some devices — the timer itself is never affected.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                }
-            }
-            item { SectionHeader("Imported files") }
-            item {
-                PulseCard {
-                    Text(
-                        "Exports are plain JSON. Importing previews the file, never overwrites workouts and re-assigns colliding IDs. If a referenced image or audio " +
-                            "file was deleted, the workout still opens and the app says the media is missing.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                }
-            }
-            item { SectionHeader("Accessibility") }
-            item {
-                PulseCard {
-                    Text(
-                        "Every drag action has Move up / Move down alternatives, controls are at least 48 dp, phase colours always come with a label, and TalkBack " +
-                            "announces interval changes rather than every tick. Reduced motion and high contrast are in Settings.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                }
-            }
-            item { SectionHeader("Permissions used") }
-            item {
-                PulseCard {
-                    Text(
-                        "• Notifications (optional): shows the running-workout controls.\n" +
-                            "• Vibration: interval haptics.\n" +
-                            "• Microphone (optional): only while you record your own cue in Voice Studio.\n" +
-                            "• Foreground service: keeps timing and cues alive with the screen off.\n" +
-                            "• Health Connect (optional): read heart rate & steps, write finished workouts.\n" +
-                            "• Google Fit (optional): the same, as a secondary source where available.\n" +
-                            "PULSE asks for no location, no contacts, no cloud account.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
+            val sections = listOf(
+                R.string.help_voice to R.string.help_voice_body,
+                R.string.help_health to R.string.help_health_body,
+                R.string.help_background to R.string.help_background_body,
+                R.string.help_audio to R.string.help_audio_body,
+                R.string.help_import to R.string.help_import_body,
+                R.string.help_gestures to R.string.help_gestures_body,
+                R.string.help_accessibility to R.string.help_accessibility_body,
+                R.string.settings_permissions to R.string.help_permissions_body,
+            )
+            sections.forEach { (title, body) ->
+                item { SectionHeader(stringResource(title)) }
+                item {
+                    PulseCard {
+                        Text(stringResource(body), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
+                    }
                 }
             }
             item {

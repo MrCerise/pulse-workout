@@ -99,7 +99,6 @@ fun HealthScreen(
             item {
                 PulsePageHeader(
                     title = "Health",
-                    description = "Connect once — PULSE reads, writes, and says what happened",
                     onBack = onBack,
                     trailing = {
                         PulseIconButton(
@@ -120,24 +119,15 @@ fun HealthScreen(
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         if (snapshot.source == null) {
                             Text(
-                                "Nothing connected yet. Health Connect (below) is the recommended backend; " +
-                                    "Google Fit is optional and deprecated by Google as of 2026.",
+                                "Not connected",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colors.textPrimary,
                             )
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.work, modifier = Modifier.padding(end = LocalPulseDimens.current.s))
-                                Text("Reading through ${snapshot.source}", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                                Text("${snapshot.source}", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
                             }
-                        }
-                        if (snapshot.latestHeartRate != null) {
-                            Spacer(Modifier.height(LocalPulseDimens.current.s))
-                            Text(
-                                "Latest heart rate: ${snapshot.latestHeartRate} bpm",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
-                            )
                         }
                     }
                 }
@@ -150,7 +140,7 @@ fun HealthScreen(
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Platform: ${hcStatusText(availability)}",
+                                hcStatusText(availability),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = colors.textPrimary,
                                 modifier = Modifier.weight(1f),
@@ -164,25 +154,25 @@ fun HealthScreen(
                             HcAvailability.NOT_INSTALLED -> {
                                 Spacer(Modifier.height(LocalPulseDimens.current.s))
                                 InfoBanner(
-                                    "Health Connect isn't installed. It ships on Android 14+ and is available for older devices in the Play Store as the Google Health Connect app.",
+                                    "Install Health Connect from Google Play.",
                                 )
                             }
                             HcAvailability.NOT_ENABLED -> {
                                 Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("Health Connect is installed but switched off in system settings. Enable it, then come back — no restart needed.")
+                                InfoBanner("Enable Health Connect in Android Settings.")
                             }
                             HcAvailability.NO_PROVIDER -> {
                                 Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("No health app on this device offers Health Connect storage, so there is nothing to connect to.")
+                                InfoBanner("No Health Connect provider found.")
                             }
                             HcAvailability.NOT_SUPPORTED -> {
                                 Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("This device/Android version does not support Health Connect.")
+                                InfoBanner("Health Connect is not supported on this device.")
                             }
                             HcAvailability.AVAILABLE -> Unit
                             HcAvailability.UNKNOWN -> {
                                 Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("Still checking what this device offers — tap the refresh icon when it settles.")
+                                InfoBanner("Checking availability…")
                             }
                         }
                         if (availability == HcAvailability.AVAILABLE) {
@@ -208,14 +198,14 @@ fun HealthScreen(
             }
 
             // --- Google Fit ---
-            item { SectionHeader("Google Fit (secondary)") }
+            item { SectionHeader("Google Fit") }
             item {
                 PulseCard {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Filled.Person, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.padding(end = LocalPulseDimens.current.s))
                             Text(
-                                "Deprecated by Google as of 2026",
+                                "Legacy integration",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = colors.prepare,
                                 modifier = Modifier.weight(1f),
@@ -230,14 +220,14 @@ fun HealthScreen(
                         Text(
                             when (fitAvailability) {
                                 FitAvailability.NOT_CONFIGURED ->
-                                    "This build ships without a Google Fit OAuth client id (Google no longer accepts new Fit signups), so Fit cannot authorise. Health Connect above covers the same data."
+                                    "Unavailable in this build. Use Health Connect."
                                 FitAvailability.PLAY_SERVICES_MISSING ->
-                                    "Google Play services (Fitness) is not available on this device."
+                                    "Google Play services unavailable."
                                 FitAvailability.AVAILABLE ->
                                     if (fitAuthorized) {
-                                        "Connected. Fit is used as a fallback whenever Health Connect has no data."
+                                        "Connected as a fallback"
                                     } else {
-                                        "Available but not authorised. It only adds a fallback data path — everything works without it."
+                                        "Not connected"
                                     }
                             },
                             style = MaterialTheme.typography.bodySmall,
@@ -258,7 +248,7 @@ fun HealthScreen(
             }
 
             // --- Your data, as the backend sees it ---
-            item { SectionHeader("Your data on the backend") }
+            item { SectionHeader("Your data") }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     StatTile(
@@ -287,7 +277,7 @@ fun HealthScreen(
                         )
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         PrimaryActionButton(
-                            text = "Backfill my last 7 days",
+                            text = "Sync last 7 days",
                             onClick = {
                                 scope.launch {
                                     val sessions = container.sessions.history.first()
@@ -296,7 +286,7 @@ fun HealthScreen(
                                         .sortedByDescending { it.endedAt }
                                         .take(20)
                                     if (candidates.isEmpty()) {
-                                        backfill = "No finished sessions in the last 7 days to backfill."
+                                        backfill = "No sessions in the last 7 days."
                                     } else {
                                         var ok = 0
                                         var failed = 0
@@ -304,9 +294,8 @@ fun HealthScreen(
                                             val events = container.sessions.observeEvents(session.id).first()
                                             if (container.health.writeSession(session, events)) ok++ else failed++
                                         }
-                                        backfill = "Backfilled $ok of ${candidates.size} sessions" +
-                                            if (failed > 0) " — $failed failed on this device" else "" +
-                                            ". They now appear in your health app's workout history."
+                                        backfill = "Synced $ok of ${candidates.size} sessions" +
+                                            (if (failed > 0) " · $failed failed" else "")
                                         container.health.refresh()
                                     }
                                 }
@@ -317,7 +306,7 @@ fun HealthScreen(
                         if (snapshot.source == null) {
                             Spacer(Modifier.height(LocalPulseDimens.current.xs))
                             Text(
-                                "Connect Health Connect or Google Fit above first — backfill writes your saved sessions to the connected app.",
+                                "Connect a health app to sync.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.textSecondary,
                             )
@@ -332,8 +321,7 @@ fun HealthScreen(
 
             item {
                 Text(
-                    "Privacy: PULSE itself stores everything on this device and sends nothing to any cloud. " +
-                        "Only the Google health apps you connect to receive the records you allow.",
+                    "Only connected health apps receive the records you allow.",
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.textSecondary,
                 )

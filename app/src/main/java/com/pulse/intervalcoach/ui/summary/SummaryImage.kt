@@ -6,7 +6,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.text.Layout
@@ -14,6 +13,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.session.SessionSummaryData
@@ -62,14 +62,11 @@ object SummaryImage {
             canvas.drawRect(72f, 0f, 184f, 12f, paint(1f, ORANGE))
             text("PULSE", 72f, 118f, 44f, heavy = true)
             text("INTERVAL COACH", 248f, 117f, 23f, MUTED)
-            // Original pulse mark, not a fabricated activity chart.
-            val mark = Path().apply {
-                moveTo(876f, 100f); lineTo(908f, 100f); lineTo(924f, 76f)
-                lineTo(948f, 124f); lineTo(966f, 100f); lineTo(1008f, 100f)
+            ContextCompat.getDrawable(context, R.drawable.ic_pulse)?.mutate()?.apply {
+                setTint(WHITE)
+                setBounds(916, 56, 1008, 148)
+                draw(canvas)
             }
-            canvas.drawPath(mark, paint(1f, ORANGE).apply {
-                style = Paint.Style.STROKE; strokeWidth = 5f; strokeJoin = Paint.Join.ROUND
-            })
             val title = StaticLayout.Builder.obtain(summary.planName, 0, summary.planName.length, paint(60f, heavy = true), 936)
                 .setAlignment(Layout.Alignment.ALIGN_NORMAL).setIncludePad(false)
                 .setMaxLines(2).setEllipsize(TextUtils.TruncateAt.END).setLineSpacing(6f, 1f).build()

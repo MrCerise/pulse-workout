@@ -22,32 +22,7 @@ import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.WorkoutType
 import com.pulse.intervalcoach.ui.theme.CategoryHue
 
-/**
- * The single definition of every workout category.
- *
- * Before this file, "category" meant two unrelated things that had drifted apart: a `WorkoutType`
- * enum in the engine that knew how to spell its own name, and a free-text `iconKey` string that was
- * hand-written per starter workout, stored in the database and silently ignored everywhere else.
- * Adding a category meant touching the enum, the starter list, the builder's dropdown and whichever
- * screen happened to have its own `when` over the type — and forgetting one of them produced a
- * workout whose card said one thing and whose filter chip said another.
- *
- * Now there is exactly one record per category, and it carries everything the interface needs to
- * present it:
- *
- *  - **identity** — [WorkoutCategory.key], [WorkoutCategory.title], [WorkoutCategory.tagline],
- *    [WorkoutCategory.description];
- *  - **presentation** — [WorkoutCategory.icon] and [WorkoutCategory.hue], so a category looks the
- *    same on a card, in a filter rail and in the player header;
- *  - **behaviour** — [CategoryCapabilities], which is what decides whether the builder offers
- *    rounds, a ladder or equipment for this kind of workout;
- *  - **starting point** — [CategoryDefaults], so "new workout" opens with timings that suit the
- *    category instead of with one global work/rest pair.
- *
- * The engine's [WorkoutType] stays as the persisted key: it is what is serialised into a plan and
- * stored in the database, and it deliberately knows nothing about names, icons or colours. Anything
- * a human reads comes from here.
- */
+/** Category identity, presentation and builder defaults. */
 
 /** What the builder and the player are allowed to offer for a given category. */
 data class CategoryCapabilities(
@@ -85,10 +60,6 @@ data class WorkoutCategory(
     val type: WorkoutType,
     /** Short human-facing name. */
     val title: String,
-    /** One line that says what the category is for. */
-    val tagline: String,
-    /** A longer explanation, shown when the category is being chosen. */
-    val description: String,
     /** Which colour family this category belongs to. */
     val hue: CategoryHue,
     /** The glyph that stands for this category everywhere. */
@@ -115,8 +86,6 @@ object WorkoutCategories {
     private val hiit = WorkoutCategory(
         type = WorkoutType.HIIT,
         title = "HIIT",
-        tagline = "Hard efforts, short recoveries",
-        description = "High-intensity interval training: repeated bouts of near-maximal effort separated by recoveries short enough that the next round still hurts. The most efficient way to buy fitness with minutes.",
         hue = CategoryHue.CONDITIONING,
         icon = Icons.Filled.LocalFireDepartment,
         defaults = CategoryDefaults(
@@ -133,8 +102,6 @@ object WorkoutCategories {
     private val tabata = WorkoutCategory(
         type = WorkoutType.TABATA,
         title = "Tabata",
-        tagline = "20 seconds on, 10 off, eight rounds",
-        description = "The textbook protocol: eight rounds of 20 seconds all-out against 10 seconds of recovery, four minutes in total. One movement, honest pacing, no negotiation.",
         hue = CategoryHue.CONDITIONING,
         icon = Icons.Filled.Bolt,
         defaults = CategoryDefaults(
@@ -151,8 +118,6 @@ object WorkoutCategories {
     private val circuit = WorkoutCategory(
         type = WorkoutType.CIRCUIT,
         title = "Circuit",
-        tagline = "A loop of stations, repeated",
-        description = "Several exercises performed back to back, then the whole loop repeated. Rounds rather than sets, so the rest is defined by the circuit instead of by how long you feel like standing around.",
         hue = CategoryHue.CONDITIONING,
         icon = Icons.Filled.Repeat,
         defaults = CategoryDefaults(
@@ -169,8 +134,6 @@ object WorkoutCategories {
     private val boxing = WorkoutCategory(
         type = WorkoutType.BOXING,
         title = "Boxing / MMA",
-        tagline = "Rounds, bells and a corner",
-        description = "Timed rounds with a bell and a minute in the corner, the way a fight gym runs a class. Round lengths and rest are fixed by the clock, not by how you feel.",
         hue = CategoryHue.CONDITIONING,
         icon = Icons.Filled.SportsMma,
         defaults = CategoryDefaults(
@@ -188,8 +151,6 @@ object WorkoutCategories {
     private val emom = WorkoutCategory(
         type = WorkoutType.EMOM,
         title = "EMOM",
-        tagline = "Every minute, on the minute",
-        description = "A set amount of work starts at the top of every minute; whatever is left of that minute is your rest. Miss the window and the clock does not wait for you.",
         hue = CategoryHue.CONDITIONING,
         icon = Icons.Filled.Timer,
         defaults = CategoryDefaults(
@@ -205,8 +166,6 @@ object WorkoutCategories {
     private val e2mom = WorkoutCategory(
         type = WorkoutType.E2MOM,
         title = "E2MOM",
-        tagline = "Every two minutes, on the minute",
-        description = "EMOM with twice the window: heavier work, longer recovery, more time under tension. Used for strength and skill work that does not fit inside sixty seconds.",
         hue = CategoryHue.CONDITIONING,
         icon = Icons.Filled.Redo,
         defaults = CategoryDefaults(
@@ -222,8 +181,6 @@ object WorkoutCategories {
     private val amrap = WorkoutCategory(
         type = WorkoutType.AMRAP,
         title = "AMRAP",
-        tagline = "As many rounds as possible",
-        description = "A fixed window and a loop you repeat as many times as you can inside it. The score is the round count, which is why the timer — not your judgement — decides when it ends.",
         hue = CategoryHue.CONDITIONING,
         icon = Icons.Filled.AllInclusive,
         defaults = CategoryDefaults(
@@ -239,8 +196,6 @@ object WorkoutCategories {
     private val strength = WorkoutCategory(
         type = WorkoutType.STRENGTH,
         title = "Strength",
-        tagline = "Loaded work, timed sets",
-        description = "Barbell, dumbbell or machine work with a timed effort and a prescribed rest, so a set is a set and the clock — not a conversation — ends the break.",
         hue = CategoryHue.STRENGTH,
         icon = Icons.Filled.FitnessCenter,
         defaults = CategoryDefaults(
@@ -258,8 +213,6 @@ object WorkoutCategories {
     private val runWalk = WorkoutCategory(
         type = WorkoutType.RUN_WALK,
         title = "Run / Walk",
-        tagline = "Effort and recovery, on the move",
-        description = "Alternating running and walking intervals. The classic way back into running and the classic way to cover distance without paying for it the next day.",
         hue = CategoryHue.CARDIO,
         icon = Icons.Filled.DirectionsRun,
         defaults = CategoryDefaults(
@@ -278,8 +231,6 @@ object WorkoutCategories {
     private val stretching = WorkoutCategory(
         type = WorkoutType.STRETCHING,
         title = "Stretching",
-        tagline = "Hold, breathe, move on",
-        description = "Timed holds with a short changeover between positions. The timer exists so you hold long enough for it to matter instead of counting in your head and giving up early.",
         hue = CategoryHue.MOBILITY,
         icon = Icons.Filled.AccessibilityNew,
         defaults = CategoryDefaults(
@@ -297,8 +248,6 @@ object WorkoutCategories {
     private val breathing = WorkoutCategory(
         type = WorkoutType.BREATHING,
         title = "Breathing",
-        tagline = "In, hold, out, hold",
-        description = "Paced breathing patterns such as box breathing and 4-7-8. Long exhales, no equipment, and a voice that tells you when to switch without you opening your eyes.",
         hue = CategoryHue.MIND,
         icon = Icons.Filled.Air,
         defaults = CategoryDefaults(
@@ -316,8 +265,6 @@ object WorkoutCategories {
     private val focus = WorkoutCategory(
         type = WorkoutType.FOCUS,
         title = "Focus / Pomodoro",
-        tagline = "Work in blocks, break on time",
-        description = "A focus block and a break, repeated. Pomodoro for people who would rather be told to stand up than decide to.",
         hue = CategoryHue.MIND,
         icon = Icons.Filled.Psychology,
         defaults = CategoryDefaults(
@@ -334,8 +281,6 @@ object WorkoutCategories {
     private val customSequence = WorkoutCategory(
         type = WorkoutType.CUSTOM_SEQUENCE,
         title = "Custom sequence",
-        tagline = "Your intervals, in your order",
-        description = "A hand-built list of intervals with no protocol behind it. Use it when the workout already exists — written on a whiteboard, or pasted in from a text description.",
         hue = CategoryHue.TOOLS,
         icon = Icons.Filled.Tune,
         defaults = CategoryDefaults(
@@ -351,8 +296,6 @@ object WorkoutCategories {
     private val compound = WorkoutCategory(
         type = WorkoutType.COMPOUND,
         title = "Compound",
-        tagline = "Blocks nested inside blocks",
-        description = "A workout made of other blocks: a warm-up, then a circuit repeated three times, then a finisher. The strongest structure the builder can express.",
         hue = CategoryHue.TOOLS,
         icon = Icons.Filled.Layers,
         defaults = CategoryDefaults(
@@ -369,8 +312,6 @@ object WorkoutCategories {
     private val stopwatch = WorkoutCategory(
         type = WorkoutType.STOPWATCH,
         title = "Stopwatch",
-        tagline = "Count up until you stop",
-        description = "No structure and no end time: a clock that runs until you stop it. For open sets, long rows, and anything where the duration is the result rather than the plan.",
         hue = CategoryHue.TOOLS,
         icon = Icons.Filled.Schedule,
         defaults = CategoryDefaults(
@@ -391,8 +332,6 @@ object WorkoutCategories {
     private val cueTimer = WorkoutCategory(
         type = WorkoutType.CUE_TIMER,
         title = "Repeating cue",
-        tagline = "A nudge every N seconds",
-        description = "Not a workout: a metronome for training. A cue fires every N seconds or minutes so you can do your own thing and still be told when to change.",
         hue = CategoryHue.TOOLS,
         icon = Icons.Filled.NotificationsActive,
         defaults = CategoryDefaults(
@@ -469,13 +408,13 @@ object WorkoutCategories {
      * searching "intervals" finds everything in the conditioning family.
      */
     fun searchTerms(summary: WorkoutSummary): List<String> =
-        listOf(summary.name, summary.description, summary.equipment.orEmpty()) +
+        listOf(summary.name, summary.equipment.orEmpty()) +
             summary.tags +
             byKey(summary.type).let { listOf(it.title) + it.keywords }
 
     /** Everything search should match for a plan: its own words plus its category's. */
     fun searchTerms(plan: WorkoutPlan): List<String> =
-        listOf(plan.name, plan.description, plan.equipment.orEmpty()) +
+        listOf(plan.name, plan.equipment.orEmpty()) +
             plan.tags +
             forType(plan.type).let { listOf(it.title) + it.keywords }
 }

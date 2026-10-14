@@ -157,7 +157,7 @@ screen_files = {
     "HealthScreen": next(t for p, t in sources.items() if p.name == "HealthScreen.kt"),
     "SessionSummaryScreen": next(t for p, t in sources.items() if p.name == "SummaryScreen.kt"),
     "WelcomeScreen": next(t for p, t in sources.items() if p.name == "WelcomeScreen.kt"),
-    "ParserScreen": next(t for p, t in sources.items() if p.name == "ParserScreen.kt"),
+    "JsonImportScreen": next(t for p, t in sources.items() if p.name == "JsonImportScreen.kt"),
     "QuickBuilderScreen": next(t for p, t in sources.items() if p.name == "Builders.kt"),
     "AdvancedBuilderScreen": next(t for p, t in sources.items() if p.name == "Builders.kt"),
     "PlayerScreen": next(t for p, t in sources.items() if p.name == "PlayerScreen.kt"),

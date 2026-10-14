@@ -1,6 +1,9 @@
 package com.pulse.intervalcoach.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.GridView
@@ -60,6 +62,8 @@ import com.pulse.intervalcoach.ui.components.PulseAppSidebar
 import com.pulse.intervalcoach.ui.components.PulseBreadcrumbBar
 import com.pulse.intervalcoach.ui.components.PulseFloatingNavBar
 import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulseLogo
+import com.pulse.intervalcoach.ui.components.ThemeToggle
 import com.pulse.intervalcoach.ui.components.PulseNavGroup
 import com.pulse.intervalcoach.ui.components.PulseNavItem
 import com.pulse.intervalcoach.ui.components.PulseNavRail
@@ -67,7 +71,6 @@ import com.pulse.intervalcoach.ui.components.PulseSegmented
 import com.pulse.intervalcoach.ui.components.PulseSnackbar
 import com.pulse.intervalcoach.ui.health.HealthScreen
 import com.pulse.intervalcoach.ui.home.HomeScreen
-import com.pulse.intervalcoach.ui.parser.ParserScreen
 import com.pulse.intervalcoach.ui.importer.JsonImportScreen
 import com.pulse.intervalcoach.ui.player.PlayerScreen
 import com.pulse.intervalcoach.ui.progress.HistoryScreen
@@ -80,6 +83,7 @@ import com.pulse.intervalcoach.ui.settings.VoiceStudioScreen
 import com.pulse.intervalcoach.ui.summary.SessionSummaryScreen
 import com.pulse.engine.WorkoutPlan
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseTheme
@@ -115,7 +119,6 @@ object Routes {
 
     /** The builder without its optional argument: where "new workout" navigates. */
     private const val ADVANCED_BUILDER_PATH = "builder/advanced"
-    const val PARSER = "parser"
     const val JSON_IMPORT = "json-import"
     const val DETAILS = "workout/{id}"
     const val PLAYER = "player"
@@ -252,6 +255,7 @@ fun PulseAppRoot(
         highContrast = current.highContrast,
         reducedMotion = current.reducedMotion,
     ) {
+        val motion = LocalPulseMotion.current
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         // Single entry point for starting a session: records the session, wakes the service and
@@ -318,7 +322,7 @@ fun PulseAppRoot(
             if (!current.onboardingComplete) navController.navigate(Routes.WELCOME)
         }
 
-        val currentIsDark = current.themeMode == ThemeMode.DARK || current.themeMode == ThemeMode.TRUE_BLACK
+        val currentIsDark = LocalPulseColors.current.isDark
         val toggleTheme: () -> Unit = {
             scope.launch {
                 container.preferences.setTheme(if (currentIsDark) ThemeMode.LIGHT else ThemeMode.DARK)
@@ -344,13 +348,9 @@ fun PulseAppRoot(
                     items = primaryDestinations.take(3),
                     currentRoute = route,
                     onSelect = select,
-                    header = { PulseMark(size = 32.dp) },
+                    header = { PulseLogo(size = 32.dp) },
                     footer = {
-                        PulseIconButton(
-                            icon = if (currentIsDark) Icons.Filled.LightMode else Icons.Filled.DarkMode,
-                            contentDescription = if (currentIsDark) "Switch to light theme" else "Switch to dark theme",
-                            onClick = toggleTheme,
-                        )
+                        ThemeToggle(isDark = currentIsDark, onClick = toggleTheme)
                     },
                 )
             }
@@ -385,6 +385,10 @@ fun PulseAppRoot(
                     NavHost(
                         navController = navController,
                         startDestination = Routes.HOME,
+                        enterTransition = { fadeIn(tween(motion.standard())) },
+                        exitTransition = { fadeOut(tween(motion.fast())) },
+                        popEnterTransition = { fadeIn(tween(motion.standard())) },
+                        popExitTransition = { fadeOut(tween(motion.fast())) },
                         modifier = Modifier.padding(padding),
                     ) {
                         composable(Routes.HOME) {
@@ -410,7 +414,6 @@ fun PulseAppRoot(
                                 onQuickBuilder = { navController.navigate(Routes.QUICK_BUILDER) },
                                 onAdvancedBuilder = { navController.navigate(Routes.advancedBuilder(null)) },
                                 onEdit = { navController.navigate(Routes.advancedBuilder(it)) },
-                                onParser = { navController.navigate(Routes.PARSER) },
                                 onJsonImport = { navController.navigate(Routes.JSON_IMPORT) },
                             )
                         }
@@ -504,18 +507,6 @@ fun PulseAppRoot(
                                 },
                             )
                         }
-                        composable(Routes.PARSER) {
-                            ParserScreen(
-                                container = container,
-                                onBack = { navController.popBackStack() },
-                                onSaved = { id ->
-                                    navController.navigate(Routes.details(id)) {
-                                        popUpTo(Routes.PARSER) { inclusive = true }
-                                    }
-                                },
-                                onStart = startSession,
-                            )
-                        }
                         composable(Routes.PLAYER) {
                             PlayerScreen(
                                 container = container,
@@ -578,7 +569,6 @@ fun PulseAppRoot(
                                 onOpenBackup = { navController.navigate(Routes.BACKUP) },
                                 onOpenHelp = { navController.navigate(Routes.HELP) },
                                 onOpenWelcome = { navController.navigate(Routes.WELCOME) },
-                                onOpenParser = { navController.navigate(Routes.PARSER) },
                                 onJsonImport = { navController.navigate(Routes.JSON_IMPORT) },
                                 onOpenHealth = { navController.navigate(Routes.HEALTH) },
                             )
@@ -637,8 +627,7 @@ private fun routeTitle(route: String?): String = when (route) {
     Routes.CATEGORY -> "Category"
     Routes.QUICK_BUILDER -> "Quick builder"
     Routes.ADVANCED_BUILDER -> "Builder"
-    Routes.PARSER -> "Text import"
-    Routes.JSON_IMPORT -> "JSON / AI import"
+    Routes.JSON_IMPORT -> "AI workouts"
     Routes.DETAILS -> "Workout"
     Routes.HEALTH -> "Health"
     Routes.SUMMARY -> "Session summary"
@@ -657,7 +646,7 @@ private fun routeTitle(route: String?): String = when (route) {
  * twice.
  */
 private fun routeParent(route: String?): String? = when (route) {
-    Routes.TEMPLATES, Routes.CATEGORY, Routes.DETAILS, Routes.PARSER, Routes.JSON_IMPORT,
+    Routes.TEMPLATES, Routes.CATEGORY, Routes.DETAILS, Routes.JSON_IMPORT,
     Routes.QUICK_BUILDER, Routes.ADVANCED_BUILDER -> "Workouts"
     Routes.HISTORY, Routes.SESSION_DETAIL -> "Progress"
     Routes.VOICE_STUDIO, Routes.BACKUP, Routes.HELP -> "Settings"
@@ -686,16 +675,12 @@ private fun ShellBreadcrumb(
         title = title,
         parent = parent,
         leading = if (showMark) {
-            { PulseMark(size = 20.dp) }
+            { PulseLogo(size = 20.dp) }
         } else {
             null
         },
         actions = {
-            PulseIconButton(
-                icon = if (isDark) Icons.Filled.LightMode else Icons.Filled.DarkMode,
-                contentDescription = if (isDark) "Switch to light theme" else "Switch to dark theme",
-                onClick = onToggleTheme,
-            )
+            ThemeToggle(isDark = isDark, onClick = onToggleTheme)
             PulseIconButton(
                 icon = Icons.Filled.Settings,
                 contentDescription = "Settings",
@@ -703,26 +688,6 @@ private fun ShellBreadcrumb(
             )
         },
     )
-}
-
-/** The mark: a small brand block. The only place the accent is allowed to be a solid square. */
-@Composable
-private fun PulseMark(size: androidx.compose.ui.unit.Dp) {
-    val colors = LocalPulseColors.current
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(LocalPulseShapes.current.control)
-            .background(colors.accent),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Filled.Bolt,
-            contentDescription = null,
-            tint = colors.onBrand,
-            modifier = Modifier.size(size * 0.58f),
-        )
-    }
 }
 
 /** The sidebar's head: the mark and the wordmark, on one 32 dp line. */
@@ -736,19 +701,13 @@ private fun SidebarHeader() {
             .height(32.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PulseMark(size = 24.dp)
+        PulseLogo(size = 24.dp)
         Spacer(Modifier.width(dimens.s))
         Column {
             Text(
                 text = stringResource(R.string.app_name),
                 style = PulseType.SectionLabel,
                 color = colors.textPrimary,
-                maxLines = 1,
-            )
-            Text(
-                text = "Interval coach",
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.textMuted,
                 maxLines = 1,
             )
         }

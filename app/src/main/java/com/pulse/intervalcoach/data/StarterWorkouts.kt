@@ -60,7 +60,6 @@ object StarterWorkouts {
         seed: String,
         name: String,
         type: WorkoutType,
-        description: String,
         nodes: List<Node>,
         includeFinalRest: Boolean = true,
         equipment: String? = null,
@@ -68,7 +67,6 @@ object StarterWorkouts {
     ) = WorkoutPlan(
         id = id(seed),
         name = name,
-        description = description,
         type = type,
         nodes = nodes,
         includeFinalRest = includeFinalRest,
@@ -83,7 +81,6 @@ object StarterWorkouts {
                     seed = "tabata",
                     name = "Tabata Classic",
                     type = WorkoutType.TABATA,
-                    description = "The textbook protocol: eight rounds of 20 seconds all-out effort against 10 seconds of recovery. Pick one movement and stay honest about the pace.",
                     // The textbook protocol, and deliberately without a preparation interval: with the
                     // final rest the workout is exactly 4:00, without it 3:50. Every other template
                     // starts with a 10 second "get ready".
@@ -104,7 +101,6 @@ object StarterWorkouts {
                     seed = "hiit-starter",
                     name = "HIIT Starter",
                     type = WorkoutType.HIIT,
-                    description = "A gentle entry point to interval training: six rounds of 40 seconds of movement with 20 seconds to breathe. Works with any cardio machine or bodyweight move.",
                     nodes = listOf(
                         prepare(10_000),
                         RepeatGroup(
@@ -124,7 +120,6 @@ object StarterWorkouts {
                     seed = "boxing",
                     name = "Boxing Rounds",
                     type = WorkoutType.BOXING,
-                    description = "Three three-minute rounds with a minute on the stool between them. Bell at the start and end of every round, with a ten-second warning before each bell.",
                     nodes = listOf(
                         node("Wrap up", PhaseKind.PREPARE, 30_000, SoundCue.BELL),
                         RepeatGroup(
@@ -148,7 +143,6 @@ object StarterWorkouts {
                     seed = "circuit-bodyweight",
                     name = "Bodyweight Circuit",
                     type = WorkoutType.CIRCUIT,
-                    description = "Three circuits of five bodyweight stations, 45 seconds on and 15 seconds to change station, with a full minute between circuits.",
                     nodes = listOf(
                         prepare(15_000),
                         RepeatGroup(
@@ -180,7 +174,6 @@ object StarterWorkouts {
                     seed = "emom-10",
                     name = "EMOM 10",
                     type = WorkoutType.EMOM,
-                    description = "Every minute on the minute for ten minutes: a fresh block starts on each minute boundary no matter how early you finish, so the clock never drifts.",
                     nodes = listOf(
                         prepare(10_000),
                         RepeatGroup(
@@ -202,7 +195,6 @@ object StarterWorkouts {
                     seed = "amrap-12",
                     name = "AMRAP 12",
                     type = WorkoutType.AMRAP,
-                    description = "Twelve minutes on a running clock. Complete as many rounds as you can and tap the round button each time you finish a circuit — the clock keeps its own time.",
                     nodes = listOf(
                         prepare(5_000),
                         IntervalNode(
@@ -225,7 +217,6 @@ object StarterWorkouts {
                     seed = "strength-sets",
                     name = "Strength Sets",
                     type = WorkoutType.STRENGTH,
-                    description = "Four working sets of 45 seconds with a generous 90 seconds between them. The set waits for you if you need a moment longer — tap when the set is done.",
                     nodes = listOf(
                         prepare(20_000),
                         RepeatGroup(
@@ -259,7 +250,6 @@ object StarterWorkouts {
                     seed = "run-walk",
                     name = "Run / Walk Intervals",
                     type = WorkoutType.RUN_WALK,
-                    description = "A classic return-to-running ladder: five rounds of one minute running and ninety seconds walking, wrapped in a five-minute warm-up and cool-down.",
                     nodes = listOf(
                         node("Walk warm-up", PhaseKind.WARM_UP, 300_000, SoundCue.CHIME),
                         RepeatGroup(
@@ -279,7 +269,6 @@ object StarterWorkouts {
                     seed = "stretch",
                     name = "Full-Body Stretch",
                     type = WorkoutType.STRETCHING,
-                    description = "Six long holds with a short transition between each. Every hold runs on both sides — the interval duplicates itself left and right so nothing gets forgotten.",
                     nodes = listOf(
                         prepare(5_000),
                         RepeatGroup(
@@ -326,7 +315,6 @@ object StarterWorkouts {
                     seed = "breathing",
                     name = "Box Breathing",
                     type = WorkoutType.BREATHING,
-                    description = "Four counts in, four hold, four out, four hold — eight calm cycles with a slow animation pacing each phase. Used for down-regulation after hard training.",
                     nodes = listOf(
                         RepeatGroup(
                             nodeId = "breath",
@@ -349,7 +337,6 @@ object StarterWorkouts {
                     seed = "pomodoro",
                     name = "Focus Blocks",
                     type = WorkoutType.FOCUS,
-                    description = "Four 25-minute deep-work blocks with short breaks, then a longer 15-minute break. Timed like intervals, counted like a Pomodoro.",
                     nodes = listOf(
                         RepeatGroup(
                             nodeId = "pomodoro",
@@ -372,7 +359,6 @@ object StarterWorkouts {
                     seed = "ladder",
                     name = "Mobility Ladder",
                     type = WorkoutType.CUSTOM_SEQUENCE,
-                    description = "Four rounds where the hold grows by ten seconds each time: 30, 40, 50 then 60 seconds, with 30 seconds of rest between. Demonstrates progressive ladders.",
                     nodes = listOf(
                         prepare(10_000),
                         RepeatGroup(
@@ -395,7 +381,6 @@ object StarterWorkouts {
                     seed = "cue-minutes",
                     name = "Hourly Posture Cue",
                     type = WorkoutType.CUE_TIMER,
-                    description = "An open-ended session that sounds a cue on every minute so you can stand up, reset your posture and sit back down. Stop whenever you like.",
                     nodes = listOf(
                         IntervalNode(
                             nodeId = "cue",
@@ -418,7 +403,6 @@ object StarterWorkouts {
                     seed = "stopwatch",
                     name = "Stopwatch",
                     type = WorkoutType.STOPWATCH,
-                    description = "A plain count-up stopwatch with lap recording. Useful for time trials, holds, or anything where you want splits rather than phases.",
                     nodes = listOf(
                         IntervalNode(
                             nodeId = "stopwatch",
@@ -439,7 +423,6 @@ object StarterWorkouts {
                     seed = "compound",
                     name = "Warm-up + Tabata + Core",
                     type = WorkoutType.COMPOUND,
-                    description = "Three workouts in one session: a two-minute warm-up, a classic Tabata block, then a three-station core finisher. Shows how compound workouts chain blocks together.",
                     nodes = listOf(
                         node("Easy warm-up", PhaseKind.WARM_UP, 120_000, SoundCue.CHIME),
                         RepeatGroup(

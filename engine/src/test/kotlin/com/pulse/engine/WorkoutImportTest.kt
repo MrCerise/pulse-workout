@@ -76,6 +76,12 @@ class WorkoutImportTest {
         rejected(document(fields = "\"description\":\"${"x".repeat(2001)}\","), "2000")
     }
 
+    @Test fun `legacy workout descriptions remain importable without changing intervals`() {
+        val legacy = WorkoutImport.parse(document(fields = "\"description\":\"Old workout note\","))
+        assertEquals("Old workout note", legacy.plans.single().description)
+        assertEquals(30_000L, legacy.timelines.single().knownMillis)
+    }
+
     @Test fun `nested repeats expand in order and keep last rest`() {
         val rest = """{"name":"Rest","kind":"REST","seconds":10}"""
         val nested = """{"repeat":2,"steps":[{"repeat":3,"steps":[$interval,$rest]}]}"""
@@ -121,6 +127,8 @@ class WorkoutImportTest {
         assertTrue(prompt.contains(WorkoutImport.example))
         assertTrue(prompt.contains("20 minute boxing, no equipment"))
         assertTrue(prompt.contains("seconds"))
+        assertFalse(prompt.contains("Optional fields: description"))
+        assertFalse(WorkoutImport.example.contains("\"description\""))
         PhaseKind.entries.forEach { assertTrue(prompt.contains(it.name)) }
         WorkoutType.entries.forEach { assertTrue(prompt.contains(it.name)) }
     }

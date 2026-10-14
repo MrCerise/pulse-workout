@@ -11,9 +11,21 @@ data that leaves the app is what you explicitly share, such as health records or
 you copy into an external AI tool.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.6.5 (versionCode 13)
+- **Version:** 1.6.6 (versionCode 14)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.6.6 — a cleaner PULSE
+
+- New monochrome logo across the launcher, navigation, splash, notifications and shared summaries.
+- Removed redundant hints, promotional copy, category blurbs and workout-description fields.
+- Removed the old text-description parser. Existing workouts, history and backups remain compatible.
+- Visual theme previews, softer controls and short colour/selection transitions. Reduced motion is
+  respected; the shell theme toggle now follows the actual system appearance.
+- AI workouts: share a prompt, paste a response for automatic preview, then save. Saving opens the
+  workout directly; batches open the library. File imports and manual JSON editing are still available.
+
+See [release verification](docs/RELEASE_1.6.6.md) and the updated [AI workflow](docs/WORKOUT_JSON.md).
 
 ## v1.6.5 — audio & sharing polish
 
@@ -342,7 +354,7 @@ pulse/
 │   └── src/main/java/com/pulse/intervalcoach/
 │       ├── audio/Audio.kt                    cue sounds, haptics, speech, the anti-backlog cue gate
 │       ├── data/                             Room database, DataStore preferences, repositories,
-│       │                                     starter templates, text parser, backup/export
+│       │                                     starter templates, JSON import, backup/export
 │       ├── health/                           HealthHub: Health Connect (primary) + Google Fit
 │       │                                     (secondary) bridge — reads HR/steps, writes sessions
 │       ├── session/                          CueScript (what gets said), SessionController,
@@ -359,7 +371,7 @@ pulse/
 │       │                                     Navigation (floating bar + rail)
 │       ├── ui/                               Compose screens: home (Today), workouts, builders,
 │       │                                     player, summary, progress, settings, health,
-│       │                                     welcome, parser
+│       │                                     welcome, AI import
 │       ├── widget/                           home-screen widgets and dynamic shortcuts
 │       └── work/                             WorkManager jobs (weekly backup, reminders)
 │   └── src/test/java/com/pulse/intervalcoach/ app-level unit tests
@@ -434,7 +446,7 @@ inside Progress, the template gallery and Health setup are pushed destinations.
 - [x] All 16 interval types: HIIT, Tabata, Circuit, Boxing, EMOM, E2MOM, AMRAP, Strength, Run/walk,
       Stretching, Breathing, Focus/Pomodoro, Custom sequence, Compound, Stopwatch, Repeating cue
 - [x] Home-screen widgets (favourites, quick start) and dynamic shortcuts
-- [x] Clone with scaling, text-to-workout parser with confirmation preview, shareable summary image
+- [x] Clone with scaling, JSON/AI import with automatic preview, shareable summary image
 - [x] Local-only storage, no analytics or ad SDKs, no secrets in the repository
 
 **Deliberately not included:** no Bluetooth heart-rate belt pairing, no cloud sync of your own, no
@@ -584,7 +596,7 @@ locally are run and are listed below with their real output.
 | Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
 | Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
 | Engine unit tests (unchanged module) | CI `./gradlew :engine:test` | final gate |
-| App unit tests (parser, factory, backups, cue gate, ducking, DB migration v2, builder route) | CI `./gradlew :app:testDebugUnitTest` | final gate |
+| App unit tests (AI import, themes, factory, backups, cues, ducking, DB migration v2, builder route) | CI `./gradlew :app:testDebugUnitTest` | final gate |
 | Compilation, lint, debug + release APK (SDK 37) | CI workflow | final gate |
 | Install / smoke test | — | **not run** — no emulator or device in this environment |
 
