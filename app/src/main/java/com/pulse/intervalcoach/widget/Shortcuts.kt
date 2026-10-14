@@ -43,7 +43,8 @@ object ShortcutHelper {
                 .setIntent(
                     Intent(context, MainActivity::class.java).apply {
                         action = Intent.ACTION_VIEW
-                        // Favourite shortcuts start immediately; recent ones open the detail screen.
+                        // Favourite shortcuts request a start (the app confirms external start links);
+                        // recent ones open the workout detail screen.
                         data = android.net.Uri.parse(
                             if (workout.isFavorite) DeepLinks.start(workout.id) else DeepLinks.details(workout.id),
                         )

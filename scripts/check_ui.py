@@ -29,8 +29,14 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+try:
+    from .safe_repo_io import BoundedSourceReader, RepositoryIOError
+except ImportError:  # Executed as `python3 scripts/check_ui.py`.
+    from safe_repo_io import BoundedSourceReader, RepositoryIOError
+
 ROOT = Path(__file__).resolve().parent.parent
 RES = ROOT / "app/src/main/res"
+SOURCE_READER = BoundedSourceReader(ROOT)
 KOTLIN_ROOTS = [
     ROOT / "app/src/main/java",
     ROOT / "engine/src/main/kotlin",
@@ -43,6 +49,10 @@ def qn(tag: str) -> str:
     return f"{{{ANDROID_NS}}}{tag}"
 
 
+def parse_xml(path: Path) -> ET.ElementTree:
+    return ET.ElementTree(ET.fromstring(SOURCE_READER.read_bytes(path)))
+
+
 # ---------------------------------------------------------------------------------------------
 # Resource inventory
 # ---------------------------------------------------------------------------------------------
@@ -51,6 +61,8 @@ def collect_resources() -> dict[str, set[str]]:
     """Maps resource type -> set of names, from `res/<type>[-qualifier]/<name>.<ext>` and values."""
     resources: dict[str, set[str]] = {}
     for path in sorted(RES.rglob("*")):
+        if path.is_symlink():
+            raise RepositoryIOError(f"{path}: symbolic resource links are not allowed")
         if not path.is_file():
             continue
         relative = path.relative_to(RES)
@@ -58,7 +70,7 @@ def collect_resources() -> dict[str, set[str]]:
         resource_type = folder.split("-")[0]
         if resource_type == "values":
             try:
-                tree = ET.parse(path)
+                tree = parse_xml(path)
             except ET.ParseError:
                 continue
             for child in tree.getroot():
@@ -87,9 +99,11 @@ def collect_resources() -> dict[str, set[str]]:
 
 def string_tables() -> tuple[set[str], set[str]]:
     def names(path: Path) -> set[str]:
+        if path.is_symlink():
+            raise RepositoryIOError(f"{path}: symbolic resource links are not allowed")
         if not path.exists():
             return set()
-        tree = ET.parse(path)
+        tree = parse_xml(path)
         return {
             child.get("name")
             for child in tree.getroot()
@@ -141,7 +155,7 @@ def check_xml(resources: dict[str, set[str]]) -> list[str]:
     problems = []
     for path in sorted(RES.rglob("*.xml")):
         try:
-            tree = ET.parse(path)
+            tree = parse_xml(path)
         except ET.ParseError as error:
             problems.append(f"{path.relative_to(ROOT)}: not well-formed — {error}")
             continue
@@ -238,8 +252,10 @@ def check_kotlin(resources: dict[str, set[str]]) -> tuple[list[str], list[str]]:
     problems = []
     icons = set()
     for root in KOTLIN_ROOTS:
+        if root.is_symlink() or not root.is_dir():
+            raise RepositoryIOError(f"{root}: Kotlin scan root must be a real directory")
         for path in sorted(root.rglob("*.kt")):
-            source = path.read_text(encoding="utf-8")
+            source = SOURCE_READER.read_text(path)
             relative = path.relative_to(ROOT)
             for resource_type, name in RESOURCE_REFERENCE.findall(source):
                 if name not in resources.get(resource_type, set()):
@@ -257,17 +273,20 @@ def check_kotlin(resources: dict[str, set[str]]) -> tuple[list[str], list[str]]:
 
 
 def main() -> int:
-    if not RES.exists():
-        print(f"missing resource directory: {RES}", file=sys.stderr)
+    if RES.is_symlink() or not RES.is_dir():
+        print(f"missing or unsafe resource directory: {RES}", file=sys.stderr)
         return 2
 
-    resources = collect_resources()
-    problems = check_xml(resources)
-
-    kotlin_problems, icons = check_kotlin(resources)
+    try:
+        resources = collect_resources()
+        problems = check_xml(resources)
+        kotlin_problems, icons = check_kotlin(resources)
+        english, french = string_tables()
+    except RepositoryIOError as error:
+        print(f"unsafe repository input: {error}", file=sys.stderr)
+        return 2
     problems += kotlin_problems
 
-    english, french = string_tables()
     missing_fr = sorted(english - french)
     missing_en = sorted(french - english)
     if missing_fr:

@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -61,6 +62,7 @@ import com.pulse.intervalcoach.ui.goals.GoalsScreen
 import com.pulse.intervalcoach.ui.components.PulseAppSidebar
 import com.pulse.intervalcoach.ui.components.PulseBreadcrumbBar
 import com.pulse.intervalcoach.ui.components.PulseFloatingNavBar
+import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseLogo
 import com.pulse.intervalcoach.ui.components.ThemeToggle
@@ -258,11 +260,13 @@ fun PulseAppRoot(
         val motion = LocalPulseMotion.current
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
-        // Single entry point for starting a session: records the session, wakes the service and
-        // routes to the player, with a snackbar when the plan cannot run.
-        val startSession: (WorkoutPlan) -> Unit = { plan ->
+        val pendingStartPlan = remember { mutableStateOf<WorkoutPlan?>(null) }
+
+        // Starting over an active session is always an explicit user decision. The controller also
+        // refuses silent replacement, so alternate callers cannot bypass this UI check.
+        val launchStart: (WorkoutPlan, Boolean) -> Unit = { plan, replaceActive ->
             scope.launch {
-                val result = sessionController.startWorkout(plan)
+                val result = sessionController.startWorkout(plan, replaceActiveSession = replaceActive)
                 if (result.isSuccess) {
                     onRequestNotificationPermission()
                     navController.navigate(Routes.PLAYER)
@@ -270,6 +274,9 @@ fun PulseAppRoot(
                     snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "Could not start this workout")
                 }
             }
+        }
+        val startSession: (WorkoutPlan) -> Unit = { plan ->
+            if (activeSession != null) pendingStartPlan.value = plan else launchStart(plan, false)
         }
         val backStackEntry by navController.currentBackStackEntryAsState()
         val route = backStackEntry?.destination?.route
@@ -295,14 +302,13 @@ fun PulseAppRoot(
             when {
                 link.startsWith("pulse://start/") -> {
                     val id = link.removePrefix("pulse://start/")
-                    container.workouts.plan(id)?.let { plan ->
-                        val result = sessionController.startWorkout(plan)
-                        if (result.isSuccess) {
-                            onRequestNotificationPermission()
-                            navController.navigate(Routes.PLAYER)
-                        } else {
-                            snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "Could not start this workout")
-                        }
+                    val plan = container.workouts.plan(id)
+                    if (plan == null) {
+                        snackbarHostState.showSnackbar(context.getString(R.string.external_start_unavailable))
+                    } else {
+                        // pulse:// is an exported entry point; a matching URI is not proof that a
+                        // trusted widget or shortcut launched it. Require an in-app confirmation.
+                        pendingStartPlan.value = plan
                     }
                 }
                 link.startsWith("pulse://workout/") -> {
@@ -413,6 +419,7 @@ fun PulseAppRoot(
                                 onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
                                 onQuickBuilder = { navController.navigate(Routes.QUICK_BUILDER) },
                                 onAdvancedBuilder = { navController.navigate(Routes.advancedBuilder(null)) },
+                                onStartWorkout = startSession,
                                 onEdit = { navController.navigate(Routes.advancedBuilder(it)) },
                                 onJsonImport = { navController.navigate(Routes.JSON_IMPORT) },
                             )
@@ -613,6 +620,25 @@ fun PulseAppRoot(
                     )
                 }
             }
+        }
+
+        pendingStartPlan.value?.let { plan ->
+            val activeName = activeSession?.plan?.name
+            ConfirmDialog(
+                title = stringResource(R.string.external_start_title),
+                body = if (activeName == null) {
+                    stringResource(R.string.external_start_body, plan.name)
+                } else {
+                    stringResource(R.string.external_start_replace_body, plan.name, activeName)
+                },
+                confirmLabel = stringResource(R.string.details_start),
+                dismissLabel = stringResource(R.string.cancel),
+                onConfirm = {
+                    pendingStartPlan.value = null
+                    launchStart(plan, activeSession != null)
+                },
+                onDismiss = { pendingStartPlan.value = null },
+            )
         }
     }
 }

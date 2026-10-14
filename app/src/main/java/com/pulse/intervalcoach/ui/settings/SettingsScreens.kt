@@ -763,7 +763,7 @@ fun BackupScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { BackupRepository(context, container) }
     var preview by remember { mutableStateOf<com.pulse.intervalcoach.data.BackupPreview?>(null) }
-    var pendingUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingBackup by remember { mutableStateOf<String?>(null) }
     var backups by remember { mutableStateOf(repository.automaticBackups()) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -781,18 +781,24 @@ fun BackupScreen(
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
             error = null
+            preview = null
+            pendingBackup = null
             val stream = runCatching { context.contentResolver.openInputStream(uri) }.getOrNull()
             if (stream == null) {
                 error = "Cannot read this file. Choose it again."
                 return@launch
             }
-            val result = runCatching { stream.use { repository.preview(it).getOrThrow() } }
-            result
-                .onSuccess { info ->
-                    preview = info
-                    pendingUri = uri
+            val snapshot = runCatching { stream.use { repository.readSnapshot(it).getOrThrow() } }
+            snapshot
+                .onSuccess { text ->
+                    repository.preview(text)
+                        .onSuccess { info ->
+                            preview = info
+                            pendingBackup = text
+                        }
+                        .onFailure { failure -> error = failure.message ?: "This file is not a valid PULSE backup." }
                 }
-                .onFailure { failure -> error = failure.message ?: "This file is not a valid PULSE backup." }
+                .onFailure { failure -> error = failure.message ?: "This file could not be read safely." }
         }
     }
 
@@ -909,25 +915,20 @@ fun BackupScreen(
             confirmLabel = stringResource(R.string.import_confirm),
             dismissLabel = stringResource(R.string.cancel),
             onConfirm = {
-                val uri = pendingUri
+                val snapshot = pendingBackup
                 preview = null
-                pendingUri = null
-                if (uri != null) {
+                pendingBackup = null
+                if (snapshot != null) {
                     scope.launch {
-                        val stream = runCatching { context.contentResolver.openInputStream(uri) }.getOrNull()
-                        if (stream == null) {
-                            error = "The file is no longer readable."
-                        } else {
-                            runCatching { stream.use { repository.import(it).getOrThrow() } }
-                                .onSuccess { (workoutsImported, sessionsImported) ->
-                                    onMessage("Imported $workoutsImported workouts and $sessionsImported sessions")
-                                }
-                                .onFailure { failure -> error = failure.message }
-                        }
+                        repository.import(snapshot)
+                            .onSuccess { (workoutsImported, sessionsImported) ->
+                                onMessage("Imported $workoutsImported workouts and $sessionsImported sessions")
+                            }
+                            .onFailure { failure -> error = failure.message }
                     }
                 }
             },
-            onDismiss = { preview = null; pendingUri = null },
+            onDismiss = { preview = null; pendingBackup = null },
         )
     }
 }

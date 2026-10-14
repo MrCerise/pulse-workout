@@ -40,6 +40,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /** Real elapsed-time source, immune to wall-clock changes. */
 object AndroidMonotonicClock : MonotonicClock {
@@ -91,6 +93,8 @@ class SessionController(
     private val limits: EngineLimits = EngineLimits(),
 ) {
     private val engine = TimerEngine(AndroidMonotonicClock)
+    // Serialize the active-session check and creation so rapid taps cannot orphan a running record.
+    private val startMutex = Mutex()
 
     private val _snapshot = MutableStateFlow(TimerSnapshot())
     val snapshot: StateFlow<TimerSnapshot> = _snapshot.asStateFlow()
@@ -149,17 +153,29 @@ class SessionController(
     // -------------------------------------------------------------------------------------------
 
     /** Expands and validates a plan, then starts a real, recorded session. */
-    suspend fun startWorkout(plan: WorkoutPlan): Result<ActiveSession> {
+    suspend fun startWorkout(
+        plan: WorkoutPlan,
+        replaceActiveSession: Boolean = false,
+    ): Result<ActiveSession> = startMutex.withLock {
         val current = prefs.current()
         prefsSnapshot = current
         val timeline = try {
             TimelineExpander.expand(plan, limits)
         } catch (e: ExpansionException) {
-            return Result.failure(e)
+            return@withLock Result.failure(e)
         }
-        if (timeline.isEmpty) return Result.failure(IllegalStateException("This workout has no playable intervals."))
+        if (timeline.isEmpty) {
+            return@withLock Result.failure(IllegalStateException("This workout has no playable intervals."))
+        }
 
-        stopInternal(record = false)
+        if (_active.value != null) {
+            if (!replaceActiveSession) {
+                return@withLock Result.failure(
+                    IllegalStateException("Confirm ending the current workout before starting another.")
+                )
+            }
+            stopInternal()
+        }
         val start = sessionRepository.start(plan)
         val problems = engine.prepare(timeline, plan.id, plan.name, periodicCueMillis = plan.periodicCueMillis)
         if (problems.isNotEmpty()) {
@@ -168,10 +184,10 @@ class SessionController(
                 sessionElapsedMillis = 0, completed = 0, total = timeline.steps.size, skipped = 0,
                 status = STATUS_STOPPED, roundsLogged = 0, weightUnit = current.weightUnit.name,
             )
-            return Result.failure(IllegalStateException(problems.joinToString(" ")))
+            return@withLock Result.failure(IllegalStateException(problems.joinToString(" ")))
         }
         val errors = engine.start()
-        if (errors.isNotEmpty()) return Result.failure(IllegalStateException(errors.joinToString(" ")))
+        if (errors.isNotEmpty()) return@withLock Result.failure(IllegalStateException(errors.joinToString(" ")))
 
         val session = ActiveSession(
             sessionId = start.sessionId,
@@ -192,7 +208,7 @@ class SessionController(
         acquireWakeLockIfNeeded(current)
         ensureTicker()
         WorkoutService.start(context)
-        return Result.success(session)
+        Result.success(session)
     }
 
     /** Pause because the app lost audio focus / headphones were unplugged, honouring prefs. */
@@ -304,15 +320,11 @@ class SessionController(
         scope.launch { finalizeSession(active, stoppedEarly) }
     }
 
-    /** Ends the session without recording a summary (used internally before starting a new one). */
-    private suspend fun stopInternal(record: Boolean) {
-        if (_active.value == null) return
+    /** Finalizes an explicitly replaced session instead of leaving an orphaned RUNNING record. */
+    private suspend fun stopInternal() {
+        val active = _active.value ?: return
         engine.stop()
-        if (record) {
-            _active.value?.let { finalizeSession(it, stoppedEarly = true) }
-        } else {
-            teardown()
-        }
+        finalizeSession(active, stoppedEarly = true)
     }
 
     private suspend fun finalizeSession(active: ActiveSession, stoppedEarly: Boolean) {

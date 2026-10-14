@@ -79,6 +79,8 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.PulseType
 import java.io.File
+import java.nio.file.Files
+import java.security.MessageDigest
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -95,19 +97,46 @@ import kotlinx.coroutines.withContext
  */
 class DraftStore(context: Context) {
     private val dir = File(context.filesDir, "drafts").apply { mkdirs() }
+    private val canonicalDir = dir.canonicalFile
+
+    /** Imported workout IDs are data, not path components; map them to fixed-size filenames. */
+    private fun fileFor(draftId: String): File? {
+        if (draftId.length > 4096 || Files.isSymbolicLink(dir.toPath())) return null
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(draftId.toByteArray(Charsets.UTF_8))
+            .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
+        val file = File(dir, "$digest.json")
+        if (Files.isSymbolicLink(file.toPath()) || file.canonicalFile.parentFile != canonicalDir) return null
+        return file
+    }
+
+    /** Read old safe-name drafts once for compatibility; never resolve a legacy path with separators. */
+    private fun legacyFileFor(draftId: String): File? {
+        if (!draftId.matches(Regex("[A-Za-z0-9_-]{1,128}")) || Files.isSymbolicLink(dir.toPath())) return null
+        val file = File(dir, "$draftId.json")
+        if (Files.isSymbolicLink(file.toPath()) || file.canonicalFile.parentFile != canonicalDir) return null
+        return file
+    }
 
     fun save(draftId: String, plan: WorkoutPlan) {
-        runCatching { File(dir, "$draftId.json").writeText(PlanCodec.json.encodeToString(WorkoutPlan.serializer(), plan)) }
+        val file = fileFor(draftId) ?: return
+        runCatching {
+            file.writeText(PlanCodec.json.encodeToString(WorkoutPlan.serializer(), plan))
+            legacyFileFor(draftId)?.delete()
+        }
     }
 
     fun load(draftId: String): WorkoutPlan? {
-        val file = File(dir, "$draftId.json")
-        if (!file.exists()) return null
-        return runCatching { PlanCodec.decode(file.readText()) }.getOrNull()
+        val file = fileFor(draftId) ?: return null
+        val source = if (file.exists()) file else legacyFileFor(draftId) ?: return null
+        return runCatching { PlanCodec.decode(source.readText()) }.getOrNull()
     }
 
     fun clear(draftId: String) {
-        runCatching { File(dir, "$draftId.json").delete() }
+        runCatching {
+            fileFor(draftId)?.delete()
+            legacyFileFor(draftId)?.delete()
+        }
     }
 
     fun ids(): List<String> = dir.listFiles()?.map { it.nameWithoutExtension } ?: emptyList()

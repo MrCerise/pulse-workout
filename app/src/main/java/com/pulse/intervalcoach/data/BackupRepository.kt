@@ -5,10 +5,12 @@ import android.net.Uri
 import com.pulse.engine.WorkoutPlan
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.BuildConfig
+import com.pulse.intervalcoach.R
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -124,6 +126,10 @@ class BackupRepository(
     private val context: Context,
     private val container: AppContainer,
 ) {
+    companion object {
+        const val MAX_BACKUP_BYTES = 32 * 1024 * 1024
+    }
+
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
@@ -198,9 +204,42 @@ class BackupRepository(
     // Import
     // ------------------------------------------------------------------------------------------
 
+    /** Read once into a bounded immutable snapshot so confirmation and import use identical bytes. */
+    fun readSnapshot(stream: InputStream): Result<String> = runCatching { readBoundedText(stream) }
+
+    private fun readBoundedText(stream: InputStream): String {
+        val bytes = ByteArrayOutputStream()
+        val buffer = ByteArray(8 * 1024)
+        var total = 0
+        while (true) {
+            val count = stream.read(buffer)
+            if (count < 0) break
+            if (count == 0) {
+                // Defend against unusual ContentProviders that return zero for a nonempty read.
+                val single = stream.read()
+                if (single < 0) break
+                if (total >= MAX_BACKUP_BYTES) {
+                    throw IOException(context.getString(R.string.backup_too_large, MAX_BACKUP_BYTES / (1024 * 1024)))
+                }
+                bytes.write(single)
+                total++
+                continue
+            }
+            if (count > MAX_BACKUP_BYTES - total) {
+                throw IOException(context.getString(R.string.backup_too_large, MAX_BACKUP_BYTES / (1024 * 1024)))
+            }
+            total += count
+            bytes.write(buffer, 0, count)
+        }
+        return bytes.toByteArray().toString(Charsets.UTF_8)
+    }
+
     /** Parses and validates a file without writing anything, so the user can confirm first. */
     fun preview(stream: InputStream): Result<BackupPreview> = runCatching {
-        val text = stream.readBytes().toString(Charsets.UTF_8)
+        preview(readBoundedText(stream)).getOrThrow()
+    }
+
+    fun preview(text: String): Result<BackupPreview> = runCatching {
         val backup = parse(text)
         val warnings = mutableListOf<String>()
         backup.workouts.forEach { record ->
@@ -222,7 +261,11 @@ class BackupRepository(
 
     /** Applies an import. Collisions get new IDs; nothing existing is modified or deleted. */
     suspend fun import(stream: InputStream): Result<Pair<Int, Int>> = runCatching {
-        val text = stream.readBytes().toString(Charsets.UTF_8)
+        import(readBoundedText(stream)).getOrThrow()
+    }
+
+    /** Import a previously-previewed immutable snapshot. */
+    suspend fun import(text: String): Result<Pair<Int, Int>> = runCatching {
         val backup = parse(text)
         val db = container.database
         var workoutsImported = 0
@@ -230,7 +273,8 @@ class BackupRepository(
         val folderIdsByName = mutableMapOf<String, String>()
         backup.folders.forEach { record ->
             val existingId = folderIdByName(record.name)
-            val id = existingId ?: record.id
+            val idCollision = db.folderDao().byId(record.id)
+            val id = existingId ?: if (idCollision == null) record.id else UUID.randomUUID().toString()
             if (existingId == null) {
                 db.folderDao().upsert(com.pulse.intervalcoach.data.db.FolderEntity(id, record.name, record.sortOrder, record.createdAt))
             }
@@ -300,6 +344,7 @@ class BackupRepository(
         }
 
         backup.voiceProfiles.forEach { record ->
+            if (db.voiceProfileDao().byId(record.id) != null) return@forEach
             db.voiceProfileDao().upsert(
                 com.pulse.intervalcoach.data.db.VoiceProfileEntity(
                     id = record.id,
@@ -316,6 +361,7 @@ class BackupRepository(
         }
 
         backup.exerciseLabels.forEach { record ->
+            if (db.exerciseLabelDao().byId(record.id) != null) return@forEach
             db.exerciseLabelDao().upsert(
                 com.pulse.intervalcoach.data.db.ExerciseLabelEntity(
                     id = record.id,
@@ -331,7 +377,7 @@ class BackupRepository(
         }
 
         backup.reminders.forEach { record ->
-            if (record.scheduledAt > System.currentTimeMillis()) {
+            if (record.scheduledAt > System.currentTimeMillis() && db.reminderDao().byId(record.id) == null) {
                 db.reminderDao().upsert(
                     com.pulse.intervalcoach.data.db.ReminderEntity(
                         id = record.id,

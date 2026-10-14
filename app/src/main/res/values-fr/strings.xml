@@ -67,6 +67,10 @@
     <string name="details_voice">Profil vocal</string>
     <string name="details_notes">Notes</string>
     <string name="details_start">Démarrer la séance</string>
+    <string name="external_start_title">Démarrer cet entraînement ?</string>
+    <string name="external_start_body">Un lien demande le démarrage de « %1$s ». Une séance sera ajoutée à votre historique.</string>
+    <string name="external_start_replace_body">Démarrer « %1$s » et terminer « %2$s » ? La séance en cours sera enregistrée comme arrêtée.</string>
+    <string name="external_start_unavailable">Cet entraînement n’est plus disponible.</string>
     <string name="details_preview">Écouter un aperçu</string>
     <string name="details_intervals">%1$d intervalles</string>
 
@@ -294,6 +298,7 @@
     <string name="import_confirm">Importer</string>
     <string name="import_corrupt">Sauvegarde PULSE invalide. Aucune modification.</string>
     <string name="backup_created">Sauvegarde écrite dans %1$s</string>
+    <string name="backup_too_large">Les sauvegardes de plus de %1$d Mio ne peuvent pas être importées.</string>
 
     <!-- Onboarding -->
     <string name="welcome_title">PULSE Coach d\'intervalles</string>
