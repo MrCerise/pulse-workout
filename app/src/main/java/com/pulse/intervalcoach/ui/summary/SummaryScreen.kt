@@ -85,7 +85,7 @@ fun SessionSummaryScreen(
                     .padding(padding)
                     .padding(dimens.pagePadding),
             ) {
-                InfoBanner("No session to summarise — this screen appears right after a workout ends.")
+                InfoBanner("No session to summarise")
                 Spacer(Modifier.height(dimens.m))
                 PrimaryActionButton(
                     text = "Back to Home",
@@ -127,11 +127,6 @@ fun SessionSummaryScreen(
         ) {
             PulsePageHeader(
                 title = current.planName,
-                description = if (current.stoppedEarly) {
-                    "Ended early — here is what was recorded."
-                } else {
-                    "Completed session — here is what was recorded."
-                },
                 onBack = onDone,
                 backLabel = "Close",
             )
@@ -205,9 +200,9 @@ fun SessionSummaryScreen(
             if (shared != null) {
                 InfoBanner(
                     text = if (shared) {
-                        "Shared to your health apps — it now appears in their workout history."
+                        "Synced to health apps"
                     } else {
-                        "Could not share to health apps this time — the session is saved on this device."
+                        "Health sync failed. Session saved on this device."
                     },
                     tone = if (shared) PulseTone.SUCCESS else PulseTone.NEUTRAL,
                 )

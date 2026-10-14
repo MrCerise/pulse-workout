@@ -1,6 +1,8 @@
 package com.pulse.intervalcoach.ui.theme
 
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -20,30 +23,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-/**
- * PULSE — "Signal" theme entry point.
- *
- * ## Design direction
- *
- * A neutral dashboard: a rich charcoal ramp for the dark theme, a clean paper ramp for the light
- * one, hairline borders instead of stacked shadows, and one brand accent — the Cloudflare-inspired
- * orange — spent deliberately on the brand mark, the single primary action per screen, the active
- * navigation item and the focus ring. Everything else that carries colour carries a *meaning*: an
- * interval phase, a workout category, a state.
- *
- * ## What that means in practice
- *
- *  - **Chrome is neutral, content is coloured.** Navigation, headers, tables and text use the
- *    neutral ramp only, so a hue on screen is always information.
- *  - **Density is a feature.** 16 dp gutters, 40 dp controls, a 56 dp bar and 13–15 sp copy: the
- *    amount of workout a user can read without scrolling is the point of the redesign.
- *  - **Depth is a hairline.** A card is separated by its fill and one border. Only menus, dialogs,
- *    snackbars and the phone navigation bar float.
- *  - **Radii are restrained.** 6 dp controls, 8 dp cards, 12 dp sheets, pills for chips.
- *
- * Every value lives in [PulsePalette] / [PulseDimens] / [PulseElevation] / [PulseType], and every
- * pairing this theme can produce is measured in `docs/CONTRAST.md` by `scripts/contrast_check.py`.
- */
+/** Theme palettes, wallpaper accents and a short, reduced-motion-aware colour transition. */
 @Composable
 fun PulseTheme(
     themeMode: ThemeMode,
@@ -53,38 +33,16 @@ fun PulseTheme(
     content: @Composable () -> Unit,
 ) {
     val systemDark = isSystemInDarkTheme()
-    val dark = when (themeMode) {
-        ThemeMode.SYSTEM -> systemDark
-        ThemeMode.LIGHT -> false
-        ThemeMode.DARK, ThemeMode.TRUE_BLACK -> true
-    }
+    val dark = themeMode.isDark(systemDark)
     val trueBlack = themeMode == ThemeMode.TRUE_BLACK
     val context = LocalContext.current
 
-    // Dynamic colour is a wallpaper-derived palette, so it is never allowed to repaint the neutral
-    // ramp — a wallpaper cannot promise our measured ratios, and letting it drive surfaces is what
-    // makes an app look like a different product per device. It donates the *accent* only, and only
-    // when that accent still reaches 4.5:1 on the canvas; otherwise the design-system accent wins.
-    val wantsDynamic = dynamicColor && !highContrast && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val canvas = if (dark) {
-        if (trueBlack) PulsePalette.BlackCanvas else PulsePalette.Canvas
-    } else {
-        PulsePalette.LightCanvas
-    }
-    val dynamicAccent = if (wantsDynamic) {
-        val scheme = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        scheme.primary.takeIf { contrastRatio(it, canvas) >= 4.5 }
-    } else {
-        null
-    }
-
-    val colors = pulseColors(dark = dark, trueBlack = trueBlack, highContrast = highContrast)
-        .let { base ->
-            if (dynamicAccent == null) base else base.copy(
-                accent = dynamicAccent,
-                accentAlt = dynamicAccent.copy(alpha = 0.72f),
-            )
-        }
+    val base = pulseColors(dark = dark, trueBlack = trueBlack, highContrast = highContrast)
+    val dynamicAccent = if (dynamicColor && !highContrast && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (dark) dynamicDarkColorScheme(context).primary else dynamicLightColorScheme(context).primary
+    } else null
+    val target = if (dynamicAccent == null) base else base.withAccent(dynamicAccent)
+    val colors = animatedColors(target, reducedMotion || highContrast)
 
     val dimens = PulseDimens()
     val shapes = PulseShapes()
@@ -129,6 +87,27 @@ fun PulseTheme(
 }
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK, TRUE_BLACK }
+
+fun ThemeMode.isDark(systemDark: Boolean): Boolean = when (this) {
+    ThemeMode.SYSTEM -> systemDark
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK, ThemeMode.TRUE_BLACK -> true
+}
+
+/** Apply a wallpaper accent as a complete pair, not a coloured label on an unrelated orange tint. */
+internal fun PulseColors.withAccent(candidate: Color): PulseColors {
+    if (highContrast) return this
+    val tint = lerp(surface, candidate, 0.10f)
+    val backgrounds = listOf(background, nav, surface, surfaceRaised, surfaceOverlay, surfaceSunken, tint)
+    if (backgrounds.any { contrastRatio(candidate, it) < 4.5 }) return this
+    val ink = if (contrastRatio(Color.Black, candidate) >= contrastRatio(Color.White, candidate)) Color.Black else Color.White
+    return copy(
+        accent = candidate, accentAlt = candidate, accentTint = tint,
+        brand = candidate, onBrand = ink, onAccent = ink,
+        actionFill = candidate, actionText = ink,
+    )
+}
+
 
 /**
  * Resolves the token set for one theme. Kept as a pure function (no composition) so previews, the
@@ -296,4 +275,47 @@ private fun android.content.Context.findActivity(): android.app.Activity? {
         context = context.baseContext
     }
     return null
+}
+
+/** Never crossfade whole screens: doing so duplicates navigation and side effects. */
+@Composable
+private fun animatedColors(target: PulseColors, instant: Boolean): PulseColors {
+    val duration = if (instant) 0 else 220
+    @Composable
+    fun colour(value: Color, name: String): Color =
+        animateColorAsState(value, animationSpec = tween(duration), label = name).value
+    return target.copy(
+        background = colour(target.background, "theme.background"),
+        nav = colour(target.nav, "theme.nav"),
+        surface = colour(target.surface, "theme.surface"),
+        surfaceRaised = colour(target.surfaceRaised, "theme.surfaceRaised"),
+        surfaceSunken = colour(target.surfaceSunken, "theme.surfaceSunken"),
+        surfaceOverlay = colour(target.surfaceOverlay, "theme.surfaceOverlay"),
+        surfaceHover = colour(target.surfaceHover, "theme.surfaceHover"),
+        textPrimary = colour(target.textPrimary, "theme.textPrimary"),
+        textSecondary = colour(target.textSecondary, "theme.textSecondary"),
+        textMuted = colour(target.textMuted, "theme.textMuted"),
+        textDisabled = colour(target.textDisabled, "theme.textDisabled"),
+        border = colour(target.border, "theme.border"),
+        borderStrong = colour(target.borderStrong, "theme.borderStrong"),
+        outline = colour(target.outline, "theme.outline"),
+        accent = colour(target.accent, "theme.accent"),
+        accentAlt = colour(target.accentAlt, "theme.accentAlt"),
+        accentTint = colour(target.accentTint, "theme.accentTint"),
+        brand = colour(target.brand, "theme.brand"),
+        onBrand = colour(target.onBrand, "theme.onBrand"),
+        heroSurface = colour(target.heroSurface, "theme.heroSurface"),
+        heroText = colour(target.heroText, "theme.heroText"),
+        heroMuted = colour(target.heroMuted, "theme.heroMuted"),
+        work = colour(target.work, "theme.work"),
+        rest = colour(target.rest, "theme.rest"),
+        prepare = colour(target.prepare, "theme.prepare"),
+        cooldown = colour(target.cooldown, "theme.cooldown"),
+        destructive = colour(target.destructive, "theme.destructive"),
+        info = colour(target.info, "theme.info"),
+        infoTint = colour(target.infoTint, "theme.infoTint"),
+        actionFill = colour(target.actionFill, "theme.actionFill"),
+        actionText = colour(target.actionText, "theme.actionText"),
+        onAccent = colour(target.onAccent, "theme.onAccent"),
+    )
 }

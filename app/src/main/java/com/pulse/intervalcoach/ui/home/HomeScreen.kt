@@ -354,11 +354,6 @@ fun HomeScreen(
                                     style = MaterialTheme.typography.titleMedium,
                                     color = colors.textPrimary,
                                 )
-                                Text(
-                                    text = "Presets start immediately with their real duration.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
-                                )
                             }
                         }
                         Spacer(Modifier.height(dimens.m))
@@ -430,7 +425,7 @@ fun HomeScreen(
                         )
                         Spacer(Modifier.height(dimens.s))
                         SecondaryActionButton(
-                            text = "Open the quick builder instead",
+                            text = "Quick builder",
                             onClick = onQuickStart,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -586,7 +581,7 @@ fun HomeScreen(
             }
 
             if (state.loading) {
-                item { LoadingBox(label = "Loading your training log…", modifier = Modifier.height(160.dp)) }
+                item { LoadingBox(label = "Loading…", modifier = Modifier.height(160.dp)) }
             }
 
             if (state.favorites.isEmpty() && state.recent.isEmpty() && !state.loading) {
@@ -594,8 +589,7 @@ fun HomeScreen(
                     PulseCard {
                         EmptyState(
                             title = "Nothing here yet",
-                            body = "Star a workout to pin it here, or press Start on Quick start above. " +
-                                "Your finished sessions will appear once you complete one.",
+                            body = "Star a workout to pin it here.",
                             icon = Icons.Filled.FitnessCenter,
                             actionLabel = "Browse templates",
                             onAction = onOpenTemplates,

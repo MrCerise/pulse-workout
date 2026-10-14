@@ -1,6 +1,7 @@
 package com.pulse.intervalcoach.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
@@ -256,6 +258,7 @@ fun PulseIconButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val fill by animateColorAsState(
+        animationSpec = tween(LocalPulseMotion.current.fast()),
         targetValue = if (hovered && enabled) colors.surfaceHover else Color.Transparent,
         label = "iconButtonFill",
     )
@@ -476,6 +479,7 @@ fun <T> PulseSegmented(
             options.forEach { (value, text) ->
                 val isSelected = value == selected
                 val container by animateColorAsState(
+                    animationSpec = tween(LocalPulseMotion.current.fast()),
                     targetValue = if (isSelected) colors.surface else Color.Transparent,
                     label = "segment",
                 )
@@ -533,6 +537,7 @@ fun PulseChoiceChip(
     val dimens = LocalPulseDimens.current
     val tint = accent ?: colors.accent
     val container by animateColorAsState(
+        animationSpec = tween(LocalPulseMotion.current.fast()),
         targetValue = if (selected) colors.accentTint else colors.surface,
         label = "chip",
     )

@@ -233,7 +233,6 @@ fun QuickBuilderScreen(
             item {
                 PulsePageHeader(
                     title = stringResource(R.string.builder_quick_title),
-                    description = "Work · rest · rounds — the workout builds itself",
                     onBack = { if (state.dirty) showDiscard = true else onBack() },
                 )
             }
@@ -256,7 +255,6 @@ fun QuickBuilderScreen(
                         DurationStepper("Cool-down", state.cooldown, onChange = { value -> viewModel.update { it.copy(cooldown = value) } })
                         ToggleRow(
                             label = stringResource(R.string.builder_include_final_rest),
-                            hint = stringResource(R.string.builder_include_final_rest_hint),
                             checked = state.includeFinalRest,
                             onCheckedChange = { value -> viewModel.update { it.copy(includeFinalRest = value) } },
                         )
@@ -429,7 +427,6 @@ class AdvancedBuilderViewModel(
     }
 
     fun rename(name: String) = mutate { it.copy(name = name) }
-    fun setDescription(text: String) = mutate { it.copy(description = text) }
     fun setType(type: WorkoutType) = mutate { it.copy(type = type) }
     fun setEquipment(text: String) = mutate { it.copy(equipment = text.ifBlank { null }) }
     fun setShuffle(value: Boolean) = mutate { it.copy(shuffleEager = value) }
@@ -643,7 +640,6 @@ fun AdvancedBuilderScreen(
             item {
                 PulsePageHeader(
                     title = if (workoutId == null) "New workout" else "Edit workout",
-                    description = "Order, cues and structure — undo anything",
                     onBack = { if (state.dirty) showDiscard = true else onBack() },
                     trailing = {
                         PulseIconButton(
@@ -673,14 +669,6 @@ fun AdvancedBuilderScreen(
                 )
             }
             item {
-                PulseTextField(
-                    value = state.plan.description,
-                    onValueChange = viewModel::setDescription,
-                    label = stringResource(R.string.builder_description),
-                    minLines = 2,
-                )
-            }
-            item {
                 PulseCard {
                     Column {
                         CategoryPicker(
@@ -696,13 +684,11 @@ fun AdvancedBuilderScreen(
                         )
                         ToggleRow(
                             label = stringResource(R.string.builder_include_final_rest),
-                            hint = stringResource(R.string.builder_include_final_rest_hint),
                             checked = state.plan.includeFinalRest,
                             onCheckedChange = viewModel::setIncludeFinalRest,
                         )
                         ToggleRow(
                             label = stringResource(R.string.builder_shuffle),
-                            hint = "Order is fixed the moment the session starts.",
                             checked = state.plan.shuffleEager,
                             onCheckedChange = viewModel::setShuffle,
                         )
@@ -799,7 +785,7 @@ fun AdvancedBuilderScreen(
         AlertDialog(
             onDismissRequest = { showDiscard = false },
             title = { Text(stringResource(R.string.discard_draft_title)) },
-            text = { Text("You have unsaved edits to “${state.plan.name}”. Drafts are kept automatically, so you can come back to them.") },
+            text = { Text("Discard unsaved edits to “${state.plan.name}”?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.discardDraft()
@@ -919,7 +905,6 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
         Spacer(Modifier.height(LocalPulseDimens.current.s))
         ToggleRow(
             label = stringResource(R.string.builder_manual),
-            hint = stringResource(R.string.builder_manual_hint),
             checked = spec.manualCompletion,
             onCheckedChange = { value -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(manualCompletion = value) } },
         )
@@ -973,12 +958,6 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
                 )
             }
         }
-        Spacer(Modifier.height(LocalPulseDimens.current.xs))
-        Text(
-            "Tip: colour, image and repetition targets live on the interval and are preserved when you duplicate the block.",
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.textMuted,
-        )
     }
 }
 
@@ -1005,7 +984,7 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
         )
         ToggleRow(
             label = stringResource(R.string.builder_ladder),
-            hint = "Lengthens work intervals by 10 s each round (clamped between 10 s and 90 s).",
+            hint = "+10 s per round · 10–90 s",
             checked = node.ladder != null,
             onCheckedChange = { enabled ->
                 viewModel.setLadder(

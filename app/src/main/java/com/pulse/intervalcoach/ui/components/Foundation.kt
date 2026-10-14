@@ -1,6 +1,7 @@
 package com.pulse.intervalcoach.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
@@ -91,6 +93,7 @@ fun PulseCard(
         val pressed by interaction.collectIsPressedAsState()
         val hovered by interaction.collectIsHoveredAsState()
         val fill by animateColorAsState(
+            animationSpec = tween(LocalPulseMotion.current.fast()),
             targetValue = if (pressed || hovered) wash(background, colors.textPrimary, 0.05f) else background,
             label = "cardFill",
         )
@@ -319,6 +322,7 @@ fun PulseListRow(
         val pressed by interaction.collectIsPressedAsState()
         val hovered by interaction.collectIsHoveredAsState()
         val fill by animateColorAsState(
+            animationSpec = tween(LocalPulseMotion.current.fast()),
             targetValue = if (pressed || hovered) colors.surfaceHover else Color.Transparent,
             label = "rowFill",
         )

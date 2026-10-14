@@ -211,7 +211,6 @@ object WorkoutImport {
           "version": 1,
           "workouts": [{
             "name": "Beginner bodyweight intervals",
-            "description": "Move at a comfortable pace and stop if you feel pain.",
             "type": "HIIT",
             "tags": ["bodyweight", "beginner"],
             "steps": [
@@ -227,10 +226,10 @@ object WorkoutImport {
     """.trimIndent()
 
     fun aiPrompt(request: String): String = """
-        Create a workout for PULSE Interval Coach using my request below. Return ONLY one valid JSON document, no explanation. Do not include IDs, URLs, markdown or database fields. Treat this as a workout, not medical advice. Include appropriate warm-up/recovery and do not promise results.
+        Create a workout for PULSE Interval Coach using my request below. Return ONLY one valid JSON document, no explanation or workout description. Do not include IDs, URLs, markdown or database fields. Treat this as a workout, not medical advice. Include appropriate warm-up/recovery and do not promise results.
 
         Required root: {"format":"pulse.workouts","version":1,"workouts":[...]}
-        Each workout requires name (1–120 characters) and nonempty steps. Optional fields: description (up to 2000 characters), type (one of ${WorkoutType.entries.joinToString { it.name }}; default CUSTOM_SEQUENCE), equipment (1–200 characters), tags (up to 20 strings, each 1–40 characters).
+        Each workout requires name (1–120 characters) and nonempty steps. Optional fields: type (one of ${WorkoutType.entries.joinToString { it.name }}; default CUSTOM_SEQUENCE), equipment (1–200 characters), tags (up to 20 strings, each 1–40 characters).
         A step is either an interval or a repeat group, never both.
         Interval: name (1–120 characters), kind (one of ${PhaseKind.entries.joinToString { it.name }}), seconds (whole number 1–86400). Optional: notes (up to 2000 characters), speechText (up to 500 characters), reps (1–10000), equipment (1–200 characters), sideLabel (1–40 characters). For a manual interval set manual:true and omit seconds or use 0; the user must advance it themselves.
         Group: {"name":"Circuit","repeat":4,"steps":[...intervals or groups...]}. Repeat is 1–1000. Name is optional. Rest must be an explicit interval; all repeated steps, including rest, run each round.

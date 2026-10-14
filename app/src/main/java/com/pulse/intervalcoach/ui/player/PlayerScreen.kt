@@ -143,7 +143,7 @@ fun PlayerScreen(
         Box(Modifier.fillMaxSize().background(colors.background), contentAlignment = Alignment.Center) {
             EmptyState(
                 title = "No active workout",
-                body = "Start a workout from Today or your library and the player will appear here.",
+                body = "Choose a workout from your library.",
                 actionLabel = "Close",
                 onAction = onClose,
             )
@@ -481,7 +481,7 @@ fun PlayerScreen(
     if (confirmEnd) {
         ConfirmDialog(
             title = stringResource(R.string.player_exit_title),
-            body = "You can finish early and still save what you did — the summary will show the intervals you completed.",
+            body = "Your progress will be saved.",
             confirmLabel = stringResource(R.string.player_end_session),
             dismissLabel = stringResource(R.string.player_keep_going),
             destructive = true,

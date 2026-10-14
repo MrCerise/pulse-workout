@@ -415,7 +415,7 @@ fun MetricRow(
  * The category picker: a grid of every registered category, in the registry's own order.
  *
  * It is generated from [WorkoutCategories.all], shows each category's glyph in its own hue, and
- * states the chosen category's tagline underneath — so picking a category in the builder and reading
+ * uses the same category identity as the library — so picking a category in the builder and reading
  * one in the library are visibly the same act.
  *
  * [enabledFor] lets a caller grey out categories the current builder cannot express yet.
@@ -426,7 +426,6 @@ fun CategoryPicker(
     onSelect: (WorkoutCategory) -> Unit,
     modifier: Modifier = Modifier,
     enabledFor: (WorkoutCategory) -> Boolean = { true },
-    showTagline: Boolean = true,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
@@ -501,31 +500,6 @@ fun CategoryPicker(
                         Spacer(Modifier.weight(1f))
                     }
                 }
-            }
-        }
-        if (showTagline) {
-            Spacer(Modifier.height(dimens.s))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(colors.categoryTint(selected.hue), shapes.panel)
-                    .padding(horizontal = dimens.m, vertical = dimens.s),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = selected.icon,
-                    contentDescription = null,
-                    tint = colors.categoryColor(selected.hue),
-                    modifier = Modifier.size(15.dp),
-                )
-                Spacer(Modifier.width(dimens.s))
-                Text(
-                    text = selected.tagline,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.categoryColor(selected.hue),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
             }
         }
     }

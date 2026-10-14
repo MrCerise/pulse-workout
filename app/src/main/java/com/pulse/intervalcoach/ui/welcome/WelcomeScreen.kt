@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,7 +40,8 @@ import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.StarterWorkouts
 import com.pulse.intervalcoach.ui.components.GhostActionButton
-import com.pulse.intervalcoach.ui.components.OptionRow
+import com.pulse.intervalcoach.ui.components.ThemePicker
+import com.pulse.intervalcoach.ui.components.PulseLogo
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.ProgressRing
 import com.pulse.intervalcoach.ui.components.PulseCard
@@ -68,7 +69,7 @@ fun WelcomeScreen(
     onDone: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
 ) {
-    var step by remember { mutableIntStateOf(0) }
+    var step by rememberSaveable { mutableIntStateOf(0) }
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val shapes = LocalPulseShapes.current
@@ -77,7 +78,7 @@ fun WelcomeScreen(
     val example = remember { StarterWorkouts.templates.first { it.plan.name == "HIIT Starter" } }
     val exampleDuration = remember { StarterWorkouts.knownDuration(example.plan) }
 
-    Box(
+    Column(
         Modifier
             .fillMaxSize()
             .background(colors.background)
@@ -86,51 +87,30 @@ fun WelcomeScreen(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
         ) {
             when (step) {
                 0 -> {
-                    // The brand block: one flat accent square. The identity of the app is the mark
-                    // plus the wordmark, not a gradient.
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(shapes.control)
-                            .background(colors.accent),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Bolt,
-                            contentDescription = null,
-                            tint = colors.onAccent,
-                            modifier = Modifier.size(26.dp),
-                        )
-                    }
+                    PulseLogo(size = 64.dp)
                     Spacer(Modifier.height(dimens.xl))
                     Text(
-                        text = stringResource(R.string.app_tagline),
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.displaySmall,
                         color = colors.textPrimary,
                     )
                     Spacer(Modifier.height(dimens.m))
                     Text(
-                        text = "Precise intervals, spoken coaching, live heart rate from Health Connect, " +
-                            "and a timer that keeps running with the screen off. Everything is stored on " +
-                            "this device — no account, no ads, no tracking.",
+                        text = stringResource(R.string.welcome_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textSecondary,
                     )
                     Spacer(Modifier.height(dimens.xl))
-                    OptionRow(
-                        label = stringResource(R.string.welcome_theme),
-                        options = listOf(
-                            ThemeMode.SYSTEM to "System",
-                            ThemeMode.DARK to "Dark",
-                            ThemeMode.LIGHT to "Light",
-                            ThemeMode.TRUE_BLACK to "True black",
-                        ),
+                    Text(stringResource(R.string.welcome_theme), style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(dimens.s))
+                    ThemePicker(
                         selected = prefs?.themeMode ?: ThemeMode.SYSTEM,
                         onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
                     )
@@ -143,7 +123,7 @@ fun WelcomeScreen(
                     )
                     Spacer(Modifier.height(dimens.s))
                     Text(
-                        text = "PULSE speaks interval changes using the voice installed on this device.",
+                        text = stringResource(R.string.welcome_voice_body),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textSecondary,
                     )
@@ -190,24 +170,12 @@ fun WelcomeScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    Spacer(Modifier.height(dimens.s))
-                    Text(
-                        text = "No speech engine? PULSE falls back to sound cues and shows you how to install an offline voice in Voice Studio.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textMuted,
-                    )
                 }
                 else -> {
                     Text(
                         text = "Start with an example",
                         style = MaterialTheme.typography.headlineMedium,
                         color = colors.textPrimary,
-                    )
-                    Spacer(Modifier.height(dimens.s))
-                    Text(
-                        text = "A ready-made session is saved to your library, so the first workout is one tap away.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
                     )
                     Spacer(Modifier.height(dimens.l))
                     PulseCard {
@@ -222,12 +190,6 @@ fun WelcomeScreen(
                                 style = PulseType.NumericSmall,
                                 color = colors.textMuted,
                             )
-                            Spacer(Modifier.height(dimens.xs))
-                            Text(
-                                text = example.plan.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
-                            )
                         }
                     }
                     Spacer(Modifier.height(dimens.l))
@@ -238,7 +200,7 @@ fun WelcomeScreen(
                     )
                     Spacer(Modifier.height(dimens.s))
                     Text(
-                        text = "Notifications show the live timer controls. If you decline, workouts still run — you simply lose the shade controls.",
+                        text = stringResource(R.string.welcome_notifications),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.textMuted,
                     )
@@ -248,7 +210,7 @@ fun WelcomeScreen(
         }
 
         Column(
-            modifier = Modifier.align(Alignment.BottomCenter),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(

@@ -14,17 +14,16 @@
     <string name="nav_settings">Réglages</string>
 
     <!-- Home -->
-    <string name="home_greeting">Prêt à bouger</string>
+    <string name="home_greeting">Aujourd’hui</string>
     <string name="home_quick_start">Départ rapide</string>
-    <string name="home_quick_start_sub">Minuteur effort / repos en deux gestes</string>
     <string name="home_favorites">Favoris</string>
     <string name="home_recent">Récentes</string>
     <string name="home_next_planned">Prochaine prévue</string>
     <string name="home_week_summary">Cette semaine</string>
     <string name="home_start">Démarrer</string>
-    <string name="home_no_favorites">Mettez une séance en favori : elle apparaîtra ici pour un démarrage immédiat.</string>
-    <string name="home_no_recent">Vos séances terminées s\'afficheront ici.</string>
-    <string name="home_no_planned">Rien de planifié. Ouvrez le planificateur dans Progrès pour ajouter une séance.</string>
+    <string name="home_no_favorites">Ajoutez une séance aux favoris pour l’épingler ici.</string>
+    <string name="home_no_recent">Aucune session récente</string>
+    <string name="home_no_planned">Aucune session planifiée</string>
     <string name="home_this_week_value">%1$d séances · %2$s</string>
 
     <!-- Workouts -->
@@ -33,7 +32,7 @@
     <string name="workouts_templates">Modèles</string>
     <string name="workouts_new">Nouvelle séance</string>
     <string name="workouts_empty_title">Aucune séance pour l\'instant</string>
-    <string name="workouts_empty_body">Créez-en une en moins d\'une minute, ou partez d\'un modèle.</string>
+    <string name="workouts_empty_body">Créez une séance ou choisissez un modèle.</string>
     <string name="workouts_no_match_title">Aucun résultat pour « %1$s »</string>
     <string name="workouts_sort">Trier</string>
     <string name="sort_recent">Utilisées récemment</string>
@@ -51,12 +50,11 @@
     <string name="action_share">Partager</string>
     <string name="action_move">Déplacer vers un dossier</string>
     <string name="delete_workout_title">Supprimer cette séance ?</string>
-    <string name="delete_workout_body">« %1$s » sera supprimée. Les séances terminées gardent leur propre copie de l\'entraînement : votre historique reste lisible.</string>
+    <string name="delete_workout_body">Supprimer « %1$s » ? L’historique est conservé.</string>
     <string name="duplicated_toast">« %1$s » dupliquée</string>
 
     <!-- Templates -->
     <string name="templates_title">Modèles</string>
-    <string name="templates_subtitle">Des points de départ modifiables — ajustez tout après l\'ajout.</string>
     <string name="templates_use">Utiliser ce modèle</string>
     <string name="templates_added">« %1$s » ajoutée à vos séances</string>
 
@@ -64,7 +62,7 @@
     <string name="details_timeline">Chronologie des intervalles</string>
     <string name="details_total_duration">Durée totale</string>
     <string name="details_rounds">Répétitions</string>
-    <string name="details_open_ended_note">Contient des intervalles que vous validez vous-même — la durée totale est un minimum.</string>
+    <string name="details_open_ended_note">Intervalles manuels inclus · durée minimale.</string>
     <string name="details_equipment">Matériel</string>
     <string name="details_voice">Profil vocal</string>
     <string name="details_notes">Notes</string>
@@ -76,7 +74,6 @@
     <string name="builder_quick_title">Création rapide</string>
     <string name="builder_advanced_title">Création avancée</string>
     <string name="builder_name">Nom</string>
-    <string name="builder_description">Description</string>
     <string name="builder_type">Type</string>
     <string name="builder_work">Effort</string>
     <string name="builder_rest">Repos</string>
@@ -84,7 +81,6 @@
     <string name="builder_preparation">Préparation</string>
     <string name="builder_cooldown">Retour au calme</string>
     <string name="builder_include_final_rest">Inclure le repos final</string>
-    <string name="builder_include_final_rest_hint">Désactivé, la séance se termine sur le dernier effort.</string>
     <string name="builder_save">Enregistrer la séance</string>
     <string name="builder_save_and_start">Enregistrer et démarrer</string>
     <string name="builder_total">Total %1$s</string>
@@ -100,7 +96,6 @@
     <string name="builder_repeats">Répétitions</string>
     <string name="builder_rest_after_group">Repos après le bloc</string>
     <string name="builder_manual">Manuel (appuyez pour terminer)</string>
-    <string name="builder_manual_hint">Compte à la hausse jusqu\'à ce que vous appuyiez sur Suivant — pour l\'AMRAP, les séries de force et le chronomètre.</string>
     <string name="builder_speech">Annonce parlée</string>
     <string name="builder_sound">Son</string>
     <string name="builder_haptic">Vibration</string>
@@ -112,7 +107,6 @@
     <string name="builder_folder">Dossier</string>
     <string name="builder_equipment">Matériel</string>
     <string name="builder_shuffle">Mélanger les intervalles d\'effort</string>
-    <string name="builder_shuffle_hint">L\'ordre est figé au démarrage de la séance.</string>
     <string name="builder_left_right">Ajouter gauche / droite</string>
     <string name="builder_ladder">Progression par paliers</string>
     <string name="builder_ladder_delta">Variation par tour</string>
@@ -140,7 +134,7 @@
     <string name="player_music_ducked">Musique baissée</string>
     <string name="player_keep_screen_on">Garder l\'écran allumé</string>
     <string name="player_exit_title">Terminer cette séance ?</string>
-    <string name="player_exit_body">Vous pouvez arrêter plus tôt et conserver ce que vous avez fait.</string>
+    <string name="player_exit_body">Votre progression sera enregistrée.</string>
     <string name="player_keep_going">Continuer</string>
     <string name="player_end_session">Terminer la séance</string>
     <string name="player_countdown_resumed">Minuteur relancé</string>
@@ -176,10 +170,10 @@
     <string name="progress_total_time">%1$s d\'entraînement</string>
     <string name="progress_planner">Planificateur</string>
     <string name="progress_empty_title">Aucune séance pour l\'instant</string>
-    <string name="progress_empty_body">Terminez votre première séance : vos chiffres réels apparaîtront ici.</string>
+    <string name="progress_empty_body">Aucune session enregistrée.</string>
     <string name="progress_minutes_chart">Minutes par jour, 14 derniers jours</string>
     <string name="history_title">Historique</string>
-    <string name="history_empty">Les séances terminées sont listées ici avec leurs durées réelles.</string>
+    <string name="history_empty">Aucune session</string>
     <string name="session_detail_title">Détail de la séance</string>
     <string name="session_detail_events">Chronologie des événements</string>
     <string name="session_detail_workout_snapshot">Entraînement tel qu\'il a été suivi</string>
@@ -199,7 +193,7 @@
     <string name="voice_title">Studio voix et audio</string>
     <string name="voice_engine">Moteur de synthèse vocale</string>
     <string name="voice_engine_missing">Aucun moteur vocal disponible</string>
-    <string name="voice_engine_missing_body">PULSE utilisera des signaux sonores. Installez une voix hors ligne : Réglages Android → Système → Langues et saisie → Synthèse vocale, ou ouvrez l\'installateur ci-dessous.</string>
+    <string name="voice_engine_missing_body">Installez une voix dans les réglages de synthèse vocale Android. Les signaux sonores restent disponibles.</string>
     <string name="voice_engine_install">Ouvrir les réglages de synthèse vocale</string>
     <string name="voice_offline_hint">Les annonces vocales nécessitent une voix hors ligne pour fonctionner sans connexion.</string>
     <string name="voice_rate">Vitesse de parole</string>
@@ -217,22 +211,19 @@
     <string name="voice_vibration">Vibration</string>
     <string name="voice_duck_music">Baisser la musique pendant les annonces</string>
     <string name="voice_duck_title">Atténuation audio</string>
-    <string name="voice_duck_hint">Baisse le fichier audio choisi pendant les annonces. Les autres lecteurs reçoivent une demande d’atténuation via Android ; la prise en charge varie.</string>
-    <string name="voice_duck_level">Volume du fichier pendant les annonces</string>
+    <string name="voice_duck_hint">Les autres apps musicales règlent leur propre atténuation.</string>
+    <string name="voice_duck_level">Volume pendant les annonces</string>
     <string name="voice_duck_active">Atténuation demandée</string>
     <string name="voice_duck_idle">Aucune atténuation demandée</string>
     <string name="voice_duck_phase">Atténuation : %1$s</string>
     <string name="voice_duck_test">Tester l\'atténuation</string>
-    <string name="voice_duck_test_hint">Lancez la musique, puis testez. Le niveau s’applique au fichier choisi dans PULSE ; Android règle l’atténuation des autres applications.</string>
     <string name="voice_music_title">Audio d\'arrière-plan</string>
     <string name="voice_music_pick">Choisir un fichier audio…</string>
     <string name="voice_music_none">Aucun audio d\'arrière-plan sélectionné</string>
     <string name="voice_music_clear">Retirer</string>
-    <string name="voice_music_hint">PULSE lit un fichier que vous choisissez ; il n\'intègre ni ne diffuse jamais de musique.</string>
     <string name="voice_music_volume">Volume de l\'audio d\'arrière-plan</string>
     <string name="voice_music_play">Lire l\'audio d\'arrière-plan</string>
     <string name="voice_music_stop">Arrêter l\'audio d\'arrière-plan</string>
-    <string name="voice_music_preview_hint">Essayez-le ici pour vérifier le fichier, le volume et l\'atténuation avant une séance.</string>
     <string name="voice_music_unavailable">Ce fichier ne peut pas être lu (%1$s). Choisissez-le à nouveau.</string>
     <string name="voice_recording_title">Vos propres annonces enregistrées</string>
     <string name="voice_record_start">Enregistrer</string>
@@ -252,8 +243,7 @@
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
     <string name="theme_black">Noir absolu</string>
-    <string name="settings_dynamic_color">Couleurs dynamiques</string>
-    <string name="settings_dynamic_color_hint">Colore l\'interface à partir du fond d\'écran. Les couleurs d\'intervalle gardent leur sens.</string>
+    <string name="settings_dynamic_color">Couleur du fond d’écran</string>
     <string name="settings_reduced_motion">Mouvements réduits</string>
     <string name="settings_high_contrast">Contraste élevé</string>
     <string name="settings_left_handed">Lecteur pour gaucher</string>
@@ -276,19 +266,15 @@
     <string name="audio_interrupt_continue">Continuer le temps, couper les annonces</string>
     <string name="audio_interrupt_duck">Continuer le temps, baisser l\'autre audio</string>
     <string name="settings_headphone_unplug">Débranchement du casque</string>
-    <string name="settings_volume_keys">Les touches de volume contrôlent la séance</string>
-    <string name="settings_volume_keys_hint">Les touches de volume règlent toujours le volume multimédia. Utilisez les commandes à l’écran ou dans la notification pour changer d’intervalle.</string>
     <string name="headphone_pause">Mettre la séance en pause</string>
     <string name="headphone_continue">Continuer, annonces sur le haut-parleur</string>
     <string name="settings_data">Données</string>
     <string name="settings_export_all">Exporter toutes les données…</string>
     <string name="settings_import">Importer depuis un fichier…</string>
-    <string name="settings_backup_auto">Sauvegardes locales automatiques</string>
-    <string name="settings_backup_auto_hint">Un fichier daté est écrit chaque semaine dans le stockage de l\'app via WorkManager.</string>
+    <string name="settings_backup_auto">Sauvegardes hebdomadaires</string>
     <string name="settings_backup_location">Dossier de sauvegarde</string>
     <string name="settings_delete_all">Supprimer toutes les séances…</string>
-    <string name="settings_delete_all_confirm">Cela supprime définitivement toutes les séances enregistrées et leurs événements. Les entraînements sont conservés.</string>
-    <string name="settings_data_summary">Tout reste sur cet appareil. Aucun compte, aucune pub, aucune analyse, aucun cloud.</string>
+    <string name="settings_delete_all_confirm">L’historique sera supprimé définitivement. Les séances sont conservées.</string>
     <string name="settings_help">Aide et raccourcis</string>
     <string name="settings_about">À propos</string>
     <string name="settings_version">Version %1$s</string>
@@ -304,49 +290,39 @@
     <string name="import_success">%1$d séances et %2$d sessions importées</string>
     <string name="import_failed">Échec de l\'import : %1$s</string>
     <string name="import_preview_title">Vérifier avant d\'importer</string>
-    <string name="import_preview_body">Le fichier contient %1$d séances, %2$d sessions et %3$d tags. Rien n\'est écrit avant votre confirmation.</string>
+    <string name="import_preview_body">%1$d séances · %2$d sessions · %3$d tags</string>
     <string name="import_confirm">Importer</string>
-    <string name="import_corrupt">Ce fichier n\'est pas une sauvegarde PULSE valide : rien n\'a été modifié.</string>
+    <string name="import_corrupt">Sauvegarde PULSE invalide. Aucune modification.</string>
     <string name="backup_created">Sauvegarde écrite dans %1$s</string>
-
-    <!-- Text parser -->
-    <string name="parser_title">Décrivez une séance</string>
-    <string name="parser_hint">6 tours, 40 secondes d\'effort, 20 secondes de repos, 1 minute d\'échauffement</string>
-    <string name="parser_parse">Aperçu</string>
-    <string name="parser_preview_title">Aperçu analysé</string>
-    <string name="parser_save">Enregistrer la séance</string>
-    <string name="parser_save_start">Enregistrer et démarrer</string>
-    <string name="parser_unsupported">J\'ai reconnu %1$s. Non compris : « %2$s ». C\'est un analyseur de motifs déterministe, pas un assistant IA.</string>
-    <string name="parser_nothing">Aucun motif reconnu. Indiquez des tours, des secondes ou des minutes, par exemple « 8 tours, 30 secondes d\'effort, 15 secondes de repos ».</string>
 
     <!-- Onboarding -->
     <string name="welcome_title">PULSE Coach d\'intervalles</string>
-    <string name="welcome_subtitle">Des intervalles précis, un coaching parlé et un minuteur qui survit à l\'écran verrouillé.</string>
+    <string name="welcome_subtitle">Votre minuteur d’intervalles.</string>
     <string name="welcome_theme">Choisissez une apparence</string>
     <string name="welcome_voice">Écoutez une annonce</string>
-    <string name="welcome_voice_body">PULSE annonce les changements d\'intervalle. Appuyez sur lecture pour entendre un exemple sur cet appareil.</string>
+    <string name="welcome_voice_body">Écoutez les changements d’intervalle sans regarder l’écran.</string>
     <string name="welcome_sample_workout">Essayer une séance de 4 minutes</string>
     <string name="welcome_skip">Passer</string>
     <string name="welcome_next">Suivant</string>
     <string name="welcome_start">Commencer avec PULSE</string>
-    <string name="welcome_notifications">Autorisez les notifications pour que le minuteur continue écran éteint et affiche ses commandes.</string>
+    <string name="welcome_notifications">Les notifications ajoutent les commandes du minuteur à l’écran verrouillé.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. La séance fonctionne toujours, mais sans commandes en direct.</string>
 
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
-    <string name="help_voice_body">PULSE utilise le moteur de synthèse vocale installé sur votre appareil. Pour un coaching qui fonctionne en mode avion, installez une voix hors ligne : Réglages Android → Système → Langues et saisie → Synthèse vocale → votre moteur → Installer les données vocales. Sans moteur, PULSE se rabat sur des signaux sonores et vous le signale dans le studio voix.</string>
+    <string name="help_voice_body">Pour le coaching hors ligne, installez une voix dans Réglages Android → Synthèse vocale. Sans voix, PULSE utilise des signaux sonores.</string>
     <string name="help_background">Fonctionnement en arrière-plan</string>
-    <string name="help_background_body">Une séance tourne dans un service de premier plan avec une notification multimédia : le temps et les annonces continuent écran éteint ou dans une autre app. Android peut malgré tout redémarrer le processus en cas de mémoire très faible — dans ce cas, PULSE indique la séance comme interrompue plutôt que de prétendre qu\'elle est allée au bout.</string>
+    <string name="help_background_body">Le minuteur continue écran éteint. Activez les annonces écran éteint dans les réglages pour les conserver.</string>
     <string name="help_audio">Dépannage audio</string>
-    <string name="help_audio_body">Les annonces sont mixées au volume défini dans le studio voix. Si vous ne les entendez pas, vérifiez le volume multimédia, que Ne pas déranger ne bloque pas les médias, et que PULSE n\'est pas coupé dans le volet de notifications. La musique des autres apps est baissée, pas arrêtée.</string>
+    <string name="help_audio_body">Vérifiez le volume multimédia, Ne pas déranger et le volume dans Voix et audio. L’atténuation des autres apps dépend du lecteur.</string>
     <string name="help_import">Fichiers importés</string>
-    <string name="help_import_body">Les exports sont de simples fichiers JSON. L\'import affiche un aperçu et n\'écrase jamais l\'existant : les copies importées reçoivent de nouveaux identifiants, et les noms identiques sont suffixés. Si une image ou un son référencé a été supprimé, la séance se charge quand même et signale le média manquant.</string>
-    <string name="help_gestures">Raccourcis du lecteur</string>
-    <string name="help_gestures_body">Espace met en pause (avec un clavier physique), ↑/↓ ajustent le volume, N/M passent à l\'intervalle suivant/précédent. Le contrôle par les touches de volume s\'active dans les réglages.</string>
+    <string name="help_import_body">Les sauvegardes contiennent les séances, sessions et réglages, sans les fichiers multimédias. L’import ajoute des copies sans remplacer vos séances.</string>
+    <string name="help_gestures">Commandes du lecteur</string>
+    <string name="help_gestures_body">Les touches de volume règlent le volume multimédia. Utilisez le lecteur ou la notification pour mettre en pause, avancer ou terminer.</string>
     <string name="help_accessibility">Accessibilité</string>
-    <string name="help_accessibility_body">Chaque action de glissement a des équivalents Monter / Descendre, les commandes font au moins 48 dp, les couleurs de phase sont toujours accompagnées d\'un libellé, et TalkBack annonce les changements d\'intervalle au lieu de chaque tic.</string>
+    <string name="help_accessibility_body">Les réglages proposent des animations réduites, un contraste élevé et des commandes pour gauchers. Utilisez Monter / Descendre pour réorganiser les intervalles.</string>
 
     <!-- Common -->
     <string name="ok">OK</string>
@@ -382,40 +358,31 @@
     <string name="notif_backup_channel_desc">Résultats des sauvegardes locales hebdomadaires</string>
 
     <!-- Portable workout import -->
-    <string name="json_title">Importer un entraînement JSON / IA</string>
-    <string name="json_intro">Collez ou ouvrez un fichier. Vérifiez les entraînements avant de les enregistrer.</string>
-    <string name="json_ai_title">1. Générer avec votre outil IA (facultatif)</string>
-    <string name="json_ai_help">Décrivez vos objectifs, votre temps, votre matériel et votre expérience. Copiez le prompt dans ChatGPT, Claude, Gemini ou une autre IA, puis collez sa réponse JSON ci-dessous.</string>
-    <string name="json_request">Votre demande</string>
-    <string name="json_request_hint">Un entraînement débutant de 10 minutes au poids du corps, avec échauffement et retour au calme…</string>
-    <string name="json_copied">Prompt copié — collez-le dans votre IA</string>
-    <string name="json_copy_prompt">Copier le prompt IA + format JSON</string>
-    <string name="json_privacy">PULSE ne contacte aucun service IA et ne demande aucune clé API. Seul le prompt que vous partagez quitte l’application. Évitez les données de santé personnelles. Vérifiez les entraînements IA et adaptez-les à vos capacités.</string>
-    <string name="json_input_title">2. Importer le JSON</string>
-    <string name="json_choose_file">Choisir un fichier JSON</string>
-    <string name="json_input">JSON des entraînements (256 Kio maximum)</string>
-    <string name="json_example">Utiliser un exemple JSON</string>
-    <string name="json_working">Traitement en cours…</string>
-    <string name="json_saved">%1$d entraînement(s) enregistré(s). Les entraînements existants restent inchangés.</string>
-    <string name="json_view_saved">Voir les entraînements enregistrés</string>
-    <string name="json_validate">Valider et prévisualiser</string>
-    <string name="json_preview_title">3. Vérifier %1$d entraînement(s)</string>
-    <string name="json_review">Rien n’est encore enregistré. L’import ajoute de nouvelles copies avec les tags et les consignes. Réimporter le même fichier crée des doublons.</string>
+    <string name="json_title">Séances IA</string>
+    <string name="json_ai_help">Envoyez à votre app IA, puis collez sa réponse. Seul le prompt est partagé.</string>
+    <string name="json_request">Que voulez-vous travailler ?</string>
+    <string name="json_request_hint">10 minutes, débutant, sans matériel</string>
+    <string name="json_copied">Prompt copié</string>
+    <string name="json_copy_prompt">Copier le prompt</string>
+    <string name="json_choose_file">Ouvrir un fichier JSON</string>
+    <string name="json_input">JSON · 256 Kio max</string>
+    <string name="json_working">Traitement…</string>
+    <string name="json_preview_title">Vérifier les séances · %1$d</string>
     <string name="json_equipment">Matériel : %1$s</string>
-    <string name="json_summary">%1$d intervalles · %2$s de durée chronométrée</string>
-    <string name="json_manual_warning">Contient des intervalles manuels : la durée totale est un minimum. Passez vous-même à l’intervalle suivant.</string>
-    <string name="json_manual">Manuel — appuyez sur Suivant pour terminer</string>
+    <string name="json_summary">%1$d intervalles · %2$s</string>
+    <string name="json_manual_warning">Intervalles manuels inclus · durée minimale.</string>
+    <string name="json_manual">Manuel · appuyez sur Suivant</string>
     <string name="json_reps">%1$d répétitions</string>
     <string name="json_show_all">Afficher tous les intervalles</string>
     <string name="json_show_less">Afficher moins d’intervalles</string>
-    <string name="json_import_count">Importer %1$d entraînement(s)</string>
+    <string name="json_import_count">Enregistrer les séances · %1$d</string>
     <string name="json_file_error">Impossible d’ouvrir le fichier. Sélectionnez-le à nouveau.</string>
     <string name="json_clipboard_error">Impossible de copier le prompt. Réessayez.</string>
     <string name="summary_share_title">Partager la séance</string>
     <string name="summary_share_preparing">Préparation de l’image…</string>
     <string name="summary_share_error">Impossible de partager l’image. Veuillez réessayer.</string>
     <string name="share_completed">Séance terminée</string>
-    <string name="share_ended_early">Arrêt anticipé · effort enregistré</string>
+    <string name="share_ended_early">Terminée avant la fin</string>
     <string name="share_active_time">TEMPS ACTIF</string>
     <string name="share_completion">Progression</string>
     <string name="share_intervals">Intervalles terminés</string>
@@ -423,4 +390,18 @@
     <string name="share_skipped">Intervalles passés</string>
     <string name="share_rounds">Tours enregistrés</string>
     <string name="share_recorded">Enregistré avec PULSE</string>
+
+    <!-- Theme & streamlined AI flow -->
+    <string name="theme_switch_light">Passer au thème clair</string>
+    <string name="theme_switch_dark">Passer au thème sombre</string>
+    <string name="json_send_prompt">Envoyer à une app IA</string>
+    <string name="json_paste">Coller la réponse</string>
+    <string name="json_edit">Modifier le JSON</string>
+    <string name="json_hide_editor">Masquer le JSON</string>
+    <string name="json_safety">Vérifiez que les intervalles et consignes vous conviennent avant d’enregistrer.</string>
+    <string name="json_clipboard_empty">Copiez d’abord la réponse JSON de votre IA.</string>
+    <string name="json_paste_error">Collage impossible. Modifiez le JSON ou ouvrez un fichier.</string>
+    <string name="help_health">Synchronisation santé</string>
+    <string name="help_health_body">Connectez Health Connect dans Réglages → Santé pour lire la fréquence cardiaque, les pas ou synchroniser les séances. Gérez les autorisations dans Health Connect.</string>
+    <string name="help_permissions_body">Notifications : commandes du minuteur. Microphone : enregistrement d’annonces. Santé : fréquence cardiaque, pas et synchronisation. Ces autorisations sont facultatives.</string>
 </resources>

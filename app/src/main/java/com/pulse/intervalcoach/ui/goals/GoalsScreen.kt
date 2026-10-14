@@ -116,7 +116,6 @@ fun GoalsScreen(
             item {
                 PulsePageHeader(
                     title = "Goals",
-                    description = "Track your progress against a monthly target",
                     onBack = onBack,
                 )
             }
@@ -125,7 +124,7 @@ fun GoalsScreen(
                 item {
                     EmptyState(
                         title = "Start your first workout",
-                        body = "Finish a workout and your progress toward your goals shows up here.",
+                        body = "No sessions yet.",
                         icon = Icons.Filled.Flag,
                     )
                 }

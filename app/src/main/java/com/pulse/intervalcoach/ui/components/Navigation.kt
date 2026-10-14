@@ -1,6 +1,7 @@
 package com.pulse.intervalcoach.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -36,6 +37,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
@@ -130,6 +132,7 @@ private fun PulseNavBarButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val indicator by animateColorAsState(
+        animationSpec = tween(LocalPulseMotion.current.fast()),
         targetValue = when {
             selected -> colors.accentTint
             hovered -> colors.surfaceHover
@@ -243,6 +246,7 @@ private fun PulseRailButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val fill by animateColorAsState(
+        animationSpec = tween(LocalPulseMotion.current.fast()),
         targetValue = when {
             selected -> colors.accentTint
             hovered -> colors.surfaceHover
@@ -358,6 +362,7 @@ private fun PulseSidebarButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val fill by animateColorAsState(
+        animationSpec = tween(LocalPulseMotion.current.fast()),
         targetValue = when {
             selected -> colors.accentTint
             hovered -> colors.surfaceHover

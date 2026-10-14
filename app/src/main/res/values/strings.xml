@@ -10,17 +10,16 @@
     <string name="nav_settings">Settings</string>
 
     <!-- Home -->
-    <string name="home_greeting">Ready to move</string>
+    <string name="home_greeting">Today</string>
     <string name="home_quick_start">Quick start</string>
-    <string name="home_quick_start_sub">Work / rest timer in two taps</string>
     <string name="home_favorites">Favorites</string>
     <string name="home_recent">Recent</string>
     <string name="home_next_planned">Next planned</string>
     <string name="home_week_summary">This week</string>
     <string name="home_start">Start</string>
-    <string name="home_no_favorites">Star a workout and it appears here for one-tap starts.</string>
-    <string name="home_no_recent">Your finished sessions will show up here.</string>
-    <string name="home_no_planned">Nothing scheduled. Open the planner in Progress to add a session.</string>
+    <string name="home_no_favorites">Star a workout to pin it here.</string>
+    <string name="home_no_recent">No recent sessions</string>
+    <string name="home_no_planned">No planned sessions</string>
     <string name="home_this_week_value">%1$d sessions · %2$s</string>
 
     <!-- Workouts -->
@@ -29,7 +28,7 @@
     <string name="workouts_templates">Templates</string>
     <string name="workouts_new">New workout</string>
     <string name="workouts_empty_title">No workouts yet</string>
-    <string name="workouts_empty_body">Build one in under a minute, or start from the template gallery.</string>
+    <string name="workouts_empty_body">Create a workout or choose a template.</string>
     <string name="workouts_no_match_title">Nothing matches “%1$s”</string>
     <string name="workouts_sort">Sort</string>
     <string name="sort_recent">Recently used</string>
@@ -47,12 +46,11 @@
     <string name="action_share">Share</string>
     <string name="action_move">Move to folder</string>
     <string name="delete_workout_title">Delete this workout?</string>
-    <string name="delete_workout_body">“%1$s” will be removed. Finished sessions keep their own copy of the workout, so your history stays readable.</string>
+    <string name="delete_workout_body">Delete “%1$s”? Session history is kept.</string>
     <string name="duplicated_toast">Duplicated “%1$s”</string>
 
     <!-- Templates -->
     <string name="templates_title">Templates</string>
-    <string name="templates_subtitle">Editable starting points — tweak anything after you add them.</string>
     <string name="templates_use">Use template</string>
     <string name="templates_added">Added “%1$s” to your workouts</string>
 
@@ -60,7 +58,7 @@
     <string name="details_timeline">Interval timeline</string>
     <string name="details_total_duration">Total duration</string>
     <string name="details_rounds">Rounds</string>
-    <string name="details_open_ended_note">Includes intervals that wait for you — total time is a minimum.</string>
+    <string name="details_open_ended_note">Manual intervals included · duration is a minimum.</string>
     <string name="details_equipment">Equipment</string>
     <string name="details_voice">Voice profile</string>
     <string name="details_notes">Notes</string>
@@ -72,7 +70,6 @@
     <string name="builder_quick_title">Quick builder</string>
     <string name="builder_advanced_title">Advanced builder</string>
     <string name="builder_name">Name</string>
-    <string name="builder_description">Description</string>
     <string name="builder_type">Type</string>
     <string name="builder_work">Work</string>
     <string name="builder_rest">Rest</string>
@@ -80,7 +77,6 @@
     <string name="builder_preparation">Preparation</string>
     <string name="builder_cooldown">Cool-down</string>
     <string name="builder_include_final_rest">Include final rest</string>
-    <string name="builder_include_final_rest_hint">Off ends the session on the last work interval.</string>
     <string name="builder_save">Save workout</string>
     <string name="builder_save_and_start">Save &amp; start</string>
     <string name="builder_total">Total %1$s</string>
@@ -96,7 +92,6 @@
     <string name="builder_repeats">Repeats</string>
     <string name="builder_rest_after_group">Rest after block</string>
     <string name="builder_manual">Manual (tap to finish)</string>
-    <string name="builder_manual_hint">Counts up until you tap Next — used for AMRAP, strength sets and stopwatch.</string>
     <string name="builder_speech">Spoken cue</string>
     <string name="builder_sound">Sound</string>
     <string name="builder_haptic">Vibration</string>
@@ -108,7 +103,6 @@
     <string name="builder_folder">Folder</string>
     <string name="builder_equipment">Equipment</string>
     <string name="builder_shuffle">Shuffle effort intervals</string>
-    <string name="builder_shuffle_hint">Order is fixed when the session starts.</string>
     <string name="builder_left_right">Add left / right</string>
     <string name="builder_ladder">Progressive ladder</string>
     <string name="builder_ladder_delta">Change per round</string>
@@ -136,7 +130,7 @@
     <string name="player_music_ducked">Music lowered</string>
     <string name="player_keep_screen_on">Keep screen on</string>
     <string name="player_exit_title">End this session?</string>
-    <string name="player_exit_body">You can finish early and still save what you did.</string>
+    <string name="player_exit_body">Your progress will be saved.</string>
     <string name="player_keep_going">Keep going</string>
     <string name="player_end_session">End session</string>
     <string name="player_countdown_resumed">Timer running</string>
@@ -172,10 +166,10 @@
     <string name="progress_total_time">%1$s of training</string>
     <string name="progress_planner">Planner</string>
     <string name="progress_empty_title">No sessions yet</string>
-    <string name="progress_empty_body">Finish your first workout and your real numbers appear here.</string>
+    <string name="progress_empty_body">No training history yet.</string>
     <string name="progress_minutes_chart">Minutes per day, last 14 days</string>
     <string name="history_title">History</string>
-    <string name="history_empty">Finished workouts are listed here with their real timings.</string>
+    <string name="history_empty">No sessions yet</string>
     <string name="session_detail_title">Session details</string>
     <string name="session_detail_events">Timeline of events</string>
     <string name="session_detail_workout_snapshot">Workout as it was run</string>
@@ -195,7 +189,7 @@
     <string name="voice_title">Voice &amp; audio studio</string>
     <string name="voice_engine">Speech engine</string>
     <string name="voice_engine_missing">No speech engine available</string>
-    <string name="voice_engine_missing_body">PULSE will use sound cues instead. Install an offline voice in Android Settings → System → Languages &amp; input → Text-to-speech, or open the installer below.</string>
+    <string name="voice_engine_missing_body">Install a voice in Android’s text-to-speech settings. Sound cues are still available.</string>
     <string name="voice_engine_install">Open text-to-speech settings</string>
     <string name="voice_offline_hint">Cue announcements need an offline voice to work without a connection.</string>
     <string name="voice_rate">Speaking rate</string>
@@ -213,22 +207,19 @@
     <string name="voice_vibration">Vibration</string>
     <string name="voice_duck_music">Lower music during cues</string>
     <string name="voice_duck_title">Audio ducking</string>
-    <string name="voice_duck_hint">Lowers selected background audio during cues. Other music apps are asked to duck via Android audio focus; support varies by player.</string>
-    <string name="voice_duck_level">Selected audio volume during cues</string>
+    <string name="voice_duck_hint">Other music apps use their own ducking level.</string>
+    <string name="voice_duck_level">Music volume during cues</string>
     <string name="voice_duck_active">Ducking requested</string>
     <string name="voice_duck_idle">No ducking requested</string>
     <string name="voice_duck_phase">Ducking: %1$s</string>
     <string name="voice_duck_test">Test ducking</string>
-    <string name="voice_duck_test_hint">Play music first, then test. The depth applies to the file selected in PULSE; Android controls attenuation in other apps.</string>
     <string name="voice_music_title">Background audio</string>
     <string name="voice_music_pick">Choose audio file…</string>
     <string name="voice_music_none">No background audio selected</string>
     <string name="voice_music_clear">Remove</string>
-    <string name="voice_music_hint">PULSE plays a file you pick; it never bundles or streams music.</string>
     <string name="voice_music_volume">Background audio volume</string>
     <string name="voice_music_play">Play background audio</string>
     <string name="voice_music_stop">Stop background audio</string>
-    <string name="voice_music_preview_hint">Preview it here to check the file, the volume and the ducking before a workout.</string>
     <string name="voice_music_unavailable">This file cannot be played (%1$s). Pick it again.</string>
     <string name="voice_recording_title">Your own cue recordings</string>
     <string name="voice_record_start">Record</string>
@@ -248,8 +239,7 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_black">True black</string>
-    <string name="settings_dynamic_color">Dynamic colour</string>
-    <string name="settings_dynamic_color_hint">Colours the app shell from your wallpaper. Interval colours stay meaningful.</string>
+    <string name="settings_dynamic_color">Wallpaper accent</string>
     <string name="settings_reduced_motion">Reduced motion</string>
     <string name="settings_high_contrast">High contrast</string>
     <string name="settings_left_handed">Left-handed player</string>
@@ -272,19 +262,15 @@
     <string name="audio_interrupt_continue">Keep timing, mute cues</string>
     <string name="audio_interrupt_duck">Keep timing, duck other audio</string>
     <string name="settings_headphone_unplug">When headphones are unplugged</string>
-    <string name="settings_volume_keys">Volume keys control the workout</string>
-    <string name="settings_volume_keys_hint">Volume buttons always adjust media volume. Use the on-screen or notification controls to change intervals.</string>
     <string name="headphone_pause">Pause the workout</string>
     <string name="headphone_continue">Keep going, speaker cues</string>
     <string name="settings_data">Data</string>
     <string name="settings_export_all">Export all data…</string>
     <string name="settings_import">Import from file…</string>
-    <string name="settings_backup_auto">Automatic local backups</string>
-    <string name="settings_backup_auto_hint">A dated backup file is written weekly to app storage using WorkManager.</string>
+    <string name="settings_backup_auto">Weekly backups</string>
     <string name="settings_backup_location">Backup folder</string>
     <string name="settings_delete_all">Delete all sessions…</string>
-    <string name="settings_delete_all_confirm">This permanently removes every saved session and their events. Workouts are kept.</string>
-    <string name="settings_data_summary">Everything stays on this device. No account, no ads, no analytics, no cloud.</string>
+    <string name="settings_delete_all_confirm">Session history will be permanently deleted. Workouts are kept.</string>
     <string name="settings_help">Help &amp; shortcuts</string>
     <string name="settings_about">About</string>
     <string name="settings_version">Version %1$s</string>
@@ -300,49 +286,39 @@
     <string name="import_success">Imported %1$d workouts and %2$d sessions</string>
     <string name="import_failed">Import failed: %1$s</string>
     <string name="import_preview_title">Review before importing</string>
-    <string name="import_preview_body">The file contains %1$d workouts, %2$d sessions and %3$d tags. Nothing is written until you confirm.</string>
+    <string name="import_preview_body">%1$d workouts · %2$d sessions · %3$d tags</string>
     <string name="import_confirm">Import</string>
-    <string name="import_corrupt">This file is not a valid PULSE backup, so nothing was changed.</string>
+    <string name="import_corrupt">Invalid PULSE backup. Nothing was changed.</string>
     <string name="backup_created">Backup written to %1$s</string>
-
-    <!-- Text parser -->
-    <string name="parser_title">Workout description</string>
-    <string name="parser_hint">6 rounds, 40 seconds work, 20 seconds rest, 1 minute warm-up</string>
-    <string name="parser_parse">Preview</string>
-    <string name="parser_preview_title">Parsed preview</string>
-    <string name="parser_save">Save workout</string>
-    <string name="parser_save_start">Save &amp; start</string>
-    <string name="parser_unsupported">I recognised %1$s. Not understood: “%2$s”. This is a deterministic pattern parser, not an AI assistant.</string>
-    <string name="parser_nothing">No pattern recognised. Try naming rounds, seconds or minutes, for example “8 rounds, 30 seconds work, 15 seconds rest”.</string>
 
     <!-- Onboarding -->
     <string name="welcome_title">PULSE Interval Coach</string>
-    <string name="welcome_subtitle">Precise intervals, spoken coaching, and a timer that survives a locked screen.</string>
+    <string name="welcome_subtitle">Your interval timer.</string>
     <string name="welcome_theme">Choose a look</string>
     <string name="welcome_voice">Hear a cue</string>
-    <string name="welcome_voice_body">PULSE speaks interval changes. Press play to hear a sample on this device.</string>
+    <string name="welcome_voice_body">Hear interval changes without looking at the screen.</string>
     <string name="welcome_sample_workout">Try a 4-minute starter</string>
     <string name="welcome_skip">Skip</string>
     <string name="welcome_next">Next</string>
     <string name="welcome_start">Start using PULSE</string>
-    <string name="welcome_notifications">Allow notifications so the timer keeps running with the screen off and shows its controls.</string>
+    <string name="welcome_notifications">Notifications add timer controls to your lock screen.</string>
     <string name="welcome_notifications_allow">Allow notifications</string>
     <string name="welcome_permission_denied">Notifications are off. The workout still runs, but without live controls.</string>
 
     <!-- Help -->
     <string name="help_title">Help</string>
     <string name="help_voice">Voice setup</string>
-    <string name="help_voice_body">PULSE uses the text-to-speech engine installed on your device. For coaching that works in flight mode, install an offline voice: Android Settings → System → Languages &amp; input → Text-to-speech → your engine → Install voice data. If no engine is present, PULSE falls back to sound cues and tells you in Voice Studio.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, PULSE uses sound cues.</string>
     <string name="help_background">Background operation</string>
-    <string name="help_background_body">A workout runs in a foreground service with a media notification, so timing and cues continue when the screen is off or you switch apps. Android may still restart the process in extreme low-memory situations — if that happens, PULSE reports the session as interrupted instead of pretending it completed.</string>
+    <string name="help_background_body">Timing continues with the screen off. Enable screen-off cues in Settings to keep announcements playing.</string>
     <string name="help_audio">Audio troubleshooting</string>
-    <string name="help_audio_body">Cues are mixed at the volume you set in Voice Studio. If you cannot hear them, check that media volume is up, that Do Not Disturb is not blocking media, and that PULSE is not muted in the notification shade. Music from other apps is ducked rather than stopped.</string>
+    <string name="help_audio_body">Check media volume, Do Not Disturb and cue volume in Voice &amp; audio. Ducking in other music apps depends on the player.</string>
     <string name="help_import">Imported files</string>
-    <string name="help_import_body">Exports are plain JSON files. Importing shows a preview and never overwrites existing workouts: imported copies get new IDs, and identical names are suffixed. If a referenced image or audio file has been deleted, the workout still loads and reports the missing media.</string>
-    <string name="help_gestures">Player shortcuts</string>
-    <string name="help_gestures_body">Space toggles pause (with a hardware keyboard), ↑/↓ adjust volume, and N/M jump to next/previous interval. Volume-key control can be enabled in Settings.</string>
+    <string name="help_import_body">Backups include workouts, sessions and settings, but not media files. Import adds copies without replacing your workouts.</string>
+    <string name="help_gestures">Player controls</string>
+    <string name="help_gestures_body">Volume buttons adjust media volume. Use the player or notification to pause, skip or end a session.</string>
     <string name="help_accessibility">Accessibility</string>
-    <string name="help_accessibility_body">Every drag action has Move up / Move down alternatives, controls are at least 48 dp, phase colours always come with a text label, and TalkBack announces interval changes instead of every tick.</string>
+    <string name="help_accessibility_body">Reduced motion, high contrast and left-handed controls are in Settings. Use Move up / Move down to reorder intervals.</string>
 
     <!-- Common -->
     <string name="ok">OK</string>
@@ -378,40 +354,31 @@
     <string name="notif_backup_channel_desc">Weekly local backup results</string>
 
     <!-- Portable workout import -->
-    <string name="json_title">Import JSON / AI workout</string>
-    <string name="json_intro">Paste or open a workout file. Review it before saving to your library.</string>
-    <string name="json_ai_title">1. Generate with your AI tool (optional)</string>
-    <string name="json_ai_help">Describe your goals, time, equipment and experience. Copy the prompt into ChatGPT, Claude, Gemini or another AI, then paste its JSON response below.</string>
-    <string name="json_request">Your workout request</string>
-    <string name="json_request_hint">A 10-minute beginner bodyweight workout, with warm-up and cool-down…</string>
-    <string name="json_copied">Prompt copied — paste it into your AI</string>
-    <string name="json_copy_prompt">Copy AI prompt + JSON format</string>
-    <string name="json_privacy">PULSE does not contact an AI service or require an API key. Only the prompt you choose to share leaves the app. Avoid personal health details. AI workouts may be unsuitable; review them and adapt to your ability.</string>
-    <string name="json_input_title">2. Import JSON</string>
-    <string name="json_choose_file">Choose JSON file</string>
-    <string name="json_input">Workout JSON (up to 256 KiB)</string>
-    <string name="json_example">Use sample JSON</string>
+    <string name="json_title">AI workouts</string>
+    <string name="json_ai_help">Send to your AI app, then paste its reply. Only the prompt is shared.</string>
+    <string name="json_request">What do you want to train?</string>
+    <string name="json_request_hint">10 minutes, beginner, no equipment</string>
+    <string name="json_copied">Prompt copied</string>
+    <string name="json_copy_prompt">Copy prompt</string>
+    <string name="json_choose_file">Open JSON file</string>
+    <string name="json_input">Workout JSON · max 256 KiB</string>
     <string name="json_working">Processing…</string>
-    <string name="json_saved">%1$d workout(s) saved. Existing workouts were not changed.</string>
-    <string name="json_view_saved">View saved workouts</string>
-    <string name="json_validate">Validate &amp; preview</string>
-    <string name="json_preview_title">3. Review %1$d workout(s)</string>
-    <string name="json_review">Nothing is saved yet. Import adds all workouts as new copies, including tags and coaching notes. Importing the same file again creates duplicates.</string>
+    <string name="json_preview_title">Review workouts · %1$d</string>
     <string name="json_equipment">Equipment: %1$s</string>
-    <string name="json_summary">%1$d intervals · %2$s timed duration</string>
-    <string name="json_manual_warning">Includes manual intervals: total time is a minimum. Advance these intervals yourself.</string>
-    <string name="json_manual">Manual — tap Next to finish</string>
+    <string name="json_summary">%1$d intervals · %2$s</string>
+    <string name="json_manual_warning">Includes manual intervals · duration is a minimum.</string>
+    <string name="json_manual">Manual · tap Next</string>
     <string name="json_reps">%1$d reps</string>
     <string name="json_show_all">Show every interval</string>
     <string name="json_show_less">Show fewer intervals</string>
-    <string name="json_import_count">Import %1$d workout(s)</string>
+    <string name="json_import_count">Save workouts · %1$d</string>
     <string name="json_file_error">The selected file could not be opened. Choose it again.</string>
     <string name="json_clipboard_error">Could not copy the prompt. Please try again.</string>
     <string name="summary_share_title">Share workout</string>
     <string name="summary_share_preparing">Preparing image…</string>
     <string name="summary_share_error">Could not share the image. Please try again.</string>
     <string name="share_completed">Session complete</string>
-    <string name="share_ended_early">Ended early · effort recorded</string>
+    <string name="share_ended_early">Ended early</string>
     <string name="share_active_time">ACTIVE TIME</string>
     <string name="share_completion">Completion</string>
     <string name="share_intervals">Intervals completed</string>
@@ -419,4 +386,18 @@
     <string name="share_skipped">Intervals skipped</string>
     <string name="share_rounds">Rounds logged</string>
     <string name="share_recorded">Recorded with PULSE</string>
+
+    <!-- Theme & streamlined AI flow -->
+    <string name="theme_switch_light">Switch to light theme</string>
+    <string name="theme_switch_dark">Switch to dark theme</string>
+    <string name="json_send_prompt">Send to AI app</string>
+    <string name="json_paste">Paste response</string>
+    <string name="json_edit">Edit JSON</string>
+    <string name="json_hide_editor">Hide JSON</string>
+    <string name="json_safety">Check the intervals and cues suit your ability before saving.</string>
+    <string name="json_clipboard_empty">Copy your AI’s JSON response first.</string>
+    <string name="json_paste_error">Could not paste. Use Edit JSON or open a file.</string>
+    <string name="help_health">Health sync</string>
+    <string name="help_health_body">Connect Health Connect in Settings → Health to read heart rate and steps or sync workouts. Manage access in Android’s Health Connect settings.</string>
+    <string name="help_permissions_body">Notifications: timer controls. Microphone: cue recording only. Health access: heart rate, steps and workout sync. Each is optional.</string>
 </resources>

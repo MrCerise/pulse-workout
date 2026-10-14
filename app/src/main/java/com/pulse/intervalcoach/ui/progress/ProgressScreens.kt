@@ -144,7 +144,7 @@ fun ProgressScreen(
         val weekAgo = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
         state.sessions.filter { it.startedAt >= weekAgo }.sumOf { it.activeMillis }
     }
-    // "Where your time went" is a join between finished sessions and the library, resolved through
+    // "By category" is a join between finished sessions and the library, resolved through
     // the category registry — the same record that gives each workout its icon and hue everywhere
     // else, so the breakdown cannot disagree with the library about what a category is called.
     val categoryTotals = remember(state.sessions, summaries) {
@@ -172,7 +172,6 @@ fun ProgressScreen(
             item {
                 PulsePageHeader(
                     title = "Progress",
-                    description = "Real numbers from your saved sessions",
                 )
             }
 
@@ -201,13 +200,7 @@ fun ProgressScreen(
                             },
                             height = LocalPulseDimens.current.chartHeight,
                             labelEvery = 2,
-                            emptyLabel = "No sessions yet — the chart fills in as you finish workouts.",
-                        )
-                        Spacer(Modifier.height(dimens.s))
-                        Text(
-                            text = "Built from your saved sessions on this device.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textMuted,
+                            emptyLabel = "No sessions yet",
                         )
                     }
                 }
@@ -215,7 +208,7 @@ fun ProgressScreen(
 
             // --- Where the time went, by category ---------------------------------------------
             if (categoryTotals.isNotEmpty()) {
-                item { SectionHeader(text = "Where your time went") }
+                item { SectionHeader(text = "By category") }
                 item {
                     PulseCard {
                         Column(verticalArrangement = Arrangement.spacedBy(dimens.m)) {
@@ -263,11 +256,6 @@ fun ProgressScreen(
                                     )
                                 }
                             }
-                            Text(
-                                text = "Minutes you actually spent training, grouped by the category of each workout.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textMuted,
-                            )
                         }
                     }
                 }
@@ -280,7 +268,7 @@ fun ProgressScreen(
                         title = "Health sync",
                         subtitle = when {
                             healthSnapshot.source == null ->
-                                "Connect Health Connect or Google Fit to share workouts and read heart rate."
+                                "Not connected"
                             healthSnapshot.lastSyncAt > 0 ->
                                 "Connected via ${healthSnapshot.source} · last sync ${formatLastSync(healthSnapshot.lastSyncAt)}"
                             else -> "Connected via ${healthSnapshot.source} · not synced yet"
@@ -305,7 +293,7 @@ fun ProgressScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(dimens.s)) {
                         if (state.reminders.isEmpty()) {
                             Text(
-                                text = "No planned sessions. Schedule one and it appears on Today.",
+                                text = "No planned sessions",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.textMuted,
                             )
@@ -354,7 +342,7 @@ fun ProgressScreen(
                 item {
                     EmptyState(
                         title = stringResource(R.string.progress_empty_title),
-                        body = "Finish your first workout and your real numbers appear here.",
+                        body = stringResource(R.string.progress_empty_body),
                         icon = Icons.Filled.Healing,
                     )
                 }
@@ -491,7 +479,7 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
                 item {
                     EmptyState(
                         title = "No sessions",
-                        body = "Finished workouts are listed here with their real timings.",
+                        body = stringResource(R.string.history_empty),
                     )
                 }
             }
@@ -567,7 +555,7 @@ fun SessionDetailScreen(
             if (current.status == STATUS_INTERRUPTED) {
                 item {
                     InfoBanner(
-                        text = "This session was interrupted (the app stopped before it finished), so its numbers show what was actually recorded.",
+                        text = "Session interrupted. Progress saved up to the interruption.",
                         tone = PulseTone.WARNING,
                     )
                 }

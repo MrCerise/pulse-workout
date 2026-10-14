@@ -58,7 +58,6 @@ object QuickWorkoutFactory {
         return WorkoutPlan(
             id = id,
             name = name,
-            description = "",
             type = type,
             nodes = nodes,
             includeFinalRest = includeFinalRest,

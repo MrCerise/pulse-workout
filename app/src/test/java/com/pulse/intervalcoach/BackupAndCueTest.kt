@@ -8,7 +8,7 @@ import com.pulse.intervalcoach.data.StarterWorkouts
 import com.pulse.intervalcoach.data.UserPreferences
 import com.pulse.intervalcoach.data.VoiceVerbosity
 import com.pulse.intervalcoach.data.WorkoutRecord
-import com.pulse.intervalcoach.parser.WorkoutTextParser
+import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.session.CueScript
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -161,8 +161,14 @@ class BackupAndCueTest {
     }
 
     @Test
-    fun `a parsed plan can always be saved and re-read`() {
-        val plan = WorkoutTextParser.parse("8 rounds, 30 seconds work, 15 seconds rest").plan!!
+    fun `legacy descriptions survive backup round trips without a description editor`() {
+        val plan = QuickWorkoutFactory.build(30_000, 15_000, 8, 0).copy(description = "My old note")
+        assertEquals(plan, PlanCodec.decode(PlanCodec.encode(plan)))
+    }
+
+    @Test
+    fun `a quick plan can always be saved and re-read`() {
+        val plan = QuickWorkoutFactory.build(30_000, 15_000, 8, 0)
         val decoded = PlanCodec.decode(PlanCodec.encode(plan))
         assertEquals(TimelineExpander.expand(plan).steps.size, TimelineExpander.expand(decoded).steps.size)
         assertEquals(TimelineExpander.expand(plan).knownMillis, TimelineExpander.expand(decoded).knownMillis)

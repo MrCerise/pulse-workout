@@ -170,6 +170,7 @@ data class Ladder(
 data class WorkoutPlan(
     val id: String,
     val name: String,
+    /** Legacy backup field. No longer edited, generated, searched or displayed. */
     val description: String = "",
     val type: WorkoutType = WorkoutType.HIIT,
     val nodes: List<Node> = emptyList(),

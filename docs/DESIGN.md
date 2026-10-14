@@ -1,33 +1,29 @@
 # PULSE design system — "Signal"
 
-Signal is the visual layer PULSE ships today: a neutral, dense, enterprise-dashboard interface in the
-spirit of the Cloudflare dashboard — charcoal chrome in the dark theme, paper chrome in the light
-theme, **one** accent (Cloudflare orange) spent deliberately, hairline structure instead of shadows,
-and Inter set in a compact dashboard scale.
+As of v1.6.6, PULSE keeps its neutral Ink, Paper and OLED palettes, with softer rectangular
+controls, visual theme previews and restrained transitions. Inter remains the typeface. The supplied
+four-bar mark is monochrome; orange (or a contrast-checked wallpaper accent) identifies actions.
 
-It replaced "Prism" (violet → cyan accent gradients, 24 dp cards, pastel surfaces), which had drifted
-into the generic AI-dashboard look: gradients as decoration, colour everywhere, and radii large enough
-that nothing read as a tool. Signal is the opposite bet — **restraint reads as confidence**.
-
-Nothing in this document is aspirational: every token, size and rule below is implemented in
-`ui/theme/`, and `scripts/contrast_check.py` fails the build if the numbers stop being true.
+Labels and actual workout data take priority over explanatory copy. Page subtitles are reserved for
+useful metadata such as a date, not slogans. Workout descriptions and the text-description parser
+are no longer part of the interface. Interval notes, error recovery and permission information remain.
 
 ---
 
 ## 1. Principles
 
 1. **Neutral chrome, one accent.** Grey does the layout, the accent does the pointing. Orange appears
-   on: the brand mark, the primary action of a screen, the selected navigation item, the focus ring,
+   on: the primary action of a screen, the selected navigation item, the focus ring,
    links, and live data. It is never a background wash and never a gradient.
 2. **A hairline beats a shadow.** Surfaces are separated from the canvas by one fill step plus a
    1 dp border. Shadows are reserved for chrome that genuinely floats above the page — menus,
    dialogs, snackbars — so the few shadows on screen still carry meaning.
-3. **Rectangles, not pills.** 6 dp controls, 8 dp cards, 12 dp overlays. The one exception is granted
+3. **Rectangles, not pills.** 12 dp controls, 16 dp cards, 24 dp overlays. The one exception is granted
    by *function*, not by size: whatever you tap is a rectangle — a button, a field, a stepper, and a
    filter or option chip too — while a chip that only labels something (a phase tag, a category name,
    a status badge, a progress track) may be fully round, because it carries no action.
 4. **Dense, not cramped.** 4 dp base unit, 16 dp page gutter, 16 dp card padding, 56 dp list rows,
-   40 dp controls. A dashboard fits a workout, its metadata and its action on one screen.
+   40 dp compact controls and 48 dp action buttons.
 5. **Colour always means something.** Four interval phases, six category families, four semantic
    states. Every hue ships with the pre-composited tint it is drawn on, so a tinted chip's contrast
    is a measured number rather than an alpha estimate.
@@ -81,7 +77,7 @@ is legible without a shadow. The accent splits in two, which is the one asymmetr
 | `pulse_light_text_secondary` | `#4B5157` | supporting copy |
 | `pulse_light_text_muted` | `#666C74` | labels, captions |
 | `pulse_light_accent` | `#B23A0B` | accent as **text**: links, selection, focus |
-| `pulse_light_brand` | `#F38020` | accent as **fill**: primary buttons, brand mark |
+| `pulse_light_brand` | `#F38020` | accent as **fill**: primary buttons |
 
 ### Void (OLED)
 
@@ -184,16 +180,16 @@ place a fixed advance width is genuinely wanted (the cue-script preview).
 | `cardPadding` | 16 dp | `PulseCard` interior |
 | `cardGap` | 12 dp | between sibling cards |
 | `chipGap` | 6 dp | inside a cluster of chips |
-| `controlHeight` / `buttonHeight` | 40 dp | buttons, inputs, segmented controls |
+| `controlHeight` / `buttonHeight` | 40 / 48 dp | compact controls / action buttons |
 | `iconButtonSize` | 36 dp | inside a 48 dp touch target |
 | `listRowHeight` | 56 dp | `PulseListRow` |
 | `metricRowHeight` | 44 dp | `MetricRow` |
 | `topBarHeight` | 56 dp | breadcrumb bar (before the status-bar inset) |
 | `navBarHeight` | 64 dp | phone bottom bar |
 | `railWidth` / `sidebarWidth` | 72 / 244 dp | tablet rail, desktop sidebar |
-| radii | 6 / 8 / 12 / full | controls, panels and every tappable chip / cards / overlays / label chips only |
+| radii | 12 / 16 / 24 / full | controls, panels and every tappable chip / cards / overlays / label chips only |
 | elevation | 0 / 1 / 4 / 12 dp | flat / interactive / overlay / floating chrome |
-| motion | 150 / 200 / 250 ms | feedback / selection / overlay — 0 under reduced motion |
+| motion | 150 / 200 / 220 / 250 ms | feedback / selection / theme palette / overlay — 0 under reduced motion |
 
 ---
 
@@ -231,6 +227,8 @@ Everything lives in `ui/components/` and reads only from `LocalPulseColors`, `Lo
 | `Indicators.kt` | `PhaseChip`, `NeutralChip`, `CategoryChip`, `StatusBadge`, `StatTile`, `MetricRow`, `InfoBanner`, `CategoryPicker` |
 | `DataDisplay.kt` | `TimelineBar`, `ProgressRing`, `ActivityChart`, `ProgressBar` |
 | `Feedback.kt` | `EmptyState`, `LoadingBox`, `ErrorState`, `ConfirmDialog`, `PulseSnackbar` |
+| `PulseLogo.kt` | Shared monochrome vector mark |
+| `ThemePicker.kt` | Four theme-preview tiles, animated selection and theme toggle |
 | `Navigation.kt` | `PulseNavItem`, `PulseNavGroup`, `PulseFloatingNavBar`, `PulseNavRail`, `PulseAppSidebar`, `PulseRailDivider` |
 
 Rules the components encode:
@@ -258,7 +256,8 @@ Rules the components encode:
   `pulse_outline` is the token that marks a real control boundary.
 * The **high-contrast** switch replaces phase hues, the outline and body text with strictly brighter
   variants (`PulsePalette.HighContrast*`), and the **dynamic colour** switch is gated behind a 4.5:1
-  check against the themed surface, so a system accent can never make a label unreadable.
+  check against all neutral surfaces and its selection tint. It supplies a matching action fill and
+  black/white foreground. High contrast disables wallpaper accents and theme-colour interpolation.
 * Touch targets are at least 48 dp (`minTouchTarget`); icon buttons are 36 dp glyphs inside that
   target.
 * Motion collapses to 0 ms under the reduced-motion switch; no screen animates when it is on.
@@ -271,7 +270,7 @@ Rules the components encode:
 ## 8. Adding a screen
 
 1. Wrap the content in `PulseScaffold { padding -> … }`; never draw your own top bar — the shell has it.
-2. Start the content with `PulsePageHeader(title, description, onBack = …, trailing = …)`; put the
+2. Start the content with `PulsePageHeader(title, onBack = …, trailing = …)`; put the
    screen's primary action in `trailing`.
 3. Use `dimens.pagePadding` for the gutter, `dimens.cardGap` between cards and `dimens.huge` of bottom
    padding so the last row clears the phone's navigation bar.
@@ -292,7 +291,19 @@ Rules the components encode:
 | Resource integrity | `python3 scripts/check_ui.py` | resource references resolve, vectors parse, en/fr string parity, bracket balance |
 | Kotlin syntax | `python3 scripts/kotlin_parse_gate.py` | every `.kt` file parses (tree-sitter) |
 | Cross-references | `python3 scripts/kotlin_xref_gate.py` | imports resolve, container/prefs members exist, AppRoot call signatures, `R.string` names |
-| Static UI check | `python3 /tmp/px/uicheck.py .` (dev tool) | token members, named arguments, icon imports, project symbols imported |
+| Brand integrity | `python3 scripts/check_brand.py` | shared SVG geometry, adaptive safe-zone inset, legacy splash vector |
 
 The Android build itself runs in CI (`.github/workflows/build-release.yml`): `:engine:test` and
 `:app:testDebugUnitTest` on every pull request, signed APKs on a `v*` tag.
+
+## 10. Branding and theme interaction
+
+`docs/brand/pulse.svg` is the normalized source. `ic_pulse.xml` is used by Compose and share images;
+launcher, monochrome, notification and splash vectors use the same path. Adaptive launcher layers
+place 60 dp of artwork in the 108 dp viewport. The splash uses a vector drawable item, not a bitmap.
+
+Settings and onboarding show System, Light, Dark and True black in a two-column preview grid. The
+System preview is split light/dark. Selection animates its check and outline; pressing scales a tile
+to 97%. Theme changes interpolate palette tokens over 220 ms without duplicating screen composition.
+Route changes fade over 150–200 ms. All these durations respect Reduced motion; Android’s animator
+scale also applies. The shell sun/moon action reads the resolved system theme, not just the stored enum.
