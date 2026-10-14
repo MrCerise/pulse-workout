@@ -42,9 +42,9 @@ android {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = 15
-        versionName = "1.6.7"
-        resourceConfigurations += listOf("en", "fr")
+        versionCode = 16
+        versionName = "1.7.0"
+        // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

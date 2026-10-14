@@ -25,6 +25,21 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  resource-checks:
+    name: Resource and localization checks
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.release_tag == '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Validate resources, branding and references
+        run: |
+          python3 scripts/check_ui.py
+          python3 scripts/check_brand.py
+          python3 scripts/kotlin_xref_gate.py
+          python3 scripts/contrast_check.py
+          git diff --exit-code -- docs/CONTRAST.md
+
   unit-tests:
     name: Unit tests (pull requests)
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.release_tag == '')

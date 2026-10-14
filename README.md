@@ -11,9 +11,18 @@ data that leaves the app is what you explicitly share, such as health records or
 you copy into an external AI tool.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.6.7 (versionCode 15)
+- **Version:** 1.7.0 (versionCode 16)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.7.0 — community translations
+
+- Translate PULSE on [Crowdin](https://crowdin.com/project/pulse-workout).
+- English sources synchronize automatically; approved translations arrive as reviewed pull requests.
+- APKs now include all contributed locales, with English fallback for missing strings.
+- No runtime translation service, account requirement or new app permissions.
+
+See [translation instructions](docs/TRANSLATING.md) and [release verification](docs/RELEASE_1.7.0.md).
 
 ## v1.6.7 — security and reliability
 
