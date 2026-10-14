@@ -35,6 +35,7 @@ class MusicController(
     private val context: Context,
     private val prefs: PreferencesRepository,
     scope: CoroutineScope,
+    private val createPlayer: () -> ExoPlayer = { ExoPlayer.Builder(context).build() },
 ) {
     private val playbackScope = CoroutineScope(scope.coroutineContext + Dispatchers.Main.immediate)
     private var player: ExoPlayer? = null
@@ -83,7 +84,7 @@ class MusicController(
                 if (uri.isNullOrBlank()) return@load
                 configure(current)
                 runCatching {
-                    val exo = ExoPlayer.Builder(context).build()
+                    val exo = createPlayer()
                     player = exo
                     exo.setAudioAttributes(
                         AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)

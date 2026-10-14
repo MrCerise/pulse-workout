@@ -134,8 +134,12 @@ class SessionController(
         scope.launch {
             prefs.flow.collect {
                 prefsSnapshot = it
-                // Settings changed mid-workout (ducking off, louder music) apply immediately.
-                music.configure(it)
+                // Keep live coaching controls in sync too; music observes prefs in AppContainer.
+                speech.rate = it.voiceRate
+                speech.pitch = it.voicePitch
+                speech.verbose = it.verbosity
+                soundPlayer.volume = it.cueVolume
+                haptics.enabled = it.vibrationEnabled
             }
         }
     }

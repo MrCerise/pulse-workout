@@ -40,8 +40,8 @@ import com.pulse.intervalcoach.data.VoiceVerbosity
  * Plays the short cue tones.
  *
  * Renders tiny PCM buffers directly with [AudioTrack], which gives us consistent, original tones
- * (no bundled audio files, no licences to track) and predictable latency. The generator is opened
- * lazily on first use and reused for the whole workout.
+ * (no bundled audio files, no licences to track). Each complete cue uses a static buffer: no
+ * truncated non-blocking writes, streaming start-threshold stalls, or stale tone backlog.
  */
 class CueSoundPlayer(private val context: Context) {
 
@@ -51,9 +51,12 @@ class CueSoundPlayer(private val context: Context) {
     @Volatile
     var volume: Float = 0.8f
 
-    private fun ensureTrack(): AudioTrack? {
-        audioTrack?.let { if (it.state == AudioTrack.STATE_INITIALIZED) return it }
-        return runCatching {
+    @Synchronized
+    fun play(cue: SoundCue) {
+        if (cue == SoundCue.NONE) return
+        val samples = render(cue)
+        release()
+        runCatching {
             val track = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
@@ -68,30 +71,23 @@ class CueSoundPlayer(private val context: Context) {
                         .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                         .build()
                 )
-                // Enough float PCM for the longest cue (1.3 s), not just 125 ms.
-                .setBufferSizeInBytes(sampleRate * Float.SIZE_BYTES * 2)
-                .setTransferMode(AudioTrack.MODE_STREAM)
+                .setBufferSizeInBytes(samples.size * Float.SIZE_BYTES)
+                .setTransferMode(AudioTrack.MODE_STATIC)
                 .build()
-                .also { it.play() }
             audioTrack = track
-            track
-        }.getOrNull()
+            // Static-mode writes copy into memory; they do not wait for the cue to finish playing.
+            check(track.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING) == samples.size)
+            track.play()
+        }.onFailure { release() }
     }
 
-    fun play(cue: SoundCue) {
-        if (cue == SoundCue.NONE) return
-        val track = ensureTrack() ?: return
-        val samples = render(cue)
-        runCatching { track.write(samples, 0, samples.size, AudioTrack.WRITE_NON_BLOCKING) }
-    }
-
-    /** Releases the underlying track. Called when a session ends. */
+    /** Releases the underlying track. Called when a session ends or a newer cue replaces it. */
+    @Synchronized
     fun release() {
-        runCatching {
-            audioTrack?.stop()
-            audioTrack?.release()
-        }
+        val previous = audioTrack
         audioTrack = null
+        runCatching { previous?.stop() }
+        runCatching { previous?.release() }
     }
 
     @VisibleForTesting

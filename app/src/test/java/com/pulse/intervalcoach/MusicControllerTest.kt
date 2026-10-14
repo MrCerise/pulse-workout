@@ -2,6 +2,10 @@ package com.pulse.intervalcoach
 
 import android.content.Context
 import android.os.SystemClock
+import android.net.Uri
+import androidx.media3.exoplayer.ExoPlayer
+import io.mockk.coEvery
+import io.mockk.verify
 import com.pulse.intervalcoach.audio.DuckPhase
 import com.pulse.intervalcoach.data.PreferencesRepository
 import com.pulse.intervalcoach.data.UserPreferences
@@ -82,6 +86,48 @@ class MusicControllerTest {
             music.stop()
             runCurrent()
         } finally {
+            unmockkStatic(SystemClock::class)
+            Dispatchers.resetMain()
+        }
+    }
+    @Test fun `player volume follows ducking during startup and returns to the chosen level`() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        mockkStatic(SystemClock::class)
+        mockkStatic(Uri::class)
+        try {
+            every { SystemClock.elapsedRealtime() } answers { testScheduler.currentTime }
+            every { Uri.parse(any()) } returns mockk<Uri>(relaxed = true)
+            val context = mockk<Context>()
+            every { context.getSystemService(Context.AUDIO_SERVICE) } returns null
+            val preferences = mockk<PreferencesRepository>()
+            coEvery { preferences.current() } returns UserPreferences(musicUri = "content://test/song", musicVolume = 0.6f, duckLevel = 0.3f)
+            val player = mockk<ExoPlayer>(relaxed = true)
+            val volumes = mutableListOf<Float>()
+            every { player.volume = capture(volumes) } returns Unit
+            val music = MusicController(context, preferences, backgroundScope, createPlayer = { player })
+            music.onSpeechStarted(2000)
+            music.start()
+            runCurrent()
+            advanceTimeBy(400)
+            runCurrent()
+            assertNull(music.unavailable.value)
+            assertTrue(volumes.isNotEmpty())
+            assertEquals(0.18f, volumes.last(), 0.001f)
+            assertTrue("Fade-in must not override the duck", volumes.all { it <= 0.181f })
+            music.onSpeechFinished()
+            runCurrent()
+            advanceTimeBy(1000)
+            runCurrent()
+            assertEquals(0.6f, volumes.last(), 0.001f)
+            music.stop()
+            runCurrent()
+            verify(exactly = 1) { player.release() }
+            val writesAfterStop = volumes.size
+            advanceTimeBy(4000)
+            runCurrent()
+            assertEquals(writesAfterStop, volumes.size)
+        } finally {
+            unmockkStatic(Uri::class)
             unmockkStatic(SystemClock::class)
             Dispatchers.resetMain()
         }
