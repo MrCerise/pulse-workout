@@ -473,6 +473,40 @@ class TimerEngineTest {
         assertTrue(error!!.message!!.contains("limit"))
     }
 
+    @Test
+    fun `nested repeat products are rejected before timeline allocation`() {
+        var nested: Node = interval("w", "W", PhaseKind.WORK, 1)
+        repeat(4) { depth ->
+            nested = group("g$depth", "Nested", 1_000, listOf(nested))
+        }
+        val error = runCatching { TimelineExpander.expand(plan(listOf(nested))) }.exceptionOrNull()
+        assertTrue(error is ExpansionException)
+    }
+
+    @Test
+    fun `nested empty repeats cannot consume unbounded expansion work`() {
+        var children: List<Node> = emptyList()
+        repeat(6) { depth ->
+            children = listOf(group("g$depth", "Empty nested", 1_000, children))
+        }
+        val error = runCatching { TimelineExpander.expand(plan(children)) }.exceptionOrNull()
+        assertTrue(error is ExpansionException)
+        assertTrue(error!!.message!!.contains("work limit"))
+    }
+
+    @Test
+    fun `timed duration accumulation rejects Long overflow`() {
+        val huge = { id: String ->
+            IntervalNode(id, IntervalSpec(id = id, name = "Huge", kind = PhaseKind.WORK, durationMillis = Long.MAX_VALUE))
+        }
+        val limits = EngineLimits(maxTotalTimedMillis = Long.MAX_VALUE)
+        val error = runCatching {
+            TimelineExpander.expand(plan(listOf(huge("one"), huge("two"))), limits)
+        }.exceptionOrNull()
+        assertTrue(error is ExpansionException)
+        assertTrue(error!!.message!!.contains("limit"))
+    }
+
     // -------------------------------------------------------------------------------------------
     // Validation
     // -------------------------------------------------------------------------------------------

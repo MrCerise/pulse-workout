@@ -366,7 +366,111 @@ data class ExpandedTimeline(
  */
 object TimelineExpander {
 
+    private data class ExpansionEstimate(
+        val steps: Long,
+        val trailingRecoverySteps: Long,
+        val workUnits: Long,
+    )
+
+    private fun saturatedAdd(left: Long, right: Long): Long =
+        if (right > Long.MAX_VALUE - left) Long.MAX_VALUE else left + right
+
+    private fun saturatedMultiply(left: Long, right: Long): Long =
+        if (left == 0L || right == 0L) 0L
+        else if (left > Long.MAX_VALUE / right) Long.MAX_VALUE
+        else left * right
+
+    /**
+     * Count the expansion symbolically before allocating timeline entries or iterating repeats.
+     * Work also includes empty group iterations, which otherwise can consume unbounded CPU while
+     * emitting no intervals at all.
+     */
+    private fun estimateNodes(nodes: List<Node>, depth: Int, limits: EngineLimits): ExpansionEstimate {
+        if (depth > limits.maxNestingDepth) {
+            throw ExpansionException("Groups nested deeper than ${limits.maxNestingDepth} levels are not supported.")
+        }
+        var steps = 0L
+        var trailingRecovery = 0L
+        var work = 0L
+        for (node in nodes) {
+            work = saturatedAdd(work, 1L)
+            when (node) {
+                is IntervalNode -> {
+                    val interval = node.interval
+                    val included = !interval.omitted && (interval.manualCompletion || interval.durationMillis > 0L)
+                    if (included) {
+                        steps = saturatedAdd(steps, 1L)
+                        val isTrimmedRecovery = !interval.manualCompletion &&
+                            (interval.kind == PhaseKind.REST || interval.kind == PhaseKind.TRANSITION)
+                        trailingRecovery = if (isTrimmedRecovery) saturatedAdd(trailingRecovery, 1L) else 0L
+                    }
+                }
+                is RepeatGroup -> {
+                    if (node.repeat < 1) {
+                        throw ExpansionException("Block \"${node.name}\" must repeat at least once.")
+                    }
+                    if (node.repeat > limits.maxRepeatCount) {
+                        throw ExpansionException(
+                            "Block \"${node.name}\" repeats ${formatCount(node.repeat)} times, above the ${formatCount(limits.maxRepeatCount)} limit."
+                        )
+                    }
+                    if (node.restAfterGroupMillis < 0L) {
+                        throw ExpansionException("Rest after \"${node.name}\" cannot be negative.")
+                    }
+
+                    val child = estimateNodes(node.children, depth + 1, limits)
+                    val repeat = node.repeat.toLong()
+                    val hasGroupRest = node.restAfterGroupMillis > 0L
+                    val restSteps = if (hasGroupRest) 1L else 0L
+                    val stepsPerRound = saturatedAdd(child.steps, restSteps)
+                    val groupSteps = saturatedMultiply(stepsPerRound, repeat)
+                    if (groupSteps > 0L) {
+                        val childIsAllRecovery = child.steps == child.trailingRecoverySteps
+                        val groupTrailingRecovery = when {
+                            hasGroupRest && childIsAllRecovery -> groupSteps
+                            hasGroupRest -> saturatedAdd(child.trailingRecoverySteps, 1L)
+                            childIsAllRecovery -> groupSteps
+                            else -> child.trailingRecoverySteps
+                        }
+                        trailingRecovery = if (groupTrailingRecovery == groupSteps) {
+                            saturatedAdd(trailingRecovery, groupSteps)
+                        } else {
+                            groupTrailingRecovery
+                        }
+                        steps = saturatedAdd(steps, groupSteps)
+                    }
+
+                    val workPerRound = saturatedAdd(
+                        saturatedAdd(child.workUnits, 1L),
+                        restSteps,
+                    )
+                    work = saturatedAdd(work, saturatedMultiply(workPerRound, repeat))
+                }
+            }
+        }
+        return ExpansionEstimate(steps, trailingRecovery, work)
+    }
+
+    private fun durationLimitMessage(limits: EngineLimits): String {
+        val limit = limits.maxTotalTimedMillis
+        val displayLimit = if (limit in 0..7_000_000_000_000_000_000L) formatDuration(limit) else "configured"
+        return "Timed content exceeds the $displayLimit limit."
+    }
+
     fun expand(plan: WorkoutPlan, limits: EngineLimits = EngineLimits()): ExpandedTimeline {
+        val estimate = estimateNodes(plan.nodes, depth = 1, limits = limits)
+        val expectedFinalSteps = estimate.steps - if (plan.includeFinalRest) 0L else estimate.trailingRecoverySteps
+        if (expectedFinalSteps > limits.maxExpandedIntervals.toLong()) {
+            throw ExpansionException(
+                "This workout expands to ${formatCount(expectedFinalSteps)} intervals, above the ${formatCount(limits.maxExpandedIntervals)} limit. " +
+                    "Reduce repeats or split it into several workouts."
+            )
+        }
+        val workLimit = maxOf(100_000L, limits.maxExpandedIntervals.coerceAtLeast(0).toLong() * 20L)
+        if (estimate.workUnits > workLimit) {
+            throw ExpansionException("This workout's repeat structure exceeds the safe expansion work limit. Reduce nested repeats.")
+        }
+
         val warnings = mutableListOf<String>()
         val steps = mutableListOf<TimelineStep>()
         val random = if (plan.shuffleEager) kotlin.random.Random(plan.id.hashCode()) else null
@@ -387,11 +491,17 @@ object TimelineExpander {
                     "Reduce repeats or split it into several workouts."
             )
         }
-        val known = steps.filter { !it.isIndefinite }.sumOf { it.durationMillis }
-        if (known > limits.maxTotalTimedMillis) {
-            throw ExpansionException(
-                "Timed content is ${formatDuration(known)}, above the ${formatDuration(limits.maxTotalTimedMillis)} limit."
-            )
+        var known = 0L
+        for (step in steps) {
+            if (step.isIndefinite) continue
+            known = try {
+                Math.addExact(known, step.durationMillis)
+            } catch (_: ArithmeticException) {
+                throw ExpansionException(durationLimitMessage(limits))
+            }
+            if (known > limits.maxTotalTimedMillis) {
+                throw ExpansionException(durationLimitMessage(limits))
+            }
         }
         val openEnded = steps.count { it.isIndefinite }
         if (openEnded > 0) {

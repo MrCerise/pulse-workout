@@ -21,7 +21,13 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from .safe_repo_io import BoundedSourceReader, RepositoryIOError, atomic_write_text
+except ImportError:  # Executed as `python3 scripts/contrast_check.py`.
+    from safe_repo_io import BoundedSourceReader, RepositoryIOError, atomic_write_text
+
 ROOT = Path(__file__).resolve().parent.parent
+SOURCE_READER = BoundedSourceReader(ROOT)
 COLORS_XML = ROOT / "app/src/main/res/values/colors.xml"
 PALETTE_KT = ROOT / "app/src/main/java/com/pulse/intervalcoach/ui/theme/Palette.kt"
 OUT = ROOT / "docs/CONTRAST.md"
@@ -203,7 +209,7 @@ KOTLIN_MIRROR = {
 
 
 def parse_colors(path: Path) -> dict[str, str]:
-    text = path.read_text(encoding="utf-8")
+    text = SOURCE_READER.read_text(path)
     return {
         m.group(1): m.group(2).upper()
         for m in re.finditer(r'<color name="([^"]+)">\s*(#[0-9A-Fa-f]{6,8})\s*</color>', text)
@@ -211,7 +217,7 @@ def parse_colors(path: Path) -> dict[str, str]:
 
 
 def parse_kotlin_palette(path: Path) -> dict[str, str]:
-    text = path.read_text(encoding="utf-8")
+    text = SOURCE_READER.read_text(path)
     return {
         m.group(1): "#" + m.group(2).upper()
         for m in re.finditer(
@@ -401,8 +407,12 @@ def main() -> int:
         print("missing: " + ", ".join(str(p) for p in missing_file), file=sys.stderr)
         return 2
 
-    colors = parse_colors(COLORS_XML)
-    kotlin = parse_kotlin_palette(PALETTE_KT)
+    try:
+        colors = parse_colors(COLORS_XML)
+        kotlin = parse_kotlin_palette(PALETTE_KT)
+    except RepositoryIOError as error:
+        print(f"unsafe contrast-check input: {error}", file=sys.stderr)
+        return 2
 
     problems: list[str] = []
     for token in REQUIRED_TOKENS:
@@ -488,8 +498,11 @@ def main() -> int:
         "",
     ]
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text("\n".join(lines), encoding="utf-8")
+    try:
+        atomic_write_text(ROOT, OUT.relative_to(ROOT), "\n".join(lines))
+    except RepositoryIOError as error:
+        print(f"could not safely write contrast report: {error}", file=sys.stderr)
+        return 2
     print(f"wrote {OUT.relative_to(ROOT)} ({total} pairs)")
     for failure in failures:
         print(failure, file=sys.stderr)

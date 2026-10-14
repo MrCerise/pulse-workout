@@ -23,8 +23,8 @@ import kotlinx.coroutines.launch
  * Home-screen widgets built with RemoteViews.
  *
  * Both widgets are strictly read-only views over real saved data: the favourites widget shows the
- * user's starred workouts and starts one on tap; the quick-start widget opens the builder. Nothing
- * is faked — an empty library shows an instruction instead of placeholder workouts.
+ * user's starred workouts and opens their details on tap; the quick-start widget opens the builder.
+ * Nothing is faked — an empty library shows an instruction instead of placeholder workouts.
  */
 object Widgets {
 

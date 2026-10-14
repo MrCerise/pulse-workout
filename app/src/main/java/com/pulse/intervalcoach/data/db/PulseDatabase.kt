@@ -245,6 +245,9 @@ interface FolderDao {
     @Query("SELECT * FROM folders ORDER BY sortOrder, name")
     fun observeAll(): Flow<List<FolderEntity>>
 
+    @Query("SELECT * FROM folders WHERE id = :id")
+    suspend fun byId(id: String): FolderEntity?
+
     @Upsert
     suspend fun upsert(folder: FolderEntity)
 
@@ -274,6 +277,9 @@ interface TagDao {
 interface ExerciseLabelDao {
     @Query("SELECT * FROM exercise_labels ORDER BY useCount DESC, label")
     fun observeAll(): Flow<List<ExerciseLabelEntity>>
+
+    @Query("SELECT * FROM exercise_labels WHERE id = :id")
+    suspend fun byId(id: String): ExerciseLabelEntity?
 
     @Upsert
     suspend fun upsert(label: ExerciseLabelEntity)
@@ -384,6 +390,9 @@ interface ReminderDao {
 
     @Query("SELECT * FROM reminders ORDER BY scheduledAt")
     fun observeAll(): Flow<List<ReminderEntity>>
+
+    @Query("SELECT * FROM reminders WHERE id = :id")
+    suspend fun byId(id: String): ReminderEntity?
 
     @Query("SELECT * FROM reminders WHERE scheduledAt BETWEEN :from AND :to ORDER BY scheduledAt")
     suspend fun between(from: Long, to: Long): List<ReminderEntity>

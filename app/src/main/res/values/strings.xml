@@ -63,6 +63,10 @@
     <string name="details_voice">Voice profile</string>
     <string name="details_notes">Notes</string>
     <string name="details_start">Start workout</string>
+    <string name="external_start_title">Start this workout?</string>
+    <string name="external_start_body">A link asked to start “%1$s”. Starting it will add a session to your history.</string>
+    <string name="external_start_replace_body">Start “%1$s” and end “%2$s”? The current session will be saved as stopped.</string>
+    <string name="external_start_unavailable">This workout is no longer available.</string>
     <string name="details_preview">Preview cues</string>
     <string name="details_intervals">%1$d intervals</string>
 
@@ -290,6 +294,7 @@
     <string name="import_confirm">Import</string>
     <string name="import_corrupt">Invalid PULSE backup. Nothing was changed.</string>
     <string name="backup_created">Backup written to %1$s</string>
+    <string name="backup_too_large">Backups larger than %1$d MiB cannot be imported.</string>
 
     <!-- Onboarding -->
     <string name="welcome_title">PULSE Interval Coach</string>

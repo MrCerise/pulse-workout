@@ -200,6 +200,7 @@ fun WorkoutLibraryScreen(
     onOpenTemplates: () -> Unit,
     onQuickBuilder: () -> Unit,
     onAdvancedBuilder: () -> Unit,
+    onStartWorkout: (WorkoutPlan) -> Unit,
     /** Opens the builder *for* an existing workout — the library's own route into editing. */
     onEdit: (String) -> Unit,
     onJsonImport: () -> Unit,
@@ -378,7 +379,7 @@ fun WorkoutLibraryScreen(
                                         onOpen = { onOpenWorkout(workout.id) },
                                         onStart = {
                                             scope.launch {
-                                                viewModel.plan(workout.id)?.let { container.sessionController.startWorkout(it) }
+                                                viewModel.plan(workout.id)?.let(onStartWorkout)
                                             }
                                         },
                                         onEdit = { onEdit(workout.id) },
