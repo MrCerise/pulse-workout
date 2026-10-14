@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -126,13 +128,21 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
                         }
                     }
                     itemsIndexed(if (showAll) timeline.steps else timeline.steps.take(12), key = { i, _ -> "step-$index-$i" }) { _, step ->
-                        PulseListRow(title = step.name,
-                            subtitle = listOfNotNull(
-                                if (step.isIndefinite) stringResource(R.string.json_manual) else formatDuration(step.durationMillis),
-                                step.reps?.let { stringResource(R.string.json_reps, it) }, step.notes, step.speechText,
-                                step.equipment, step.sideLabel,
-                            ).joinToString(" · "),
-                            onClick = null, trailing = { PhaseChip(kind = step.kind, name = null) })
+                        Column(verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                                Text(step.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                                PhaseChip(kind = step.kind, name = null)
+                            }
+                            Text(if (step.isIndefinite) stringResource(R.string.json_manual) else formatDuration(step.durationMillis))
+                            if (step.groupBreadcrumb.isNotEmpty()) Text(step.groupBreadcrumb.joinToString(" / "), style = MaterialTheme.typography.labelMedium)
+                            step.reps?.let { Text(stringResource(R.string.json_reps, it)) }
+                            // Never ellipsize AI coaching instructions: review must expose the full content.
+                            step.notes?.takeIf { it.isNotBlank() }?.let { Text(it) }
+                            step.speechText?.takeIf { it.isNotBlank() }?.let { Text(it) }
+                            step.equipment?.let { Text(stringResource(R.string.json_equipment, it)) }
+                            step.sideLabel?.let { Text(it) }
+                            PulseDivider()
+                        }
                     }
                 }
                 if (preview.timelines.any { it.steps.size > 12 }) item {
