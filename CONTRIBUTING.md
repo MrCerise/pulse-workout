@@ -86,7 +86,8 @@ specifically:
 clock through the constructor. Please keep it that way. Any change to timing behaviour needs a test
 in `engine/src/test`. That's where pauses, clock jumps and the Tabata edge cases are covered.
 
-**Strings and translations.** Never hardcode user-visible text. Add every new string to both
+**Strings and translations.** Translate on [Crowdin](https://crowdin.com/project/pulse-workout);
+see [the translation guide](docs/TRANSLATING.md). Never hardcode user-visible text. Add every new string to both
 `app/src/main/res/values/strings.xml` and `values-fr/strings.xml`. If you don't speak French,
 copy the English text into the French file and say so in your PR. Someone will translate it.
 
