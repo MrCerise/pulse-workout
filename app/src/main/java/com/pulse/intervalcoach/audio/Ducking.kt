@@ -29,7 +29,7 @@ data class DuckConfig(
     val fadeUpMs: Long = 420L,
 ) {
     /** [level] as a usable multiplier, whatever the caller stored. */
-    val clampedLevel: Float get() = level.coerceIn(0f, 1f)
+    val clampedLevel: Float get() = if (level.isFinite()) level.coerceIn(0f, 1f) else DEFAULT_LEVEL
 
     /** Time from "speech stopped" to full volume again. */
     val releaseMillis: Long get() = holdMs + fadeUpMs
@@ -97,6 +97,7 @@ class DuckingEngine(private val nowMillis: () -> Long) {
 
     /** Starts (or extends) an open-ended duck: something is speaking until [release] is called. */
     fun beginDuck() {
+        if (!config.enabled) return
         val now = nowMillis()
         settleIfFinished(now)
         if (!active) {
@@ -108,12 +109,13 @@ class DuckingEngine(private val nowMillis: () -> Long) {
             fromScale = stateAt(now).scale
             startedAt = now
         }
+        releasedAt?.let { if (it > now) windowUntil = maxOf(windowUntil ?: 0L, it) }
         releasedAt = null
     }
 
     /** Ducks for a known duration, for example the length of a cue tone. */
     fun duckFor(millis: Long) {
-        if (millis <= 0L) return
+        if (!config.enabled || millis <= 0L) return
         val now = nowMillis()
         settleIfFinished(now)
         val until = now + millis
@@ -126,6 +128,10 @@ class DuckingEngine(private val nowMillis: () -> Long) {
             // Speech holds the duck open; the tone only lengthens the tail that follows it.
             windowUntil = maxOf(windowUntil ?: 0L, until)
         } else {
+            if (stateAt(now).phase == DuckPhase.FADING_UP) {
+                fromScale = stateAt(now).scale
+                startedAt = now
+            }
             // Never shorten an in-flight duck: two overlapping tones cover each other.
             releasedAt = maxOf(releasedAt!!, until)
         }
@@ -137,7 +143,7 @@ class DuckingEngine(private val nowMillis: () -> Long) {
         val now = nowMillis()
         val window = windowUntil
         windowUntil = null
-        releasedAt = maxOf(now, window ?: 0L)
+        releasedAt = maxOf(now, window ?: 0L, releasedAt ?: 0L)
     }
 
     /**

@@ -11,9 +11,29 @@ data that leaves the app is what you explicitly share, such as health records or
 you copy into an external AI tool.
 
 - **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.6.4 (versionCode 12)
+- **Version:** 1.6.5 (versionCode 13)
 - **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
 - **Languages:** English (default) and French (`values-fr`)
+
+## v1.6.5 — audio & sharing polish
+
+- **Volume buttons adjust media volume, always.** Removed the workout-navigation shortcut,
+  including previously saved opt-ins. Change intervals from the player or notification instead.
+- **Reliable cue ducking.** Player access is confined to Android’s main thread; startup fades
+  respect cues, queued speech is tracked by utterance ID, and late callbacks cannot end a newer
+  duck. Voice Studio previews use the same path as live coaching. Longer tones are no longer
+  clipped by a 125 ms PCM buffer.
+- **Other music apps:** request transient Android audio focus only around cues, not for the whole
+  workout. The depth slider controls PULSE’s selected file; external-player attenuation depends
+  on Android and that player’s audio-focus support. No global media-volume manipulation.
+- **A redesigned 1080 × 1350 share card:** Inter typography, orange accents, a completion bar,
+  readable metric tiles, wrapped workout titles, and the recorded session date. English/French
+  labels; no private notes or health data in the image.
+- **Safer sharing:** background rendering/encoding, duplicate-tap protection, recoverable errors,
+  URI read grants, bitmap cleanup, and expiry of old exported images. FileProvider no longer
+  exposes the app’s private files directory.
+
+See [v1.6.5 release verification](docs/RELEASE_1.6.5.md) for automated and device checks.
 
 ## v1.6.4 — what changed
 
@@ -407,7 +427,7 @@ inside Progress, the template gallery and Health setup are pushed destinations.
       with volume and preview, own recordings
 - [x] Settings: themes (system/light/dark/true black), dynamic colour for navigation only, high
       contrast, reduced motion, left-handed player, density, defaults, units, interruption and
-      headphone behaviour, volume-key control, background audio, data management, help
+      headphone behaviour, media-volume buttons, background audio, data management, help
 - [x] Import / export / backup (JSON, SAF) with preview before writing and never overwriting
 - [x] Empty, loading, error and permission-denied states on every data surface
 - [x] Drafts preserved across process death; Save / Discard / Cancel on dirty drafts

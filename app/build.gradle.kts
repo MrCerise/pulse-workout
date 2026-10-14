@@ -42,8 +42,8 @@ android {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = 12
-        versionName = "1.6.4"
+        versionCode = 13
+        versionName = "1.6.5"
         resourceConfigurations += listOf("en", "fr")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

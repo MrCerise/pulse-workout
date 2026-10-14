@@ -77,7 +77,6 @@ data class UserPreferences(
     val lastAutoBackupAt: Long = 0L,
     val musicUri: String? = null,
     val musicVolume: Float = 0.6f,
-    val volumeKeysControlSession: Boolean = false,
     val showInstructorViewByDefault: Boolean = false,
     // --- Health & fitness integrations (v1.3) ---
     /** Master switch for writing finished sessions to Health / Google Fit. */
@@ -134,7 +133,6 @@ class PreferencesRepository(private val context: Context) {
         val lastBackup = longPreferencesKey("last_auto_backup_at")
         val musicUri = stringPreferencesKey("music_uri")
         val musicVolume = floatPreferencesKey("music_volume")
-        val volumeKeys = booleanPreferencesKey("volume_keys_control")
         val instructorView = booleanPreferencesKey("instructor_view_default")
         val healthSyncSessions = booleanPreferencesKey("health_sync_sessions")
         val healthLastSyncAt = longPreferencesKey("health_last_sync_at")
@@ -182,7 +180,6 @@ class PreferencesRepository(private val context: Context) {
             lastAutoBackupAt = prefs[Keys.lastBackup] ?: 0L,
             musicUri = prefs[Keys.musicUri],
             musicVolume = prefs[Keys.musicVolume] ?: 0.6f,
-            volumeKeysControlSession = prefs[Keys.volumeKeys] ?: false,
             showInstructorViewByDefault = prefs[Keys.instructorView] ?: false,
             healthSyncSessions = prefs[Keys.healthSyncSessions] ?: true,
             healthLastSyncAt = prefs[Keys.healthLastSyncAt] ?: 0L,
@@ -236,7 +233,6 @@ class PreferencesRepository(private val context: Context) {
         if (volume != null) prefs[Keys.musicVolume] = volume.coerceIn(0f, 1f)
     }
     suspend fun setMusicVolume(volume: Float) = edit { it[Keys.musicVolume] = volume.coerceIn(0f, 1f) }
-    suspend fun setVolumeKeysControl(value: Boolean) = edit { it[Keys.volumeKeys] = value }
     suspend fun setInstructorViewDefault(value: Boolean) = edit { it[Keys.instructorView] = value }
     suspend fun setHealthSyncSessions(value: Boolean) = edit { it[Keys.healthSyncSessions] = value }
     suspend fun setHealthLastSyncAt(at: Long) = edit { it[Keys.healthLastSyncAt] = at }

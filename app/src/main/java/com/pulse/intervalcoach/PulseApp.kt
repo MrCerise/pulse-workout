@@ -59,7 +59,14 @@ class AppContainer(private val app: Application) {
     val cueSoundPlayer: CueSoundPlayer by lazy { CueSoundPlayer(app) }
     val haptics: Haptics by lazy { Haptics(app) }
     val speech: SpeechCoach by lazy { SpeechCoach(app, CueGate(nowMillis = { SystemClock.elapsedRealtime() })) }
-    val music: MusicController by lazy { MusicController(app, preferences, appScope) }
+    val music: MusicController by lazy {
+        MusicController(app, preferences, appScope).also { controller ->
+            // Voice Studio previews work even before a session controller has been created.
+            speech.onSpeechStarted = controller::onSpeechStarted
+            speech.onSpeechFinished = controller::onSpeechFinished
+            appScope.launch { preferences.flow.collect { controller.configure(it) } }
+        }
+    }
 
     val sessionController: SessionController by lazy {
         SessionController(

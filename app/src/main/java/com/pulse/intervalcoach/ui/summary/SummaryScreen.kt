@@ -1,12 +1,8 @@
 package com.pulse.intervalcoach.ui.summary
 
-import android.content.Context
+import android.content.ClipData
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color as AndroidColor
-import android.graphics.Paint
-import android.graphics.Typeface
+import kotlinx.coroutines.CancellationException
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
@@ -56,13 +51,6 @@ import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.PulseType
-import java.io.File
-import java.io.FileOutputStream
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -86,6 +74,8 @@ fun SessionSummaryScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var notes by remember(summary?.sessionId) { mutableStateOf("") }
+    var sharing by remember { mutableStateOf(false) }
+    var shareError by remember { mutableStateOf(false) }
 
     PulseScaffold { padding ->
         val current = summary
@@ -107,11 +97,11 @@ fun SessionSummaryScreen(
         }
 
         val entity by container.sessions.observeSession(current.sessionId).collectAsStateWithLifecycle(initialValue = null)
-        var hrStats by remember { mutableStateOf<HrStats?>(null) }
-        var healthShared by remember { mutableStateOf<Boolean?>(null) }
+        var hrStats by remember(current.sessionId) { mutableStateOf<HrStats?>(null) }
+        var healthShared by remember(current.sessionId) { mutableStateOf<Boolean?>(null) }
 
         // Read HR stats for the session window and (if the user allows) write the session to health apps.
-        LaunchedEffect(current.sessionId, entity) {
+        LaunchedEffect(current.sessionId, entity, prefs?.healthSyncSessions) {
             val e = entity ?: return@LaunchedEffect
             hrStats = if (e.endedAt > e.startedAt) {
                 container.health.heartRateStats(e.startedAt, e.endedAt)
@@ -240,19 +230,36 @@ fun SessionSummaryScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            SectionHeader("Share")
+            SectionHeader(stringResource(R.string.summary_share_title))
+            if (shareError) InfoBanner(stringResource(R.string.summary_share_error))
             SecondaryActionButton(
-                text = stringResource(R.string.summary_share_image),
+                text = stringResource(if (sharing) R.string.summary_share_preparing else R.string.summary_share_image),
+                enabled = !sharing,
                 onClick = {
+                    sharing = true
+                    shareError = false
                     scope.launch {
-                        val bitmap = withContext(Dispatchers.Default) { SummaryImage.render(current) }
-                        val uri = SummaryImage.writeToCache(context, bitmap)
-                        val intent = Intent(Intent.ACTION_SEND).apply {
-                            type = "image/png"
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        try {
+                            val uri = withContext(Dispatchers.IO) {
+                                val bitmap = SummaryImage.render(context, current)
+                                try { SummaryImage.writeToCache(context, bitmap) }
+                                finally { bitmap.recycle() }
+                            }
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "image/png"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                putExtra(Intent.EXTRA_TITLE, current.planName)
+                                clipData = ClipData.newRawUri(current.planName, uri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(Intent.createChooser(intent, context.getString(R.string.summary_share_title)))
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            shareError = true
+                        } finally {
+                            sharing = false
                         }
-                        context.startActivity(Intent.createChooser(intent, "Share summary"))
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -270,98 +277,5 @@ fun SessionSummaryScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-    }
-}
-
-/**
- * Renders the shareable summary card with the Android canvas API so it stays sharp on any display
- * and needs no extra dependency. Colours match the app's design tokens.
- */
-object SummaryImage {
-
-    private const val WIDTH = 1080
-    private const val HEIGHT = 1350
-
-    // Token values mirrored from ui/theme/Palette.kt (the shared card is drawn outside Compose, so
-    // it cannot read the composition locals).
-    private const val CANVAS = "#17181B"
-    private const val TEXT_PRIMARY = "#F5F6F7"
-    private const val TEXT_MUTED = "#9CA2A9"
-    private const val WORK = "#4CC38A"
-    private const val PREPARE = "#F5B544"
-
-    fun render(summary: com.pulse.intervalcoach.session.SessionSummaryData): Bitmap {
-        val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(AndroidColor.parseColor(CANVAS))
-
-        val title = Paint().apply {
-            color = AndroidColor.parseColor(TEXT_PRIMARY)
-            textSize = 64f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        val body = Paint().apply {
-            color = AndroidColor.parseColor(TEXT_MUTED)
-            textSize = 40f
-            isAntiAlias = true
-        }
-        val big = Paint().apply {
-            color = AndroidColor.parseColor(TEXT_PRIMARY)
-            textSize = 190f
-            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-            isAntiAlias = true
-        }
-        val label = Paint().apply {
-            color = AndroidColor.parseColor(TEXT_MUTED)
-            textSize = 34f
-            letterSpacing = 0.12f
-            isAntiAlias = true
-        }
-
-        canvas.drawText("PULSE — INTERVAL COACH", 80f, 130f, label)
-        canvas.drawText(summary.planName.take(28), 80f, 220f, title)
-        canvas.drawText(
-            if (summary.stoppedEarly) "Ended early" else "Completed",
-            80f, 290f,
-            Paint(body).apply {
-                color = AndroidColor.parseColor(if (summary.stoppedEarly) PREPARE else WORK)
-            },
-        )
-
-        canvas.drawText(formatClock(summary.activeMillis), 80f, 520f, big)
-        canvas.drawText("ACTIVE TIME", 84f, 590f, label)
-
-        val statsY = 760f
-        drawStat(canvas, body, title, 80f, statsY, "Intervals", "${summary.completedIntervals}/${summary.totalIntervals}")
-        drawStat(canvas, body, title, 560f, statsY, "Completion", "${if (summary.totalIntervals == 0) 0 else summary.completedIntervals * 100 / summary.totalIntervals}%")
-        canvas.drawText("Recorded by PULSE — every number above is from this device's saved session", 80f, 1120f, body.apply { textSize = 30f })
-        canvas.drawText(
-            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
-                .format(Instant.now().atZone(ZoneId.systemDefault())),
-            80f, 1180f,
-            body.apply { textSize = 30f },
-        )
-        return bitmap
-    }
-
-    private fun drawStat(canvas: Canvas, label: Paint, value: Paint, x: Float, y: Float, name: String, text: String) {
-        canvas.drawText(name.uppercase(Locale.getDefault()), x, y, label)
-        canvas.drawText(text, x, y + 80f, value)
-    }
-
-    fun writeToCache(context: Context, bitmap: Bitmap): android.net.Uri {
-        val dir = File(context.cacheDir, "shared").apply { mkdirs() }
-        val file = File(dir, "pulse-session-${System.currentTimeMillis()}.png")
-        FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-        return FileProvider.getUriForFile(context, "${context.packageName}.files", file)
-    }
-
-    private fun formatClock(millis: Long): String {
-        val total = (millis.coerceAtLeast(0) + 999) / 1000
-        val h = total / 3600
-        val m = (total % 3600) / 60
-        val s = total % 60
-        return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
     }
 }

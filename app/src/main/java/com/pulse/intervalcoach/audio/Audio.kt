@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import com.pulse.engine.HapticCue
 import com.pulse.engine.SoundCue
@@ -58,7 +57,7 @@ class CueSoundPlayer(private val context: Context) {
             val track = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build()
                 )
@@ -69,7 +68,8 @@ class CueSoundPlayer(private val context: Context) {
                         .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                         .build()
                 )
-                .setBufferSizeInBytes(sampleRate / 2)
+                // Enough float PCM for the longest cue (1.3 s), not just 125 ms.
+                .setBufferSizeInBytes(sampleRate * Float.SIZE_BYTES * 2)
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build()
                 .also { it.play() }
@@ -369,8 +369,8 @@ class SpeechCoach(
     @Volatile
     var onSpeechFinished: (() -> Unit)? = null
 
-    /** Utterances the engine has started but not finished; queued cues overlap. */
-    private val activeUtterances = AtomicInteger(0)
+    /** Track submitted IDs, not onStart counts: queued and flushed callbacks can arrive late. */
+    private val utterances = UtteranceQueue()
 
     private var initialised = false
 
@@ -396,17 +396,19 @@ class SpeechCoach(
         val engine = tts ?: return
         runCatching {
             engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) {
-                    activeUtterances.incrementAndGet()
-                }
+                override fun onStart(utteranceId: String?) = Unit
 
-                override fun onDone(utteranceId: String?) = utteranceFinished()
+                override fun onDone(utteranceId: String?) = utteranceFinished(utteranceId)
 
-                override fun onStop(utteranceId: String?, interrupted: Boolean) = utteranceFinished()
+                override fun onStop(utteranceId: String?, interrupted: Boolean) = utteranceFinished(utteranceId)
 
                 @Deprecated("Deprecated in Java")
-                override fun onError(utteranceId: String?) = utteranceFinished()
+                override fun onError(utteranceId: String?) = utteranceFinished(utteranceId)
             })
+            engine.setAudioAttributes(
+                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+            )
             val locale = localeFor(appContext)
             val result = engine.setLanguage(locale)
             engine.setSpeechRate(rate)
@@ -437,59 +439,59 @@ class SpeechCoach(
         }
     }
 
-    /** Speaks a cue if the gate allows it. Returns false when the cue was not spoken. */
+    /** Speaks a cue if the gate allows it. Returns false on engine rejection as well as failure. */
+    @Synchronized
     fun speak(text: String, priority: CuePriority = CuePriority.INFO): Boolean {
-        val engine = tts ?: return false
-        if (_state.value !is SpeechAvailability.Ready) return false
-        if (text.isBlank()) return false
+        if (tts == null || _state.value !is SpeechAvailability.Ready || text.isBlank()) return false
         val decision = gate.decide(text, priority)
         if (!decision.speak) return false
-        runCatching {
-            engine.setSpeechRate(rate)
-            engine.setPitch(pitch)
-            if (decision.flush) engine.stop()
-            val mode = if (decision.flush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-            engine.speak(text, mode, null, UUID.randomUUID().toString())
-        }.onFailure { return false }
-        onSpeechStarted?.invoke(gate.estimateDuration(text))
-        return true
+        return enqueue(text, decision.flush)
     }
 
-    /**
-     * One utterance finished. Only the last one in the queue releases the duck, so a queued
-     * "three, two, one" does not make the music pump between words.
-     */
-    private fun utteranceFinished() {
-        if (activeUtterances.decrementAndGet() > 0) return
-        activeUtterances.set(0)
-        onSpeechFinished?.invoke()
-    }
-
-    fun stop() {
-        runCatching { tts?.stop() }
-        activeUtterances.set(0)
-        onSpeechFinished?.invoke()
-    }
-
-    /** Preview used by Voice Studio and onboarding; bypasses the gate. */
-    fun speakPreview(text: String): Boolean {
+    private fun enqueue(text: String, flush: Boolean): Boolean {
         val engine = tts ?: return false
-        return runCatching {
+        val id = UUID.randomUUID().toString()
+        val duration = utterances.submit(id, gate.estimateDuration(text), flush)
+        // Register and duck BEFORE submission. A fast engine can complete on another thread.
+        onSpeechStarted?.invoke(duration)
+        val accepted = runCatching {
             engine.setSpeechRate(rate)
             engine.setPitch(pitch)
-            engine.stop()
-            engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "preview-${System.currentTimeMillis()}")
-            true
+            engine.speak(text, if (flush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null, id) == TextToSpeech.SUCCESS
         }.getOrDefault(false)
+        if (!accepted) {
+            utteranceFinished(id)
+            gate.reset()
+        }
+        return accepted
     }
 
-    fun shutdown() {
+    @Synchronized
+    private fun utteranceFinished(id: String?) {
+        if (utterances.finish(id)) onSpeechFinished?.invoke()
+    }
+
+    @Synchronized
+    fun stop() {
+        utterances.clear()
         runCatching { tts?.stop() }
+        gate.reset()
+        onSpeechFinished?.invoke()
+    }
+
+    /** Preview bypasses the gate but uses exactly the same ducking/cleanup as real coaching. */
+    @Synchronized
+    fun speakPreview(text: String): Boolean {
+        if (_state.value !is SpeechAvailability.Ready || text.isBlank()) return false
+        return enqueue(text, flush = true)
+    }
+
+    @Synchronized
+    fun shutdown() {
+        stop()
         runCatching { tts?.shutdown() }
         tts = null
         initialised = false
-        activeUtterances.set(0)
-        gate.reset()
     }
 
     fun resetGate() = gate.reset()
@@ -530,10 +532,11 @@ class AudioFocusController(
         val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             .setAudioAttributes(
                 AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build()
             )
+            .setWillPauseWhenDucked(true)
             .setOnAudioFocusChangeListener(listener)
             .build()
             .also { focusRequest = it }

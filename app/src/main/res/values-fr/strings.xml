@@ -217,13 +217,13 @@
     <string name="voice_vibration">Vibration</string>
     <string name="voice_duck_music">Baisser la musique pendant les annonces</string>
     <string name="voice_duck_title">Atténuation audio</string>
-    <string name="voice_duck_hint">Baisse votre audio d\'arrière-plan pendant que le coach parle ou qu\'un signal sonne, puis le rétablit.</string>
-    <string name="voice_duck_level">Profondeur de l\'atténuation</string>
-    <string name="voice_duck_active">Musique baissée</string>
-    <string name="voice_duck_idle">Musique au volume normal</string>
+    <string name="voice_duck_hint">Baisse le fichier audio choisi pendant les annonces. Les autres lecteurs reçoivent une demande d’atténuation via Android ; la prise en charge varie.</string>
+    <string name="voice_duck_level">Volume du fichier pendant les annonces</string>
+    <string name="voice_duck_active">Atténuation demandée</string>
+    <string name="voice_duck_idle">Aucune atténuation demandée</string>
     <string name="voice_duck_phase">Atténuation : %1$s</string>
     <string name="voice_duck_test">Tester l\'atténuation</string>
-    <string name="voice_duck_test_hint">Baisse l\'audio un instant et prononce une phrase d\'exemple pour entendre le réglage.</string>
+    <string name="voice_duck_test_hint">Lancez la musique, puis testez. Le niveau s’applique au fichier choisi dans PULSE ; Android règle l’atténuation des autres applications.</string>
     <string name="voice_music_title">Audio d\'arrière-plan</string>
     <string name="voice_music_pick">Choisir un fichier audio…</string>
     <string name="voice_music_none">Aucun audio d\'arrière-plan sélectionné</string>
@@ -277,7 +277,7 @@
     <string name="audio_interrupt_duck">Continuer le temps, baisser l\'autre audio</string>
     <string name="settings_headphone_unplug">Débranchement du casque</string>
     <string name="settings_volume_keys">Les touches de volume contrôlent la séance</string>
-    <string name="settings_volume_keys_hint">Volume haut passe à l\'intervalle suivant, volume bas met en pause ou reprend. Désactivé = les touches règlent le volume.</string>
+    <string name="settings_volume_keys_hint">Les touches de volume règlent toujours le volume multimédia. Utilisez les commandes à l’écran ou dans la notification pour changer d’intervalle.</string>
     <string name="headphone_pause">Mettre la séance en pause</string>
     <string name="headphone_continue">Continuer, annonces sur le haut-parleur</string>
     <string name="settings_data">Données</string>
@@ -411,4 +411,16 @@
     <string name="json_import_count">Importer %1$d entraînement(s)</string>
     <string name="json_file_error">Impossible d’ouvrir le fichier. Sélectionnez-le à nouveau.</string>
     <string name="json_clipboard_error">Impossible de copier le prompt. Réessayez.</string>
+    <string name="summary_share_title">Partager la séance</string>
+    <string name="summary_share_preparing">Préparation de l’image…</string>
+    <string name="summary_share_error">Impossible de partager l’image. Veuillez réessayer.</string>
+    <string name="share_completed">Séance terminée</string>
+    <string name="share_ended_early">Arrêt anticipé · effort enregistré</string>
+    <string name="share_active_time">TEMPS ACTIF</string>
+    <string name="share_completion">Progression</string>
+    <string name="share_intervals">Intervalles terminés</string>
+    <string name="share_total_time">Temps total · pauses incluses</string>
+    <string name="share_skipped">Intervalles passés</string>
+    <string name="share_rounds">Tours enregistrés</string>
+    <string name="share_recorded">Enregistré avec PULSE</string>
 </resources>
