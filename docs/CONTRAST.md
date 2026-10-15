@@ -20,6 +20,12 @@ The high-contrast switch in Settings replaces the phase accents and the control 
 brighter variants (`highContrast` in `PulseColors`); those variants are strictly lighter than
 the pairs measured here and text moves to pure white / pure black.
 
+The Wear OS app mirrors this palette by value in
+`wear/src/main/java/com/pulse/intervalcoach/wear/ui/theme/WearPalette.kt` (dark, OLED and
+high-contrast ramps only — watches have no light theme). This script asserts that every
+mirrored constant is byte-identical to the phone's `PulsePalette` (50 of them), so
+the ratios above apply to the watch unchanged.
+
 ## Dark (default)
 
 | Pair | Foreground | Background | Ratio | Required | Result | Where it is used |

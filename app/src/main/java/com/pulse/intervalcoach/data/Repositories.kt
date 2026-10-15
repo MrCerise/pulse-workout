@@ -354,6 +354,54 @@ class SessionRepository(
         if (events.isNotEmpty()) eventDao.insertAll(events)
     }
 
+    /**
+     * Stores a session that ran on the watch, delivered by the Wear sync link.
+     *
+     * Unlike [start] + [finish], the record arrives complete: the watch owned the session, so the
+     * phone writes it in one step with the watch's own timestamps and ids. The snapshot JSON is
+     * stored verbatim for the same reason history snapshots always are — later edits to the
+     * workout must never rewrite what actually ran.
+     */
+    suspend fun recordWatchSession(
+        sessionId: String,
+        workoutId: String,
+        workoutName: String,
+        snapshotJson: String,
+        startedAt: Long,
+        endedAt: Long,
+        activeMillis: Long,
+        wallMillis: Long,
+        sessionElapsedMillis: Long,
+        completed: Int,
+        total: Int,
+        skipped: Int,
+        status: String,
+        rounds: Int,
+        weightUnit: String?,
+    ): SessionEntity {
+        val entity = SessionEntity(
+            id = sessionId,
+            workoutId = workoutId,
+            workoutName = workoutName,
+            workoutSnapshotJson = snapshotJson,
+            startedAt = startedAt,
+            endedAt = endedAt,
+            activeMillis = activeMillis,
+            wallMillis = wallMillis,
+            sessionElapsedMillis = sessionElapsedMillis,
+            completedIntervals = completed,
+            totalIntervals = total,
+            skippedIntervals = skipped,
+            completionPercent = if (total <= 0) 0 else ((completed * 100) / total).coerceIn(0, 100),
+            status = status,
+            roundsLogged = rounds,
+            weightUnitAtRun = weightUnit,
+            lastHeartbeatAtMillis = endedAt,
+        )
+        sessionDao.upsert(entity)
+        return entity
+    }
+
     suspend fun heartbeat(sessionId: String, at: Long) = sessionDao.heartbeat(sessionId, at)
 
     suspend fun finish(

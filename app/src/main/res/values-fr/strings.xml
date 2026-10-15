@@ -409,4 +409,24 @@
     <string name="help_health">Synchronisation santé</string>
     <string name="help_health_body">Connectez Health Connect dans Réglages → Santé pour lire la fréquence cardiaque, les pas ou synchroniser les séances. Gérez les autorisations dans Health Connect.</string>
     <string name="help_permissions_body">Notifications : commandes du minuteur. Microphone : enregistrement d’annonces. Santé : fréquence cardiaque, pas et synchronisation. Ces autorisations sont facultatives.</string>
+
+    <!-- Compagnon Wear OS -->
+    <string name="watch_banner_title">Entraînement en cours sur votre montre</string>
+    <string name="watch_session_title">Séance sur la montre</string>
+    <string name="watch_session_subtitle">Vue en direct de l’entraînement en cours sur votre montre</string>
+    <string name="watch_session_none">Aucun entraînement en cours sur votre montre.</string>
+    <string name="watch_session_close">Fermer</string>
+    <string name="watch_session_step_of">%1$d sur %2$d</string>
+    <string name="watch_session_paused">En pause</string>
+    <string name="watch_session_pause">Pause</string>
+    <string name="watch_session_resume">Reprendre</string>
+    <string name="watch_session_skip">Passer</string>
+    <string name="watch_session_add_time">+15 s</string>
+    <string name="watch_session_elapsed">Écoulé</string>
+    <string name="watch_session_remaining">Restant</string>
+    <string name="watch_session_open_ended">en continu</string>
+    <string name="watch_session_stop">Arrêter l’entraînement</string>
+    <string name="watch_session_stop_confirm">Arrêter la séance sur la montre ?</string>
+    <string name="watch_session_stop_message">L’entraînement sur votre montre se terminera et sera enregistré comme arrêté avant la fin.</string>
+    <string name="watch_session_keep_going">Continuer</string>
 </resources>

@@ -35,11 +35,15 @@ except ImportError:  # Executed as `python3 scripts/check_ui.py`.
     from safe_repo_io import BoundedSourceReader, RepositoryIOError
 
 ROOT = Path(__file__).resolve().parent.parent
-RES = ROOT / "app/src/main/res"
 SOURCE_READER = BoundedSourceReader(ROOT)
-KOTLIN_ROOTS = [
-    ROOT / "app/src/main/java",
-    ROOT / "engine/src/main/kotlin",
+
+# Each Kotlin module is scanned against its own resources, so an R.string reference can only be
+# validated by the module that actually owns it. Pure-Kotlin modules (engine, sync) have none.
+MODULES: list[tuple[Path, Path | None]] = [
+    (ROOT / "app/src/main/java", ROOT / "app/src/main/res"),
+    (ROOT / "engine/src/main/kotlin", None),
+    (ROOT / "sync/src/main/kotlin", None),
+    (ROOT / "wear/src/main/java", ROOT / "wear/src/main/res"),
 ]
 
 ANDROID_NS = "http://schemas.android.com/apk/res/android"
@@ -57,15 +61,15 @@ def parse_xml(path: Path) -> ET.ElementTree:
 # Resource inventory
 # ---------------------------------------------------------------------------------------------
 
-def collect_resources() -> dict[str, set[str]]:
+def collect_resources(res_root: Path) -> dict[str, set[str]]:
     """Maps resource type -> set of names, from `res/<type>[-qualifier]/<name>.<ext>` and values."""
     resources: dict[str, set[str]] = {}
-    for path in sorted(RES.rglob("*")):
+    for path in sorted(res_root.rglob("*")):
         if path.is_symlink():
             raise RepositoryIOError(f"{path}: symbolic resource links are not allowed")
         if not path.is_file():
             continue
-        relative = path.relative_to(RES)
+        relative = path.relative_to(res_root)
         folder = relative.parts[0]
         resource_type = folder.split("-")[0]
         if resource_type == "values":
@@ -97,7 +101,7 @@ def collect_resources() -> dict[str, set[str]]:
     return resources
 
 
-def string_tables() -> tuple[set[str], set[str]]:
+def string_tables(res_root: Path) -> tuple[set[str], set[str]]:
     def names(path: Path) -> set[str]:
         if path.is_symlink():
             raise RepositoryIOError(f"{path}: symbolic resource links are not allowed")
@@ -110,7 +114,7 @@ def string_tables() -> tuple[set[str], set[str]]:
             if child.tag.endswith("string") and child.get("name")
         }
 
-    return names(RES / "values/strings.xml"), names(RES / "values-fr/strings.xml")
+    return names(res_root / "values/strings.xml"), names(res_root / "values-fr/strings.xml")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -151,9 +155,9 @@ def check_path_data(path: Path, raw: str) -> list[str]:
     return problems
 
 
-def check_xml(resources: dict[str, set[str]]) -> list[str]:
+def check_xml(resources: dict[str, set[str]], res_root: Path) -> list[str]:
     problems = []
-    for path in sorted(RES.rglob("*.xml")):
+    for path in sorted(res_root.rglob("*.xml")):
         try:
             tree = parse_xml(path)
         except ET.ParseError as error:
@@ -248,13 +252,14 @@ def strip_kotlin_noise(source: str) -> str:
     return "".join(out)
 
 
-def check_kotlin(resources: dict[str, set[str]]) -> tuple[list[str], list[str]]:
+def check_kotlin(module_resources: dict[Path, dict[str, set[str]]]) -> tuple[list[str], list[str]]:
     problems = []
     icons = set()
-    for root in KOTLIN_ROOTS:
-        if root.is_symlink() or not root.is_dir():
-            raise RepositoryIOError(f"{root}: Kotlin scan root must be a real directory")
-        for path in sorted(root.rglob("*.kt")):
+    for kotlin_root, res_root in MODULES:
+        if kotlin_root.is_symlink() or not kotlin_root.is_dir():
+            raise RepositoryIOError(f"{kotlin_root}: Kotlin scan root must be a real directory")
+        resources = module_resources.get(res_root, {}) if res_root is not None else {}
+        for path in sorted(kotlin_root.rglob("*.kt")):
             source = SOURCE_READER.read_text(path)
             relative = path.relative_to(ROOT)
             for resource_type, name in RESOURCE_REFERENCE.findall(source):
@@ -273,31 +278,44 @@ def check_kotlin(resources: dict[str, set[str]]) -> tuple[list[str], list[str]]:
 
 
 def main() -> int:
-    if RES.is_symlink() or not RES.is_dir():
-        print(f"missing or unsafe resource directory: {RES}", file=sys.stderr)
-        return 2
-
     try:
-        resources = collect_resources()
-        problems = check_xml(resources)
-        kotlin_problems, icons = check_kotlin(resources)
-        english, french = string_tables()
+        res_roots = [res_root for _, res_root in MODULES if res_root is not None]
+        for res_root in res_roots:
+            if res_root.is_symlink() or not res_root.is_dir():
+                print(f"missing or unsafe resource directory: {res_root}", file=sys.stderr)
+                return 2
+
+        problems: list[str] = []
+        module_resources: dict[Path, dict[str, set[str]]] = {}
+        total_types = 0
+        total_names = 0
+        for res_root in res_roots:
+            resources = collect_resources(res_root)
+            module_resources[res_root] = resources
+            problems += check_xml(resources, res_root)
+            total_types = max(total_types, len(resources))
+            total_names += sum(len(names) for names in resources.values())
+
+        kotlin_problems, icons = check_kotlin(module_resources)
+        problems += kotlin_problems
+
+        for res_root in res_roots:
+            english, french = string_tables(res_root)
+            missing_fr = sorted(english - french)
+            missing_en = sorted(french - english)
+            label = res_root.relative_to(ROOT).parts[0]
+            if missing_fr:
+                problems.append(f"{label} values-fr/strings.xml is missing: " + ", ".join(missing_fr))
+            if missing_en:
+                problems.append(
+                    f"{label} values/strings.xml is missing (present in French only): " + ", ".join(missing_en)
+                )
+            print(f"strings ({label}): {len(english)} en / {len(french)} fr")
     except RepositoryIOError as error:
         print(f"unsafe repository input: {error}", file=sys.stderr)
         return 2
-    problems += kotlin_problems
 
-    missing_fr = sorted(english - french)
-    missing_en = sorted(french - english)
-    if missing_fr:
-        problems.append("values-fr/strings.xml is missing: " + ", ".join(missing_fr))
-    if missing_en:
-        problems.append("values/strings.xml is missing (present in French only): " + ", ".join(missing_en))
-
-    total_types = len(resources)
-    total_names = sum(len(names) for names in resources.values())
-    print(f"resources: {total_names} names across {total_types} types")
-    print(f"strings: {len(english)} en / {len(french)} fr")
+    print(f"resources: {total_names} names across up to {total_types} types per module")
     print(f"material icons referenced: {len(icons)} distinct")
 
     if problems:

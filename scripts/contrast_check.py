@@ -30,6 +30,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE_READER = BoundedSourceReader(ROOT)
 COLORS_XML = ROOT / "app/src/main/res/values/colors.xml"
 PALETTE_KT = ROOT / "app/src/main/java/com/pulse/intervalcoach/ui/theme/Palette.kt"
+# The Wear APK mirrors the palette by value (an application module cannot share it); the mirror
+# must stay byte-identical to the phone's or the watch drifts off the measured theme.
+WEAR_PALETTE_KT = ROOT / "wear/src/main/java/com/pulse/intervalcoach/wear/ui/theme/WearPalette.kt"
 OUT = ROOT / "docs/CONTRAST.md"
 
 TEXT_MIN = 4.5
@@ -402,7 +405,7 @@ def evaluate(name: str, pairs, colors: dict[str, str]):
 
 
 def main() -> int:
-    missing_file = [p for p in (COLORS_XML, PALETTE_KT) if not p.exists()]
+    missing_file = [p for p in (COLORS_XML, PALETTE_KT, WEAR_PALETTE_KT) if not p.exists()]
     if missing_file:
         print("missing: " + ", ".join(str(p) for p in missing_file), file=sys.stderr)
         return 2
@@ -410,6 +413,7 @@ def main() -> int:
     try:
         colors = parse_colors(COLORS_XML)
         kotlin = parse_kotlin_palette(PALETTE_KT)
+        wear = parse_kotlin_palette(WEAR_PALETTE_KT)
     except RepositoryIOError as error:
         print(f"unsafe contrast-check input: {error}", file=sys.stderr)
         return 2
@@ -425,6 +429,15 @@ def main() -> int:
             problems.append(
                 f"token drift: PulsePalette.{kotlin_name}={kotlin[kotlin_name]} but "
                 f"{token}={colors[token]} in colors.xml"
+            )
+    # Wear mirror: every constant the watch ships must be byte-identical to the phone's. The
+    # watch may ship a subset (no light theme), never a different value.
+    for name, value in wear.items():
+        if name not in kotlin:
+            problems.append(f"WearPalette.{name} has no same-named constant in the phone Palette.kt")
+        elif kotlin[name].upper() != value.upper():
+            problems.append(
+                f"watch theme drift: WearPalette.{name}={value} but PulsePalette.{name}={kotlin[name]}"
             )
     if problems:
         print("\n".join(problems), file=sys.stderr)
@@ -464,6 +477,12 @@ def main() -> int:
         "The high-contrast switch in Settings replaces the phase accents and the control outline with",
         "brighter variants (`highContrast` in `PulseColors`); those variants are strictly lighter than",
         "the pairs measured here and text moves to pure white / pure black.",
+        "",
+        "The Wear OS app mirrors this palette by value in",
+        "`wear/src/main/java/com/pulse/intervalcoach/wear/ui/theme/WearPalette.kt` (dark, OLED and",
+        "high-contrast ramps only — watches have no light theme). This script asserts that every",
+        f"mirrored constant is byte-identical to the phone's `PulsePalette` ({len(wear)} of them), so",
+        "the ratios above apply to the watch unchanged.",
         "",
     ]
     for name, rows in sections:

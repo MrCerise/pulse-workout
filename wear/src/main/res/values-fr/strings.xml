@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PULSE</string>
+
+    <!-- Library -->
+    <string name="library_resume">Reprendre</string>
+    <string name="library_empty">Aucun entraînement</string>
+    <string name="library_empty_hint">Ouvrez PULSE sur votre téléphone — vos entraînements se synchronisent ici</string>
+    <string name="library_row_summary">%1$s · %2$d intervalles</string>
+    <string name="library_truncated">%1$d premiers entraînements — bibliothèque trop grande pour la montre</string>
+    <string name="library_replace_confirm">Touchez à nouveau pour remplacer l\'entraînement en cours</string>
+    <string name="library_never_synced">Pas encore synchronisé</string>
+
+    <!-- Remote (phone) session -->
+    <string name="remote_running">Sur le téléphone</string>
+    <string name="remote_badge">Sur le téléphone</string>
+    <string name="remote_ended">Session terminée sur le téléphone</string>
+
+    <!-- Player -->
+    <string name="player_pause">Pause</string>
+    <string name="player_resume">Reprendre</string>
+    <string name="player_skip">Passer</string>
+    <string name="player_add_time">Ajouter 15 secondes</string>
+    <string name="player_done">Terminé</string>
+    <string name="player_stop">Arrêter</string>
+    <string name="player_stop_confirm">Arrêter cet entraînement ?</string>
+    <string name="player_keep_going">Continuer</string>
+    <string name="player_paused">en pause</string>
+    <string name="player_step_of">%1$d sur %2$d</string>
+    <string name="player_load_failed">Impossible de démarrer cet entraînement.</string>
+
+    <!-- Summary -->
+    <string name="summary_title">Entraînement terminé</string>
+    <string name="summary_stopped_early">Arrêté avant la fin</string>
+    <string name="summary_intervals_value">%1$d intervalles sur %2$d</string>
+    <string name="summary_skipped_value">%1$d passés</string>
+    <string name="summary_saved">Enregistré dans l\'historique du téléphone</string>
+    <string name="summary_queued">Sera envoyé au téléphone à la prochaine connexion</string>
+    <string name="summary_done">Terminé</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Réglages</string>
+    <string name="settings_sync_now">Synchroniser</string>
+    <string name="settings_sync_requested">Synchronisation demandée</string>
+    <string name="settings_sync_hint">Redemander la bibliothèque et les réglages au téléphone</string>
+    <string name="settings_haptics">Signaux tactiles</string>
+    <string name="settings_keep_screen_on">Garder l\'écran allumé</string>
+    <string name="settings_theme">Thème</string>
+    <string name="settings_theme_system">Suivre la montre</string>
+    <string name="settings_theme_dark">Sombre</string>
+    <string name="settings_theme_true_black">Noir profond</string>
+    <string name="settings_theme_note">L\'apparence suit les réglages de PULSE sur votre téléphone</string>
+    <string name="settings_about">PULSE Montre %1$s · dernière synchro %2$s</string>
+    <string name="settings_back">Retour</string>
+</resources>

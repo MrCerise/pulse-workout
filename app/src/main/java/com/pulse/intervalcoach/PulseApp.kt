@@ -22,6 +22,7 @@ import com.pulse.intervalcoach.health.HealthHub
 import com.pulse.intervalcoach.session.MusicController
 import com.pulse.intervalcoach.session.Notifications
 import com.pulse.intervalcoach.session.SessionController
+import com.pulse.intervalcoach.wear.WearSyncManager
 import com.pulse.intervalcoach.work.BackupWorker
 import com.pulse.intervalcoach.work.ReminderWorker
 import kotlinx.coroutines.CoroutineScope
@@ -80,6 +81,19 @@ class AppContainer(private val app: Application) {
             haptics = haptics,
             music = music,
             limits = EngineLimits(),
+        )
+    }
+
+    /** The phone half of the Wear OS sync link; started once in [PulseApp.onCreate]. */
+    val wearSync: WearSyncManager by lazy {
+        WearSyncManager(
+            context = app,
+            scope = appScope,
+            workouts = workouts,
+            sessions = sessions,
+            preferences = preferences,
+            sessionController = sessionController,
+            health = health,
         )
     }
 }

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PULSE</string>
+
+    <!-- Library -->
+    <string name="library_resume">Resume workout</string>
+    <string name="library_empty">No workouts yet</string>
+    <string name="library_empty_hint">Open PULSE on your phone — your workouts sync here</string>
+    <string name="library_row_summary">%1$s · %2$d intervals</string>
+    <string name="library_truncated">First %1$d workouts — library too large for the watch</string>
+    <string name="library_replace_confirm">Tap again to replace the running workout</string>
+    <string name="library_never_synced">Not synced yet</string>
+
+    <!-- Remote (phone) session -->
+    <string name="remote_running">Running on phone</string>
+    <string name="remote_badge">On phone</string>
+    <string name="remote_ended">Phone session ended</string>
+
+    <!-- Player -->
+    <string name="player_pause">Pause</string>
+    <string name="player_resume">Resume</string>
+    <string name="player_skip">Skip</string>
+    <string name="player_add_time">Add 15 seconds</string>
+    <string name="player_done">Done</string>
+    <string name="player_stop">Stop</string>
+    <string name="player_stop_confirm">Stop this workout?</string>
+    <string name="player_keep_going">Keep going</string>
+    <string name="player_paused">paused</string>
+    <string name="player_step_of">%1$d of %2$d</string>
+    <string name="player_load_failed">This workout could not be started.</string>
+
+    <!-- Summary -->
+    <string name="summary_title">Workout done</string>
+    <string name="summary_stopped_early">Stopped early</string>
+    <string name="summary_intervals_value">%1$d of %2$d intervals</string>
+    <string name="summary_skipped_value">%1$d skipped</string>
+    <string name="summary_saved">Saved to phone history</string>
+    <string name="summary_queued">Will sync to your phone when connected</string>
+    <string name="summary_done">Done</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_sync_now">Sync now</string>
+    <string name="settings_sync_requested">Sync requested</string>
+    <string name="settings_sync_hint">Ask the phone to re-send your library and settings</string>
+    <string name="settings_haptics">Haptic cues</string>
+    <string name="settings_keep_screen_on">Keep screen on</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">Follow watch</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_true_black">Pure black</string>
+    <string name="settings_theme_note">Appearance follows your phone\'s PULSE settings</string>
+    <string name="settings_about">PULSE Watch %1$s · last sync %2$s</string>
+    <string name="settings_back">Back</string>
+</resources>

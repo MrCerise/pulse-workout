@@ -42,8 +42,8 @@ android {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = 16
-        versionName = "1.7.0"
+        versionCode = 17
+        versionName = "1.7.1"
         // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -106,6 +106,7 @@ ksp {
 
 dependencies {
     implementation(project(":engine"))
+    implementation(project(":sync"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -136,6 +137,10 @@ dependencies {
     implementation(libs.androidx.health.connect.client)
     implementation(libs.gms.play.services.fitness)
     implementation(libs.gms.play.services.auth)
+
+    // Wear OS companion link (workout library/preferences sync, session mirroring and control)
+    implementation(libs.gms.play.services.wearable)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

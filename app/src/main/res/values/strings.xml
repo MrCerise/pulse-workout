@@ -405,4 +405,24 @@
     <string name="help_health">Health sync</string>
     <string name="help_health_body">Connect Health Connect in Settings → Health to read heart rate and steps or sync workouts. Manage access in Android’s Health Connect settings.</string>
     <string name="help_permissions_body">Notifications: timer controls. Microphone: cue recording only. Health access: heart rate, steps and workout sync. Each is optional.</string>
+
+    <!-- Wear OS companion -->
+    <string name="watch_banner_title">Workout running on your watch</string>
+    <string name="watch_session_title">Watch session</string>
+    <string name="watch_session_subtitle">Live view of the workout running on your watch</string>
+    <string name="watch_session_none">No workout is running on your watch right now.</string>
+    <string name="watch_session_close">Close</string>
+    <string name="watch_session_step_of">%1$d of %2$d</string>
+    <string name="watch_session_paused">Paused</string>
+    <string name="watch_session_pause">Pause</string>
+    <string name="watch_session_resume">Resume</string>
+    <string name="watch_session_skip">Skip</string>
+    <string name="watch_session_add_time">+15s</string>
+    <string name="watch_session_elapsed">Elapsed</string>
+    <string name="watch_session_remaining">Remaining</string>
+    <string name="watch_session_open_ended">open-ended</string>
+    <string name="watch_session_stop">Stop workout</string>
+    <string name="watch_session_stop_confirm">Stop the watch workout?</string>
+    <string name="watch_session_stop_message">The workout on your watch will end and be saved as stopped early.</string>
+    <string name="watch_session_keep_going">Keep going</string>
 </resources>
