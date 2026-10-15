@@ -107,6 +107,7 @@ ksp {
 dependencies {
     implementation(project(":engine"))
     implementation(project(":sync"))
+implementation(project(":library"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

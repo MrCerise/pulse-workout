@@ -57,7 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           bash ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
-            :engine:test :sync:test :app:testDebugUnitTest :wear:testDebugUnitTest 2>&1 | tee gradle-build.log
+            :engine:test :sync:test :library:test :app:testDebugUnitTest :wear:testDebugUnitTest 2>&1 | tee gradle-build.log
 
       - name: Summarize failure diagnostics
         if: failure()

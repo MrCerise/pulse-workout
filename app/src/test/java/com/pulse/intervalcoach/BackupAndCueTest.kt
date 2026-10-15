@@ -4,12 +4,12 @@ import com.pulse.engine.TimelineExpander
 import com.pulse.intervalcoach.data.BackupFile
 import com.pulse.intervalcoach.data.PlanCodec
 import com.pulse.intervalcoach.data.SessionRecord
-import com.pulse.intervalcoach.data.StarterWorkouts
 import com.pulse.intervalcoach.data.UserPreferences
 import com.pulse.intervalcoach.data.VoiceVerbosity
 import com.pulse.intervalcoach.data.WorkoutRecord
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.session.CueScript
+import com.pulse.library.StarterWorkouts
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals

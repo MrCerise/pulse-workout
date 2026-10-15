@@ -2,11 +2,13 @@ package com.pulse.intervalcoach.wear.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,21 +33,26 @@ import com.pulse.intervalcoach.wear.R
 import com.pulse.intervalcoach.wear.StoredWorkout
 import com.pulse.intervalcoach.wear.WearAppContainer
 import com.pulse.intervalcoach.wear.ui.theme.LocalWearColors
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.pulse.sync.WatchCommand
+import com.pulse.sync.WatchCommandKind
+import kotlinx.coroutines.launch
 
 /**
- * The watch's home: the synced workout library.
+ * The watch's home: the workout library.
  *
  * Favorites first, then by name — the same shape as the phone's library, distilled to what a
  * 200 dp round screen renders well: name, duration, interval count.
+ *
+ * The library is whatever this watch has: a phone's mirror once one has synced, or the bundled
+ * catalogue when it never has. The footer says which of those is true, so "no phone" is never
+ * mistaken for "broken".
  */
 @Composable
 fun WearHomeScreen(
     container: WearAppContainer,
     onOpenWorkout: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenHistory: () -> Unit,
     onOpenRemote: () -> Unit,
     onOpenActive: (String) -> Unit,
 ) {
@@ -54,8 +61,14 @@ fun WearHomeScreen(
     val prefs by container.preferences.flow.collectAsStateWithLifecycle()
     val remote by container.wearSync.remoteSession.collectAsStateWithLifecycle()
     val active by container.session.active.collectAsStateWithLifecycle()
+    val phoneLibrarySeen by container.workouts.phoneLibrarySeen.collectAsStateWithLifecycle()
+    val phoneConnected by container.wearSync.phoneConnected.collectAsStateWithLifecycle()
+    val history by container.history.records.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     // First tap while a session runs asks for confirmation; the second starts (and replaces) it.
+    // "A session" means either one: the watch's own, or one running on the phone, which this
+    // watch takes over from — two devices must never coach the same workout at once.
     var pendingReplaceId by remember { mutableStateOf<String?>(null) }
 
     val listState = rememberScalingLazyListState()
@@ -105,14 +118,35 @@ fun WearHomeScreen(
             }
             if (workouts.isEmpty()) {
                 item(key = "empty") {
+                    // Two different emptinesses, two different fixes: a solo watch loads the
+                    // bundled catalogue, a paired one asks the phone for the library it owns.
+                    val solo = !phoneLibrarySeen
                     Chip(
-                        onClick = { container.wearSync.requestSync() },
+                        onClick = {
+                            if (solo) {
+                                scope.launch { container.workouts.seedBundledWorkouts() }
+                            } else {
+                                container.wearSync.requestSync()
+                            }
+                        },
                         colors = ChipDefaults.secondaryChipColors(
                             backgroundColor = colors.surface,
                             contentColor = colors.textPrimary,
                         ),
-                        label = { Text(stringResource(R.string.library_empty)) },
-                        secondaryLabel = { Text(stringResource(R.string.library_empty_hint)) },
+                        label = {
+                            Text(
+                                stringResource(
+                                    if (solo) R.string.library_empty_solo else R.string.library_empty,
+                                ),
+                            )
+                        },
+                        secondaryLabel = {
+                            Text(
+                                stringResource(
+                                    if (solo) R.string.library_restore_starters else R.string.library_empty_hint,
+                                ),
+                            )
+                        },
                     )
                 }
             }
@@ -120,11 +154,17 @@ fun WearHomeScreen(
                 WorkoutRow(
                     workout = workout,
                     replacing = pendingReplaceId == workout.id,
-                    anyActive = active != null,
+                    anyActive = active != null || remote != null,
+                    remoteActive = remote != null,
                     onClick = {
-                        if (active != null && pendingReplaceId != workout.id) {
+                        if ((active != null || remote != null) && pendingReplaceId != workout.id) {
                             pendingReplaceId = workout.id
                         } else {
+                            if (remote != null) {
+                                // Taking over means the phone stops: its engine, its spoken cues and
+                                // its history entry all end where the user can see them.
+                                container.wearSync.sendCommand(WatchCommand(WatchCommandKind.STOP))
+                            }
                             pendingReplaceId = null
                             onOpenWorkout(workout.id)
                         }
@@ -140,6 +180,22 @@ fun WearHomeScreen(
                     )
                 }
             }
+            if (history.isNotEmpty()) {
+                item(key = "history") {
+                    Chip(
+                        onClick = onOpenHistory,
+                        colors = ChipDefaults.secondaryChipColors(
+                            backgroundColor = colors.surface,
+                            contentColor = colors.textPrimary,
+                        ),
+                        icon = { Icon(Icons.Filled.History, null) },
+                        label = { Text(stringResource(R.string.library_history)) },
+                        secondaryLabel = {
+                            Text(stringResource(R.string.library_history_count, history.size))
+                        },
+                    )
+                }
+            }
             item(key = "settings") {
                 Chip(
                     onClick = onOpenSettings,
@@ -150,7 +206,13 @@ fun WearHomeScreen(
                     icon = { Icon(Icons.Filled.Settings, null) },
                     label = { Text(stringResource(R.string.settings_title)) },
                     secondaryLabel = {
-                        Text(formatSyncTime(prefs.lastSyncAt))
+                        Text(
+                            watchSyncStatus(
+                                phoneLibrarySeen = phoneLibrarySeen,
+                                syncEnabled = prefs.syncEnabled,
+                                phoneConnected = phoneConnected,
+                            ),
+                        )
                     },
                 )
             }
@@ -163,6 +225,7 @@ private fun WorkoutRow(
     workout: StoredWorkout,
     replacing: Boolean,
     anyActive: Boolean,
+    remoteActive: Boolean,
     onClick: () -> Unit,
 ) {
     val colors = LocalWearColors.current
@@ -184,20 +247,13 @@ private fun WorkoutRow(
                 formatDuration(durationMillis),
                 workout.plan.allIntervals().size,
             )
+            val confirm = if (remoteActive) R.string.library_takeover_confirm else R.string.library_replace_confirm
             Text(
-                if (replacing) stringResource(R.string.library_replace_confirm) else summary,
+                if (replacing) stringResource(confirm) else summary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = if (replacing) colors.accent else colors.textSecondary,
             )
         },
     )
-}
-
-@Composable
-private fun formatSyncTime(lastSyncAt: Long): String {
-    if (lastSyncAt <= 0L) return stringResource(R.string.library_never_synced)
-    val formatter = remember { DateTimeFormatter.ofPattern("d MMM HH:mm") }
-    val instant = remember(lastSyncAt) { Instant.ofEpochMilli(lastSyncAt) }
-    return remember(lastSyncAt) { formatter.format(instant.atZone(ZoneId.systemDefault())) }
 }

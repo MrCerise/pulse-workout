@@ -26,8 +26,10 @@ import com.pulse.intervalcoach.wear.ui.theme.LocalWearColors
 
 /**
  * Post-workout summary, mirroring the phone's: what ran, for how long, how much of it completed —
- * plus the one thing unique to the watch: where the record went. A finished watch session is sent
- * to the phone immediately when connected and queued until then.
+ * plus the one thing unique to the watch: where the record went. It is always written to this
+ * watch's own history; it additionally reaches the phone's history as soon as the link can deliver
+ * it, and waits in the queue when it cannot — including when the link is switched off, so turning
+ * it back on later still delivers the workout instead of losing it.
  */
 @Composable
 fun WearSummaryScreen(
@@ -36,6 +38,7 @@ fun WearSummaryScreen(
 ) {
     val colors = LocalWearColors.current
     val summary by container.session.summary.collectAsStateWithLifecycle()
+    val prefs by container.preferences.flow.collectAsStateWithLifecycle()
     val pendingLogs by container.wearSync.pendingLogCount.collectAsStateWithLifecycle()
 
     Scaffold(timeText = { TimeText() }) {
@@ -90,14 +93,21 @@ fun WearSummaryScreen(
                             color = colors.textMuted,
                         )
                     }
+                    // Three honest outcomes: it reached the phone, it is waiting for it, or the
+                    // link is off and the record lives on this watch alone.
+                    val savedText = when {
+                        pendingLogs == 0 -> stringResource(R.string.summary_saved)
+                        !prefs.syncEnabled -> stringResource(R.string.summary_on_watch)
+                        else -> stringResource(R.string.summary_queued)
+                    }
                     Text(
-                        text = if (pendingLogs == 0) {
-                            stringResource(R.string.summary_saved)
-                        } else {
-                            stringResource(R.string.summary_queued)
-                        },
+                        text = savedText,
                         style = MaterialTheme.typography.caption1,
-                        color = if (pendingLogs == 0) colors.work else colors.prepare,
+                        color = when {
+                            pendingLogs == 0 -> colors.work
+                            !prefs.syncEnabled -> colors.textMuted
+                            else -> colors.prepare
+                        },
                         textAlign = TextAlign.Center,
                     )
                 }

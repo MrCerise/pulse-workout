@@ -5,13 +5,17 @@ import android.content.Context
 import android.os.PowerManager
 import android.os.SystemClock
 import com.pulse.engine.MonotonicClock
+import com.pulse.intervalcoach.wear.history.WatchHistoryStore
 import com.pulse.intervalcoach.wear.session.AndroidWatchCues
 import com.pulse.intervalcoach.wear.session.WatchCues
 import com.pulse.intervalcoach.wear.session.WatchSessionController
+import com.pulse.intervalcoach.wear.session.WatchSessionPublisher
+import com.pulse.intervalcoach.wear.session.WatchSessionRecorder
 import com.pulse.intervalcoach.wear.sync.WearSyncLink
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /** Real elapsed-time source on the watch, immune to wall-clock changes (same as the phone). */
 object WatchClock : MonotonicClock {
@@ -29,16 +33,24 @@ class WearAppContainer(private val app: Application) {
     val preferences: WatchPreferencesRepository by lazy { WatchPreferencesRepository(app, appScope) }
     val workouts: WatchWorkoutStore by lazy { WatchWorkoutStore(app, appScope) }
 
+    /** The watch's own record of what it ran, independent of whether a phone is ever there. */
+    val history: WatchHistoryStore by lazy { WatchHistoryStore(app, appScope) }
+
     val cues: WatchCues by lazy { AndroidWatchCues(app) }
 
     val wearSync: WearSyncLink by lazy { WearSyncLink(app, appScope, preferences, workouts) }
+
+    /** A finished session is written to the watch's history *and* handed to the phone link. */
+    private val sessionRecorder: WatchSessionPublisher by lazy {
+        WatchSessionRecorder(scope = appScope, history = history, link = wearSync)
+    }
 
     val session: WatchSessionController by lazy {
         WatchSessionController(
             scope = appScope,
             clock = WatchClock,
             cues = cues,
-            publisher = wearSync,
+            publisher = sessionRecorder,
             preferences = preferences.flow,
         )
     }
@@ -56,6 +68,9 @@ class PulseWearApp : Application() {
         // command cannot be missed.
         container.wearSync.onCommand = { command -> container.session.applyCommand(command) }
         container.wearSync.start()
+        // A watch that has never been paired (or was just installed) gets the bundled workouts, so
+        // the library is usable before any phone is involved. A no-op once a phone has synced.
+        container.appScope.launch { container.workouts.seedBundledWorkoutsIfNeeded() }
     }
 }
 

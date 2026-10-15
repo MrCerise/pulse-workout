@@ -38,7 +38,6 @@ import com.pulse.engine.SoundCue
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
-import com.pulse.intervalcoach.data.StarterWorkouts
 import com.pulse.intervalcoach.ui.components.GhostActionButton
 import com.pulse.intervalcoach.ui.components.ThemePicker
 import com.pulse.intervalcoach.ui.components.PulseLogo
@@ -52,6 +51,7 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import com.pulse.intervalcoach.ui.theme.ThemeMode
+import com.pulse.library.StarterWorkouts
 import kotlinx.coroutines.launch
 
 /**

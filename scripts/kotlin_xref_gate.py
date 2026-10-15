@@ -29,6 +29,7 @@ APP = ROOT / "app/src/main/java/com/pulse/intervalcoach"
 OTHER_MODULES = [
     ROOT / "engine/src/main/kotlin",
     ROOT / "sync/src/main/kotlin",
+    ROOT / "library/src/main/kotlin",
     ROOT / "wear/src/main/java",
 ]
 for source_root in [APP] + OTHER_MODULES:

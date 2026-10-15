@@ -46,6 +46,12 @@ import kotlinx.coroutines.tasks.await
  *
  * The link also exposes the phone's live session ([remoteSession]) so the watch can mirror and
  * remote-control a workout running on the phone.
+ *
+ * None of this is required for the watch to work. With no phone — or with the phone link switched
+ * off in settings ([com.pulse.intervalcoach.wear.WatchPreferences.syncEnabled]) — every method here
+ * becomes a no-op: no data items are applied, nothing is sent, and the watch keeps running the
+ * bundled library, its own sessions and its own history. Traffic that is worth keeping (finished
+ * sessions) is queued while the link is off and delivered when it is switched back on.
  */
 class WearSyncLink(
     private val context: Context,
@@ -61,6 +67,12 @@ class WearSyncLink(
     private val messageClient: MessageClient by lazy { Wearable.getMessageClient(context) }
     private val nodeClient: NodeClient by lazy { Wearable.getNodeClient(context) }
     private val capabilityClient: CapabilityClient by lazy { Wearable.getCapabilityClient(context) }
+
+    /**
+     * The watch's own switch, read live: flipping it in settings takes effect on the next payload
+     * in either direction, without restarting the link.
+     */
+    private val syncEnabled: Boolean get() = preferences.flow.value.syncEnabled
 
     private val _remoteSession = MutableStateFlow<LiveSession?>(null)
     /** The phone's live session, or null. Stale snapshots expire on their own. */
@@ -107,6 +119,15 @@ class WearSyncLink(
             }
         }
         scope.launch {
+            // Delivery is retried on a timer, not only when a peer appears: a session finished
+            // while the phone was off is delivered on the next cycle instead of waiting for
+            // another session to be run.
+            while (isActive) {
+                delay(LOG_RETRY_MILLIS)
+                deliverPendingLogs()
+            }
+        }
+        scope.launch {
             // Keep the pending-log counter in step with the persisted queue.
             preferences.flow
                 .map { it.pendingLogs.size }
@@ -120,10 +141,13 @@ class WearSyncLink(
     // -------------------------------------------------------------------------------------------
 
     override fun onLiveSnapshot(live: LiveSession) {
+        if (!syncEnabled) return
         scope.launch { sendToPeers(SyncPaths.MESSAGE_LIVE, SyncJson.encodeLive(live)) }
     }
 
     override fun onSessionFinished(log: SessionLog) {
+        // Queued even when the link is off: the session happened, and turning sync on later must
+        // still deliver it rather than quietly dropping the workout.
         scope.launch {
             preferences.queueSessionLog(log)
             deliverPendingLogs()
@@ -132,11 +156,13 @@ class WearSyncLink(
 
     /** Sends a command to the phone (remote-controlling a phone session from the watch). */
     fun sendCommand(command: WatchCommand) {
+        if (!syncEnabled) return
         scope.launch { sendToPeers(SyncPaths.MESSAGE_COMMAND, SyncJson.encodeCommand(command)) }
     }
 
     /** Asks the phone to re-push the library and preferences. */
     fun requestSync() {
+        if (!syncEnabled) return
         scope.launch { sendToPeers(SyncPaths.MESSAGE_REQUEST_SYNC, ByteArray(0)) }
     }
 
@@ -145,6 +171,9 @@ class WearSyncLink(
     // -------------------------------------------------------------------------------------------
 
     private fun handleDataEvent(event: DataEvent) {
+        // Sync off means the watch is standalone: the phone's data items are ignored rather than
+        // mixed into a library the user asked to keep local.
+        if (!syncEnabled) return
         val uri = event.dataItem.uri
         when (event.type) {
             DataEvent.TYPE_CHANGED -> when {
@@ -180,6 +209,7 @@ class WearSyncLink(
     }
 
     private fun handleMessage(message: MessageEvent) {
+        if (!syncEnabled) return
         when (message.path) {
             SyncPaths.MESSAGE_LIVE -> {
                 val live = SyncJson.decodeLive(message.data) ?: return
@@ -209,11 +239,10 @@ class WearSyncLink(
 
     private fun onPeersChanged(nodes: Collection<Node>) {
         _phoneConnected.value = nodes.isNotEmpty()
-        if (nodes.isNotEmpty()) {
-            scope.launch {
-                requestSync()
-                deliverPendingLogs()
-            }
+        if (nodes.isEmpty() || !syncEnabled) return
+        scope.launch {
+            requestSync()
+            deliverPendingLogs()
         }
     }
 
@@ -234,6 +263,7 @@ class WearSyncLink(
     }
 
     private suspend fun deliverPendingLogs() {
+        if (!syncEnabled) return
         val now = System.currentTimeMillis()
         if (now - lastLogDeliveryAttemptAt < LOG_RETRY_MILLIS) return
         lastLogDeliveryAttemptAt = now
