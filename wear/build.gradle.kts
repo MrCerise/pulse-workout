@@ -1,4 +1,5 @@
 import java.io.File
+import java.time.Duration
 
 plugins {
     alias(libs.plugins.android.application)
@@ -88,7 +89,7 @@ android {
 
 // Unit tests must never hang a CI box: bound the worker JVM and log progress.
 tasks.withType<Test>().configureEach {
-    timeout.set(java.time.Duration.ofMinutes(8))
+    timeout.set(Duration.ofMinutes(8))
     maxHeapSize = "384m"
     testLogging {
         events("passed", "failed", "skipped")
