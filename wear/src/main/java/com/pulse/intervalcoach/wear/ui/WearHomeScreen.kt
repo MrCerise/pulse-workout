@@ -154,7 +154,6 @@ fun WearHomeScreen(
                 WorkoutRow(
                     workout = workout,
                     replacing = pendingReplaceId == workout.id,
-                    anyActive = active != null || remote != null,
                     remoteActive = remote != null,
                     onClick = {
                         if ((active != null || remote != null) && pendingReplaceId != workout.id) {
@@ -224,7 +223,6 @@ fun WearHomeScreen(
 private fun WorkoutRow(
     workout: StoredWorkout,
     replacing: Boolean,
-    anyActive: Boolean,
     remoteActive: Boolean,
     onClick: () -> Unit,
 ) {

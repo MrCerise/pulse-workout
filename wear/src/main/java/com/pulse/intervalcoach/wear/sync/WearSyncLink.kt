@@ -120,10 +120,10 @@ class WearSyncLink(
         }
         scope.launch {
             // Delivery is retried on a timer, not only when a peer appears: a session finished
-            // while the phone was off is delivered on the next cycle instead of waiting for
+            // while the phone was off is delivered on the next sweep instead of waiting for
             // another session to be run.
             while (isActive) {
-                delay(LOG_RETRY_MILLIS)
+                delay(LOG_RETRY_SWEEP_MILLIS)
                 deliverPendingLogs()
             }
         }
@@ -284,6 +284,9 @@ class WearSyncLink(
         /** A phone snapshot older than this is dropped: the phone has likely stopped. */
         const val REMOTE_TIMEOUT_MILLIS = 15_000L
         const val NODE_REFRESH_MILLIS = 15_000L
+        /** Minimum gap between two delivery attempts for the queued session logs. */
         const val LOG_RETRY_MILLIS = 10_000L
+        /** How often the queue is swept when nothing else happens. */
+        const val LOG_RETRY_SWEEP_MILLIS = 60_000L
     }
 }

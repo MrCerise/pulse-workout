@@ -6,7 +6,7 @@ import com.pulse.sync.LiveSession
 import com.pulse.sync.SessionLog
 import com.pulse.sync.SessionOrigin
 import com.pulse.sync.SessionStatus
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -84,7 +84,9 @@ class WatchSessionRecorderTest {
         val recorder = WatchSessionRecorder(scope = backgroundScope, history = history, link = link)
 
         recorder.onSessionFinished(log())
-        advanceUntilIdle()
+        // `runCurrent`, not `advanceUntilIdle`: the latter stops once only backgroundScope work
+        // remains, which is exactly what the recorder's history write is.
+        runCurrent()
 
         assertEquals(1, history.logged.size)
         assertEquals(1, link.logged.size)
@@ -99,7 +101,9 @@ class WatchSessionRecorderTest {
         val recorder = WatchSessionRecorder(scope = backgroundScope, history = history, link = link)
 
         recorder.onLiveSnapshot(live())
-        advanceUntilIdle()
+        // `runCurrent`, not `advanceUntilIdle`: the latter stops once only backgroundScope work
+        // remains, which is exactly what the recorder's history write is.
+        runCurrent()
 
         assertEquals(1, link.lives.size)
         assertTrue(history.logged.isEmpty())
@@ -113,7 +117,9 @@ class WatchSessionRecorderTest {
         val recorder = WatchSessionRecorder(scope = backgroundScope, history = history, link = UnpairedLink())
 
         runCatching { recorder.onSessionFinished(log("offline-session")) }
-        advanceUntilIdle()
+        // `runCurrent`, not `advanceUntilIdle`: the latter stops once only backgroundScope work
+        // remains, which is exactly what the recorder's history write is.
+        runCurrent()
 
         assertEquals("offline-session", history.logged.single().sessionId)
     }
