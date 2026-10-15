@@ -107,7 +107,7 @@ fun WearSettingsScreen(
             }
             item(key = "about") {
                 Text(
-                    text = aboutText(container, prefs.phoneAppVersion, prefs.lastSyncAt),
+                    text = aboutText(prefs.phoneAppVersion, prefs.lastSyncAt),
                     style = MaterialTheme.typography.caption1,
                     color = colors.textMuted,
                     modifier = Modifier.padding(vertical = 4.dp),
