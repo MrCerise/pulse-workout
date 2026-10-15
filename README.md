@@ -52,6 +52,10 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
   timeline and save. No API keys, no network calls, nothing sent on your behalf.
 - **Health Connect, with Google Fit as a best-effort fallback.** Live heart rate in the player,
   finished sessions written as workout sessions with per-interval segments.
+- **On your wrist, for real.** The Wear OS app runs the same engine on the watch — same drift-free
+  timing, haptic cues, the same theme — synced from the phone: workouts and settings mirror
+  automatically, either screen can control a running session, and watch workouts land in the
+  phone's history.
 
 ## Features
 
@@ -67,6 +71,7 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 | **Voice studio** | Engine and offline-voice status, rate, pitch, verbosity, profiles, cue volume, vibration, ducking switch and depth, your own recordings |
 | **Look & feel** | Light, dark, true black and system themes, high contrast, reduced motion, dynamic colour, adjustable density; 125 contrast pairs measured in CI |
 | **System** | Home-screen widgets, dynamic shortcuts, SAF backup/restore with preview, weekly automatic backups, drafts that survive process death |
+| **Wear OS** | Standalone watch app with the same engine and theme, library/preferences sync from the phone, two-way live session mirroring and remote control, watch sessions saved to the phone's history (and Health Connect) |
 | **Locales** | English (default) and French shipped; every Crowdin-approved locale is packaged with English fallback |
 
 **Deliberately not included:** no Bluetooth chest-strap pairing, no cloud sync of your own, no
@@ -128,6 +133,7 @@ Build problems? See [Troubleshooting](#troubleshooting) at the bottom of this pa
 ```
 pulse-workout/
 ├── engine/          pure-Kotlin timing engine (JVM, no Android deps) + 29 unit tests
+├── sync/            pure-Kotlin phone↔watch protocol (payloads, codecs) + round-trip tests
 ├── app/             the Android app — Compose, Room, DataStore, Media3, WorkManager, widgets
 │   └── src/main/java/com/pulse/intervalcoach/
 │       ├── audio/     cue sounds, haptics, speech, the cue gate
@@ -135,8 +141,10 @@ pulse-workout/
 │       ├── health/    Health Connect (primary) + Google Fit (secondary)
 │       ├── session/   CueScript, SessionController, WorkoutService, music
 │       ├── ui/        theme tokens, shared components, screens
+│       ├── wear/      the phone half of the Wear OS sync link
 │       ├── widget/    home-screen widgets and dynamic shortcuts
 │       └── work/      WorkManager jobs (weekly backup, reminders)
+├── wear/            the Wear OS app — same engine, mirrored theme, the watch half of the link
 ├── docs/            documentation, the design system and generated reports
 ├── scripts/         resource, brand, contrast and Kotlin cross-reference gates
 └── .github/         CI workflow, issue and PR templates

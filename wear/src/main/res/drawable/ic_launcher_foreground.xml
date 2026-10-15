@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PULSE mark. Geometry from the supplied 256 × 256 SVG. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="0.234375" android:scaleY="0.234375" android:translateX="24" android:translateY="24">
+        <path android:fillColor="#111111"
+        android:pathData="M44 161.64L59.53 103.68A18 18 0 0 0 24.75 94.36L9.23 152.32A18 18 0 0 0 44 161.64Z M88.47 219.59L135.06 45.73A18 18 0 0 0 100.28 36.41L53.7 210.27A18 18 0 0 0 88.47 219.59Z M164 161.64L179.53 103.68A18 18 0 0 0 144.75 94.36L129.23 152.32A18 18 0 0 0 164 161.64Z M216.75 188.68L246.77 76.64A18 18 0 0 0 212 67.32L181.98 179.36A18 18 0 0 0 216.75 188.68Z" />
+    </group>
+</vector>

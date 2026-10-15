@@ -21,4 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "PULSE"
 include(":engine")
+include(":sync")
 include(":app")
+include(":wear")

@@ -57,7 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           bash ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
-            :engine:test :app:testDebugUnitTest 2>&1 | tee gradle-build.log
+            :engine:test :sync:test :app:testDebugUnitTest :wear:testDebugUnitTest 2>&1 | tee gradle-build.log
 
       - name: Summarize failure diagnostics
         if: failure()
@@ -126,7 +126,8 @@ jobs:
         run: |
           set -euo pipefail
           bash ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
-            :app:assembleDebug :app:assembleRelease 2>&1 | tee gradle-build.log
+            :app:assembleDebug :app:assembleRelease \
+            :wear:assembleDebug :wear:assembleRelease 2>&1 | tee gradle-build.log
 
       - name: Prepare release assets
         shell: bash
@@ -135,10 +136,13 @@ jobs:
           {
             release_tag="${RELEASE_TAG:-$GITHUB_REF_NAME}"
             echo "release_tag=${release_tag}"
-            ls -la app/build/outputs/apk/debug/ app/build/outputs/apk/release/ 2>&1
+            ls -la app/build/outputs/apk/debug/ app/build/outputs/apk/release/ \
+              wear/build/outputs/apk/debug/ wear/build/outputs/apk/release/ 2>&1
             mkdir -p release-assets
             cp app/build/outputs/apk/debug/app-debug.apk "release-assets/pulse-${release_tag}-debug.apk"
             cp app/build/outputs/apk/release/app-release.apk "release-assets/pulse-${release_tag}-release.apk"
+            cp wear/build/outputs/apk/debug/wear-debug.apk "release-assets/pulse-${release_tag}-wear-debug.apk"
+            cp wear/build/outputs/apk/release/wear-release.apk "release-assets/pulse-${release_tag}-wear-release.apk"
             ls -la release-assets/
           } 2>&1 | tee asset-prep.log
 

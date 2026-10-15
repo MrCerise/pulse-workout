@@ -17,6 +17,37 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 Nothing yet. See the [open issues](https://github.com/MrCerise/pulse-workout/issues) for what is
 being worked on.
 
+## [1.7.1] — 2026-10-15
+
+**Added**
+
+- **Wear OS companion app** (`pulse-<tag>-wear-release.apk`, same package name as the phone app).
+  The watch runs workouts with the exact same engine as the phone — monotonic, drift-free timing
+  — with haptic cues mapped from each interval's cue setting, and keeps timing alive across wrist
+  turns under a partial wake lock.
+- **Phone ↔ watch sync.** Workouts, favourites and the appearance/cue preferences are mirrored to
+  the watch automatically; deletions and renames propagate through a manifest reconciliation. A
+  finished watch session lands in the phone's history (and Health Connect, when enabled) with its
+  full event trail.
+- **Two-way session mirroring.** A session running on either device is mirrored live on the other
+  at ~1 Hz, and pause / resume / skip / +15 s / stop work from either side. The phone shows a
+  "workout running on your watch" card; the watch shows a "running on phone" entry.
+- **Same theme on the wrist.** The watch ships the "Signal" dark, OLED and high-contrast palettes;
+  `contrast_check.py` now fails the build if the mirrored values drift from the phone's, so the
+  verified contrast ratios apply to both screens.
+
+**Changed**
+
+- Static gates cover the new modules: `check_ui.py` validates wear resources and EN/FR parity,
+  `check_brand.py` verifies the watch launcher mark, `kotlin_xref_gate.py` resolves imports across
+  all four modules, and PR CI runs `:sync:test` and `:wear:testDebugUnitTest` alongside the
+  existing suites.
+- Release builds produce two APKs per tag: the phone app and the watch app, both signed with the
+  release key.
+
+Details: [architecture — the Wear OS link](docs/ARCHITECTURE.md),
+[v1.7.1 release verification](docs/RELEASE_1.7.1.md).
+
 ## [1.7.0] — 2026-10-14
 
 **Added**

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Advertised to the phone app so each side can discover a peer without assuming a node type.
+        Both APKs declare the same capability name.
+    -->
+    <string-array name="android_wear_capabilities">
+        <item>pulse_sync</item>
+    </string-array>
+</resources>

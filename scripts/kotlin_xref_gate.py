@@ -24,13 +24,19 @@ except ImportError:  # Executed as `python3 scripts/kotlin_xref_gate.py`.
 
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent).resolve()
 APP = ROOT / "app/src/main/java/com/pulse/intervalcoach"
-ENGINE = ROOT / "engine"
-for source_root in (APP, ENGINE):
+# All Kotlin modules are scanned for import resolution; the app-specific rules below (container
+# members, HealthHub members, preference fields) only ever apply to files inside APP.
+OTHER_MODULES = [
+    ROOT / "engine/src/main/kotlin",
+    ROOT / "sync/src/main/kotlin",
+    ROOT / "wear/src/main/java",
+]
+for source_root in [APP] + OTHER_MODULES:
     if source_root.is_symlink() or not source_root.is_dir():
         print(f"unsafe Kotlin scan root: {source_root}", file=sys.stderr)
         sys.exit(2)
 
-kt_files = sorted(APP.rglob("*.kt")) + sorted(ENGINE.rglob("*.kt"))
+kt_files = sorted(APP.rglob("*.kt")) + [f for root in OTHER_MODULES for f in sorted(root.rglob("*.kt"))]
 reader = BoundedSourceReader(ROOT)
 try:
     sources = {path: reader.read_text(path) for path in kt_files}
@@ -156,7 +162,8 @@ container_members = set(re.findall(r"val[ \t]+(\w+)[ \t]*[:=]", container_text))
 hub_text = next(t for p, t in code_sources.items() if p.name == "HealthHub.kt")
 hub_public = set(re.findall(r"(?:public[ \t]+)?(?:suspend[ \t]+)?(?:val|fun|var)[ \t]+(\w+)[ \t]*[(=:]", hub_text))
 
-for p, text in code_sources.items():
+app_sources = {p: t for p, t in code_sources.items() if APP in p.parents}
+for p, text in app_sources.items():
     if p.name in ("PulseApp.kt", "HealthHub.kt"):
         continue
     for line in text.splitlines():
@@ -178,7 +185,7 @@ if up_text:
 # also fields set via container.preferences.<setter> must exist as fun in Prefs
 prefs_funs = set(re.findall(r"fun[ \t]+(set\w+|\w+)[ \t]*\(", code_sources[prefs_file]))
 PREFS_UI_FILES = {"SettingsScreens.kt", "SummaryScreen.kt", "HomeScreen.kt", "ProgressScreens.kt"}
-for p, text in code_sources.items():
+for p, text in app_sources.items():
     if p.name == "Prefs.kt":
         continue
     for m in re.finditer(r"\bcontainer\.preferences\.(\w+)", text):

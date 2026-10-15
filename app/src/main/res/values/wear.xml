@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Advertised to the Wear OS app so each side can discover a peer without assuming a node
+        type. Both APKs (phone and watch) declare the same capability name; the shared constants
+        live in com.pulse.sync.SyncPaths.
+    -->
+    <string-array name="android_wear_capabilities">
+        <item>pulse_sync</item>
+    </string-array>
+</resources>

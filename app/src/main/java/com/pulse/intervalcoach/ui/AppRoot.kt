@@ -92,6 +92,7 @@ import com.pulse.intervalcoach.ui.theme.PulseTheme
 import com.pulse.intervalcoach.ui.theme.PulseType
 import com.pulse.intervalcoach.ui.theme.pulseColors
 import com.pulse.intervalcoach.ui.theme.ThemeMode
+import com.pulse.intervalcoach.ui.watchsession.WatchSessionScreen
 import com.pulse.intervalcoach.ui.welcome.WelcomeScreen
 import com.pulse.intervalcoach.ui.workouts.CategoryScreen
 import com.pulse.intervalcoach.ui.workouts.TemplateGalleryScreen
@@ -410,6 +411,7 @@ fun PulseAppRoot(
                                 onOpenHealth = { navController.navigate(Routes.HEALTH) },
                                 onOpenCategory = { navController.navigate(Routes.category(it.key)) },
                                 onOpenLibrary = { navController.navigate(Routes.WORKOUTS) },
+                                onOpenWatchSession = { navController.navigate(Routes.WATCH_SESSION) },
                             )
                         }
                         composable(Routes.WORKOUTS) {
@@ -518,6 +520,12 @@ fun PulseAppRoot(
                             PlayerScreen(
                                 container = container,
                                 onFinished = { navController.navigate(Routes.SUMMARY) { popUpTo(Routes.PLAYER) { inclusive = true } } },
+                                onClose = { navController.popBackStack() },
+                            )
+                        }
+                        composable(Routes.WATCH_SESSION) {
+                            WatchSessionScreen(
+                                container = container,
                                 onClose = { navController.popBackStack() },
                             )
                         }

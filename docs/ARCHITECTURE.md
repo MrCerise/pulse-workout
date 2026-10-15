@@ -1,17 +1,20 @@
 # Architecture
 
-PULSE is two Gradle modules and a set of dependency-free Python gates. The split exists so the part
-where a bug is expensive — the timer — can be tested exhaustively on the JVM, without an emulator
-and without Android.
+PULSE is four Gradle modules and a set of dependency-free Python gates. The split exists so the parts
+where a bug is expensive — the timer and the phone↔watch protocol — can be tested exhaustively on
+the JVM, without an emulator and without Android.
 
 ```
 :engine   pure Kotlin/JVM timing engine, no Android dependencies
+:sync     pure Kotlin/JVM phone↔watch protocol: payload formats, codecs, event mapping
 :app      the Android application (Compose, Room, DataStore, Media3, WorkManager, AppWidgets)
+:wear     the Wear OS application (Compose for Wear OS, DataStore, the Wear data layer)
 ```
 
 - [Modules](#modules)
 - [The timing engine](#the-timing-engine)
 - [How the timer works](#how-the-timer-works)
+- [The Wear OS link](#the-wear-os-link)
 - [Application layers](#application-layers)
 - [Threading and process model](#threading-and-process-model)
 - [Constraints we hold ourselves to](#constraints-we-hold-ourselves-to)
@@ -21,8 +24,10 @@ and without Android.
 | Path | What it is |
 | --- | --- |
 | `engine/` | `Model.kt` — interval types, the plan tree, validation and timeline expansion. `TimerEngine.kt` — the state machine, with the clock injected. 29 tests in `engine/src/test`. |
-| `app/` | Everything Android: screens, theme, components, persistence, health integration, the foreground service that keeps a session alive, widgets and background work. |
-| `scripts/` | `contrast_check.py` (regenerates [`CONTRAST.md`](CONTRAST.md)), `check_ui.py` (resources, vectors, EN/FR parity), `check_brand.py`, `kotlin_parse_gate.py` and `kotlin_xref_gate.py` (dependency-free Kotlin syntax and cross-reference gates), `capture-screenshots.sh`. |
+| `sync/` | The phone↔watch protocol as pure Kotlin: `Sync.kt` defines every payload (library manifest, preferences, live session snapshot, command, finished-session log), the JSON codecs, and the mapping from engine events to history events. Protocol-codec round-trip tests in `sync/src/test`. |
+| `app/` | Everything Android: screens, theme, components, persistence, health integration, the foreground service that keeps a session alive, widgets, background work, and the phone half of the Wear link (`wear/WearSyncManager.kt`). |
+| `wear/` | The Wear OS app: the same engine running on the watch, the same design tokens mirrored for a round screen, and the watch half of the Wear link (`sync/WearSyncLink.kt`). Session-lifecycle tests in `wear/src/test`. |
+| `scripts/` | `contrast_check.py` (regenerates [`CONTRAST.md`](CONTRAST.md) and asserts the watch palette mirror), `check_ui.py` (resources, vectors, EN/FR parity per module), `check_brand.py` (phone and watch brand marks), `kotlin_parse_gate.py` and `kotlin_xref_gate.py` (dependency-free Kotlin syntax and cross-reference gates), `capture-screenshots.sh`. |
 
 Inside `app/src/main/java/com/pulse/intervalcoach/`:
 
@@ -87,6 +92,42 @@ The plan is a **tree**, not a flat list:
   be queued, and countdowns are dropped when they would run past the next boundary.
 - **Sound fallback.** If the device has no TTS engine — or no voice for the selected language —
   PULSE plays synthesised tones and tells you, instead of silently dropping cues.
+
+## The Wear OS link
+
+The phone app and the watch app are two APKs with the **same application id** — that is what the
+Wear data layer uses to find peers — built around the shared `:engine` and `:sync` modules. The
+watch is a real client, not a notification mirror: it runs the same engine, with the same
+monotonic anchoring, on its own CPU.
+
+```
+phone :app                                     watch :wear
+──────────────────────                         ──────────────────────
+WorkoutRepository ──▶ data items ────────────▶ WatchWorkoutStore (library mirror)
+PreferencesRepository ─▶ data item ─────────▶ WatchPreferences (theme, cues)
+SessionController.snapshot ─▶ messages ────▶ WearSyncLink.remoteSession (live mirror)
+WearSyncManager.remoteWatchSession ◀─ messages ─ WatchSessionController (live mirror)
+WearSyncManager.sendCommand ──▶ messages ───▶ WatchSessionController.applyCommand
+SessionRepository.recordWatchSession ◀─ log ─ WatchSessionController (finished session)
+```
+
+- **Durable state rides data items; point-in-time state rides messages.** The workout library,
+  its manifest and the mirrored preferences are data items, which the platform replicates and
+  queues across disconnects. Live snapshots (~1 Hz) and commands are messages, which never queue.
+  A finished watch session is important, so it is the exception: the watch keeps undelivered logs
+  queued in its DataStore and retries until the phone acknowledges.
+- **Whoever runs the session owns it.** The device with the engine applies commands and records
+  the log; the other device is a remote control and a display. This is why the phone can pause the
+  watch's workout and the watch can pause the phone's, with no election protocol at all.
+- **The watch's history is the phone's history.** A watch session arrives as a `SessionLog`, is
+  stored verbatim (same entity shape, same event kinds) and — when Health Connect sync is enabled
+  — is written there too, exactly as a phone session would be.
+- **Protocol versions gate everything.** Every payload carries `PROTOCOL_VERSION`; a peer that
+  does not understand a payload drops it rather than misreading it, so the two APKs can be
+  updated independently.
+- **The theme is mirrored by value, not by reference.** An application module cannot be shared
+  between APKs, so the watch ships `WearPalette.kt` with the same constants; `contrast_check.py`
+  fails the build if the two ever drift (see [`CONTRAST.md`](CONTRAST.md)).
 
 ## Application layers
 

@@ -35,15 +35,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pulse.engine.PhaseKind
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
+import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.CategoryDefaults
 import com.pulse.intervalcoach.data.DailyActivity
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
@@ -237,6 +240,7 @@ fun HomeScreen(
     onOpenHealth: () -> Unit,
     onOpenCategory: ((WorkoutCategory) -> Unit)? = null,
     onOpenLibrary: (() -> Unit)? = null,
+    onOpenWatchSession: (() -> Unit)? = null,
 ) {
     val viewModel: HomeViewModel = viewModel(initializer = { HomeViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -245,6 +249,7 @@ fun HomeScreen(
     val dimens = LocalPulseDimens.current
     val activeSession by container.sessionController.active.collectAsStateWithLifecycle()
     val snapshot by container.sessionController.snapshot.collectAsStateWithLifecycle()
+    val watchSession by container.wearSync.remoteWatchSession.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
     val presets = remember { buildCategoryPresets() }
@@ -303,6 +308,42 @@ fun HomeScreen(
                                 Text(
                                     text = "${activeSession?.plan?.name} · ${snapshot.step?.name ?: ""} · " +
                                         formatDuration(snapshot.stepRemainingMillis) + " left",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.textMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
+                        }
+                    }
+                }
+            }
+
+            // --- Live watch session --------------------------------------------------------------
+            // Shown only when nothing runs on the phone: a phone session always wins the screen.
+            if (activeSession == null && watchSession != null && onOpenWatchSession != null) {
+                item {
+                    PulseCard(onClick = onOpenWatchSession) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconTile(icon = Icons.Filled.Watch, tint = colors.work, container = colors.phaseTint(PhaseKind.WORK))
+                            Spacer(Modifier.width(dimens.m))
+                            Column(
+                                Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(dimens.microGap),
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.watch_banner_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = watchSession?.let { watch ->
+                                        watch.planName + " · " + watch.stepName + " · " +
+                                            formatDuration(watch.stepRemainingMillis) + " left"
+                                    } ?: "",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.textMuted,
                                     maxLines = 1,
