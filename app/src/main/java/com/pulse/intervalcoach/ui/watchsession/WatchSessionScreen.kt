@@ -247,7 +247,7 @@ fun WatchSessionScreen(
     if (confirmingStop) {
         ConfirmDialog(
             title = stringResource(R.string.watch_session_stop_confirm),
-            message = stringResource(R.string.watch_session_stop_message),
+            body = stringResource(R.string.watch_session_stop_message),
             confirmLabel = stringResource(R.string.watch_session_stop),
             dismissLabel = stringResource(R.string.watch_session_keep_going),
             onConfirm = {

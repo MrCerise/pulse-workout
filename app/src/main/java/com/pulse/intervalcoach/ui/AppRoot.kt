@@ -134,6 +134,7 @@ object Routes {
     const val HEALTH = "health"
     const val WELCOME = "welcome"
     const val GOALS = "goals"
+    const val WATCH_SESSION = "watch-session"
 
     fun details(id: String) = "workout/$id"
     fun session(id: String) = "session/$id"
