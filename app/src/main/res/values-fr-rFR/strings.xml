@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pulse</string>
+    <string name="app_name">Pulse Workout</string>
     <string name="app_tagline">Intervalle d\'entrainement</string>
     <!-- Navigation -->
     <string name="nav_home">Accueil</string>
     <string name="nav_workouts">Entraînements</string>
     <string name="nav_progress">Progression</string>
     <string name="nav_settings">Paramètres</string>
+    <string name="nav_today">Today</string>
+    <string name="nav_health">Health</string>
+    <string name="nav_group_library">Library</string>
+    <string name="nav_group_system">System</string>
+    <!-- Breadcrumb titles for the routes whose own header string cannot be reused. -->
+    <string name="title_category">Category</string>
+    <string name="title_builder">Builder</string>
+    <string name="title_details">Workout</string>
+    <string name="title_session">Session</string>
+    <string name="title_backup">Backup</string>
     <!-- Home -->
     <string name="home_greeting">Aujourd’hui</string>
     <string name="home_quick_start">Démarrage rapide</string>
@@ -36,10 +46,10 @@
     <string name="view_grid">Grille</string>
     <string name="filter_favorites">Favoris</string>
     <string name="filter_all_folders">Tous les dossiers</string>
-    <string name="action_duplicate">Duplicate</string>
+    <string name="action_duplicate">Doublon</string>
     <string name="action_export">Exportation</string>
     <string name="action_delete">Supprimez</string>
-    <string name="action_edit">Editer</string>
+    <string name="action_edit">Modifier</string>
     <string name="action_share">Partager</string>
     <string name="action_move">Déplacer vers le dossier</string>
     <string name="delete_workout_title">Supprimer cet entraînement ?</string>
@@ -54,7 +64,7 @@
     <string name="details_total_duration">Durée totale</string>
     <string name="details_rounds">Arrondi</string>
     <string name="details_open_ended_note">Intervalles manuels inclus · la durée est un minimum.</string>
-    <string name="details_equipment">Equipement</string>
+    <string name="details_equipment">Équipement </string>
     <string name="details_voice">Profil vocal</string>
     <string name="details_notes">Notes</string>
     <string name="details_start">Commencer l\'entraînement</string>
@@ -82,7 +92,7 @@
     <string name="builder_add_group">Ajouter un bloc de répétition</string>
     <string name="builder_move_up">Déplacer vers le haut</string>
     <string name="builder_move_down">Déplacer vers le bas</string>
-    <string name="builder_duplicate">Duplicate</string>
+    <string name="builder_duplicate">Doublon</string>
     <string name="builder_delete">Supprimez</string>
     <string name="builder_undo">Annuler</string>
     <string name="builder_redo">Refaire</string>
@@ -99,7 +109,7 @@
     <string name="builder_notes">Intervalle de note</string>
     <string name="builder_tags">Tags</string>
     <string name="builder_folder">Répertoire</string>
-    <string name="builder_equipment">Equipement</string>
+    <string name="builder_equipment">Équipement </string>
     <string name="builder_shuffle">Intervalles d\'effort aléatoire</string>
     <string name="builder_left_right">Ajouter à gauche / droite</string>
     <string name="builder_ladder">Échelle progressive</string>
@@ -119,7 +129,7 @@
     <string name="player_add_time">+15 s</string>
     <string name="player_finish">Terminer</string>
     <string name="player_session_elapsed">%1$s écoulé</string>
-    <string name="player_session_remaining">Remaining %1$s</string>
+    <string name="player_session_remaining">Restantes : %1$s</string>
     <string name="player_open_ended">Ouverture terminée</string>
     <string name="player_voice_on">Voix activée</string>
     <string name="player_voice_off">Cues en sourdine</string>
@@ -133,7 +143,7 @@
     <string name="player_countdown_resumed">Minuterie en cours d\'exécution</string>
     <string name="player_up_next">Suivant</string>
     <string name="player_lap">Tour</string>
-    <string name="player_laps">%1$d laps</string>
+    <string name="player_laps">%1$d tours</string>
     <string name="player_instructor">Vue de l\'instructeur</string>
     <!-- Summary -->
     <string name="summary_title">Résumé de la session</string>
@@ -149,16 +159,16 @@
     <string name="summary_done">Fait</string>
     <string name="summary_save_note">Enregistrer la note</string>
     <string name="summary_share_image">Partager l\'image</string>
-    <string name="summary_rounds_logged">Arrondes enregistrées</string>
+    <string name="summary_rounds_logged">Round enregistrées</string>
     <!-- History / progress -->
     <string name="progress_title">Progrès</string>
     <string name="progress_history">Historique</string>
     <string name="progress_week">Activité hebdomadaire</string>
     <string name="progress_streak">Série actuelle</string>
-    <string name="progress_streak_days">%1$d days</string>
+    <string name="progress_streak_days">%1$d jours</string>
     <string name="progress_totals">Tous les temps</string>
     <string name="progress_total_sessions">Sessions %1$d</string>
-    <string name="progress_total_time">%1$s of training</string>
+    <string name="progress_total_time">%1$s d\'entraînement</string>
     <string name="progress_planner">Planificateur</string>
     <string name="progress_empty_title">Pas encore de sessions</string>
     <string name="progress_empty_body">Pas encore d\'historique d\'entraînement.</string>
@@ -232,7 +242,10 @@
     <string name="theme_light">Lumière</string>
     <string name="theme_dark">Sombre</string>
     <string name="theme_black">Vrai noir</string>
-    <string name="settings_dynamic_color">accent sur le fond d\'écran</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System default</string>
+    <string name="settings_language_note">Applied immediately. Widgets and notifications follow the same choice on Android 13 and newer.</string>
+    <string name="settings_dynamic_color">Accent du fond d\'écran</string>
     <string name="settings_reduced_motion">Mouvement réduit</string>
     <string name="settings_high_contrast">Contraste élevé</string>
     <string name="settings_left_handed">Joueur à gauche</string>
@@ -245,7 +258,7 @@
     <string name="settings_default_rest">Reste par défaut</string>
     <string name="settings_default_rounds">Arrondi par défaut</string>
     <string name="settings_units">Unités de poids</string>
-    <string name="units_kg">Kilograms (kg)</string>
+    <string name="units_kg">Kilogramme (kg)</string>
     <string name="units_lb">Livres (lb)</string>
     <string name="settings_behaviour">Pendant les entraînements</string>
     <string name="settings_keep_screen_on">Garder l\'écran allumé</string>
@@ -271,35 +284,36 @@
     <string name="settings_reset_tips">Réafficher l\'accueil</string>
     <string name="settings_permissions">Autorisations utilisées</string>
     <!-- Import / export -->
-    <string name="export_title">Exporter les données PULSE</string>
+    <string name="export_title">Export Pulse Workout data</string>
     <string name="export_success">Exporté vers le fichier sélectionné</string>
-    <string name="export_failed">Échec de l\'exportation: %1$s</string>
-    <string name="import_title">Importer des données PULSE</string>
+    <string name="export_failed">Échec de l\'exportation : %1$s</string>
+    <string name="import_title">Import Pulse Workout data</string>
     <string name="import_success">Entraînements %1$d importés et sessions %2$d</string>
-    <string name="import_failed">Échec de l\'importation: %1$s</string>
+    <string name="import_failed">Échec de l\'importation : %1$s</string>
     <string name="import_preview_title">Réviser avant d\'importer</string>
     <string name="import_preview_body">Exercices %1$d · %2$d sessions · Balises %3$d</string>
     <string name="import_confirm">Importation</string>
-    <string name="import_corrupt">Sauvegarde PULSE invalide. Rien n\'a été changé.</string>
+    <string name="import_corrupt">Invalid Pulse Workout backup. Nothing was changed.</string>
     <string name="backup_created">Sauvegarde écrite vers %1$s</string>
-    <string name="backup_too_large">Backups larger than %1$d MiB cannot be imported.</string>
+    <string name="backup_too_large">Impossible d’importer des sauvegardes de plus de %1$d Mio.</string>
     <!-- Onboarding -->
-    <string name="welcome_title">Intervalle de PULSE</string>
+    <string name="welcome_title">Pulse Workout</string>
     <string name="welcome_subtitle">Votre minuteur d\'intervalle.</string>
-    <string name="welcome_theme">Choisir un look</string>
+    <string name="welcome_theme">Choisir un thème</string>
+    <string name="welcome_language">Choose a language</string>
     <string name="welcome_voice">Écouter une cue</string>
     <string name="welcome_voice_body">Écouter les changements d\'intervalle sans regarder l\'écran.</string>
     <string name="welcome_sample_workout">Essayez un démarrage de 4 minutes</string>
     <string name="welcome_skip">Ignorer</string>
     <string name="welcome_next">Suivant</string>
-    <string name="welcome_start">Commencer à utiliser PULSE</string>
+    <string name="welcome_start">Start using Pulse Workout</string>
     <string name="welcome_notifications">Les notifications ajoutent des contrôles de minuterie à votre écran de verrouillage.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. L\'entraînement fonctionne toujours, mais sans contrôle en direct.</string>
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
-    <string name="help_voice_body">Pour le coaching hors ligne, installez une voix dans les paramètres Android → synthèse vocale. Sans voix, PULSE utilise des signaux sonores.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Pulse Workout uses sound cues.</string>
     <string name="help_background">Opération d\'arrière-plan</string>
     <string name="help_background_body">Le chronométrage continue avec la désactivation de l\'écran. Activez les indices d\'extinction de l\'écran dans les paramètres pour continuer à jouer les annonces.</string>
     <string name="help_audio">Dépannage audio</string>
@@ -322,11 +336,11 @@
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Favoris PULSE</string>
-    <string name="widget_quick_start_name">Démarrage rapide PULSE</string>
+    <string name="widget_favorites_name">Pulse Workout favorites</string>
+    <string name="widget_quick_start_name">Pulse Workout quick start</string>
     <string name="widget_quick_start_label">Démarrage rapide</string>
     <string name="widget_quick_start_sub">Travail / repos</string>
-    <string name="widget_empty">Ouvrir PULSE pour mettre en vedette une séance d\'entraînement</string>
+    <string name="widget_empty">Open Pulse Workout to star a workout</string>
     <string name="shortcut_recent">Entraînements récents</string>
     <string name="shortcut_quick">Constructeur rapide</string>
     <!-- Notifications -->
@@ -343,15 +357,15 @@
     <!-- Portable workout import -->
     <string name="json_title">Entraînements IA</string>
     <string name="json_ai_help">Envoyez à votre application IA, puis collez sa réponse. Seule l\'invite est partagée.</string>
-    <string name="json_request">Que voulez-vous former?</string>
+    <string name="json_request">Que souhaitez-vous entrainer ?</string>
     <string name="json_request_hint">10 minutes, débutant, aucun équipement</string>
     <string name="json_copied">Invitation copiée</string>
     <string name="json_copy_prompt">Copier l\'invite</string>
     <string name="json_choose_file">Ouvrir le fichier JSON</string>
-    <string name="json_input">Entraînement JSON · maximum 256 KiB</string>
+    <string name="json_input">Entraînement au format JSON · 256 Kio max</string>
     <string name="json_working">Traitement de…</string>
     <string name="json_preview_title">Examiner les entraînements · %1$d</string>
-    <string name="json_equipment">Equipment: %1$s</string>
+    <string name="json_equipment">Équipement : %1$s</string>
     <string name="json_summary">Intervalles %1$d · %2$s</string>
     <string name="json_manual_warning">Inclus des intervalles manuels · la durée est un minimum.</string>
     <string name="json_manual">Manuel · appuyez sur Suivant</string>
@@ -372,7 +386,7 @@
     <string name="share_total_time">Temps total · pauses incluses</string>
     <string name="share_skipped">Intervalles ignorés</string>
     <string name="share_rounds">Arrondes enregistrées</string>
-    <string name="share_recorded">Enregistré avec PULSE</string>
+    <string name="share_recorded">Recorded with Pulse Workout</string>
     <!-- Theme & streamlined AI flow -->
     <string name="theme_switch_light">Basculer vers le thème clair</string>
     <string name="theme_switch_dark">Basculer vers le thème sombre</string>
