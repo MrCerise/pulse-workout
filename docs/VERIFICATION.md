@@ -16,8 +16,8 @@ available.
 | Environment | What it can prove |
 | --- | --- |
 | Any machine with Python 3 | Resources, vectors, EN/FR parity, brand assets, contrast, Kotlin syntax and cross-reference gates |
-| Any machine with JDK 17 | `:engine:test` — the whole timing engine, no Android SDK needed |
-| CI (GitHub Actions) | `:engine:test`, `:app:testDebugUnitTest`, lint, and signed debug/release APK builds against SDK 37 |
+| Any machine with JDK 17 | `:engine:test`, `:sync:test` and `:library:test` — the timing engine, the phone↔watch protocol and the bundled catalogue, no Android SDK needed |
+| CI (GitHub Actions) | `:engine:test`, `:sync:test`, `:library:test`, `:app:testDebugUnitTest`, `:wear:testDebugUnitTest`, lint, and signed debug/release APK builds against SDK 37 |
 | A device or emulator | Everything platform-dependent: notifications, audio focus, TTS, vibration, widgets, TalkBack, Health Connect |
 
 The development environment this project has been built in has **no Android SDK, no JDK and no
@@ -29,8 +29,8 @@ that can run anywhere.
 | Check | Command | Result |
 | --- | --- | --- |
 | Contrast (tokens ↔ XML ↔ Kotlin in lockstep) | `python3 scripts/contrast_check.py` | 125 pairs across 3 themes, all pass — see [CONTRAST.md](CONTRAST.md) |
-| Kotlin syntax gate (parse of every source file) | `python3 scripts/kotlin_parse_gate.py` | 48 files, 0 syntax errors |
-| Resource gate (`@color`/`@string`/`@drawable` resolve, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 432 names, 340 EN / 340 FR strings, 42 icons — OK |
+| Kotlin syntax gate (parse of every source file) | `python3 scripts/kotlin_parse_gate.py` | 91 files, 0 syntax errors |
+| Resource gate (`@color`/`@string`/`@drawable` resolve, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 579 names, 385 app + 63 wear EN strings (and the same in FR), 56 icons — OK |
 | Brand gate | `python3 scripts/check_brand.py` | OK |
 | Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
 | Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
@@ -43,7 +43,8 @@ does not match, so the file is generated, never hand-edited.
 | Check | Job | Result |
 | --- | --- | --- |
 | Engine unit tests | `unit-tests` | final gate |
-| App unit tests (AI import, themes, factory, backups, cues, ducking, DB migration v2, builder route) | `unit-tests` | final gate |
+| Protocol, catalogue and app unit tests (payload codecs, bundled catalogue, AI import, themes, factory, backups, cues, ducking, DB migration v2, builder route) | `unit-tests` | final gate |
+| Watch unit tests (session lifecycle, history, recorder) | `unit-tests` | final gate |
 | Resource, brand, contrast and xref gates | `resource-checks` | final gate |
 | Compilation, lint, debug + release APK (SDK 37) | `release` (on tags) | final gate |
 | Install / smoke test | — | **not run** — no emulator or device |

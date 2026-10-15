@@ -10,6 +10,7 @@ environment lacks what the check requires.
 - [v1.4.2 design-refactor checks](#v142-design-refactor-checks)
 - [v1.6.3 editing and control-shape checks](#v163-editing-and-control-shape-checks)
 - [v1.4.4 audio-ducking checks](#v144-audio-ducking-checks)
+- [v1.7.2 standalone and pairing checks](#v172-standalone-and-pairing-checks)
 
 For how these checks are run in CI and locally, see [VERIFICATION.md](VERIFICATION.md).
 
@@ -102,3 +103,25 @@ still needs a device.
 | Ducking follows the real speech engine | `SpeechCoach` utterance counting (`onStart` / `onDone` / `onStop` / `onError`) plus a watchdog from the cue gate's estimate | **implemented** — TTS callbacks need a device |
 | Background audio starts, pauses, resumes and is released with the session | `SessionController.startWorkout` / `syncMusicWithEngine` / `teardown` → `MusicController` | **implemented** — ExoPlayer output needs a device |
 | Volume keys control the workout when asked to | `MainActivity.onKeyDown` behind the `volume keys control the session` preference | **implemented** — needs a device |
+
+## v1.7.2 standalone and pairing checks
+
+v1.7.2 makes the watch app usable with no phone at all, and keeps pairing as an upgrade rather than a
+requirement. The rules that could silently corrupt something — which copy of a workout wins, what a
+finished session records, what an undelivered log does — are pure Kotlin or covered by JVM tests; the
+DataStore plumbing and the data layer itself need a watch.
+
+| Check | How it is checked | Result |
+| --- | --- | --- |
+| A watch that has never been paired has workouts to run | `WatchWorkoutStore.seedBundledWorkoutsIfNeeded()` seeds `StarterWorkouts` when no manifest has ever been applied and nothing is stored; the catalogue itself is verified | **verified for the catalogue, implemented for the store** — `:library:test` expands, validates and id-checks every template; the DataStore seeding needs a watch |
+| The seeded workouts are *the same* workouts as the phone's | Both APKs derive ids from the same seeds: `StarterWorkoutsTest` pins the MD5-derived `builtin-…` ids, so the library manifest reconciles instead of duplicating | **verified** |
+| Seeding cannot produce a hybrid library | `applyLibrary` sets `library_synced`, and only that flag stops re-seeding; a watch updated from 1.7.1 already has a stored library, which also stops it | **implemented** — needs a device to exercise the two upgrade paths |
+| A session finished with no phone is still recorded | `WatchSessionRecorder` writes the local history before handing the log to the link, and a link that throws cannot prevent it (`WatchSessionRecorderTest`) | **verified** for the fan-out; the DataStore write needs a watch |
+| The history is bounded and ordered | `mergeWatchHistory` — newest first, one entry per session id, capped at `WATCH_HISTORY_LIMIT`, and an over-long stored value is truncated on read (`WatchHistoryTest`) | **verified** |
+| A corrupt history cannot block the app | `WatchHistoryCodec.decode` returns an empty list for unreadable, truncated or missing values (`WatchHistoryTest`) | **verified** |
+| Turning the phone link off stops all traffic | `WatchPreferences.syncEnabled` gates `WearSyncLink`'s inbound handlers, `sendCommand`, `requestSync`, `onLiveSnapshot` and `deliverPendingLogs`; queued logs are preserved | **implemented** — the guards compile and are reasoned about; only a device can show the absence of traffic |
+| An undelivered session is retried, not lost | The link retries the persisted queue on a timer and on every peer change, and the phone acknowledges with `MESSAGE_LOG_ACK` | **implemented** — needs both devices |
+| Two devices never coach the same workout | Home's tap asks once, then sends `WatchCommandKind.STOP` to the phone before starting locally | **implemented** — needs both devices |
+| The two apps stay compatible across the update | No payload changed shape; `PROTOCOL_VERSION` stays 1, and `SyncProtocolTest` still covers the codecs | **verified by construction** |
+| Home and Settings agree about sync state | `watchSyncStatus()` is the only producer of that line, used by both screens | **verified by construction** |
+| The catalogue is shared, not copied | `:library` is the only definition of the fifteen templates; `check_ui.py` and `kotlin_xref_gate.py` scan the module and PR CI runs `:library:test` | **verified** |

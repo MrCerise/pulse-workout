@@ -17,6 +17,44 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 Nothing yet. See the [open issues](https://github.com/MrCerise/pulse-workout/issues) for what is
 being worked on.
 
+## [1.7.2] — 2026-10-15
+
+**Added**
+
+- **The watch app runs on its own.** Unpaired — or with the phone link switched off — the watch
+  seeds the bundled workout catalogue into its own store and runs sessions with the same engine as
+  the phone. No pairing step, no phone in the room, nothing to configure.
+- **`:library`, a shared catalogue module.** The fifteen starter workouts move out of the phone app
+  into a pure-Kotlin module both APKs depend on. The phone seeds them into Room, the watch seeds
+  them into its DataStore, and the identical `builtin-…` ids mean a sync reconciles the two copies
+  as the same workouts instead of duplicating them.
+- **Watch history.** The watch keeps its own record of the sessions it ran (the last 20, newest
+  first) and shows where each one lives — "On your phone" or "On this watch" — so a workout done
+  away from the phone is still visible on the wrist. Clearing it is a two-tap action.
+- **A switch for the phone link.** Watch Settings → *Sync with phone* turns the link off: no
+  library, preference, live-session or command traffic in either direction. Finished sessions are
+  still recorded here and stay queued, so turning the link back on delivers them.
+
+**Changed**
+
+- Undelivered watch sessions are retried on a timer as well as when a peer appears, so a session
+  finished while the phone was off is delivered without waiting for another session.
+- Tapping a workout on the watch while a phone session is running now asks once, then stops the
+  phone's session before starting locally: two devices never coach the same workout at once.
+- The watch summary distinguishes *saved to the phone*, *waiting for the phone* and *saved on this
+  watch*, instead of promising a sync a switched-off link will not perform.
+- Home and Settings share one status line — solo, sync off, phone connected, no phone nearby — so
+  the two screens cannot disagree.
+- PR CI runs `:library:test`, and `check_ui.py` / `kotlin_xref_gate.py` cover the new module.
+
+**Compatibility**
+
+- No payload changed shape, so `PROTOCOL_VERSION` stays **1**: a 1.7.1 phone keeps syncing with a
+  1.7.2 watch, and the watch keeps its library and history across the update.
+
+Details: [architecture — the Wear OS link](docs/ARCHITECTURE.md),
+[v1.7.2 release verification](docs/RELEASE_1.7.2.md).
+
 ## [1.7.1] — 2026-10-15
 
 **Added**

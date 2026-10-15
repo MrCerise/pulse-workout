@@ -1,12 +1,13 @@
 # Architecture
 
-PULSE is four Gradle modules and a set of dependency-free Python gates. The split exists so the parts
-where a bug is expensive — the timer and the phone↔watch protocol — can be tested exhaustively on
-the JVM, without an emulator and without Android.
+PULSE is five Gradle modules and a set of dependency-free Python gates. The split exists so the parts
+where a bug is expensive — the timer, the phone↔watch protocol, the workout catalogue both APKs
+seed — can be tested exhaustively on the JVM, without an emulator and without Android.
 
 ```
 :engine   pure Kotlin/JVM timing engine, no Android dependencies
 :sync     pure Kotlin/JVM phone↔watch protocol: payload formats, codecs, event mapping
+:library  pure Kotlin/JVM bundled workout catalogue, shared by the phone and the watch
 :app      the Android application (Compose, Room, DataStore, Media3, WorkManager, AppWidgets)
 :wear     the Wear OS application (Compose for Wear OS, DataStore, the Wear data layer)
 ```
@@ -15,6 +16,7 @@ the JVM, without an emulator and without Android.
 - [The timing engine](#the-timing-engine)
 - [How the timer works](#how-the-timer-works)
 - [The Wear OS link](#the-wear-os-link)
+- [Standalone or paired](#standalone-or-paired)
 - [Application layers](#application-layers)
 - [Threading and process model](#threading-and-process-model)
 - [Constraints we hold ourselves to](#constraints-we-hold-ourselves-to)
@@ -25,8 +27,9 @@ the JVM, without an emulator and without Android.
 | --- | --- |
 | `engine/` | `Model.kt` — interval types, the plan tree, validation and timeline expansion. `TimerEngine.kt` — the state machine, with the clock injected. 29 tests in `engine/src/test`. |
 | `sync/` | The phone↔watch protocol as pure Kotlin: `Sync.kt` defines every payload (library manifest, preferences, live session snapshot, command, finished-session log), the JSON codecs, and the mapping from engine events to history events. Protocol-codec round-trip tests in `sync/src/test`. |
+| `library/` | The bundled starter catalogue as pure Kotlin, written in the engine's model types. Both APKs depend on it: the phone seeds it into Room on first run, the watch seeds it into its own store when it has never been paired, and both derive the same `builtin-…` ids from the same seeds, so the library mirror reconciles the two copies instead of duplicating them. Catalogue tests in `library/src/test`. |
 | `app/` | Everything Android: screens, theme, components, persistence, health integration, the foreground service that keeps a session alive, widgets, background work, and the phone half of the Wear link (`wear/WearSyncManager.kt`). |
-| `wear/` | The Wear OS app: the same engine running on the watch, the same design tokens mirrored for a round screen, and the watch half of the Wear link (`sync/WearSyncLink.kt`). Session-lifecycle tests in `wear/src/test`. |
+| `wear/` | The Wear OS app: the same engine running on the watch, the same design tokens mirrored for a round screen, the watch half of the Wear link (`sync/WearSyncLink.kt`), and the watch's own store, history and solo mode. Session-lifecycle, history and recorder tests in `wear/src/test`. |
 | `scripts/` | `contrast_check.py` (regenerates [`CONTRAST.md`](CONTRAST.md) and asserts the watch palette mirror), `check_ui.py` (resources, vectors, EN/FR parity per module), `check_brand.py` (phone and watch brand marks), `kotlin_parse_gate.py` and `kotlin_xref_gate.py` (dependency-free Kotlin syntax and cross-reference gates), `capture-screenshots.sh`. |
 
 Inside `app/src/main/java/com/pulse/intervalcoach/`:
@@ -129,6 +132,32 @@ SessionRepository.recordWatchSession ◀─ log ─ WatchSessionController (fini
   between APKs, so the watch ships `WearPalette.kt` with the same constants; `contrast_check.py`
   fails the build if the two ever drift (see [`CONTRAST.md`](CONTRAST.md)).
 
+## Standalone or paired
+
+Pairing is an upgrade, not a prerequisite. Both devices own their sessions, and the watch owns enough
+state to be useful with nothing else around:
+
+| | No phone | Phone link on |
+| --- | --- | --- |
+| Library | the bundled `:library` catalogue, seeded on first launch | the phone's mirror; the seeded `builtin-…` ids reconcile against the phone's copies, and a workout deleted on the phone disappears here too |
+| Sessions | run locally, haptics local | run locally, mirrored to the phone at ~1 Hz, controlled from either screen |
+| History | the watch's own list (last 20, newest first) | written locally **and** delivered to the phone's history, with the phone's copy as the full record (event trail, Health Connect, statistics) |
+| Preferences | the watch's own defaults | the appearance and cue fields follow the phone; the watch can still override them |
+
+- **Seeding is one-way and reversible only by clearing.** `WatchWorkoutStore` records
+  `library_synced` the first time it applies a phone manifest and never seeds again, so a paired
+  watch cannot end up with a hybrid library. A watch updated from a version that predates the flag
+  already has a stored library, which also stops the seeding — the upgrade preserves what is there.
+- **The link has a switch.** `WatchPreferences.syncEnabled` (local, never mirrored) makes the link a
+  no-op in both directions. Finished sessions are still recorded and still queued, so switching it
+  back on delivers them; nothing that already happened is lost or rewritten.
+- **One session at a time.** Tapping a workout on the watch while the phone runs a session confirms
+  once and sends `STOP` to the phone before starting locally — the phone records a stopped-early
+  session, the watch records its own, and no two devices coach the same workout at once.
+- **No payload changed shape**, so `PROTOCOL_VERSION` stayed at 1: a 1.7.1 phone and a 1.7.2 watch
+  keep syncing. A watch-local feature (the history, the seeded catalogue, the switch) needs no wire
+  change at all, which is exactly what a feature that must work without a peer should look like.
+
 ## Application layers
 
 ```
@@ -178,3 +207,7 @@ change in review (see [CONTRIBUTING.md](../CONTRIBUTING.md)):
    locale.
 5. **Untrusted input is bounded and validated before anything is written** — JSON imports,
    backups, deep links, clipboard content.
+6. **The watch app must be usable with no phone.** Anything it needs to run — the catalogue, the
+   session state, the record of what happened — lives on the watch first; the phone link is an
+   upgrade that mirrors and extends it, and must degrade to a no-op rather than an error when there
+   is no peer.

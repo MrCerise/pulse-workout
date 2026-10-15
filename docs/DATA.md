@@ -22,6 +22,12 @@ preferences. Nothing is cached in a service we run, because there is no service.
 | DataStore | user preferences (theme, audio, units, health toggles, defaults) |
 | App-private files | draft snapshots, own recordings, exported share images (expiring) |
 
+The watch app keeps the same kind of state in its own private storage and nothing else: the
+mirrored library and the mirrored preference fields, its own list of the last 20 sessions it ran,
+and any finished session it has not delivered to a phone yet. With no phone those session records
+stay on the watch and are visible in its History screen, where clearing them is a two-tap action;
+uninstalling the watch app removes them with it.
+
 ## Privacy guarantees
 
 - **PULSE's own code makes no network calls.** It never opens a socket, never sends analytics and

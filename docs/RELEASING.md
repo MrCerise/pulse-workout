@@ -16,7 +16,7 @@ need it, and pull requests should **not** bump versions or edit release notes (s
 | Field | Where | Rule |
 | --- | --- | --- |
 | `versionName` | `app/build.gradle.kts` | SemVer: `MAJOR.MINOR.PATCH` |
-| `versionCode` | `app/build.gradle.kts` | Monotonic integer, bumped on **every** release (currently 17 → 1.7.1) |
+| `versionCode` | `app/build.gradle.kts` | Monotonic integer, bumped on **every** release (currently 18 → 1.7.2) |
 
 Both `app/build.gradle.kts` and `wear/build.gradle.kts` carry the same `versionCode`/`versionName`;
 bump them together so a release tag always produces matching phone and watch APKs.
@@ -77,7 +77,7 @@ In PowerShell, generate the base64 value with:
 | Job | Trigger | What it runs |
 | --- | --- | --- |
 | `resource-checks` | pull requests, manual runs | `check_ui.py`, `check_brand.py`, `kotlin_xref_gate.py`, `contrast_check.py`, then `git diff --exit-code -- docs/CONTRAST.md` |
-| `unit-tests` | pull requests, manual runs | `:engine:test :sync:test :app:testDebugUnitTest :wear:testDebugUnitTest`, with compiler diagnostics summarized in the job output |
+| `unit-tests` | pull requests, manual runs | `:engine:test :sync:test :library:test :app:testDebugUnitTest :wear:testDebugUnitTest`, with compiler diagnostics summarized in the job output |
 | `release` | tags `v*`, manual runs with `release_tag` | signed `:app:assembleDebug :app:assembleRelease :wear:assembleDebug :wear:assembleRelease`, four APKs attached to the GitHub release |
 
 Pull-request runs are cancelled when a new push supersedes them; tag and manual release runs never

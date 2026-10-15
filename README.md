@@ -52,10 +52,11 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
   timeline and save. No API keys, no network calls, nothing sent on your behalf.
 - **Health Connect, with Google Fit as a best-effort fallback.** Live heart rate in the player,
   finished sessions written as workout sessions with per-interval segments.
-- **On your wrist, for real.** The Wear OS app runs the same engine on the watch — same drift-free
-  timing, haptic cues, the same theme — synced from the phone: workouts and settings mirror
-  automatically, either screen can control a running session, and watch workouts land in the
-  phone's history.
+- **On your wrist, on its own or paired.** The Wear OS app runs the same engine on the watch —
+  same drift-free timing, haptic cues, the same theme. With no phone it is a complete app: the
+  bundled catalogue seeds itself, sessions are recorded on the wrist, and History says what ran.
+  Pair it and your library, settings and live sessions mirror both ways, either screen can control
+  the workout, and watch sessions land in the phone's history.
 
 ## Features
 
@@ -71,7 +72,7 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 | **Voice studio** | Engine and offline-voice status, rate, pitch, verbosity, profiles, cue volume, vibration, ducking switch and depth, your own recordings |
 | **Look & feel** | Light, dark, true black and system themes, high contrast, reduced motion, dynamic colour, adjustable density; 125 contrast pairs measured in CI |
 | **System** | Home-screen widgets, dynamic shortcuts, SAF backup/restore with preview, weekly automatic backups, drafts that survive process death |
-| **Wear OS** | Standalone watch app with the same engine and theme, library/preferences sync from the phone, two-way live session mirroring and remote control, watch sessions saved to the phone's history (and Health Connect) |
+| **Wear OS** | Same engine and theme as the phone, usable with no phone at all (bundled workouts, on-watch history, a link switch); when paired, library/preferences sync, two-way live session mirroring and remote control, and watch sessions saved to the phone's history (and Health Connect) |
 | **Locales** | English (default) and French shipped; every Crowdin-approved locale is packaged with English fallback |
 
 **Deliberately not included:** no Bluetooth chest-strap pairing, no cloud sync of your own, no
@@ -90,8 +91,8 @@ cd pulse-workout
 # Point the build at your SDK (this file is gitignored)
 echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-# Unit tests — the timing engine and app logic, no device needed
-./gradlew :engine:test :app:testDebugUnitTest
+# Unit tests — engine, sync protocol, shared catalogue and both apps, no device needed
+./gradlew :engine:test :sync:test :library:test :app:testDebugUnitTest :wear:testDebugUnitTest
 
 # Static analysis
 ./gradlew :app:lintDebug
@@ -134,6 +135,7 @@ Build problems? See [Troubleshooting](#troubleshooting) at the bottom of this pa
 pulse-workout/
 ├── engine/          pure-Kotlin timing engine (JVM, no Android deps) + 29 unit tests
 ├── sync/            pure-Kotlin phone↔watch protocol (payloads, codecs) + round-trip tests
+├── library/         the bundled workout catalogue both APKs seed from + catalogue tests
 ├── app/             the Android app — Compose, Room, DataStore, Media3, WorkManager, widgets
 │   └── src/main/java/com/pulse/intervalcoach/
 │       ├── audio/     cue sounds, haptics, speech, the cue gate
@@ -144,7 +146,8 @@ pulse-workout/
 │       ├── wear/      the phone half of the Wear OS sync link
 │       ├── widget/    home-screen widgets and dynamic shortcuts
 │       └── work/      WorkManager jobs (weekly backup, reminders)
-├── wear/            the Wear OS app — same engine, mirrored theme, the watch half of the link
+├── wear/            the Wear OS app — same engine, mirrored theme, the watch half of the link,
+│                    its own history and a standalone mode that needs no phone
 ├── docs/            documentation, the design system and generated reports
 ├── scripts/         resource, brand, contrast and Kotlin cross-reference gates
 └── .github/         CI workflow, issue and PR templates
