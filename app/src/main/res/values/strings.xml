@@ -313,6 +313,7 @@
     <string name="welcome_title">Pulse Workout</string>
     <string name="welcome_subtitle">Your interval timer.</string>
     <string name="welcome_theme">Choose a look</string>
+    <string name="welcome_language">Choose a language</string>
     <string name="welcome_voice">Hear a cue</string>
     <string name="welcome_voice_body">Hear interval changes without looking at the screen.</string>
     <string name="welcome_sample_workout">Try a 4-minute starter</string>
