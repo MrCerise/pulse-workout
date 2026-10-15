@@ -106,8 +106,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bash ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
+          # The build cache is what makes this fast, and it is also what could make it a lie: a
+          # Test task can be satisfied from the cache instead of executing. The init script turns
+          # that off for the test tasks, and the check below proves it, so the job fails rather
+          # than quietly reporting a green run in which no test ran.
+          stamp="$(mktemp)"
+          bash ./gradlew --console=plain --stacktrace \
+            -I .github/ci/no-cached-tests.init.gradle \
+            -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
             ${{ matrix.tasks }} 2>&1 | tee gradle-build.log
+          results="$(find . -path '*/build/test-results/*' -name '*.xml' -newer "$stamp" | wc -l)"
+          if [[ "$results" -eq 0 ]]; then
+            echo "::error title=No test results were produced::the build passed without writing a single test result file; the test tasks were skipped, so this run proves nothing."
+            exit 1
+          fi
+          echo "::notice title=Unit tests::${results} test result files were written by this run, none restored from the build cache"
+          echo "${results} test result files written by this run." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize failure diagnostics
         if: failure()

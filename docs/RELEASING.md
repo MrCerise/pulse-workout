@@ -103,10 +103,16 @@ Why the jobs are arranged this way:
 - **The Android SDK step probes the runner first.** The runner image already ships the platforms and
   build tools, so the step only calls `sdkmanager` when nothing usable is on disk.
 
-Measured on 2026-10-15, for the same pull request: the run took 4 m 48 s with one `unit-tests` job
-(2 m 47 s of it that job) and 2 m 18 s with the layout above, where the slowest group — `:app` — is
-what the run waits for. The first run on a branch has no cache to restore; the runs after it restore
-the `main` cache plus their own branch's.
+A run waits for the slowest group — `:app` — instead of for the sum of the groups, and the groups
+are cached: `gradle.properties` enables the build cache, so a run after the first on the same branch
+restores compiled classes instead of compiling from scratch.
+
+The tests themselves are the exception. **A `Test` task is never satisfied from the cache or skipped
+as up to date in CI**: `.github/ci/no-cached-tests.init.gradle`, passed with `-I`, makes every test
+task execute, and the unit-test job then counts the test result files the run wrote and fails if
+there are none. A restored result would be a green run in which nothing ran, and at least one test
+here reads a schema file that is not an input Gradle can see, so a change to it would not even
+invalidate a restored result.
 
 Pull-request runs are cancelled when a new push supersedes them; merges to `main`, tag runs and
 manual release runs never are — the runs on `main` are what write the caches, and a cancelled
