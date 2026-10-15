@@ -1,637 +1,209 @@
-# PULSE — Interval Coach
+<div align="center">
 
-A complete, offline-first Android interval timer: precise timing that survives a locked screen,
-spoken coaching from the device's own text-to-speech engine, a builder that can express everything
-from a 4-minute Tabata to nested circuits and ladders, a progress history built from your real
-sessions — and, since v1.3, live heart rate and workout sync through **Health Connect** (with
-**Google Fit** as a best-effort secondary).
+<img src="docs/brand/pulse.svg" width="88" height="88" alt="PULSE" />
 
-Everything PULSE does itself runs on the device. No account, no ads, no analytics, no backend. The
-data that leaves the app is what you explicitly share, such as health records or a workout prompt
-you copy into an external AI tool.
+# PULSE
 
-- **Package name:** `com.pulse.intervalcoach`
-- **Version:** 1.7.0 (versionCode 16)
-- **Minimum Android version:** 8.0 Oreo (API 26) — target/compile SDK 37 (Android 17)
-- **Languages:** English (default) and French (`values-fr`)
+**Offline-first interval timer and workout coach for Android.**
 
-## v1.7.0 — community translations
+Precise timing that survives a locked screen, spoken coaching from your device's own
+text-to-speech engine, a builder that expresses everything from a 4-minute Tabata to nested
+circuits and ladders, history built from your real sessions — and live heart rate through
+Health Connect.
 
-- Translate PULSE on [Crowdin](https://crowdin.com/project/pulse-workout).
-- English sources synchronize automatically; approved translations arrive as reviewed pull requests.
-- APKs now include all contributed locales, with English fallback for missing strings.
-- No runtime translation service, account requirement or new app permissions.
+[![CI](https://github.com/MrCerise/pulse-workout/actions/workflows/build-release.yml/badge.svg?branch=main)](https://github.com/MrCerise/pulse-workout/actions/workflows/build-release.yml)
+[![Release](https://img.shields.io/github/v/release/MrCerise/pulse-workout?sort=semver&style=flat-square)](https://github.com/MrCerise/pulse-workout/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Android%208.0%2B-3DDC84?style=flat-square&logo=android)](https://developer.android.com/about/versions/oreo)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org)
+[![Crowdin](https://badges.crowdin.net/pulse-workout/localized.svg)](https://crowdin.com/project/pulse-workout)
 
-See [translation instructions](docs/TRANSLATING.md) and [release verification](docs/RELEASE_1.7.0.md).
-
-## v1.6.7 — security and reliability
-
-- Bounded backup imports and made preview/import use the same snapshot; imported ID collisions no
-  longer overwrite existing records.
-- Hardened nested workout expansion, draft storage paths and external workout-start confirmation.
-- Made repository validation reads and contrast-report writes bounded and symlink-resistant.
-
-See [v1.6.7 release verification](docs/RELEASE_1.6.7.md).
-
-## v1.6.6 — a cleaner PULSE
-
-- New monochrome logo across the launcher, navigation, splash, notifications and shared summaries.
-- Removed redundant hints, promotional copy, category blurbs and workout-description fields.
-- Removed the old text-description parser. Existing workouts, history and backups remain compatible.
-- Visual theme previews, softer controls and short colour/selection transitions. Reduced motion is
-  respected; the shell theme toggle now follows the actual system appearance.
-- AI workouts: share a prompt, paste a response for automatic preview, then save. Saving opens the
-  workout directly; batches open the library. File imports and manual JSON editing are still available.
-
-See [release verification](docs/RELEASE_1.6.6.md) and the updated [AI workflow](docs/WORKOUT_JSON.md).
-
-## v1.6.5 — audio & sharing polish
-
-- **Volume buttons adjust media volume, always.** Removed the workout-navigation shortcut,
-  including previously saved opt-ins. Change intervals from the player or notification instead.
-- **Reliable cue ducking.** Player access is confined to Android’s main thread; startup fades
-  respect cues, queued speech is tracked by utterance ID, and late callbacks cannot end a newer
-  duck. Voice Studio previews use the same path as live coaching. Longer tones are no longer
-  clipped by a 125 ms PCM buffer.
-- **Other music apps:** request transient Android audio focus only around cues, not for the whole
-  workout. The depth slider controls PULSE’s selected file; external-player attenuation depends
-  on Android and that player’s audio-focus support. No global media-volume manipulation.
-- **A redesigned 1080 × 1350 share card:** Inter typography, orange accents, a completion bar,
-  readable metric tiles, wrapped workout titles, and the recorded session date. English/French
-  labels; no private notes or health data in the image.
-- **Safer sharing:** background rendering/encoding, duplicate-tap protection, recoverable errors,
-  URI read grants, bitmap cleanup, and expiry of old exported images. FileProvider no longer
-  exposes the app’s private files directory.
-
-See [v1.6.5 release verification](docs/RELEASE_1.6.5.md) for automated and device checks.
-
-## v1.6.4 — what changed
-
-- **JSON workout import** from a pasted response or a UTF-8 file, accessible from Workouts → + and
-  Settings → Create workouts. Versioned `pulse.workouts` format supports batches, nested repeats,
-  timed/manual intervals, tags, equipment and spoken coaching notes.
-- **Bring your own AI.** Customize and copy a schema-aware prompt for ChatGPT, Claude, Gemini or
-  another tool, then import its response. No API keys, backend or automatic data sharing.
-- **Validate before saving.** Preview every workout and its expanded timeline, then explicitly save
-  the entire batch in one transaction with fresh identities. Invalid input does not modify your
-  library. Bounded file reading and symbolic expansion checks reject oversized/unsafe documents.
-- **English and French import UI**, plus parser and import-state regression tests.
-
-See the [JSON format and AI workflow guide](docs/WORKOUT_JSON.md),
-[JSON Schema](docs/workout-import.schema.json) and [example file](docs/examples/beginner-workout.json).
-
-## v1.6.3 — what changed
-
-- **Editing a workout now edits it.** *Edit* on a workout used to open the builder with no idea which
-  workout it was opened for, so it started a blank "New workout" and saving created a second one —
-  the workout you meant to change stayed untouched. The builder destination now carries the workout id
-  (`builder/advanced?workoutId={workoutId}`), the details screen and the library row menu both pass it,
-  and a save after an edit updates the existing row in place: same id, same creation date, same tags.
-  Saving an edit returns you to that workout's details page instead of stacking a second copy of it.
-- **An edit cannot lose what it did not touch.** `WorkoutRepository.save` no longer clears a workout's
-  tags when the caller has none to report (the builder, the parser, a scaled clone), the row's
-  `revision` is now mirrored inside the stored plan so a session snapshot taken before an edit reads
-  as an older version, undo/redo snapshots hold the whole plan (undoing one interval no longer rewrote
-  the name, category, description or equipment), and the builder no longer stamps `createdAt` with
-  "now" on every save.
-- **Filter and option chips are rectangles.** A chip you *tap* is a control, and controls are 6 dp
-  rounded rectangles: the library's category rail, its Favorites/Templates filters and every option
-  row in the builder (phase, sound cue, haptic cue) now match the buttons and fields around them
-  instead of reading as pills. Labels that carry no action — a phase tag, a category name, a status
-  badge, a progress track — keep the full radius, and the grid card's category tile matches the one on
-  the details page. The theme also stopped mapping Material's `extraSmall` shape onto the pill token,
-  which had been inflating every framework-drawn surface with it — the library's sort menu, its
-  "new workout" menu and each row's overflow menu were capsules.
-- **Builder options are two per row, and readable.** The option rows shared one row between every
-  choice, so the seven phases were each given ~37 dp and ellipsized to a letter or two. `OptionRow`
-  now lays its choices out in the same two-column grid the category picker already uses, which fits a
-  label like "Cool-down" or "Double beep" on a phone.
-
-## v1.6.2 — what changed
-
-- **The version metadata finally matches the release.** v1.6.1 was tagged and published without a
-  `versionCode`/`versionName` bump: its APKs still reported 1.6.0 (versionCode 9), the same values
-  as the real v1.6.0 build. Phones and update checkers treated v1.6.1 as the build they already
-  had, Settings kept showing "PULSE Interval Coach 1.6.0", and the features below never seemed to
-  arrive. Same code as v1.6.1, now correctly stamped 1.6.2 (versionCode 10).
-- **A Goals screen.** Home gains a Goals entry that opens a full page of training stats computed
-  from your finished sessions: workouts completed, total active minutes, current and longest daily
-  streaks, and progress against a 1000-minute monthly target. A session that is still running does
-  not count toward any of it.
-- **Clearer wording for the text parser.** The "Describe a workout" phrasing is gone in favour of
-  plain labels: the parser screen is now "Workout description" with a "Workout name" field,
-  Settings offers "Add workout description", and the library's new-workout menu says "Use text
-  description".
-
-## v1.6.0 — what changed
-
-- **"Signal": a new design system, aimed at the Cloudflare dashboard rather than at a generic app.**
-  The visual layer moves from Prism (violet ink, large soft surfaces, a two-stop accent gradient) to a
-  neutral, dense, enterprise interface: a warm charcoal ramp in the dark theme, clean paper in the
-  light theme, **one** accent (Cloudflare orange `#F38020`, deepened to `#B23A0B` when it carries text
-  on paper), 6/8/12 dp radii, hairlines instead of shadows, and Inter set in a compact dashboard
-  scale. Gradients are gone from the component layer entirely — the ring, the progress bar and the
-  primary button are flat fills now.
-  Full specification: [`docs/DESIGN.md`](docs/DESIGN.md).
-- **A real application shell.** Three shapes from one `PulseNavItem` list: a 244 dp **sidebar** at
-  ≥ 1000 dp (wordmark, grouped destinations, a 2 dp accent edge on the active row, the appearance
-  switch in its footer), a 72 dp **icon rail** at ≥ 600 dp, and a **bottom bar** on a phone. Above
-  them, a single 56 dp **breadcrumb bar** carries where you are and the global controls — so no screen
-  draws its own title bar any more.
-- **Page headers instead of title bars.** Every destination starts with a `PulsePageHeader`: the way
-  back, the H1, a one-line description and the screen's primary action. Back navigation deliberately
-  lives in the page rather than the shell, so an unsaved builder can still intercept it.
-- **Dense lists, not card soup.** The workout library is one surface with hairline-separated rows
-  (identity, meta, pin, start, overflow) instead of a card per workout, the summary's five stacked
-  stat tiles became one metric table, and `MetricRow` / `PulseListRow` keep those tables aligned on
-  every screen.
-- **Typography is real Inter.** Four static weights subset to Latin (~240 KB, SIL OFL shipped in
-  `res/raw/inter_ofl.txt`) drive the whole scale, and every number is set in **tabular figures**, so a
-  countdown ticking from `1:00` to `0:59` never shifts a pixel.
-- **Accessibility is enforced, and covers more.** `scripts/contrast_check.py` now measures **125
-  pairs** across the ink, void and paper themes — including the primary button's ink-on-orange pair,
-  the hero panel, and every category hue against the tint it ships on. It fails the build on token
-  drift (exit 2) or on any pairing below its WCAG threshold (exit 1).
-- **Nothing about the workouts changed.** Same routes, same engine, same data, same preferences: this
-  release is the interface, and every screen still reads its colours from the theme rather than
-  hardcoding one.
-
-## v1.5.0 — what changed
-
-- **"Prism": a new design system, rebuilt rather than reskinned.** The visual layer moves from
-  Graphite (near-black, hairline borders, small radii, no gradients) to a violet-tinted ink canvas,
-  large soft surfaces (24 dp cards, 18 dp panels, 14 dp controls, round chips), a 64 sp hero type
-  scale, and a two-stop accent gradient that appears in exactly three places — the Today hero, the
-  finished-session hero and the primary action. Because it is rare, it still means "look here".
-  Full specification: [`docs/DESIGN.md`](docs/DESIGN.md).
-- **Categories are data now.** There used to be two unrelated notions of "category": a
-  `WorkoutType` enum that spelled its own name, and a free-text `iconKey` hand-written per starter
-  workout and ignored everywhere else. Both are gone. `data/Categories.kt` defines one
-  [WorkoutCategory](app/src/main/java/com/pulse/intervalcoach/data/Categories.kt) record per
-  category — name, tagline, description, glyph, colour family, default timings, capabilities and
-  search keywords — and the registry is the single source for the library's filter rail, the
-  builder's category picker, the Today presets, the player header, the Progress breakdown and every
-  card, chip and row. `WorkoutType` shrinks to a semantic key that knows nothing about names or
-  colours. Adding a category is now a two-file change.
-- **A new category screen.** Every category has a landing page (`pulse://`-style route
-  `category/{key}`) with its icon, hue, tagline, description, default timings, a one-tap start from
-  those defaults, and everything you already have in that category — generated entirely from the
-  registry record.
-- **Adaptive navigation.** The four primary destinations now live in a **floating pill bar** on a
-  phone and become a **navigation rail** down the left edge on tablets and in landscape (≥ 600 dp).
-  One `PulseNavItem` list, two shapes, nothing to keep in step.
-- **Rebuilt screens.** Today gains a gradient hero with the week's progress against the 150-minute
-  guideline and a "start by category" rail; Workouts gains a category filter rail and
-  category-tinted cards; the workout detail header becomes a category statement; the template gallery
-  inherits the same rail; Progress gains a "where your time went" breakdown grouped by category; the
-  player's transport carries the live phase colour and its ring sweeps with the accent gradient;
-  onboarding and the session summary gain gradient heroes.
-- **One screen frame.** Every destination is now a `PulseScaffold` — one background, one optional
-  header, one optional bottom bar, content handed its padding — so eleven screens share a page gutter
-  without any of them owning one.
-- **Accessibility and contrast are still enforced, and now cover more.** `scripts/contrast_check.py`
-  measures **97 pairs** across the ink, void and paper themes, including the gradient's second stop
-  and all six category hues against the container tints that ship. It fails on token drift or on any
-  pairing below its WCAG threshold.
-
-## v1.4.4 — what changed
-
-- **Audio ducking that actually runs.** `MusicController` already had a `setDucked` method and a
-  preference claimed the app "ducks your audio during cues" — but nothing ever called either, so
-  background audio was never even started. Both are wired now, and the ducking curve itself is a
-  pure state machine (`audio/Ducking.kt`) covered by `DuckingTest`: a 140 ms drop when the coach
-  starts talking, a hold that covers the end of the sentence, a slower 420 ms climb back, and the
-  same treatment sized to the exact length of each cue tone.
-- **Ducking follows the speech engine, not a guess.** `SpeechCoach` counts utterances through the
-  TTS progress callbacks and reports the real start and end of speech, so the music comes back when
-  the coach stops talking. Engines that never report completion are caught by a watchdog built on
-  the cue gate's own duration estimate.
-- **Switch and depth, applied live.** Voice Studio has the on/off switch plus a depth slider from
-  *Muted* to *barely*. Both are pushed into the running session as you move them — no restart.
-- **Background audio plays for real.** The file you pick starts with the workout, fades in over
-  320 ms instead of slamming in, pauses when you pause, resumes when you resume, and is released
-  when the session ends. Voice Studio can play it on its own to check the file, the volume and the
-  ducking before you train, and names the error when the file cannot be read.
-- **Ducking is visible.** The player carries a `Music on` / `Music lowered` chip, Voice Studio shows
-  the live phase (lowering / lowered / restoring), and *Test ducking* demonstrates the setting
-  without starting a workout.
-- **Volume keys can drive the workout.** The dormant `volume keys control the session` preference now
-  does something: with it on, volume up skips to the next interval and volume down pauses or
-  resumes, so the phone can stay on the floor. Auto-repeat is ignored.
-- **"May duck" interruptions behave.** A navigation prompt that only needs to be heard over the music
-  used to mute the coach entirely; it now lowers the music and keeps coaching.
-
-## v1.4.2 — what changed
-
-- **"Graphite" design system.** The visual layer was rebuilt, not reskinned, and it is now
-  centralised: `ui/theme/` holds the palette, type scale, spacing/radius scale and motion; the
-  shared components live in `ui/components/` and are the only place a style is written. The design
-  reference is **Linear** — near-black chrome, hairline borders instead of shadows, one restrained
-  accent, a tight type scale with monospaced tabular numerals — applied consistently to every route.
-  Full specification: [`docs/DESIGN.md`](docs/DESIGN.md).
-- **Chrome is monochrome, colour means something.** Gradients, glowing borders, phase washes and
-  decorative glows are gone. The only chromatic elements left on screen are the interval phases
-  and destructive state, so a green timeline segment or a violet cool-down chip reads instantly.
-- **New interaction layer.** Bottom navigation, top bars, buttons, fields, segmented controls,
-  chips, badges, banners, tooltips, dialogs, snackbars and the loading/empty/error states are all
-  shared components driven by tokens; hover, selected, focused and disabled states are uniform and
-  transitions sit in the 120–180 ms band (collapsed to zero by the reduced-motion switch).
-- **Rebuilt screens.** Player, Today, Workouts, the builders, Progress, Settings, Health, Welcome
-  and the parser were all re-laid out against the new system: consistent 16 dp gutters, 12 dp
-  between cards, one 56 dp header, measurable hierarchy, and colour reserved for meaning.
-- **Accessibility and contrast are enforced.** `scripts/contrast_check.py` regenerates
-  [`docs/CONTRAST.md`](docs/CONTRAST.md) and fails on token drift or on any pairing below its WCAG
-  threshold; the current run measures 81 pairs across dark, OLED and light themes.
-- **Tooling.** `scripts/kotlin_xref_gate.py` (a stdlib-only static check over imports, container
-  references, preference fields and component call sites) runs clean and is part of the local
-  verification loop.
-Still true from v1.3, unchanged by the redesign:
-
-- **Health Connect is the primary health backend.** Finished workouts are written as workout
-  sessions with per-interval segments (idempotent per session), and PULSE reads live heart rate
-  for the player and today's steps for the Today screen. A dedicated Health setup screen shows the
-  real platform state, per-permission status, and can backfill your last 7 days.
-- **Google Fit as a secondary, best-effort backend.** Google has deprecated the on-device Fit API
-  (2026) and stopped accepting new signups, so the app ships without a Fit OAuth client id and
-  treats Fit as an optional fallback; every Fit code path degrades gracefully and the UI says so.
-- **Android 17 (API 37).** `compileSdk`/`targetSdk` are 37; CI builds against `platforms;android-37`.
-- **The "not implemented" health card is gone.** What you see is what the platform reports:
-  availability, granted permissions, last sync, and the outcome of every write.
+</div>
 
 ---
 
-## Contents
+PULSE runs entirely on your device. **No account, no ads, no analytics, no backend.** The only data
+that ever leaves the app is what you explicitly share — a health record written to Health Connect,
+a backup file you exported, or a prompt you pasted into an AI tool of your own choosing.
 
-1. [What is here](#what-is-here)
-2. [Requirements](#requirements)
-3. [Build, test, install](#build-test-install)
-4. [Project layout](#project-layout)
-5. [How the timer works](#how-the-timer-works)
-6. [Feature checklist](#feature-checklist)
-7. [Accessibility](#accessibility)
-8. [Offline voice setup](#offline-voice-setup)
-9. [Privacy](#privacy)
-10. [Import, export and backups](#import-export-and-backups)
-11. [Release signing](#release-signing)
-12. [Known limitations](#known-limitations)
-13. [Verification report](#verification-report)
-14. [Troubleshooting the build](#troubleshooting-the-build)
+**Contents** — [Highlights](#highlights) · [Features](#features) · [Quick start](#quick-start) ·
+[Documentation](#documentation) · [Repository layout](#repository-layout) ·
+[Accessibility](#accessibility) · [Offline voice](#offline-voice-setup) ·
+[Contributing](#contributing) · [Security](#security) · [License](#license) ·
+[Troubleshooting](#troubleshooting)
 
----
+**Releases** — [latest APKs](https://github.com/MrCerise/pulse-workout/releases/latest) ·
+[CHANGELOG.md](CHANGELOG.md)
 
-## What is here
+## Highlights
 
-| Path | What it is |
+- **Timing that does not drift.** The engine is driven by one monotonic clock and computes step
+  boundaries from an anchor time, never from accumulated ticks. Wall-clock changes, timezones and
+  NTP corrections cannot move the timer, and pausing preserves the remaining time exactly.
+- **Runs with the screen off.** A foreground service with a media notification keeps timing and
+  cues alive while the phone is locked or another app is in front.
+- **A coach that keeps up, not one that lags behind.** Every cue passes through a gate so a Tabata
+  block cannot build a speech backlog: interval changes always speak, countdowns are dropped when
+  they would arrive late, and if the device has no TTS voice PULSE falls back to tones and says so.
+- **A builder that scales with your workout.** Sixteen interval types, repeat blocks nested eight
+  deep, ladders, supersets, per-interval overrides, drag reorder *and* Move up/down, undo/redo and a
+  live timeline — in one screen.
+- **Bring your own AI.** Copy a schema-aware prompt, paste the response back, preview the expanded
+  timeline and save. No API keys, no network calls, nothing sent on your behalf.
+- **Health Connect, with Google Fit as a best-effort fallback.** Live heart rate in the player,
+  finished sessions written as workout sessions with per-interval segments.
+
+## Features
+
+| Area | What you get |
 | --- | --- |
-| `engine/` | Pure Kotlin/JVM timing engine — no Android dependencies, fully unit tested |
-| `app/` | The Android app (Compose, Room, DataStore, Media3, WorkManager, AppWidgets) |
-| `docs/` | Contrast report and other generated documentation |
-| `scripts/` | `contrast_check.py` (regenerates the contrast report), `kotlin_parse_gate.py` +
-  `kotlin_xref_gate.py` (dependency-free Kotlin syntax and cross-reference gates),
-  `capture-screenshots.sh` |
-| `deliverables/` | The built APK and the source archive (see the paths printed at the end of a build) |
+| **Timing** | Monotonic-clock engine, absolute anchors, open-ended (AMRAP/stopwatch/strength) intervals, accelerated preview, per-session timeline |
+| **Cues** | On-device TTS with speech-text overrides, tone fallback, haptics, a cue gate, audio ducking with a live depth control, background music |
+| **Building** | Quick builder, advanced builder (nesting depth 8, ladders, group/ungroup, multi-select, bulk edit), 15 starter templates, clone with scaling |
+| **Library** | Search, tags, favourites, folders, sort, list/grid, duplicate, share, delete, JSON import/export |
+| **Player** | Full-screen tabular timer, current/next interval, round and position, elapsed and remaining totals, left-handed layout, tablet instructor view |
+| **History & progress** | Per-session details with the workout as it was run, weekly chart, daily minutes, streaks, all-time totals, a monthly goal and a local planner with reminders |
+| **Health** | Health Connect (primary) and Google Fit (secondary): live HR with zones, steps, session writes, 7-day backfill, an honest setup screen |
+| **Voice studio** | Engine and offline-voice status, rate, pitch, verbosity, profiles, cue volume, vibration, ducking switch and depth, your own recordings |
+| **Look & feel** | Light, dark, true black and system themes, high contrast, reduced motion, dynamic colour, adjustable density; 125 contrast pairs measured in CI |
+| **System** | Home-screen widgets, dynamic shortcuts, SAF backup/restore with preview, weekly automatic backups, drafts that survive process death |
+| **Locales** | English (default) and French shipped; every Crowdin-approved locale is packaged with English fallback |
 
-The timing engine is deliberately separate from the UI: it takes a clock as a constructor argument,
-so every acceptance case (pauses, wall-clock jumps, open-ended intervals, the Tabata second) is
-tested on the JVM without an emulator.
+**Deliberately not included:** no Bluetooth chest-strap pairing, no cloud sync of your own, no
+account system, no analytics or crash-reporting SDK. Health data flows only through the platform
+connectors you authorise.
 
-## Requirements
+## Quick start
 
-- **JDK 17** (Android Studio ships one: *Embedded JDK* or *jbr*)
-- **Android SDK** with **platform 37** and **build-tools 37.0.0** (36.0.0 is an acceptable
-  fallback; the CI tries both)
-- **Gradle 8.9** — the wrapper is committed, so `./gradlew` fetches it
-- Android Studio Ladybug or newer is optional; everything below works from the terminal
-
-`local.properties` must point at your SDK:
-
-```properties
-sdk.dir=/absolute/path/to/Android/sdk
-```
-
-## Build, test, install
-
-Run from the repository root.
+You need **JDK 17** and the **Android SDK** with **platform 37** and **build-tools 37.0.0**
+(36.0.0 also works). Gradle 8.9 comes from the committed wrapper. Android Studio is optional.
 
 ```bash
-# 1. Unit tests for the timing engine and the app-level logic (no device needed)
+git clone https://github.com/MrCerise/pulse-workout.git
+cd pulse-workout
+
+# Point the build at your SDK (this file is gitignored)
+echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+# Unit tests — the timing engine and app logic, no device needed
 ./gradlew :engine:test :app:testDebugUnitTest
 
-# 2. Static analysis
+# Static analysis
 ./gradlew :app:lintDebug
 
-# 3. Debug APK (debug-signed, installable as-is)
+# Debug APK, then install it
 ./gradlew :app:assembleDebug
-#    → app/build/outputs/apk/debug/app-debug.apk
-
-# 4. Release APK (unsigned until you supply a keystore — see "Release signing")
-./gradlew :app:assembleRelease
-#    → app/build/outputs/apk/release/app-release-unsigned.apk
-
-# 5. Install on a connected device or emulator
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-
-# 6. Launch
-adb shell am start -n com.pulse.intervalcoach.debug/com.pulse.intervalcoach.MainActivity
 ```
 
-Android App Bundle, if you want it for Play:
+The debug build uses the package id `com.pulse.intervalcoach.debug`, so it installs alongside a
+release build without touching your data.
 
-```bash
-./gradlew :app:bundleRelease
-# → app/build/outputs/bundle/release/app-release.aab
+Release artefacts: `./gradlew :app:assembleRelease` (unsigned without a keystore — see
+[docs/RELEASING.md](docs/RELEASING.md)) and `./gradlew :app:bundleRelease` for an AAB.
+
+> **On a machine with 4 GB of RAM or less**, lower the heap and turn parallelism off in
+> `gradle.properties`: `org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=512m -XX:+UseSerialGC`
+> and `org.gradle.parallel=false`.
+
+Build problems? See [Troubleshooting](#troubleshooting) at the bottom of this page.
+
+## Documentation
+
+| Document | What is in it |
+| --- | --- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Module map, the timing engine, and how the app layers fit together |
+| [docs/DESIGN.md](docs/DESIGN.md) | The "Signal" design system: colour, type, spacing, components |
+| [docs/CONTRAST.md](docs/CONTRAST.md) | Generated WCAG 2.1 contrast report (125 pairs, three themes) |
+| [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) | The acceptance cases and the evidence behind each one |
+| [docs/VERIFICATION.md](docs/VERIFICATION.md) | What is verified, how, and what is not verified yet |
+| [docs/DATA.md](docs/DATA.md) | Storage, privacy guarantees, export/import and backups |
+| [docs/WORKOUT_JSON.md](docs/WORKOUT_JSON.md) | The `pulse.workouts` JSON exchange format and the AI workflow |
+| [docs/TRANSLATING.md](docs/TRANSLATING.md) | Translating PULSE on Crowdin, and maintainer setup |
+| [docs/RELEASING.md](docs/RELEASING.md) | Versioning, signing and how a release is cut |
+| [docs/RELEASE_1.7.0.md](docs/RELEASE_1.7.0.md) and friends | Per-release verification notes |
+
+## Repository layout
+
 ```
-
-Verifying the debug APK after installation:
-
-```bash
-adb shell dumpsys package com.pulse.intervalcoach.debug | grep -E "versionName|versionCode"
-```
-
-### Constrained machines
-
-`gradle.properties` ships tuned for GitHub-hosted runners and workstations (3 GB heap, parallel
-module builds, Gradle build cache). On a small machine with 4 GB of RAM or less, lower the heap and
-turn parallelism off:
-
-```properties
-org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=512m -XX:+UseSerialGC
-org.gradle.parallel=false
-```
-
-## Project layout
-
-```
-pulse/
-├── engine/                                   pure-Kotlin timing engine (JVM, no Android)
-│   └── src/main/kotlin/com/pulse/engine/
-│       ├── Model.kt                          interval types, plan tree, validation, timeline expansion
-│       └── TimerEngine.kt                    the timer state machine, clock-injected
-│   └── src/test/kotlin/com/pulse/engine/TimerEngineTest.kt   29 tests
-├── app/
+pulse-workout/
+├── engine/          pure-Kotlin timing engine (JVM, no Android deps) + 29 unit tests
+├── app/             the Android app — Compose, Room, DataStore, Media3, WorkManager, widgets
 │   └── src/main/java/com/pulse/intervalcoach/
-│       ├── audio/Audio.kt                    cue sounds, haptics, speech, the anti-backlog cue gate
-│       ├── data/                             Room database, DataStore preferences, repositories,
-│       │                                     starter templates, JSON import, backup/export
-│       ├── health/                           HealthHub: Health Connect (primary) + Google Fit
-│       │                                     (secondary) bridge — reads HR/steps, writes sessions
-│       ├── session/                          CueScript (what gets said), SessionController,
-│       │                                     WorkoutService (foreground service), music
-│       ├── data/Categories.kt                the workout category registry — one record per
-│       │                                     category: name, glyph, hue, defaults, capabilities
-│       ├── ui/theme/                         the design system: Palette.kt (raw tokens),
-│       │                                     Tokens.kt (colour/spacing/radius/elevation/motion
-│       │                                     locals + CategoryHue), Typography.kt,
-│       │                                     Theme.kt (theming + WCAG helpers)
-│       ├── ui/components/                    the shared component library: Foundation (incl.
-│       │                                     PulseScaffold), Controls, Indicators (incl. the
-│       │                                     category chip and picker), DataDisplay, Feedback,
-│       │                                     Navigation (floating bar + rail)
-│       ├── ui/                               Compose screens: home (Today), workouts, builders,
-│       │                                     player, summary, progress, settings, health,
-│       │                                     welcome, AI import
-│       ├── widget/                           home-screen widgets and dynamic shortcuts
-│       └── work/                             WorkManager jobs (weekly backup, reminders)
-│   └── src/test/java/com/pulse/intervalcoach/ app-level unit tests
-├── docs/DESIGN.md                            the design system, in full
-├── docs/CONTRAST.md                          generated WCAG contrast report
-├── docs/ACCEPTANCE.md                        what "done" means, checked case by case
-└── scripts/                                  contrast gate, resource gate, Kotlin xref gate
+│       ├── audio/     cue sounds, haptics, speech, the cue gate
+│       ├── data/      Room, DataStore, repositories, JSON import, backups, category registry
+│       ├── health/    Health Connect (primary) + Google Fit (secondary)
+│       ├── session/   CueScript, SessionController, WorkoutService, music
+│       ├── ui/        theme tokens, shared components, screens
+│       ├── widget/    home-screen widgets and dynamic shortcuts
+│       └── work/      WorkManager jobs (weekly backup, reminders)
+├── docs/            documentation, the design system and generated reports
+├── scripts/         resource, brand, contrast and Kotlin cross-reference gates
+└── .github/         CI workflow, issue and PR templates
 ```
 
-## How the timer works
-
-- **One monotonic clock, no drift.** The engine reads `SystemClock.elapsedRealtime()` through an
-  injected `MonotonicClock`. Step boundaries are computed from the anchor time of the current step,
-  never by accumulating tick deltas, so a 20-minute session cannot drift and a wall-clock (NTP or
-  timezone) change cannot move the timer.
-- **Pause keeps the remaining time.** Pausing stores the elapsed time; resuming re-anchors the clock.
-  A pause of any length therefore resumes exactly where it stopped.
-- **Crossing several boundaries at once is handled.** A tick that jumps past multiple intervals
-  completes each of them in order and emits one event per interval — rapid taps cannot produce
-  duplicate transitions.
-- **Open-ended intervals.** Manual (AMRAP, stopwatch, strength) intervals count up and wait for the
-  user; totals report themselves as a minimum rather than inventing an end time.
-- **Foreground service.** A workout runs in `WorkoutService` (`foregroundServiceType="mediaPlayback"`)
-  with a media notification, so timing and cues continue with the screen off or while another app is
-  in front. Android can still kill the process under extreme memory pressure: the session is then
-  reported as **interrupted** in history rather than being marked complete.
-- **Cue gate.** A Tabata block produces more announcements than a voice can finish, so the speech
-  layer passes every cue through `CueGate`: interval changes always speak and flush, at most one
-  follow-up cue may be queued, and countdowns are dropped when they would run past the next boundary.
-- **Sound fallback.** If the device has no TTS engine (or no voice for the selected language), PULSE
-  plays synthesised tones and tells you, instead of silently dropping cues.
-
-## Feature checklist
-
-**Destinations** — Today, Workouts, Progress, Settings (bottom navigation); the planner lives
-inside Progress, the template gallery and Health setup are pushed destinations.
-
-- [x] Skippable three-step welcome: theme pick, optional voice sample, ready-to-start example
-- [x] Today: one-tap presets with real computed durations, custom work/rest steppers, weekly
-      minutes against a 150-minute goal with a 7-day chart, active-session resume banner,
-      favourites rail with per-card Start, next planned, recents, live health snapshot
-- [x] Live heart rate in the player when a health platform is connected (3-second polling of
-      Health Connect, then Google Fit), with HR zones; the chip simply never appears without data
-- [x] Session summary shares the finished workout to your health apps (toggle in Settings),
-      shows real average/peak heart rate for the session window, and says when a sync failed
-- [x] Health setup screen: real Health Connect platform state, per-permission status (HR read,
-      steps read, workout write), Google Fit availability, last sync, 7-day backfill
-- [x] Library: search, tags, favourites, sort (recent/name/duration/created), list/grid views,
-      one-tap start, duplicate, share, delete
-- [x] Template gallery: 15 original starter workouts, always computed live, all editable
-- [x] Workout details: timeline, totals, notes, equipment, voice profile, preview cues
-- [x] Quick builder: named workout in well under a minute
-- [x] Advanced builder: interval types, per-interval overrides, repeat blocks (nesting depth 8),
-      final-rest switch, L/R duplication, progressive ladders, shuffle frozen at start, saved blocks
-      inserted as copies, drag reorder **and** Move up/down, duplicate, multi-select, bulk edit,
-      group/ungroup, undo/redo, live total duration and colour timeline, validation, accelerated preview
-- [x] Player: full-screen tabular timer, current and next interval, round and position, elapsed and
-      remaining totals, progress and session timeline, explicit paused state, large controls,
-      left-hand layout, instructor view for tablets
-- [x] Session summary: real numbers, notes, share as image, repeat
-- [x] History with per-session details and the workout as it was actually run
-- [x] Progress: weekly chart, daily minutes, streak, all-time totals, local planner with reminders
-- [x] Voice & audio studio: engine status, offline-voice guidance, rate, pitch, verbosity, profiles,
-      cue volume, vibration, audio ducking (switch, depth, live phase, test button), background audio
-      with volume and preview, own recordings
-- [x] Settings: themes (system/light/dark/true black), dynamic colour for navigation only, high
-      contrast, reduced motion, left-handed player, density, defaults, units, interruption and
-      headphone behaviour, media-volume buttons, background audio, data management, help
-- [x] Import / export / backup (JSON, SAF) with preview before writing and never overwriting
-- [x] Empty, loading, error and permission-denied states on every data surface
-- [x] Drafts preserved across process death; Save / Discard / Cancel on dirty drafts
-- [x] All 16 interval types: HIIT, Tabata, Circuit, Boxing, EMOM, E2MOM, AMRAP, Strength, Run/walk,
-      Stretching, Breathing, Focus/Pomodoro, Custom sequence, Compound, Stopwatch, Repeating cue
-- [x] Home-screen widgets (favourites, quick start) and dynamic shortcuts
-- [x] Clone with scaling, JSON/AI import with automatic preview, shareable summary image
-- [x] Local-only storage, no analytics or ad SDKs, no secrets in the repository
-
-**Deliberately not included:** no Bluetooth heart-rate belt pairing, no cloud sync of your own, no
-account system. Health data flows only through the platform connectors you authorise (Health
-Connect, Google Fit); PULSE never opens a socket itself. Google Fit is best-effort by design:
-Google deprecated the on-device Fit API in 2026 and no longer accepts new app signups, so this
-build ships without a Fit `OAUTH_CLIENT_ID` and says so in the UI instead of pretending.
+The timing engine is deliberately separate from the UI: it takes a clock as a constructor argument,
+so every acceptance case — pauses, wall-clock jumps, open-ended intervals, the Tabata second — is
+tested on the JVM without an emulator.
 
 ## Accessibility
 
 - TalkBack-friendly labels on controls; interval changes are announced by the app's own speech and
   are not repeated as a tick-by-tick accessibility storm.
-- All touch targets are at least 48 dp; the player's main controls are considerably larger.
-- Every drag interaction has a non-drag equivalent (Move up / Move down), so reordering works
-  without gestures.
-- Phase colours are never the only signal: each interval also shows a name, a dot and its
-  position in the timeline, so the timer is readable in greyscale.
-- Text clears 4.5:1 in every theme and control boundaries clear 3:1 (WCAG 1.4.11); the measured
-  numbers are in [`docs/CONTRAST.md`](docs/CONTRAST.md) and the design rules behind them in
-  [`docs/DESIGN.md`](docs/DESIGN.md).
-- Timer digits use tabular numerals so the countdown does not jitter.
-- Themes: light, dark, true black and system; a high-contrast switch raises text and accents.
-- Reduced-motion setting removes non-essential animation.
-
-The measured contrast ratios are in [`docs/CONTRAST.md`](docs/CONTRAST.md) and can be regenerated:
-
-```bash
-python3 scripts/contrast_check.py
-```
+- Touch targets are at least 48 dp, every drag interaction has a non-drag equivalent, and colour is
+  never the only signal — each interval also shows a name, a dot and its position in the timeline.
+- Text clears 4.5:1 in every theme and control boundaries clear 3:1 (WCAG 1.4.11). The measured
+  numbers are in [docs/CONTRAST.md](docs/CONTRAST.md), and the rules behind them in
+  [docs/DESIGN.md](docs/DESIGN.md).
+- Timer digits use tabular figures so the countdown does not jitter. High-contrast and reduced-motion
+  switches are honoured everywhere.
 
 ## Offline voice setup
 
-Announcements use the text-to-speech engine already on the device (no network calls, no cloud voices).
+Announcements use the text-to-speech engine already on the device — no network calls, no cloud
+voices.
 
 1. Android **Settings → System → Languages & input → Text-to-speech**
 2. Choose your engine (Google Speech Services, Samsung, eSpeak, …)
-3. **Install voice data** for your language, and select an offline voice
-4. In PULSE: **Settings → Voice & audio studio** — the engine and whether an offline voice is
-   present are shown there; use *Preview* to hear a cue
+3. **Install voice data** for your language and select an offline voice
+4. In PULSE: **Settings → Voice & audio studio** shows the engine and whether an offline voice is
+   present; use *Preview* to hear a cue
 
 If no engine is installed, PULSE says so in Voice Studio, offers a shortcut to the system settings,
 and uses sound cues during workouts.
 
-## Privacy
+## Contributing
 
-- **PULSE's own code makes no network calls.** The `INTERNET` permission appears in the merged
-  manifest only because the Google Play services libraries used for Google Fit declare it for
-  their own platform communication; Health Connect itself is an on-device IPC API. PULSE never
-  opens a socket, never sends analytics, and never uploads anything.
-- **Health data leaves the device only when you allow it.** The Health Connect write
-  ("share finished workouts") is a per-app permission you grant, and it can be switched off under
-  Settings → Health at any time. What is written: workout sessions with per-interval segments and
-  the recorded heart rate, nothing else.
-- All data (workouts, sessions, notes, preferences, voice settings) stays in the app's private
-  storage on the device.
-- No analytics SDK, no advertising SDK, no crash reporter, no account, no cloud.
-- Files you export go only where you send them through the system file picker.
-- Android's own backup/transfer includes the database and preferences, and excludes the regenerable
-  cache and recording folders (see `res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml`).
+Bug reports, translations, documentation fixes, tests and code are all welcome. Start with
+[CONTRIBUTING.md](CONTRIBUTING.md); it covers the setup, the checks CI runs, and the house rules
+(no tracking SDKs, no new dependencies without a discussion, translations on Crowdin rather than in
+PRs). Good first issues are labelled [`good first issue`][gfi].
 
-## Import, export and backups
+Translators: join the [Crowdin project](https://crowdin.com/project/pulse-workout) — no Android
+development environment required.
 
-- **Export:** Settings → Data → *Export all data…* writes a human-readable JSON file
-  (`"format": "pulse.backup", "version": 1`) to a location you choose.
-- **Import:** *Import from file…* reads the file, validates it, and shows what it contains
-  (*n* workouts, *n* sessions, *n* tags) before writing anything. Imported workouts get fresh IDs and
-  a “(imported)” suffix, so nothing is overwritten.
-- **Automatic backups:** a weekly WorkManager job writes a dated backup into app storage and keeps
-  the newest eight. Failures are surfaced in the notification channel, never silently dropped.
-- **Missing media** (an image or audio file that was deleted or whose permission was revoked) is
-  reported when the workout is opened; the workout itself still loads.
+## Security
 
-## Release signing
+PULSE stores workout history and health data, so please report vulnerabilities privately rather
+than in a public issue. [SECURITY.md](SECURITY.md) explains how to reach us, what is in scope and
+what to expect.
 
-The automated release workflow signs the production APK when repository signing secrets are configured.
-It fails a tag release if the signing key is missing, rather than publishing an unsigned APK as a signed
-release. Ordinary pushes to `main` can still build without signing credentials.
+## License
 
-Create a release keystore and keep it backed up somewhere private. **Never commit the keystore or its
-passwords.** For example:
+PULSE is released under the [MIT License](LICENSE).
 
-```bash
-keytool -genkeypair -v -keystore pulse-release.jks \
-  -alias pulse -keyalg RSA -keysize 4096 -validity 10000
-```
+Typographic work uses [Inter](https://rsms.me/inter/) (SIL Open Font License 1.1, shipped in
+`app/src/main/res/raw/inter_ofl.txt`). Health data is read and written through
+[Health Connect](https://developer.android.com/health-and-fitness/guides/health-connect), and
+translations are managed by the community on [Crowdin](https://crowdin.com/project/pulse-workout).
 
-In the repository's **Settings → Secrets and variables → Actions**, add these repository secrets:
+## Troubleshooting
 
-| Secret | Value |
+| Symptom | Fix |
 | --- | --- |
-| `ANDROID_KEYSTORE_BASE64` | Base64 encoding of `pulse-release.jks` |
-| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
-| `ANDROID_KEY_ALIAS` | `pulse` (or the alias you chose) |
-| `ANDROID_KEY_PASSWORD` | Password for the key |
+| `SDK location not found` | Create `local.properties` with `sdk.dir=/absolute/path/to/Android/sdk` |
+| `Unsupported class file major version` | Use JDK 17: `JAVA_HOME=/path/to/jdk-17 ./gradlew …` |
+| The build is killed on a small machine | Lower `org.gradle.jvmargs`, set `org.gradle.parallel=false`, or run with `--max-workers=1` |
+| `app-release-unsigned.apk` will not install | Expected without a keystore — install the debug APK, or see [docs/RELEASING.md](docs/RELEASING.md) |
 
-In PowerShell, generate the base64 value with:
-
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("pulse-release.jks"))
-```
-
-After adding the secrets, update an existing release with a signed APK by running **Actions → Build and
-release → Run workflow** on `main`, with `release_tag` set to `v1.0.0`. The workflow builds and signs the
-APK, then uploads it to that release. Future version tags (for example, `v1.0.1`) publish signed APKs
-automatically.
-## Known limitations
-
-1. **No emulator or physical device exists in the environment this was built in.** The app was
-   verified by compilation, lint and unit tests in CI; it was never launched in this environment,
-   so there are no screenshots of the running app in this repository, and no smoke test of a real
-   workout was performed. Run `scripts/capture-screenshots.sh` on your own machine to produce
-   them.
-2. **Some UI copy is still English literals.** The primary screens are wired to string resources and
-   translate (French is included for the whole string table), but secondary strings inside Compose
-   code remain literals; `values-fr` therefore covers the string table, navigation, titles and the
-   main actions first. `./gradlew :app:lintDebug` reports the strings that are not wired up yet.
-3. **Hardware-dependent behaviour is untested here:** vibration, headphone-unplug detection, audio
-   focus negotiation, notification actions and TTS playback all require a device to confirm.
-4. **Wall-clock changes are immune by construction** (monotonic clock), but the "changed timezone
-   mid-session" case has only been reasoned about, not observed on a device.
-5. **Widgets and shortcuts** are implemented and declared in the manifest; their appearance on a
-   launcher is unverified without a device.
-6. **Tablet instructor view** is a Compose layout adaptation; it has not been seen on a large screen.
-7. **Lint** runs clean of errors and fatal issues; it reports warnings (unused resources from the
-   string table, newer dependency versions available, plurals suggestions). Those are visible in
-   `app/build/reports/lint-results-debug.html` and are not suppressed.
-
-8. **Google Fit is best-effort by design.** The on-device Fit API was deprecated by Google in
-   2026 and no longer accepts new developer signups, so v1.3 ships without a Fit
-   `OAUTH_CLIENT_ID` metadata entry. If you already hold client credentials, add
-   `com.google.android.gms.fitness.OAUTH_CLIENT_ID` to the manifest and Fit authorisation works
-   out of the box; without it, the Health setup screen explains the state and everything keeps
-   working through Health Connect.
-9. **Health Connect API surface.** v1.3 targets the stable `connect-client:1.1.0` API. The 1.2.x
-   line renames several record types and is alpha; the code deliberately does not chase it.
-## Verification report
-
-For v1.4.4 the build environment has no Android SDK or JDK, so compilation and tests run in the
-GitHub Actions workflow (see `.github/workflows/build-release.yml`); the checks that *can* run
-locally are run and are listed below with their real output.
-
-| Check | Command | Result |
-| --- | --- | --- |
-| Contrast (tokens ↔ XML ↔ Kotlin in lockstep) | `python3 scripts/contrast_check.py` | 81 pairs across 3 themes, all pass (see `docs/CONTRAST.md`) |
-| Kotlin syntax gate (tree-sitter parse of every source file) | `python3 scripts/kotlin_parse_gate.py` | 48 files, 0 syntax errors |
-| Resource gate (every `@color`/`@string`/`@drawable` resolves, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 432 names, 340 EN / 340 FR strings, 42 icons — OK |
-| Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
-| Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
-| Engine unit tests (unchanged module) | CI `./gradlew :engine:test` | final gate |
-| App unit tests (AI import, themes, factory, backups, cues, ducking, DB migration v2, builder route) | CI `./gradlew :app:testDebugUnitTest` | final gate |
-| Compilation, lint, debug + release APK (SDK 37) | CI workflow | final gate |
-| Install / smoke test | — | **not run** — no emulator or device in this environment |
-
-Test coverage includes the acceptance cases: Tabata 4:00 with the final rest and 3:50 without,
-pause/resume preserving remaining time, wall-clock immunity, no duplicate transitions from rapid
-controls, nested groups and ladders, open-ended intervals, the expansion limits (10,000 intervals /
-24 hours / depth 8), JSON round-trips, and a real SQLite migration replayed against the shipped
-migration SQL. The engine module is untouched by v1.3, so every engine test that passed at v1.2
-passes unchanged.
-
-## Troubleshooting the build
-
-- **`SDK location not found`** — create `local.properties` with `sdk.dir=…`.
-- **`Unsupported class file major version` / JDK errors** — use JDK 17:
-  `JAVA_HOME=/path/to/jdk-17 ./gradlew …`
-- **The build is killed on a small machine** — lower `org.gradle.jvmargs` and set
-  `org.gradle.parallel=false` in `gradle.properties` (see *Constrained machines* above), or run with
-  `--max-workers=1`.
-- **`app-release-unsigned.apk` cannot be installed** — that is expected without a keystore; install
-  the debug APK instead.
+[gfi]: https://github.com/MrCerise/pulse-workout/labels/good%20first%20issue

@@ -8,6 +8,20 @@ Labels and actual workout data take priority over explanatory copy. Page subtitl
 useful metadata such as a date, not slogans. Workout descriptions and the text-description parser
 are no longer part of the interface. Interval notes, error recovery and permission information remain.
 
+This document is normative: it is the reference a review will hold your change against. The measured
+numbers it depends on live in the generated [contrast report](CONTRAST.md).
+
+1. [Principles](#1-principles)
+2. [Colour](#2-colour)
+3. [Typography](#3-typography)
+4. [Space, size, radius, elevation, motion](#4-space-size-radius-elevation-motion)
+5. [The shell](#5-the-shell)
+6. [Components](#6-components)
+7. [Accessibility](#7-accessibility)
+8. [Adding a screen](#8-adding-a-screen)
+9. [Verification](#9-verification)
+10. [Branding and theme interaction](#10-branding-and-theme-interaction)
+
 ---
 
 ## 1. Principles

@@ -1,9 +1,19 @@
 # Acceptance cases
 
 The seventeen acceptance cases from the project brief, each mapped to the evidence that actually
-exists. Statuses are honest: **verified** means an automated test ran in this environment and passed,
-**implemented** means the code path exists but only a device can exercise it, and **not possible
-here** means the environment lacks what the check requires.
+exists. Statuses are honest: **verified** means an automated test ran and passed, **implemented**
+means the code path exists but only a device can exercise it, and **not possible here** means the
+environment lacks what the check requires.
+
+- [The seventeen cases](#the-seventeen-cases)
+- [What that means in practice](#what-that-means-in-practice)
+- [v1.4.2 design-refactor checks](#v142-design-refactor-checks)
+- [v1.6.3 editing and control-shape checks](#v163-editing-and-control-shape-checks)
+- [v1.4.4 audio-ducking checks](#v144-audio-ducking-checks)
+
+For how these checks are run in CI and locally, see [VERIFICATION.md](VERIFICATION.md).
+
+## The seventeen cases
 
 | # | Case | Status | Evidence |
 | --- | --- | --- | --- |
