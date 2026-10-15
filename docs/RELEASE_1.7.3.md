@@ -47,7 +47,11 @@ phone and a 1.7.3 watch keep talking to each other), no dependency change and no
     `MainActivity` now declares `locale|layoutDirection` in `android:configChanges` — the change is handled
     in place, the way `uiMode` already is for the dark-mode switch, and a running session is not torn down.
     The preference is written from the app scope before the platform is told, so the screens never depend
-    on the platform call at all.
+    on the platform call at all. `PulseApp.onCreate` re-applies the stored choice at every start — Android
+    backs up preferences and the platform's locale store separately, so a restore onto a new device can
+    otherwise leave the two disagreeing — and the write is skipped when the platform already agrees, which
+    is the normal case. A notification *channel's* name is refreshed by the next `ensureChannels` call (any
+    activity or service start), so a channel label can lag one launch behind a restored choice.
 - **`compileSdk` is resolved, not hardcoded.** The root `build.gradle.kts` picks the Android platform —
   explicit `-Ppulse.compileSdk` (what `.github/actions/setup-pulse-build` exports) wins; otherwise API 37
   when it is installed, otherwise the newest installed API at or below it, otherwise 37 unchanged; a

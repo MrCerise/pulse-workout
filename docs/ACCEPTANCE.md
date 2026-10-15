@@ -145,4 +145,5 @@ only true once a launcher or a device renders them say so.
 | English and French stay complete | `scripts/check_ui.py` exact key parity | **verified** |
 | The strings the language picker adds are translated | three keys in `values/strings.xml` and `values-fr/strings.xml`; the other shipped tables stay Crowdin's to fill | **verified** for parity; the picker is complete for French |
 | A re-entry from a notification or widget keeps the chosen language | the choice is applied to the application configuration on API 33+, and `MainActivity` declares `locale|layoutDirection` in `configChanges`, so the language change is handled in place rather than by recreating the activity | **implemented** — needs a device to see |
+| A language restored from a backup is complete on the new device | `PulseApp.onCreate` re-applies the stored choice to `LocaleManager`, and the write is skipped when the platform already agrees | **implemented** — needs a device, and a restore to exercise |
 | A finishing session survives a link that throws | `WatchSessionRecorder` contains both of its calls, asserted by `WatchSessionRecorderTest` including a live-snapshot failure | **verified** |

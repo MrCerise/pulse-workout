@@ -28,7 +28,10 @@ It is called Pulse Workout, and it can pick its own language.
   applied to the composition, so it lands on the tap without recreating the Activity — no restart, no
   blank frame, nothing cancelled underneath the running session. On Android 13 and later the same choice
   is offered to the platform, so home-screen widgets, notifications and anything inflated outside
-  Compose agree with the screen. Only the app's language changes; the device's never does.
+  Compose agree with the screen. That handover is repeated at every app start — Android restores the
+  app's preferences and the platform's own locale store separately, so a restored backup can otherwise
+  leave them disagreeing — and a write the platform already agrees with is skipped. Only the app's
+  language changes; the device's never does.
 - A language is offered only if its tag names a `values-…` folder the build packages, which is now a
   test (`AppLanguageTest`) rather than a convention, together with the two other ways this could rot:
   a renamed enum entry silently resetting the stored choice, and a translation table carrying a key the

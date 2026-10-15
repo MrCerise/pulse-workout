@@ -72,6 +72,10 @@ object AppLocale {
         val manager = runCatching { context.getSystemService(LocaleManager::class.java) }.getOrNull()
             ?: return
         val locales = language.tag?.let(LocaleList::forLanguageTags) ?: LocaleList.getEmptyLocaleList()
+        // Only write when the platform disagrees. This runs at every app start (see PulseApp), and a
+        // redundant write would mean a configuration change in the calling app for no reason at all.
+        val stored = runCatching { manager.applicationLocales }.getOrDefault(LocaleList.getEmptyLocaleList())
+        if (stored == locales) return
         runCatching { manager.setApplicationLocales(locales) }
     }
 }

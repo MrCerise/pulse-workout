@@ -19,6 +19,7 @@ import com.pulse.intervalcoach.data.WorkoutRepository
 import com.pulse.intervalcoach.data.db.PulseDatabase
 import com.pulse.intervalcoach.data.db.PulseMigrations
 import com.pulse.intervalcoach.health.HealthHub
+import com.pulse.intervalcoach.locale.AppLocale
 import com.pulse.intervalcoach.session.MusicController
 import com.pulse.intervalcoach.session.Notifications
 import com.pulse.intervalcoach.session.SessionController
@@ -107,6 +108,14 @@ class PulseApp : Application() {
         Notifications.ensureChannels(this)
         // First-run housekeeping happens off the main thread and is idempotent.
         container.appScope.launch {
+            // The app's own preference is the record of the chosen language; the platform's per-app
+            // locale store is a copy of it that Android's backup restores separately, so the two can
+            // disagree after a restore onto a new device — screens in one language, widgets and
+            // notifications in another. Re-applying it here costs nothing once the value already
+            // matches, and it is what makes a restored choice complete.
+            runCatching {
+                AppLocale.applySystemLocales(this@PulseApp, container.preferences.current().appLanguage)
+            }
             runCatching {
                 container.workouts.seedStarterWorkoutsIfNeeded()
                 container.voiceProfiles.ensureDefault()
