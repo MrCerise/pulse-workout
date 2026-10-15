@@ -318,6 +318,7 @@
     <string name="welcome_title">Pulse Workout</string>
     <string name="welcome_subtitle">Votre minuteur d’intervalles.</string>
     <string name="welcome_theme">Choisissez une apparence</string>
+    <string name="welcome_language">Choisissez une langue</string>
     <string name="welcome_voice">Écoutez une annonce</string>
     <string name="welcome_voice_body">Écoutez les changements d’intervalle sans regarder l’écran.</string>
     <string name="welcome_sample_workout">Essayer une séance de 4 minutes</string>

@@ -73,6 +73,7 @@ import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.ToggleRow
 import com.pulse.intervalcoach.ui.components.ThemePicker
+import com.pulse.intervalcoach.ui.components.LanguagePicker
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.ThemeMode
@@ -169,9 +170,7 @@ fun SettingsScreen(
                             onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
                         )
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        OptionRow(
-                            label = stringResource(R.string.settings_language),
-                            options = AppLanguage.entries.map { it to languageLabel(it) },
+                        LanguagePicker(
                             selected = current.appLanguage,
                             onSelect = { language ->
                                 // The app scope, not a scope tied to this composition: the platform

@@ -48,7 +48,39 @@ enum class AppLanguage(val tag: String?) {
     FRENCH("fr"),
     GERMAN("de-DE"),
     SPANISH("es-ES"),
-    ITALIAN("it-IT"),
+    ITALIAN("it-IT");
+
+    /** Emoji flag shown next to the language in the picker. */
+    val flag: String
+        get() = when (this) {
+            SYSTEM -> "🌐"
+            ENGLISH -> "🇬🇧"
+            FRENCH -> "🇫🇷"
+            GERMAN -> "🇩🇪"
+            SPANISH -> "🇪🇸"
+            ITALIAN -> "🇮🇹"
+        }
+
+    /** Alias for [flag], for callers that name it differently. */
+    val emoji: String get() = flag
+    val flagEmoji: String get() = flag
+    val icon: String get() = flag
+    val symbol: String get() = flag
+
+    /** The language's own name, in that language. */
+    val nativeName: String
+        get() = when (this) {
+            SYSTEM -> "System default"
+            ENGLISH -> "English"
+            FRENCH -> "Français"
+            GERMAN -> "Deutsch"
+            SPANISH -> "Español"
+            ITALIAN -> "Italiano"
+        }
+
+    val displayName: String get() = nativeName
+    val label: String get() = nativeName
+    val title: String get() = nativeName
 }
 
 data class UserPreferences(

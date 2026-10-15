@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -40,6 +41,7 @@ import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.ui.components.GhostActionButton
 import com.pulse.intervalcoach.ui.components.ThemePicker
+import com.pulse.intervalcoach.ui.components.LanguagePicker
 import com.pulse.intervalcoach.ui.components.PulseLogo
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.ProgressRing
@@ -51,6 +53,8 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import com.pulse.intervalcoach.ui.theme.ThemeMode
+import com.pulse.intervalcoach.data.AppLanguage
+import com.pulse.intervalcoach.locale.AppLocale
 import com.pulse.library.StarterWorkouts
 import kotlinx.coroutines.launch
 
@@ -74,6 +78,7 @@ fun WelcomeScreen(
     val dimens = LocalPulseDimens.current
     val shapes = LocalPulseShapes.current
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val example = remember { StarterWorkouts.templates.first { it.plan.name == "HIIT Starter" } }
     val exampleDuration = remember { StarterWorkouts.knownDuration(example.plan) }
@@ -113,6 +118,18 @@ fun WelcomeScreen(
                     ThemePicker(
                         selected = prefs?.themeMode ?: ThemeMode.SYSTEM,
                         onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
+                    )
+                    Spacer(Modifier.height(dimens.l))
+                    Text(stringResource(R.string.welcome_language), style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(dimens.s))
+                    LanguagePicker(
+                        selected = prefs?.appLanguage ?: AppLanguage.SYSTEM,
+                        onSelect = { language ->
+                            container.appScope.launch {
+                                container.preferences.setAppLanguage(language)
+                                AppLocale.applySystemLocales(context.applicationContext, language)
+                            }
+                        },
                     )
                 }
                 1 -> {
