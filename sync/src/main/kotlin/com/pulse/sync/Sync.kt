@@ -118,6 +118,7 @@ enum class WatchCommandKind { TOGGLE_PAUSE, NEXT, PREVIOUS, ADD_TIME, STOP, COMP
 data class WatchCommand(
     val kind: WatchCommandKind,
     val millis: Long = 0L,
+    val protocolVersion: Int = PROTOCOL_VERSION,
 )
 
 /** A once-per-second view of a running session, in either direction. */
