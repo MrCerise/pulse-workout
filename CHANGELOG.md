@@ -65,7 +65,8 @@ It is called Pulse Workout, and it can pick its own language.
   failed the whole build where a platform could not be reached — which is exactly how the CodeQL
   `Analyze (java-kotlin)` job's autobuild step was failing. The fallback needs no network, no flag and
   no change to how anyone builds; `-Ppulse.compileSdk=37` still gets API 37 or the build fails loudly.
-- Tests: `AppLanguageTest` (6 cases) and two more in `WatchSessionRecorderTest`; 116 JVM test methods
+- Tests: `AppLanguageTest` (6 cases) and a fourth `WatchSessionRecorderTest` case covering a link
+  that fails on both calls; 116 JVM test methods
   across the five modules.
 - Docs: README (feature list, module map, a troubleshooting row for the platform-SDK failure),
   `DESIGN.md` §10 sizes, `ARCHITECTURE.md`'s string-resource rule and `locale/` package,
