@@ -90,10 +90,9 @@ object AppLocale {
 @Composable
 fun Localized(language: AppLanguage, content: @Composable () -> Unit) {
     val base = LocalContext.current
-    if (language == AppLanguage.SYSTEM) {
-        content()
-        return
-    }
+    // Keep the composition shape identical across language changes: branching on the language
+    // here would dispose and recreate the whole subtree (and lose saved state such as the
+    // welcome tour's current step) whenever the user picks a different language.
     val context = remember(base, language) { AppLocale.localizedContext(base, language) }
     CompositionLocalProvider(LocalContext provides context, content = content)
 }
