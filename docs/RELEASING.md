@@ -16,7 +16,7 @@ need it, and pull requests should **not** bump versions or edit release notes (s
 | Field | Where | Rule |
 | --- | --- | --- |
 | `versionName` | `app/build.gradle.kts` | SemVer: `MAJOR.MINOR.PATCH` |
-| `versionCode` | `app/build.gradle.kts` | Monotonic integer, bumped on **every** release (currently 18 → 1.7.2) |
+| `versionCode` | `app/build.gradle.kts` | Monotonic integer, bumped on **every** release (currently 19 → 1.7.3) |
 
 Both `app/build.gradle.kts` and `wear/build.gradle.kts` carry the same `versionCode`/`versionName`;
 bump them together so a release tag always produces matching phone and watch APKs.
@@ -102,6 +102,12 @@ Why the jobs are arranged this way:
   compiles. Path filters are not evaluated for tag pushes, so a release is never skipped this way.
 - **The Android SDK step probes the runner first.** The runner image already ships the platforms and
   build tools, so the step only calls `sdkmanager` when nothing usable is on disk.
+- **A build without that step still compiles.** The root `build.gradle.kts` resolves `compileSdk`
+  against the platforms installed on the machine and hands the value to both APK modules, so a plain
+  `./gradlew assemble` — a code scanner's autobuild, a contributor's first build — works on a runner
+  that has no `platforms;android-37` instead of failing on the download attempt. CI's explicit
+  `-Ppulse.compileSdk` is still honoured exactly, so a tagged release is built against the platform the
+  project names, and the printed line about a substitution is the only sign a fallback happened.
 
 A run waits for the slowest group — `:app` — instead of for the sum of the groups, and the groups
 are cached: `gradle.properties` enables the build cache, so a run after the first on the same branch

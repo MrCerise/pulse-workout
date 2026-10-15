@@ -315,7 +315,8 @@ running as parallel jobs; signed APKs on a `v*` tag.
 
 `docs/brand/pulse.svg` is the normalized source. `ic_pulse.xml` is used by Compose and share images;
 launcher, monochrome, notification and splash vectors use the same path. Adaptive launcher layers
-place 60 dp of artwork in the 108 dp viewport. The splash uses a vector drawable item, not a bitmap.
+place 50 dp of artwork, centred, in the 108 dp viewport — smaller than the 66 dp safe zone so no mask
+shape clips the bars. The splash uses a vector drawable item, not a bitmap.
 
 Settings and onboarding show System, Light, Dark and True black in a two-column preview grid. The
 System preview is split light/dark. Selection animates its check and outline; pressing scales a tile

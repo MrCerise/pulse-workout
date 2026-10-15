@@ -11,6 +11,7 @@ environment lacks what the check requires.
 - [v1.6.3 editing and control-shape checks](#v163-editing-and-control-shape-checks)
 - [v1.4.4 audio-ducking checks](#v144-audio-ducking-checks)
 - [v1.7.2 standalone and pairing checks](#v172-standalone-and-pairing-checks)
+- [v1.7.3 naming, branding and language checks](#v173-naming-branding-and-language-checks)
 
 For how these checks are run in CI and locally, see [VERIFICATION.md](VERIFICATION.md).
 
@@ -55,12 +56,12 @@ The visual refactor has its own pass/fail criteria, all of which are machine-che
 | One design reference, applied everywhere | `docs/DESIGN.md` states the reference (Signal) and the rules; every screen imports its styling from `ui/components` | **verified** — no screen constructs a button, card, field or chip of its own |
 | No hardcoded styles | Token usage is the only path: `LocalPulseColors` / `LocalPulseDimens` / `LocalPulseShapes`; the raw palette is `internal` to `ui/theme` | **verified** — the screens contain no colour literals, and spacing is `LocalPulseDimens.current` |
 | Centralised tokens | `colors.xml` ↔ `Palette.kt` name-for-name comparison | **verified** — `scripts/contrast_check.py` exits 2 on any drift |
-| Readable contrast in dark, OLED and light | 81 measured pairings | **verified** — exit 0, see `docs/CONTRAST.md` |
+| Readable contrast in dark, OLED and light | 125 measured pairings | **verified** — exit 0, see `docs/CONTRAST.md` |
 | Forbidden traits removed | Gradient buttons, ring gradients, phase washes, glow tiles, pill chips and 28 dp cards are gone | **verified** — none of `brandGradient`, `ringGradient`, `phaseWash`, `activeGlow` or `GradientActionButton` exist in the tree |
 | Functionality preserved | No engine, data, session, health or parser file was touched by the refactor; only `ui/`, resources and documentation changed | **verified by diff** — `engine/` and the non-UI app packages are untouched |
 | Every route refactored | All eleven destinations plus the four settings sub-screens use `PulseTopBar` and the shared component set | **verified** — `scripts/kotlin_xref_gate.py` reports 0 problems across every screen |
 | Component call sites valid | Every named argument passed to a `ui/components` composable exists on its declaration | **verified** — 43 components, 0 unknown arguments |
-| Resources and locale parity | `scripts/check_ui.py` | **verified** — 414 resource names resolve, 322 EN / 322 FR strings, vectors parse |
+| Resources and locale parity | `scripts/check_ui.py` | **verified** — 612 resource names resolve, 397 EN / 397 FR app strings and 63 / 63 on the watch, vectors parse |
 
 Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
 environment); the local gates above are the ones that can run before it.
@@ -125,3 +126,25 @@ DataStore plumbing and the data layer itself need a watch.
 | The two apps stay compatible across the update | No payload changed shape; `PROTOCOL_VERSION` stays 1, and `SyncProtocolTest` still covers the codecs | **verified by construction** |
 | Home and Settings agree about sync state | `watchSyncStatus()` is the only producer of that line, used by both screens | **verified by construction** |
 | The catalogue is shared, not copied | `:library` is the only definition of the fifteen templates; `check_ui.py` and `kotlin_xref_gate.py` scan the module and PR CI runs `:library:test` | **verified** |
+
+## v1.7.3 naming, branding and language checks
+
+v1.7.3 renames the app to **Pulse Workout** everywhere the user sees a name, draws that mark smaller
+inside the launcher icon, and lets the language be chosen instead of inherited from the device. None of
+it is engine behaviour, so the evidence is the resource gates plus new JVM tests; the parts that are
+only true once a launcher or a device renders them say so.
+
+| Check | How it is checked | Result |
+| --- | --- | --- |
+| Every surface carries the name | `scripts/check_brand.py` reads `app_name` out of `values/strings.xml` and refuses a launcher label that is not it; the former all-caps wordmark is a forbidden pattern in the phone and watch string tables | **verified** |
+| The launcher mark is centred at the documented size | `check_brand.py` derives the group scale from the vector and the viewport, and compares both against `docs/DESIGN.md` | **verified** — 50 dp of mark in the 108 dp adaptive viewport, foreground and monochrome alike, on phone and watch |
+| The icon reads smaller next to the others on a home screen | — | **not possible here** — the mask, the icon size and the neighbouring apps belong to the launcher |
+| A chosen language names a locale the app actually packages | `AppLanguageTest` — each offered tag is well-formed, matches a `values-…` folder, and no two entries share a tag | **verified** |
+| A stored choice cannot be orphaned by a rename | `AppLanguageTest` pins the enum names that are what DataStore holds | **verified** for the contract; the DataStore round trip needs a device |
+| A translation never invents a key | `AppLanguageTest` compares every `values-*/strings.xml` against the English source table | **verified** |
+| English and French stay complete | `scripts/check_ui.py` exact key parity | **verified** |
+| The shell has no language-blind text | The bar, sidebar groups and breadcrumb titles resolve through `stringResource` inside `Localized`, so they follow the choice like the screens under them | **verified** for the wiring (each key exists in both tables); the visible result needs a device |
+| The strings the language picker adds are translated | three keys in `values/strings.xml` and `values-fr/strings.xml`; the other shipped tables stay Crowdin's to fill | **verified** for parity; the picker is complete for French |
+| A re-entry from a notification or widget keeps the chosen language | the choice is applied to the application configuration on API 33+, and `MainActivity` declares `locale\|layoutDirection` in `configChanges`, so the language change is handled in place rather than by recreating the activity | **implemented** — needs a device to see |
+| A language restored from a backup is complete on the new device | `PulseApp.onCreate` re-applies the stored choice to `LocaleManager`, and the write is skipped when the platform already agrees | **implemented** — needs a device, and a restore to exercise |
+| A finishing session survives a link that throws | `WatchSessionRecorder` contains both of its calls, asserted by `WatchSessionRecorderTest` including a live-snapshot failure | **verified** |

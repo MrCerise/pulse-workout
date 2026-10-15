@@ -235,7 +235,7 @@ fun WelcomeScreen(
                 text = when (step) {
                     0 -> "Continue"
                     1 -> "Continue"
-                    else -> "Start using PULSE"
+                    else -> stringResource(R.string.welcome_start)
                 },
                 onClick = {
                     if (step < 2) {

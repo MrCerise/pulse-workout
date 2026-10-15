@@ -101,7 +101,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
         inputError = null
         copied = runCatching {
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("PULSE workout prompt", WorkoutImport.aiPrompt(state.request)))
+            clipboard.setPrimaryClip(ClipData.newPlainText("Pulse Workout prompt", WorkoutImport.aiPrompt(state.request)))
         }.isSuccess
         if (!copied) inputError = context.getString(R.string.json_clipboard_error)
     }
