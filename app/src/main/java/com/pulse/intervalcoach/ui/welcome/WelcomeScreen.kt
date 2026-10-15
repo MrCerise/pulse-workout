@@ -125,9 +125,12 @@ fun WelcomeScreen(
                     LanguagePicker(
                         selected = prefs?.appLanguage ?: AppLanguage.SYSTEM,
                         onSelect = { language ->
+                            // Apply the choice to the screens only. Handing it to the platform here
+                            // (LocaleManager.setApplicationLocales) can trigger a configuration
+                            // change that tears down the welcome tour before onboarding finishes;
+                            // PulseApp re-applies the stored choice to the platform at the next start.
                             container.appScope.launch {
                                 container.preferences.setAppLanguage(language)
-                                AppLocale.applySystemLocales(context.applicationContext, language)
                             }
                         },
                     )

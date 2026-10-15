@@ -361,6 +361,7 @@ private fun languageLabel(language: AppLanguage): String = when (language) {
     AppLanguage.GERMAN -> "Deutsch"
     AppLanguage.SPANISH -> "Español"
     AppLanguage.ITALIAN -> "Italiano"
+    else -> language.nativeName
 }
 
 private fun PlayerDensity.label(): String = when (this) {
