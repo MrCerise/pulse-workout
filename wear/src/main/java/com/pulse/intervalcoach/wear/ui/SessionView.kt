@@ -3,7 +3,6 @@ package com.pulse.intervalcoach.wear.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -176,11 +175,10 @@ fun SessionView(
                 backgroundColor = colors.surface,
                 contentColor = colors.destructive,
             ),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         ) {
             Text(
                 text = stringResource(R.string.player_stop),
-                style = MaterialTheme.typography.button2,
+                style = MaterialTheme.typography.button,
             )
         }
     }
@@ -240,7 +238,7 @@ private fun ControlButton(
         Icon(
             imageVector = icon,
             contentDescription = description,
-            modifier = Modifier.size(ButtonDefaults.IconSize),
+            modifier = Modifier.size(ButtonDefaults.DefaultIconSize),
         )
     }
 }

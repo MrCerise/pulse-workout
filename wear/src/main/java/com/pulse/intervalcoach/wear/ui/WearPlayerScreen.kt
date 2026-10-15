@@ -87,7 +87,7 @@ fun WearPlayerScreen(
                             contentColor = colors.textPrimary,
                         ),
                     ) {
-                        Text(stringResource(R.string.summary_done), style = MaterialTheme.typography.button2)
+                        Text(stringResource(R.string.summary_done), style = MaterialTheme.typography.button)
                     }
                 }
             }
@@ -148,7 +148,7 @@ private fun StopConfirmView(onStop: () -> Unit, onCancel: () -> Unit) {
                     contentColor = colors.canvas,
                 ),
             ) {
-                Text(stringResource(R.string.player_stop), style = MaterialTheme.typography.button2)
+                Text(stringResource(R.string.player_stop), style = MaterialTheme.typography.button)
             }
             Button(
                 onClick = onCancel,
@@ -157,7 +157,7 @@ private fun StopConfirmView(onStop: () -> Unit, onCancel: () -> Unit) {
                     contentColor = colors.textPrimary,
                 ),
             ) {
-                Text(stringResource(R.string.player_keep_going), style = MaterialTheme.typography.button2)
+                Text(stringResource(R.string.player_keep_going), style = MaterialTheme.typography.button)
             }
         }
     }

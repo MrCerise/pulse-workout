@@ -65,7 +65,7 @@ fun WearRemotePlayerScreen(
                             contentColor = colors.textPrimary,
                         ),
                     ) {
-                        Text(stringResource(R.string.summary_done), style = MaterialTheme.typography.button2)
+                        Text(stringResource(R.string.summary_done), style = MaterialTheme.typography.button)
                     }
                 }
             }

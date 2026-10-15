@@ -109,7 +109,7 @@ fun WearSummaryScreen(
                     ),
                     modifier = Modifier.padding(top = 6.dp),
                 ) {
-                    Text(stringResource(R.string.summary_done), style = MaterialTheme.typography.button2)
+                    Text(stringResource(R.string.summary_done), style = MaterialTheme.typography.button)
                 }
             }
         }

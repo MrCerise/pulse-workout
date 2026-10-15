@@ -1,6 +1,8 @@
 package com.pulse.intervalcoach.wear.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -120,7 +122,7 @@ fun WearHomeScreen(
                     replacing = pendingReplaceId == workout.id,
                     anyActive = active != null,
                     onClick = {
-                        if (anyActive && pendingReplaceId != workout.id) {
+                        if (active != null && pendingReplaceId != workout.id) {
                             pendingReplaceId = workout.id
                         } else {
                             pendingReplaceId = null
@@ -148,8 +150,7 @@ fun WearHomeScreen(
                     icon = { Icon(Icons.Filled.Settings, null) },
                     label = { Text(stringResource(R.string.settings_title)) },
                     secondaryLabel = {
-                        val synced = remember(prefs.lastSyncAt) { formatSyncTime(prefs.lastSyncAt) }
-                        Text(synced)
+                        Text(formatSyncTime(prefs.lastSyncAt))
                     },
                 )
             }
