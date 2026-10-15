@@ -18,10 +18,15 @@ val releaseSigningConfigured = !releaseStoreFile.isNullOrBlank() &&
     !releaseKeyAlias.isNullOrBlank() &&
     !releaseKeyPassword.isNullOrBlank()
 
-// Android 17 (API 37) is the compile target. CI passes -Ppulse.compileSdk=<n> when the runner's
-// SDK repository does not offer platforms;android-37 yet, so the build degrades to the newest
-// available platform instead of failing. Local builds keep the 37 default.
-val pulseCompileSdk = (findProperty("pulse.compileSdk") as? String)?.toIntOrNull() ?: 37
+// Android 17 (API 37) is the compile target, but *which* platform is used is decided once, in the
+// root build script, from what this machine has installed: a build cannot compile against a platform
+// it cannot find, and `./gradlew assemble` on a machine without API 37 dies on the SDK download
+// ("Failed to find Platform SDK with path: platforms;android-37") before compiling a line — which is
+// how the CodeQL autobuild failed, since it does not pass the `-Ppulse.compileSdk` our CI action sets.
+// The override is still honoured exactly, so release artifacts are built against the documented API.
+// See `build.gradle.kts` for the resolution order.
+val pulseCompileSdk: Int = rootProject.extra.takeIf { it.has("pulseCompileSdk") }
+    ?.get("pulseCompileSdk") as? Int ?: 37
 
 android {
     signingConfigs {
@@ -42,8 +47,8 @@ android {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = 18
-        versionName = "1.7.2"
+        versionCode = 19
+        versionName = "1.7.3"
         // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

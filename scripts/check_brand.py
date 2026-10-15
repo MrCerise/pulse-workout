@@ -14,6 +14,15 @@ DRAWABLE = ROOT / "app/src/main/res/drawable"
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 SVG = "{http://www.w3.org/2000/svg}"
 
+# The adaptive launcher layers scale the 256-unit artwork down to LAUNCHER_MARK_DP and centre it in
+# the 108 dp viewport. The mark is smaller than the viewport on purpose: launchers crop to a 66 dp
+# safe zone and every mask shape (circle, squircle, rounded square) cuts in from there, so artwork
+# that fills the 108 dp canvas loses its edges on a real home screen.
+LAUNCHER_VIEWPORT_DP = 108
+LAUNCHER_MARK_DP = 50
+LAUNCHER_SCALE = LAUNCHER_MARK_DP / 256  # 0.1953125
+LAUNCHER_OFFSET_DP = (LAUNCHER_VIEWPORT_DP - LAUNCHER_MARK_DP) / 2  # 29
+
 
 def parse_xml(path: Path) -> ET.Element:
     return ET.fromstring(READER.read_bytes(path))
@@ -41,9 +50,16 @@ try:
             assert paths[0].get(ANDROID + "pathData") == expected, f"{name}: logo geometry drift"
             if name.startswith("ic_launcher_"):
                 group = vector.find("group")
-                assert vector.get(ANDROID + "viewportWidth") == "108"
-                assert group.get(ANDROID + "scaleX") == group.get(ANDROID + "scaleY") == "0.234375"
-                assert group.get(ANDROID + "translateX") == group.get(ANDROID + "translateY") == "24"
+                assert vector.get(ANDROID + "viewportWidth") == str(LAUNCHER_VIEWPORT_DP)
+                assert vector.get(ANDROID + "viewportHeight") == str(LAUNCHER_VIEWPORT_DP)
+                for axis in ("scaleX", "scaleY"):
+                    value = float(group.get(ANDROID + axis))
+                    assert abs(value - LAUNCHER_SCALE) < 1e-6, f"{name}: {axis} must be {LAUNCHER_SCALE}"
+                for axis in ("translateX", "translateY"):
+                    value = float(group.get(ANDROID + axis))
+                    assert (
+                        abs(value - LAUNCHER_OFFSET_DP) < 1e-6
+                    ), f"{name}: {axis} must centre the {LAUNCHER_MARK_DP} dp mark, i.e. {LAUNCHER_OFFSET_DP}"
 
     # Android's bitmap drawable cannot inflate a vector as its source on older releases.
     splash = parse_xml(DRAWABLE / "splash_background.xml")
@@ -53,4 +69,7 @@ except RepositoryIOError as error:
     print(f"unsafe brand-check input: {error}", file=sys.stderr)
     sys.exit(2)
 
-print("OK — seven brand vectors match the supplied SVG; launcher insets and legacy splash are valid")
+print(
+    "OK — seven brand vectors match the supplied SVG; launcher layers centre a "
+    f"{LAUNCHER_MARK_DP} dp mark in the {LAUNCHER_VIEWPORT_DP} dp viewport; legacy splash is valid"
+)

@@ -17,6 +17,58 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 Nothing yet. See the [open issues](https://github.com/MrCerise/pulse-workout/issues) for what is
 being worked on.
 
+## [1.7.3] — 2026-10-15
+
+It is called Pulse Workout, and it can pick its own language.
+
+**Added**
+
+- **A language the user chooses**, in Settings → Appearance → Language: follow the device, or pin
+  English, French, German, Spanish or Italian. The choice is stored with the other preferences and
+  applied to the composition, so it lands on the tap without recreating the Activity — no restart, no
+  blank frame, nothing cancelled underneath the running session. On Android 13 and later the same choice
+  is offered to the platform, so home-screen widgets, notifications and anything inflated outside
+  Compose agree with the screen. Only the app's language changes; the device's never does.
+- A language is offered only if its tag names a `values-…` folder the build packages, which is now a
+  test (`AppLanguageTest`) rather than a convention, together with the two other ways this could rot:
+  a renamed enum entry silently resetting the stored choice, and a translation table carrying a key the
+  English source never declared.
+- `docs/RELEASE_1.7.3.md`.
+
+**Changed**
+
+- **The app is named Pulse Workout everywhere it says its name.** `app_name` is the one string, driving
+  the launcher label, the welcome screen, the About card, the share image, both home-screen widgets, the
+  notification channel and the manufacturer line Health Connect and Google Fit show; the four places that
+  draw the wordmark — welcome, About, the share image's light and dark sheets, the in-content lockup —
+  set the same two-word lockup, "Workout" in the brand colour at a lighter weight than "Pulse". The
+  package, application id, resource names, artifact names, repository and Crowdin project keep theirs,
+  so an installed phone updates in place and translation history survives. The watch stays wordless.
+- **The launcher icon draws its mark smaller**: 50 dp inside the 108 dp adaptive viewport instead of
+  60 dp, centred, on the foreground and on the monochrome layer Themed icons use, on phone and watch.
+  `scripts/check_brand.py` derives the scale from the vectors and compares it with what `docs/DESIGN.md`
+  states, so the artwork and the reference cannot drift apart unnoticed.
+- `WatchSessionRecorder` now contains both of its fan-out calls itself. A sync link that throws used to
+  be the caller's problem; it is the last thing a finishing session does, so the exception unwound into
+  the engine's teardown. The local history still lands first, and the failure stays inside the recorder.
+- The compile SDK is resolved from what the machine has instead of being hardcoded in both APK modules:
+  an explicit `-Ppulse.compileSdk` is honoured exactly, otherwise API 37 when it is installed, otherwise
+  the newest installed platform at or below it, with the substitution printed.
+
+**Fixed**
+
+- **`./gradlew assemble` no longer dies on a missing platform SDK.** Without the CI action's
+  `-Ppulse.compileSdk`, AGP asked for `platforms;android-37`, did not find it, tried to download it, and
+  failed the whole build where a platform could not be reached — which is exactly how the CodeQL
+  `Analyze (java-kotlin)` job's autobuild step was failing. The fallback needs no network, no flag and
+  no change to how anyone builds; `-Ppulse.compileSdk=37` still gets API 37 or the build fails loudly.
+- Tests: `AppLanguageTest` (6 cases) and two more in `WatchSessionRecorderTest`; 116 JVM test methods
+  across the five modules.
+- Docs: README (feature list, module map, a troubleshooting row for the platform-SDK failure),
+  `DESIGN.md` §10 sizes, `ARCHITECTURE.md`'s string-resource rule and `locale/` package,
+  `TRANSLATING.md` on what it takes for a language to be offered, refreshed counts in
+  `ACCEPTANCE.md` and `VERIFICATION.md`, and the language-resolution note in `VERIFICATION.md`.
+
 ## [1.7.2] — 2026-10-15
 
 **Added**

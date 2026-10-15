@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  French translation. Keys that are missing here fall back to values/strings.xml (English), and the
-  app declares resourceConfigurations = ["en", "fr"], so no other locale is packaged.
+  French translation — the complete table, kept key-for-key in step with values/strings.xml by
+  scripts/check_ui.py. Keys missing from a locale fall back to English, and because no
+  resourceConfigurations filter is declared every approved locale folder is packaged, which is what
+  lets Settings → Appearance offer German, Spanish and Italian alongside French.
 -->
 <resources>
-    <string name="app_name">PULSE</string>
+    <string name="app_name">Pulse Workout</string>
     <string name="app_tagline">Coach d\'intervalles</string>
 
     <!-- Navigation -->
@@ -247,6 +249,9 @@
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
     <string name="theme_black">Noir absolu</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_system">Langue du système</string>
+    <string name="settings_language_note">Appliquée immédiatement. Widgets et notifications suivent le même choix à partir d\'Android 13.</string>
     <string name="settings_dynamic_color">Couleur du fond d’écran</string>
     <string name="settings_reduced_motion">Mouvements réduits</string>
     <string name="settings_high_contrast">Contraste élevé</string>
@@ -287,21 +292,21 @@
     <string name="settings_permissions">Autorisations utilisées</string>
 
     <!-- Import / export -->
-    <string name="export_title">Exporter les données PULSE</string>
+    <string name="export_title">Exporter les données Pulse Workout</string>
     <string name="export_success">Exporté vers le fichier sélectionné</string>
     <string name="export_failed">Échec de l\'export : %1$s</string>
-    <string name="import_title">Importer des données PULSE</string>
+    <string name="import_title">Importer des données Pulse Workout</string>
     <string name="import_success">%1$d séances et %2$d sessions importées</string>
     <string name="import_failed">Échec de l\'import : %1$s</string>
     <string name="import_preview_title">Vérifier avant d\'importer</string>
     <string name="import_preview_body">%1$d séances · %2$d sessions · %3$d tags</string>
     <string name="import_confirm">Importer</string>
-    <string name="import_corrupt">Sauvegarde PULSE invalide. Aucune modification.</string>
+    <string name="import_corrupt">Sauvegarde Pulse Workout invalide. Aucune modification.</string>
     <string name="backup_created">Sauvegarde écrite dans %1$s</string>
     <string name="backup_too_large">Les sauvegardes de plus de %1$d Mio ne peuvent pas être importées.</string>
 
     <!-- Onboarding -->
-    <string name="welcome_title">PULSE Coach d\'intervalles</string>
+    <string name="welcome_title">Pulse Workout</string>
     <string name="welcome_subtitle">Votre minuteur d’intervalles.</string>
     <string name="welcome_theme">Choisissez une apparence</string>
     <string name="welcome_voice">Écoutez une annonce</string>
@@ -309,7 +314,7 @@
     <string name="welcome_sample_workout">Essayer une séance de 4 minutes</string>
     <string name="welcome_skip">Passer</string>
     <string name="welcome_next">Suivant</string>
-    <string name="welcome_start">Commencer avec PULSE</string>
+    <string name="welcome_start">Commencer avec Pulse Workout</string>
     <string name="welcome_notifications">Les notifications ajoutent les commandes du minuteur à l’écran verrouillé.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. La séance fonctionne toujours, mais sans commandes en direct.</string>
@@ -317,7 +322,7 @@
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
-    <string name="help_voice_body">Pour le coaching hors ligne, installez une voix dans Réglages Android → Synthèse vocale. Sans voix, PULSE utilise des signaux sonores.</string>
+    <string name="help_voice_body">Pour le coaching hors ligne, installez une voix dans Réglages Android → Synthèse vocale. Sans voix, Pulse Workout utilise des signaux sonores.</string>
     <string name="help_background">Fonctionnement en arrière-plan</string>
     <string name="help_background_body">Le minuteur continue écran éteint. Activez les annonces écran éteint dans les réglages pour les conserver.</string>
     <string name="help_audio">Dépannage audio</string>
@@ -342,11 +347,11 @@
     <string name="hours_minutes">%1$sh %2$sm</string>
 
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Favoris PULSE</string>
-    <string name="widget_quick_start_name">Départ rapide PULSE</string>
+    <string name="widget_favorites_name">Favoris Pulse Workout</string>
+    <string name="widget_quick_start_name">Départ rapide Pulse Workout</string>
     <string name="widget_quick_start_label">Départ rapide</string>
     <string name="widget_quick_start_sub">Effort / repos</string>
-    <string name="widget_empty">Ouvrez PULSE pour mettre une séance en favori</string>
+    <string name="widget_empty">Ouvrez Pulse Workout pour mettre une séance en favori</string>
     <string name="shortcut_recent">Séances récentes</string>
     <string name="shortcut_quick">Création rapide</string>
 
@@ -394,7 +399,7 @@
     <string name="share_total_time">Temps total · pauses incluses</string>
     <string name="share_skipped">Intervalles passés</string>
     <string name="share_rounds">Tours enregistrés</string>
-    <string name="share_recorded">Enregistré avec PULSE</string>
+    <string name="share_recorded">Enregistré avec Pulse Workout</string>
 
     <!-- Theme & streamlined AI flow -->
     <string name="theme_switch_light">Passer au thème clair</string>

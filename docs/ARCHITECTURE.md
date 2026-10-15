@@ -39,6 +39,7 @@ Inside `app/src/main/java/com/pulse/intervalcoach/`:
 | `audio/` | Cue tones, haptics, speech through the device TTS engine, and `CueGate` — the anti-backlog filter every announcement passes through. `Ducking.kt` is the music-ducking curve. |
 | `data/` | Room database and migrations, DataStore preferences, repositories, the starter templates, the `pulse.workouts` JSON parser, backup/export, and `Categories.kt` — the category registry. |
 | `health/` | `HealthHub` fronting Health Connect (primary) and Google Fit (best-effort secondary): reads live HR and steps, writes finished sessions. |
+| `locale/` | The in-app language override: `AppLocale` wraps a context in the chosen `Locale` and applies it to the app configuration. `AppLanguage` (in `data/`) is the stored choice.
 | `session/` | `CueScript` (what gets said, when), `SessionController` (the live session state), `WorkoutService` (the foreground service) and background music. |
 | `ui/theme/` | The design system: `Palette.kt` (raw tokens), `Tokens.kt` (colour/space/radius/elevation/motion locals), `Typography.kt`, `Theme.kt`. |
 | `ui/components/` | The shared component library — `Foundation` (including `PulseScaffold`), `Controls`, `Indicators`, `DataDisplay`, `Feedback`, `Navigation`. |
@@ -204,7 +205,9 @@ change in review (see [CONTRIBUTING.md](../CONTRIBUTING.md)):
    it for their own platform communication.
 3. **Colours, spacing and shapes come from tokens**, never from literals in a screen.
 4. **User-visible text comes from string resources**, in English and (via Crowdin) every shipped
-   locale.
+   locale. Settings → Appearance can pin a locale instead of following the device; an offerable locale
+   is one whose BCP-47 tag names a packaged `values-…` folder, which `AppLanguageTest` enforces so the
+   picker can never select a language with no strings behind it.
 5. **Untrusted input is bounded and validated before anything is written** — JSON imports,
    backups, deep links, clipboard content.
 6. **The watch app must be usable with no phone.** Anything it needs to run — the catalogue, the

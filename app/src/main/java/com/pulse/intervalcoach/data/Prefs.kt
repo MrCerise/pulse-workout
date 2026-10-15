@@ -34,8 +34,27 @@ enum class HeadphoneBehavior { PAUSE, KEEP_GOING }
 /** How much the coach says. */
 enum class VoiceVerbosity { MINIMAL, STANDARD, CHATTY }
 
+/**
+ * Which language the app draws itself in.
+ *
+ * `SYSTEM` follows the device; every other entry is a BCP-47 tag that matches a `values-…` folder the
+ * build packages, so the choice can never select a locale with no strings behind it. The tags carry a
+ * region where the shipped translation has one (`values-de-rDE`, not `values-de`): Android only picks
+ * a regional folder when the requested region matches, so a bare "de" would fall back to English.
+ */
+enum class AppLanguage(val tag: String?) {
+    SYSTEM(null),
+    ENGLISH("en"),
+    FRENCH("fr"),
+    GERMAN("de-DE"),
+    SPANISH("es-ES"),
+    ITALIAN("it-IT"),
+}
+
 data class UserPreferences(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    /** In-app language override; `SYSTEM` keeps the device language. */
+    val appLanguage: AppLanguage = AppLanguage.SYSTEM,
     val dynamicColor: Boolean = false,
     val highContrast: Boolean = false,
     val reducedMotion: Boolean = false,
@@ -97,6 +116,7 @@ class PreferencesRepository(private val context: Context) {
 
     private object Keys {
         val theme = stringPreferencesKey("theme_mode")
+        val appLanguage = stringPreferencesKey("app_language")
         val dynamicColor = booleanPreferencesKey("dynamic_color")
         val highContrast = booleanPreferencesKey("high_contrast")
         val reducedMotion = booleanPreferencesKey("reduced_motion")
@@ -142,6 +162,7 @@ class PreferencesRepository(private val context: Context) {
     val flow: Flow<UserPreferences> = context.dataStore.data.map { prefs ->
         UserPreferences(
             themeMode = prefs[Keys.theme]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.SYSTEM,
+            appLanguage = prefs[Keys.appLanguage]?.let { runCatching { AppLanguage.valueOf(it) }.getOrNull() } ?: AppLanguage.SYSTEM,
             dynamicColor = prefs[Keys.dynamicColor] ?: false,
             highContrast = prefs[Keys.highContrast] ?: false,
             reducedMotion = prefs[Keys.reducedMotion] ?: false,
@@ -190,6 +211,7 @@ class PreferencesRepository(private val context: Context) {
     suspend fun current(): UserPreferences = flow.first()
 
     suspend fun setTheme(mode: ThemeMode) = edit { it[Keys.theme] = mode.name }
+    suspend fun setAppLanguage(language: AppLanguage) = edit { it[Keys.appLanguage] = language.name }
     suspend fun setDynamicColor(value: Boolean) = edit { it[Keys.dynamicColor] = value }
     suspend fun setHighContrast(value: Boolean) = edit { it[Keys.highContrast] = value }
     suspend fun setReducedMotion(value: Boolean) = edit { it[Keys.reducedMotion] = value }

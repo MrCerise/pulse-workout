@@ -19,8 +19,13 @@ preferences. Nothing is cached in a service we run, because there is no service.
 | Store | Holds |
 | --- | --- |
 | Room database | workouts, folders, sessions, voice profiles, labels, reminders |
-| DataStore | user preferences (theme, audio, units, health toggles, defaults) |
+| DataStore | user preferences (theme, language, audio, units, health toggles, defaults) |
 | App-private files | draft snapshots, own recordings, exported share images (expiring) |
+
+The chosen language is one of those preferences, and it is deliberately **not** mirrored: it changes
+only how this app draws its own strings, never the device locale and never the other app on the
+wrist. Nothing about it belongs in a workout payload, so a phone and a watch built from different
+versions still agree.
 
 The watch app keeps the same kind of state in its own private storage and nothing else: the
 mirrored library and the mirrored preference fields, its own list of the last 20 sessions it ran,

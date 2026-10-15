@@ -14,6 +14,12 @@ import kotlinx.coroutines.launch
  * deliver, queues what it cannot, and is a no-op when the phone link is off. A watch with no phone
  * therefore behaves exactly like a watch with a phone that happens to be absent — the difference
  * is only in whether the record leaves the wrist.
+ *
+ * Independence has to be enforced, not just intended: this runs on the engine's event callback at the
+ * end of a session, so a publisher that throws (no peer stack, a link that has been torn down with the
+ * watch still finishing its last step) would otherwise unwind into the session teardown after the
+ * session was already recorded. Both calls are therefore contained here, and the order stays
+ * "history first, link second" so the local record never depends on anything the phone is doing.
  */
 class WatchSessionRecorder(
     private val scope: CoroutineScope,
@@ -21,12 +27,14 @@ class WatchSessionRecorder(
     private val link: WatchSessionPublisher,
 ) : WatchSessionPublisher {
 
-    override fun onLiveSnapshot(live: LiveSession) = link.onLiveSnapshot(live)
+    override fun onLiveSnapshot(live: LiveSession) {
+        runCatching { link.onLiveSnapshot(live) }
+    }
 
     override fun onSessionFinished(log: SessionLog) {
         // Fire-and-forget on the container scope, like the queue write: neither may block the
         // engine's event callback.
-        scope.launch { history.record(log) }
-        link.onSessionFinished(log)
+        scope.launch { runCatching { history.record(log) } }
+        runCatching { link.onSessionFinished(log) }
     }
 }

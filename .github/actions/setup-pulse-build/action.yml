@@ -36,6 +36,13 @@ runs:
         # first: `sdkmanager` costs a repository round trip per call, and the newest API the
         # project targets is regularly not published for this runner yet — which used to be a
         # guaranteed failing call before every single build.
+        #
+        # This step is the *preference*, not the only thing keeping a build alive: the root
+        # build.gradle.kts resolves compileSdk against what is installed whenever no
+        # -Ppulse.compileSdk was passed, which is how a plain `./gradlew assemble` — a code
+        # scanner's autobuild, a fresh clone — compiles at all when platforms;android-37 is
+        # missing. Here the newest obtainable API is chosen and handed to Gradle explicitly, so a
+        # CI run says in its log which platform it used.
         installed() {
           local api="$1"
           [ -n "${ANDROID_SDK_ROOT:-}" ] || return 1

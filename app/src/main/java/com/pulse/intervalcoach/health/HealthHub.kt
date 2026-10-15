@@ -58,7 +58,7 @@ private const val TAG = "HealthHub"
 
 private val PULSE_DEVICE = Device(
     type = Device.TYPE_PHONE,
-    manufacturer = "PULSE",
+    manufacturer = "Pulse Workout",
     model = "Interval Coach",
 )
 
@@ -489,7 +489,7 @@ class HealthHub(
                 val end = session.endedAt.coerceAtLeast(session.startedAt + 1_000L)
                 val fitSession = Session.Builder()
                     .setName(session.workoutName.take(50))
-                    .setDescription("Interval workout recorded by PULSE")
+                    .setDescription("Interval workout recorded by Pulse Workout")
                     .setIdentifier("pulse-session-${session.id}")
                     .setActivity(FitnessActivities.OTHER)
                     .setStartTime(session.startedAt, TimeUnit.MILLISECONDS)

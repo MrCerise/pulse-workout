@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PULSE</string>
+    <string name="app_name">Pulse Workout</string>
     <string name="app_tagline">Interval Coach</string>
 
     <!-- Navigation -->
@@ -243,6 +243,9 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_black">True black</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System default</string>
+    <string name="settings_language_note">Applied immediately. Widgets and notifications follow the same choice on Android 13 and newer.</string>
     <string name="settings_dynamic_color">Wallpaper accent</string>
     <string name="settings_reduced_motion">Reduced motion</string>
     <string name="settings_high_contrast">High contrast</string>
@@ -283,21 +286,21 @@
     <string name="settings_permissions">Permissions used</string>
 
     <!-- Import / export -->
-    <string name="export_title">Export PULSE data</string>
+    <string name="export_title">Export Pulse Workout data</string>
     <string name="export_success">Exported to the selected file</string>
     <string name="export_failed">Export failed: %1$s</string>
-    <string name="import_title">Import PULSE data</string>
+    <string name="import_title">Import Pulse Workout data</string>
     <string name="import_success">Imported %1$d workouts and %2$d sessions</string>
     <string name="import_failed">Import failed: %1$s</string>
     <string name="import_preview_title">Review before importing</string>
     <string name="import_preview_body">%1$d workouts · %2$d sessions · %3$d tags</string>
     <string name="import_confirm">Import</string>
-    <string name="import_corrupt">Invalid PULSE backup. Nothing was changed.</string>
+    <string name="import_corrupt">Invalid Pulse Workout backup. Nothing was changed.</string>
     <string name="backup_created">Backup written to %1$s</string>
     <string name="backup_too_large">Backups larger than %1$d MiB cannot be imported.</string>
 
     <!-- Onboarding -->
-    <string name="welcome_title">PULSE Interval Coach</string>
+    <string name="welcome_title">Pulse Workout</string>
     <string name="welcome_subtitle">Your interval timer.</string>
     <string name="welcome_theme">Choose a look</string>
     <string name="welcome_voice">Hear a cue</string>
@@ -305,7 +308,7 @@
     <string name="welcome_sample_workout">Try a 4-minute starter</string>
     <string name="welcome_skip">Skip</string>
     <string name="welcome_next">Next</string>
-    <string name="welcome_start">Start using PULSE</string>
+    <string name="welcome_start">Start using Pulse Workout</string>
     <string name="welcome_notifications">Notifications add timer controls to your lock screen.</string>
     <string name="welcome_notifications_allow">Allow notifications</string>
     <string name="welcome_permission_denied">Notifications are off. The workout still runs, but without live controls.</string>
@@ -313,7 +316,7 @@
     <!-- Help -->
     <string name="help_title">Help</string>
     <string name="help_voice">Voice setup</string>
-    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, PULSE uses sound cues.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Pulse Workout uses sound cues.</string>
     <string name="help_background">Background operation</string>
     <string name="help_background_body">Timing continues with the screen off. Enable screen-off cues in Settings to keep announcements playing.</string>
     <string name="help_audio">Audio troubleshooting</string>
@@ -338,11 +341,11 @@
     <string name="hours_minutes">%1$sh %2$sm</string>
 
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">PULSE favorites</string>
-    <string name="widget_quick_start_name">PULSE quick start</string>
+    <string name="widget_favorites_name">Pulse Workout favorites</string>
+    <string name="widget_quick_start_name">Pulse Workout quick start</string>
     <string name="widget_quick_start_label">Quick start</string>
     <string name="widget_quick_start_sub">Work / rest</string>
-    <string name="widget_empty">Open PULSE to star a workout</string>
+    <string name="widget_empty">Open Pulse Workout to star a workout</string>
     <string name="shortcut_recent">Recent workouts</string>
     <string name="shortcut_quick">Quick builder</string>
 
@@ -390,7 +393,7 @@
     <string name="share_total_time">Total time · incl. pauses</string>
     <string name="share_skipped">Intervals skipped</string>
     <string name="share_rounds">Rounds logged</string>
-    <string name="share_recorded">Recorded with PULSE</string>
+    <string name="share_recorded">Recorded with Pulse Workout</string>
 
     <!-- Theme & streamlined AI flow -->
     <string name="theme_switch_light">Switch to light theme</string>

@@ -56,6 +56,8 @@ import androidx.navigation.navArgument
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.DeepLinks
 import com.pulse.intervalcoach.R
+import com.pulse.intervalcoach.data.AppLanguage
+import com.pulse.intervalcoach.locale.Localized
 import com.pulse.intervalcoach.ui.builders.AdvancedBuilderScreen
 import com.pulse.intervalcoach.ui.builders.QuickBuilderScreen
 import com.pulse.intervalcoach.ui.goals.GoalsScreen
@@ -99,6 +101,7 @@ import com.pulse.intervalcoach.ui.workouts.TemplateGalleryScreen
 import com.pulse.intervalcoach.ui.workouts.WorkoutDetailsScreen
 import com.pulse.intervalcoach.ui.workouts.WorkoutLibraryScreen
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 object Routes {
@@ -220,9 +223,36 @@ private val immersiveRoutes = setOf(Routes.PLAYER, Routes.WELCOME)
  *    with a tinted active row and a 2 dp accent edge, and the appearance control in its footer.
  *
  * Every shape reads the same [PulseNavItem] list, and none of them casts a shadow.
+ *
+ * The entry point has two layers. This one resolves the selected language and re-provides
+ * [androidx.compose.ui.platform.LocalContext] for it, so [PulseAppRootContent] — including the
+ * placeholder drawn while DataStore warms up, which is why the app never flashes the system language
+ * first — reads every string through that context. [com.pulse.intervalcoach.locale.AppLocale] explains
+ * why the override lives here rather than on the activity.
  */
 @Composable
 fun PulseAppRoot(
+    container: AppContainer,
+    deeplinks: StateFlow<String?>,
+    onDeeplinkConsumed: () -> Unit,
+    onRequestNotificationPermission: () -> Unit,
+) {
+    val language by container.preferences.flow
+        .map { it.appLanguage }
+        .collectAsStateWithLifecycle(initialValue = AppLanguage.SYSTEM)
+    Localized(language) {
+        PulseAppRootContent(
+            container = container,
+            deeplinks = deeplinks,
+            onDeeplinkConsumed = onDeeplinkConsumed,
+            onRequestNotificationPermission = onRequestNotificationPermission,
+        )
+    }
+}
+
+/** The frame itself: theme, navigation host, deep links and the snackbar that reports failures. */
+@Composable
+private fun PulseAppRootContent(
     container: AppContainer,
     deeplinks: StateFlow<String?>,
     onDeeplinkConsumed: () -> Unit,

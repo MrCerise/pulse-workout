@@ -19,8 +19,11 @@ val releaseSigningConfigured = !releaseStoreFile.isNullOrBlank() &&
     !releaseKeyAlias.isNullOrBlank() &&
     !releaseKeyPassword.isNullOrBlank()
 
-// Same compile-SDK fallback as the phone app (CI passes -Ppulse.compileSdk=<n>).
-val pulseCompileSdk = (findProperty("pulse.compileSdk") as? String)?.toIntOrNull() ?: 37
+// Same platform the phone app is built against, resolved once in the root build script from what is
+// installed here — the two APKs share a data layer, so they must never disagree on the API they
+// compile against. Pass -Ppulse.compileSdk=<n> to pin it (that is what the CI action does).
+val pulseCompileSdk: Int = rootProject.extra.takeIf { it.has("pulseCompileSdk") }
+    ?.get("pulseCompileSdk") as? Int ?: 37
 
 android {
     signingConfigs {
@@ -42,8 +45,8 @@ android {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = 18
-        versionName = "1.7.2"
+        versionCode = 19
+        versionName = "1.7.3"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -100,7 +103,7 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":engine"))
     implementation(project(":sync"))
-implementation(project(":library"))
+    implementation(project(":library"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

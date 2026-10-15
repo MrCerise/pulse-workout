@@ -47,6 +47,7 @@ import com.pulse.intervalcoach.BuildConfig
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.audio.DuckPhase
 import com.pulse.intervalcoach.audio.SpeechAvailability
+import com.pulse.intervalcoach.data.AppLanguage
 import com.pulse.intervalcoach.data.AudioInterruptionBehavior
 import com.pulse.intervalcoach.data.BackupRepository
 import com.pulse.intervalcoach.data.HeadphoneBehavior
@@ -54,6 +55,7 @@ import com.pulse.intervalcoach.data.PlayerDensity
 import com.pulse.intervalcoach.data.VoiceVerbosity
 import com.pulse.intervalcoach.data.WeightUnit
 import com.pulse.intervalcoach.data.db.AudioAssetEntity
+import com.pulse.intervalcoach.locale.AppLocale
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DangerActionButton
 import com.pulse.intervalcoach.ui.components.DurationStepper
@@ -167,6 +169,26 @@ fun SettingsScreen(
                             onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
                         )
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        OptionRow(
+                            label = stringResource(R.string.settings_language),
+                            options = AppLanguage.entries.map { it to languageLabel(it) },
+                            selected = current.appLanguage,
+                            onSelect = { language ->
+                                // The app scope, not a scope tied to this composition: the platform
+                                // applies the locale as a configuration change, and a coroutine
+                                // cancelled mid-tap would leave the preference unwritten while the
+                                // screens below had already moved.
+                                container.appScope.launch {
+                                    container.preferences.setAppLanguage(language)
+                                    AppLocale.applySystemLocales(context.applicationContext, language)
+                                }
+                            },
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_language_note),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
+                        )
                         ToggleRow(
                             label = stringResource(R.string.settings_dynamic_color),
                             checked = current.dynamicColor,
@@ -295,7 +317,7 @@ fun SettingsScreen(
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        Text("PULSE Interval Coach ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text("Pulse Workout ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
                 }
             }
@@ -325,6 +347,21 @@ private fun formatSync(millis: Long): String {
     } else {
         then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
     }
+}
+
+/**
+ * Language names are written the way each language writes its own — a German speaker finds
+ * "Deutsch", not "German", in a list of languages. Only the "follow the device" row is a sentence,
+ * so it is the only one that is translated.
+ */
+@Composable
+private fun languageLabel(language: AppLanguage): String = when (language) {
+    AppLanguage.SYSTEM -> stringResource(R.string.settings_language_system)
+    AppLanguage.ENGLISH -> "English"
+    AppLanguage.FRENCH -> "Français"
+    AppLanguage.GERMAN -> "Deutsch"
+    AppLanguage.SPANISH -> "Español"
+    AppLanguage.ITALIAN -> "Italiano"
 }
 
 private fun PlayerDensity.label(): String = when (this) {
@@ -796,7 +833,7 @@ fun BackupScreen(
                             preview = info
                             pendingBackup = text
                         }
-                        .onFailure { failure -> error = failure.message ?: "This file is not a valid PULSE backup." }
+                        .onFailure { failure -> error = failure.message ?: "This file is not a valid Pulse Workout backup." }
                 }
                 .onFailure { failure -> error = failure.message ?: "This file could not be read safely." }
         }

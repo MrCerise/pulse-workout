@@ -45,11 +45,15 @@
         android:theme="@style/Theme.Pulse"
         tools:targetApi="34">
 
+        <!-- `locale|layoutDirection` belongs here because the app can be told its own language
+             (Settings → Appearance → Language, applied through LocaleManager from API 33): handling the
+             change in place keeps a running session and the scroll position, exactly as `uiMode` does for
+             the dark-mode switch, and Compose re-reads the strings on the configuration change. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|fontScale|smallestScreenSize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|fontScale|smallestScreenSize|locale|layoutDirection"
             android:theme="@style/Theme.Pulse.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

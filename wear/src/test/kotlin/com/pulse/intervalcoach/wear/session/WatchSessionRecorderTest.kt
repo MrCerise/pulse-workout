@@ -40,8 +40,17 @@ class WatchSessionRecorderTest {
 
     /** A link that cannot do anything with the session at all: no phone, so nothing to send to. */
     private class UnpairedLink : WatchSessionPublisher {
-        override fun onLiveSnapshot(live: LiveSession) = Unit
-        override fun onSessionFinished(log: SessionLog) = throw IllegalStateException("no phone paired")
+        var failures = 0
+
+        override fun onLiveSnapshot(live: LiveSession) {
+            failures++
+            throw IllegalStateException("no phone paired")
+        }
+
+        override fun onSessionFinished(log: SessionLog) {
+            failures++
+            throw IllegalStateException("no phone paired")
+        }
     }
 
     private fun log(sessionId: String = "watch-1") = SessionLog(
@@ -112,15 +121,33 @@ class WatchSessionRecorderTest {
     @Test
     fun `recording does not depend on the link being able to deliver`() = runTest {
         // The history write is scheduled before the log is handed to the link, so a watch with no
-        // phone — or one whose link fails outright — still remembers what it ran.
+        // phone — or one whose link fails outright — still remembers what it ran. The failure has
+        // to stop *inside* the recorder: this callback is the last thing a finishing session does,
+        // and an exception thrown here unwinds into the engine's own teardown.
         val history = FakeHistory()
-        val recorder = WatchSessionRecorder(scope = backgroundScope, history = history, link = UnpairedLink())
+        val link = UnpairedLink()
+        val recorder = WatchSessionRecorder(scope = backgroundScope, history = history, link = link)
 
-        runCatching { recorder.onSessionFinished(log("offline-session")) }
+        recorder.onSessionFinished(log("offline-session"))
         // `runCurrent`, not `advanceUntilIdle`: the latter stops once only backgroundScope work
         // remains, which is exactly what the recorder's history write is.
         runCurrent()
 
         assertEquals("offline-session", history.logged.single().sessionId)
+        assertEquals(1, link.failures)
+    }
+
+    @Test
+    fun `a failing link cannot stop a live snapshot or the session behind it`() = runTest {
+        val history = FakeHistory()
+        val link = UnpairedLink()
+        val recorder = WatchSessionRecorder(scope = backgroundScope, history = history, link = link)
+
+        recorder.onLiveSnapshot(live())
+        recorder.onSessionFinished(log("last-step"))
+        runCurrent()
+
+        assertEquals(2, link.failures)
+        assertEquals("last-step", history.logged.single().sessionId)
     }
 }
