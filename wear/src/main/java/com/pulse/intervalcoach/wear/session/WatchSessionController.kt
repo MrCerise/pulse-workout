@@ -81,7 +81,10 @@ class WatchSessionController(
     private val loggedEvents = mutableListOf<LoggedSessionEvent>()
     private var tickerJob: Job? = null
     private var lastLivePublishAt = 0L
-    private var prefs: WatchPreferences = WatchPreferences()
+
+    // Seeded from the current value (not the default) so a preference that was already synced —
+    // or flipped off in a test before construction — is in effect for the very first cue.
+    private var prefs: WatchPreferences = preferences.value
 
     private val _snapshot = MutableStateFlow(TimerSnapshot())
     val snapshot: StateFlow<TimerSnapshot> = _snapshot.asStateFlow()
