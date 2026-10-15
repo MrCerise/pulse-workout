@@ -29,21 +29,57 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        # Android 17 (API 37) is the compile target. If this runner's SDK repository does not
-        # offer platforms;android-37 yet, fall back to 36 — the app still runs on Android 17
-        # devices, it is just compiled against the newest available platform.
-        # One sdkmanager call per candidate installs the platform and its build tools together.
-        if sdkmanager "platforms;android-37" "build-tools;37.0.0"; then
-          compile_sdk=37
-        elif sdkmanager "platforms;android-36" "build-tools;36.0.0"; then
-          echo "::warning::platforms;android-37 is not available from this runner's SDK repository; falling back to android-36"
-          compile_sdk=36
-        else
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
-          echo "::warning::platforms;android-37 and android-36 are not available; falling back to android-35"
-          compile_sdk=35
-        fi
-        echo "PULSE_COMPILE_SDK=${compile_sdk}" >> "$GITHUB_ENV"
+        # Android 17 (API 37) is the compile target; 36 and 35 are the documented fallbacks, and
+        # the app still runs on newer devices when it is compiled against an older platform.
+        #
+        # The runner image already ships several platforms and build-tools sets, so look on disk
+        # first: `sdkmanager` costs a repository round trip per call, and the newest API the
+        # project targets is regularly not published for this runner yet — which used to be a
+        # guaranteed failing call before every single build.
+        installed() {
+          local api="$1"
+          [ -n "${ANDROID_SDK_ROOT:-}" ] || return 1
+          [ -d "${ANDROID_SDK_ROOT}/platforms/android-${api}" ] || return 1
+          compgen -G "${ANDROID_SDK_ROOT}/build-tools/${api}.0*" > /dev/null || return 1
+        }
+
+        use() {
+          echo "Compiling against platforms;android-${1} / build-tools;${1}.0.0"
+          echo "PULSE_COMPILE_SDK=${1}" >> "$GITHUB_ENV"
+        }
+
+        # Pass 1: the newest platform this runner already has. No network at all.
+        for api in 37 36 35; do
+          if installed "$api"; then
+            use "$api"
+            exit 0
+          fi
+        done
+
+        # Pass 2: nothing usable is preinstalled, so ask the SDK repository, newest first.
+        for api in 37 36 35; do
+          if sdkmanager "platforms;android-${api}" "build-tools;${api}.0.0"; then
+            use "$api"
+            exit 0
+          fi
+          echo "::warning::platforms;android-${api} is not available from this runner's SDK repository; falling back to an older platform"
+        done
+
+        echo "::error::no usable Android platform could be installed on this runner" >&2
+        exit 1
 
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v6.4.0
+      with:
+        # Cache entries are branch-scoped, so a pull request branch can only ever read its own
+        # entries and the default branch's — never another branch's. Writing them is what makes a
+        # second push to the same pull request cheap, and merges to `main` are what keep the whole
+        # repository warm. A pull request opened from a fork is left read-only: untrusted code must
+        # not be able to plant a cache entry that a later trusted build restores.
+        #
+        # Tag runs stay read-only too: a cache entry written for a tag is scoped to that tag and
+        # nothing else can ever read it, so the storage would be wasted. They still *restore* the
+        # default branch's entry, which is what keeps a release build from starting from scratch.
+        cache-read-only: ${{ github.event.pull_request.head.repo.full_name != '' && github.event.pull_request.head.repo.full_name != github.repository || startsWith(github.ref, 'refs/tags/') }}
+        # Drop entries the finished build did not touch before saving, so restores stay quick.
+        cache-cleanup: on-success

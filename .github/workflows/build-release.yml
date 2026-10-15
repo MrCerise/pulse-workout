@@ -4,9 +4,33 @@ on:
   pull_request:
     branches:
       - main
+    # Edits to prose, the licence or the templates cannot change what compiles or what the tests
+    # assert, so they skip CI instead of waiting behind a Gradle build. Note that a skipped
+    # workflow leaves its checks unreported, which is why `main` carries no required checks.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'crowdin.yml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE*'
+      - '.github/dependabot.yml'
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+    # Path filters are not evaluated for tag pushes, so a release is never skipped by this list.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'crowdin.yml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE*'
+      - '.github/dependabot.yml'
   workflow_dispatch:
     inputs:
       release_tag:
@@ -19,7 +43,8 @@ permissions:
   contents: read
 
 # A new push to a pull request supersedes the still-running check for that pull request.
-# Tag and manual release runs are never cancelled.
+# Merges to main and tag/manual release runs are never cancelled: the runs on `main` are what write
+# the Gradle caches every branch restores, and a cancelled release run publishes nothing.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -27,7 +52,7 @@ concurrency:
 jobs:
   resource-checks:
     name: Resource and localization checks
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.release_tag == '')
+    if: github.event_name != 'workflow_dispatch' || inputs.release_tag == ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -40,11 +65,36 @@ jobs:
           python3 scripts/contrast_check.py
           git diff --exit-code -- docs/CONTRAST.md
 
+  # The unit tests run as one job per module group, side by side: GitHub gives a public repository
+  # as many runners as it has jobs, so the wall-clock cost of a pull request is the slowest job
+  # rather than the sum of all of them. Splitting by group also matches where the time actually
+  # goes — the phone app takes most of it, the three pure-Kotlin modules almost none — and a
+  # failure in one group no longer hides the results of the others.
   unit-tests:
-    name: Unit tests (pull requests)
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.release_tag == '')
+    name: Unit tests (${{ matrix.label }})
+    if: >-
+      (github.event_name != 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/'))
+      || (github.event_name == 'workflow_dispatch' && inputs.release_tag == '')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      # One failing group must not cancel the others: their result is what tells you whether the
+      # change is broken everywhere or in one place.
+      fail-fast: false
+      matrix:
+        include:
+          - key: jvm
+            label: engine, sync, library
+            tasks: ':engine:test :sync:test :library:test'
+            timeout: 15
+          - key: app
+            label: app
+            tasks: ':app:testDebugUnitTest'
+            timeout: 30
+          - key: wear
+            label: wear
+            tasks: ':wear:testDebugUnitTest'
+            timeout: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1
@@ -57,43 +107,13 @@ jobs:
         run: |
           set -euo pipefail
           bash ./gradlew --console=plain --stacktrace -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
-            :engine:test :sync:test :library:test :app:testDebugUnitTest :wear:testDebugUnitTest 2>&1 | tee gradle-build.log
+            ${{ matrix.tasks }} 2>&1 | tee gradle-build.log
 
       - name: Summarize failure diagnostics
         if: failure()
-        shell: bash
-        run: |
-          set -euo pipefail
-          {
-            echo "## Build failure diagnostics"
-            if [[ -f gradle-build.log ]]; then
-              echo '```text'
-              grep -E '^e: |^> Task .*FAILED|^FAILURE:|^BUILD FAILED|Execution failed' gradle-build.log | tail -n 80 || true
-              echo '```'
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [[ -f gradle-build.log ]]; then
-            while IFS= read -r line; do
-              echo "::error title=Gradle compiler diagnostic::$line"
-            done < <(grep '^e: ' gradle-build.log | tail -n 60 || true)
-            # Failed unit tests, e.g. "SomeTest > some case FAILED" from testLogging events.
-            while IFS= read -r line; do
-              echo "::error title=Unit test failure::$line"
-            done < <(grep ' FAILED$' gradle-build.log | grep -v 'Task' | tail -n 40 || true)
-            # And the exception lines that follow them, so the annotation carries the reason.
-            while IFS= read -r line; do
-              echo "::error title=Unit test failure detail::$line"
-            done < <(grep -A 4 ' FAILED$' gradle-build.log | grep -E 'Exception|AssertionError|expected|at com.pulse' | head -n 30 || true)
-          fi
-
-      - name: Upload build logs when a job fails
-        if: failure()
-        uses: actions/upload-artifact@v7.0.2
+        uses: ./.github/actions/summarize-gradle-failure
         with:
-          name: build-logs-${{ github.run_id }}
-          path: gradle-build.log
-          if-no-files-found: ignore
-          retention-days: 7
+          artifact-name: build-logs-${{ github.job }}-${{ matrix.key }}-${{ github.run_id }}
 
   release:
     name: Build signed release APKs
@@ -164,43 +184,6 @@ jobs:
 
       - name: Summarize failure diagnostics
         if: failure()
-        shell: bash
-        run: |
-          set -euo pipefail
-          {
-            echo "## Build failure diagnostics"
-            if [[ -f gradle-build.log ]]; then
-              echo '```text'
-              grep -E '^e: |^> Task .*FAILED|^FAILURE:|^BUILD FAILED|Execution failed' gradle-build.log | tail -n 80 || true
-              echo '```'
-            fi
-            if [[ -f asset-prep.log ]]; then
-              echo '```text'
-              tail -n 40 asset-prep.log
-              echo '```'
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [[ -f gradle-build.log ]]; then
-            while IFS= read -r line; do
-              echo "::error title=Gradle compiler diagnostic::$line"
-            done < <(grep '^e: ' gradle-build.log | tail -n 60 || true)
-            # Failed unit tests, e.g. "SomeTest > some case FAILED" from testLogging events.
-            while IFS= read -r line; do
-              echo "::error title=Unit test failure::$line"
-            done < <(grep ' FAILED$' gradle-build.log | grep -v 'Task' | tail -n 40 || true)
-            # And the exception lines that follow them, so the annotation carries the reason.
-            while IFS= read -r line; do
-              echo "::error title=Unit test failure detail::$line"
-            done < <(grep -A 4 ' FAILED$' gradle-build.log | grep -E 'Exception|AssertionError|expected|at com.pulse' | head -n 30 || true)
-          fi
-
-      - name: Upload build logs when a job fails
-        if: failure()
-        uses: actions/upload-artifact@v7.0.2
+        uses: ./.github/actions/summarize-gradle-failure
         with:
-          name: build-logs-${{ github.run_id }}
-          path: |
-            gradle-build.log
-            asset-prep.log
-          if-no-files-found: ignore
-          retention-days: 7
+          artifact-name: build-logs-${{ github.job }}-${{ github.run_id }}

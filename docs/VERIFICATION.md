@@ -17,7 +17,7 @@ available.
 | --- | --- |
 | Any machine with Python 3 | Resources, vectors, EN/FR parity, brand assets, contrast, Kotlin syntax and cross-reference gates |
 | Any machine with JDK 17 | `:engine:test`, `:sync:test` and `:library:test` — the timing engine, the phone↔watch protocol and the bundled catalogue, no Android SDK needed |
-| CI (GitHub Actions) | `:engine:test`, `:sync:test`, `:library:test`, `:app:testDebugUnitTest`, `:wear:testDebugUnitTest`, lint, and signed debug/release APK builds against SDK 37 |
+| CI (GitHub Actions) | `:engine:test`, `:sync:test`, `:library:test`, `:app:testDebugUnitTest`, `:wear:testDebugUnitTest` — the tests as three parallel jobs — lint, and signed debug/release APK builds against the newest platform the runner offers |
 | A device or emulator | Everything platform-dependent: notifications, audio focus, TTS, vibration, widgets, TalkBack, Health Connect |
 
 The development environment this project has been built in has **no Android SDK, no JDK and no
@@ -42,12 +42,17 @@ does not match, so the file is generated, never hand-edited.
 
 | Check | Job | Result |
 | --- | --- | --- |
-| Engine unit tests | `unit-tests` | final gate |
-| Protocol, catalogue and app unit tests (payload codecs, bundled catalogue, AI import, themes, factory, backups, cues, ducking, DB migration v2, builder route) | `unit-tests` | final gate |
-| Watch unit tests (session lifecycle, history, recorder) | `unit-tests` | final gate |
+| Engine, protocol and catalogue unit tests (timing, payload codecs, bundled catalogue) | `unit-tests (engine, sync, library)` | final gate |
+| App unit tests (AI import, themes, factory, backups, cues, ducking, DB migration v2, builder route) | `unit-tests (app)` | final gate |
+| Watch unit tests (session lifecycle, history, recorder) | `unit-tests (wear)` | final gate |
 | Resource, brand, contrast and xref gates | `resource-checks` | final gate |
-| Compilation, lint, debug + release APK (SDK 37) | `release` (on tags) | final gate |
+| Compilation, lint, debug + release APK (newest platform the runner offers) | `release` (on tags) | final gate |
 | Install / smoke test | — | **not run** — no emulator or device |
+
+The unit tests are three jobs rather than one so they run at the same time: a public repository
+gets a runner per job, so the wall-clock cost of a pull request is the slowest job, not the sum.
+Merges to `main` run the same checks — that is what writes the Gradle caches every branch restores —
+and a change whose files are all documentation, templates or the licence runs nothing at all.
 
 Unit-test coverage includes the acceptance cases: Tabata 4:00 with the final rest and 3:50 without,
 pause/resume preserving remaining time, wall-clock immunity, no duplicate transitions from rapid

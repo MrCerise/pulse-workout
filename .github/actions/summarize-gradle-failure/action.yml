@@ -1,0 +1,73 @@
+name: Summarize Gradle failure
+description: Turn a captured Gradle log into a job summary and error annotations, and upload it as an artifact.
+
+# One copy of the diagnostics every Gradle job wants: the whole point of running the modules as
+# separate jobs is that a failure is found fast, and that only works if each job still reports
+# *why* it failed, with the compiler diagnostics and the failing test names attached to the build.
+#
+# Called as `uses: ./.github/actions/summarize-gradle-failure` from a step with `if: failure()`,
+# so it only runs when something already went wrong.
+
+inputs:
+  artifact-name:
+    description: Name for the uploaded log artifact. Must be unique within a workflow run.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Summarize failure diagnostics
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ ! -f gradle-build.log && ! -f asset-prep.log ]]; then
+          echo "No build log was captured — the job failed before the build step ran." >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+        {
+          echo "## Build failure diagnostics"
+          if [[ -f gradle-build.log ]]; then
+            echo '```text'
+            grep -E '^e: |^> Task .*FAILED|^FAILURE:|^BUILD FAILED|Execution failed' gradle-build.log | tail -n 80 || true
+            echo '```'
+          fi
+          if [[ -f asset-prep.log ]]; then
+            echo '```text'
+            tail -n 40 asset-prep.log
+            echo '```'
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+        # Workflow commands treat % , CR and LF as escapes, so a test name or a compiler message
+        # containing one would otherwise be truncated or mangled in the annotation.
+        escape() {
+          local text="$1"
+          text="${text//'%'/'%25'}"
+          text="${text//$'\r'/'%0D'}"
+          printf '%s' "$text"
+        }
+
+        annotate() {
+          local title="$1"
+          while IFS= read -r line; do
+            echo "::error title=${title}::$(escape "$line")"
+          done
+        }
+
+        if [[ -f gradle-build.log ]]; then
+          grep '^e: ' gradle-build.log | tail -n 60 | annotate "Gradle compiler diagnostic" || true
+          # Failed unit tests, e.g. "SomeTest > some case FAILED" from testLogging events.
+          grep ' FAILED$' gradle-build.log | grep -v 'Task' | tail -n 40 | annotate "Unit test failure" || true
+          # And the exception lines that follow them, so the annotation carries the reason.
+          grep -A 4 ' FAILED$' gradle-build.log | grep -E 'Exception|AssertionError|expected|at com.pulse' | head -n 30 \
+            | annotate "Unit test failure detail" || true
+        fi
+
+    - name: Upload build logs when a job fails
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          gradle-build.log
+          asset-prep.log
+        if-no-files-found: ignore
+        retention-days: 7

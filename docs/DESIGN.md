@@ -307,8 +307,9 @@ Rules the components encode:
 | Cross-references | `python3 scripts/kotlin_xref_gate.py` | imports resolve, container/prefs members exist, AppRoot call signatures, `R.string` names |
 | Brand integrity | `python3 scripts/check_brand.py` | shared SVG geometry, adaptive safe-zone inset, legacy splash vector |
 
-The Android build itself runs in CI (`.github/workflows/build-release.yml`): `:engine:test` and
-`:app:testDebugUnitTest` on every pull request, signed APKs on a `v*` tag.
+The Android build itself runs in CI (`.github/workflows/build-release.yml`): the engine, sync,
+library, app and wear unit tests plus the gates above on every pull request, with the test modules
+running as parallel jobs; signed APKs on a `v*` tag.
 
 ## 10. Branding and theme interaction
 
