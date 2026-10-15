@@ -76,6 +76,10 @@ jobs:
             while IFS= read -r line; do
               echo "::error title=Gradle compiler diagnostic::$line"
             done < <(grep '^e: ' gradle-build.log | tail -n 60 || true)
+            # Failed unit tests, e.g. "SomeTest > some case FAILED" from testLogging events.
+            while IFS= read -r line; do
+              echo "::error title=Unit test failure::$line"
+            done < <(grep ' FAILED$' gradle-build.log | grep -v 'Task' | tail -n 40 || true)
           fi
 
       - name: Upload build logs when a job fails
@@ -176,6 +180,10 @@ jobs:
             while IFS= read -r line; do
               echo "::error title=Gradle compiler diagnostic::$line"
             done < <(grep '^e: ' gradle-build.log | tail -n 60 || true)
+            # Failed unit tests, e.g. "SomeTest > some case FAILED" from testLogging events.
+            while IFS= read -r line; do
+              echo "::error title=Unit test failure::$line"
+            done < <(grep ' FAILED$' gradle-build.log | grep -v 'Task' | tail -n 40 || true)
           fi
 
       - name: Upload build logs when a job fails
