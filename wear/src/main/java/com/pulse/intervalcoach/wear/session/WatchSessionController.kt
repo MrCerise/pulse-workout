@@ -253,15 +253,15 @@ class WatchSessionController(
 
     private fun handleEvent(event: TimerEvent) {
         val atMillis = engine.snapshot().sessionElapsedMillis
-        when (event) {
-            is TimerEvent.StepStarted -> if (!event.resumed) cues.intervalCue(event.step.haptic)
-            is TimerEvent.Countdown -> cues.countdownTick()
-            is TimerEvent.Halfway -> cues.countdownTick()
-            TimerEvent.SessionPaused, TimerEvent.SessionResumed -> cues.intervalCue(com.pulse.engine.HapticCue.LIGHT)
-            else -> Unit
-        }
-        if (!prefs.vibrationEnabled) {
-            // Cue output is a no-op unless enabled; the calls above are cheap regardless.
+        if (prefs.vibrationEnabled) {
+            when (event) {
+                is TimerEvent.StepStarted -> if (!event.resumed) cues.intervalCue(event.step.haptic)
+                is TimerEvent.Countdown -> cues.countdownTick()
+                is TimerEvent.Halfway -> cues.countdownTick()
+                TimerEvent.SessionPaused, TimerEvent.SessionResumed ->
+                    cues.intervalCue(com.pulse.engine.HapticCue.LIGHT)
+                else -> Unit
+            }
         }
         event.toLoggedEvent(atMillis)?.let {
             if (loggedEvents.size < MAX_LOGGED_EVENTS) loggedEvents += it
