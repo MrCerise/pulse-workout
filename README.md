@@ -73,7 +73,7 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 | **Look & feel** | Light, dark, true black and system themes, high contrast, reduced motion, dynamic colour, adjustable density; 125 contrast pairs measured in CI |
 | **System** | Home-screen widgets, dynamic shortcuts, SAF backup/restore with preview, weekly automatic backups, drafts that survive process death |
 | **Wear OS** | Same engine and theme as the phone, usable with no phone at all (bundled workouts, on-watch history, a link switch); when paired, library/preferences sync, two-way live session mirroring and remote control, and watch sessions saved to the phone's history (and Health Connect) |
-| **Locales** | English (default) and French shipped; every Crowdin-approved locale is packaged with English fallback; Settings → Appearance can follow the device or pin a language of its own |
+| **Locales** | English and French complete; every Crowdin-approved locale is packaged and falls back to English string by string; Settings → Appearance follows the device or pins English, French, German, Spanish or Italian |
 
 **Deliberately not included:** no Bluetooth chest-strap pairing, no cloud sync of your own, no
 account system, no analytics or crash-reporting SDK. Health data flows only through the platform
@@ -215,7 +215,7 @@ translations are managed by the community on [Crowdin](https://crowdin.com/proje
 | --- | --- |
 | `SDK location not found` | Create `local.properties` with `sdk.dir=/absolute/path/to/Android/sdk` |
 | `Unsupported class file major version` | Use JDK 17: `JAVA_HOME=/path/to/jdk-17 ./gradlew …` |
-| `Failed to find Platform SDK with path: platforms;android-37` | The Android 17 platform is not installed here and the SDK repository cannot be reached. The build compiles against the newest platform you *do* have (install it with `sdkmanager "platforms;android-36" "build-tools;36.0.0"`); pass `-Ppulse.compileSdk=37` to insist on the documented one, which needs the download to succeed |
+| `Failed to find Platform SDK with path: platforms;android-37` | The Android 17 platform is not installed here and the SDK repository cannot be reached. The build compiles against the newest platform you *do* have (install it with `sdkmanager "platforms;android-36" "build-tools;36.0.0"`); pass `-Ppulse.compileSdk=37` to insist on the documented one, which then requires the download to have succeeded |
 | The build is killed on a small machine | Lower `org.gradle.jvmargs`, set `org.gradle.parallel=false`, or run with `--max-workers=1` |
 | `app-release-unsigned.apk` will not install | Expected without a keystore — install the debug APK, or see [docs/RELEASING.md](docs/RELEASING.md) |
 

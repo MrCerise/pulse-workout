@@ -61,7 +61,7 @@ The visual refactor has its own pass/fail criteria, all of which are machine-che
 | Functionality preserved | No engine, data, session, health or parser file was touched by the refactor; only `ui/`, resources and documentation changed | **verified by diff** — `engine/` and the non-UI app packages are untouched |
 | Every route refactored | All eleven destinations plus the four settings sub-screens use `PulseTopBar` and the shared component set | **verified** — `scripts/kotlin_xref_gate.py` reports 0 problems across every screen |
 | Component call sites valid | Every named argument passed to a `ui/components` composable exists on its declaration | **verified** — 43 components, 0 unknown arguments |
-| Resources and locale parity | `scripts/check_ui.py` | **verified** — 603 resource names resolve, 388 EN / 388 FR app strings and 63 / 63 on the watch, vectors parse |
+| Resources and locale parity | `scripts/check_ui.py` | **verified** — 612 resource names resolve, 397 EN / 397 FR app strings and 63 / 63 on the watch, vectors parse |
 
 Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
 environment); the local gates above are the ones that can run before it.
@@ -143,7 +143,8 @@ only true once a launcher or a device renders them say so.
 | A stored choice cannot be orphaned by a rename | `AppLanguageTest` pins the enum names that are what DataStore holds | **verified** for the contract; the DataStore round trip needs a device |
 | A translation never invents a key | `AppLanguageTest` compares every `values-*/strings.xml` against the English source table | **verified** |
 | English and French stay complete | `scripts/check_ui.py` exact key parity | **verified** |
+| The shell has no language-blind text | The bar, sidebar groups and breadcrumb titles resolve through `stringResource` inside `Localized`, so they follow the choice like the screens under them | **verified** for the wiring (each key exists in both tables); the visible result needs a device |
 | The strings the language picker adds are translated | three keys in `values/strings.xml` and `values-fr/strings.xml`; the other shipped tables stay Crowdin's to fill | **verified** for parity; the picker is complete for French |
-| A re-entry from a notification or widget keeps the chosen language | the choice is applied to the application configuration on API 33+, and `MainActivity` declares `locale|layoutDirection` in `configChanges`, so the language change is handled in place rather than by recreating the activity | **implemented** — needs a device to see |
+| A re-entry from a notification or widget keeps the chosen language | the choice is applied to the application configuration on API 33+, and `MainActivity` declares `locale\|layoutDirection` in `configChanges`, so the language change is handled in place rather than by recreating the activity | **implemented** — needs a device to see |
 | A language restored from a backup is complete on the new device | `PulseApp.onCreate` re-applies the stored choice to `LocaleManager`, and the write is skipped when the platform already agrees | **implemented** — needs a device, and a restore to exercise |
 | A finishing session survives a link that throws | `WatchSessionRecorder` contains both of its calls, asserted by `WatchSessionRecorderTest` including a live-snapshot failure | **verified** |

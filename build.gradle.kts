@@ -22,7 +22,8 @@ plugins {
 // `.github/actions/setup-pulse-build` passes to the jobs it drives.
 //
 // Resolution order, shared by `:app` and `:wear`:
-//   1. an explicit `-Ppulse.compileSdk` (what CI passes) is honoured as given;
+//   1. an explicit `-Ppulse.compileSdk` (what CI passes) is honoured as given — and the build stops
+//      when that platform is not installed, because the point of asking is reproducibility;
 //   2. otherwise the requested API when it is installed here;
 //   3. otherwise the newest installed API at or below it — what a plain local or autobuild-style
 //      invocation needs in order to get anywhere;
@@ -60,17 +61,35 @@ val pulseInstalledApis: Set<Int> = pulseSdkRoot?.let { root ->
     apis("platforms", Regex("^android-(\\d+)$")).intersect(apis("build-tools", Regex("^(\\d+)")))
 } ?: emptySet()
 
-val pulseRequestedSdk: Int = (findProperty("pulse.compileSdk") as? String)?.toIntOrNull() ?: pulseTargetSdk
+val pulseExplicitSdk: Int? = (findProperty("pulse.compileSdk") as? String)?.let { raw ->
+    raw.toIntOrNull()
+        ?: throw GradleException("-Ppulse.compileSdk must be an integer API level, got \"$raw\"")
+}
+
+val pulseRequestedSdk: Int = pulseExplicitSdk ?: pulseTargetSdk
 
 val pulseResolvedSdk: Int = when {
     pulseRequestedSdk in pulseInstalledApis -> pulseRequestedSdk
+    // Asked for explicitly and not installed is an error, not a fallback: whoever passed the property
+    // wants a known platform (that is how a release is reproducible), and quietly taking another one
+    // is the failure mode the property exists to avoid.
+    pulseExplicitSdk != null -> throw GradleException(
+        "-Ppulse.compileSdk=$pulseExplicitSdk asks for platforms;android-$pulseExplicitSdk, which " +
+            "is not installed" +
+            (pulseSdkRoot?.let { " in ${it.path}" } ?: " (no Android SDK found here)") +
+            " — install it with `sdkmanager \"platforms;android-$pulseExplicitSdk\" " +
+            "\"build-tools;$pulseExplicitSdk.0.0\"`, or drop the property to compile against the " +
+            "newest platform this machine has.",
+    )
+
     else -> pulseInstalledApis.filter { it <= pulseRequestedSdk }.maxOrNull() ?: pulseRequestedSdk
 }
 
 if (pulseResolvedSdk != pulseRequestedSdk) {
     logger.lifecycle(
         "PULSE: platforms;android-$pulseRequestedSdk is not installed here — compiling against " +
-            "android-$pulseResolvedSdk instead. Pass -Ppulse.compileSdk=$pulseRequestedSdk to require it.",
+            "android-$pulseResolvedSdk instead. Pass -Ppulse.compileSdk=$pulseResolvedSdk to record " +
+            "that choice, or install API $pulseRequestedSdk.",
     )
 }
 

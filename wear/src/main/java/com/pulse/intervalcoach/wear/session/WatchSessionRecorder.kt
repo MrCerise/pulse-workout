@@ -3,6 +3,7 @@ package com.pulse.intervalcoach.wear.session
 import com.pulse.intervalcoach.wear.history.WatchHistoryRecorder
 import com.pulse.sync.LiveSession
 import com.pulse.sync.SessionLog
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -34,7 +35,17 @@ class WatchSessionRecorder(
     override fun onSessionFinished(log: SessionLog) {
         // Fire-and-forget on the container scope, like the queue write: neither may block the
         // engine's event callback.
-        scope.launch { runCatching { history.record(log) } }
+        scope.launch {
+            try {
+                history.record(log)
+            } catch (cancellation: CancellationException) {
+                // A cancellation is the scope ending, not a failure to report: rethrow it, or this
+                // coroutine would finish "successfully" while its parent is coming down.
+                throw cancellation
+            } catch (_: Exception) {
+                // A history write that fails must not take the link's copy of the session with it.
+            }
+        }
         runCatching { link.onSessionFinished(log) }
     }
 }

@@ -39,6 +39,10 @@ phone and a 1.7.3 watch keep talking to each other), no dependency change and no
     is what pulls home-screen widgets, notifications and `RemoteViews` along with the screens; on
     Android 8–12 the platform has no such API, so those surfaces keep following the device while every
     screen follows the app.
+  - The shell is localized with the screens: `primaryDestinations()`, `sidebarGroups()`, `routeTitle()`
+    and `routeParent()` read `stringResource` inside the `Localized` scope (nine new keys, EN and FR; the
+    rest of the titles reuse the resources each screen already titles itself with). Before this the
+    bottom bar and the breadcrumb were Kotlin literals, so a French app kept an English bar.
   - The device locale is never modified. The app does not declare `android:localeConfig` — that is the
     API 33+ platform mechanism whose storage and system Settings entry cannot cover Android 8–12, where
     the app's own picker is the only way in — so `AppLocale` keeps the value in `UserPreferences` and
@@ -68,7 +72,7 @@ phone and a 1.7.3 watch keep talking to each other), no dependency change and no
 Run locally (no Android SDK needed):
 
 ```bash
-python3 scripts/check_ui.py          # 388 app + 63 wear strings, exact EN/FR parity, 603 names
+python3 scripts/check_ui.py          # 397 app + 63 wear strings, exact EN/FR parity, 612 names
 python3 scripts/check_brand.py       # seven brand vectors, 50 dp launcher mark derived from the XML
 python3 scripts/kotlin_xref_gate.py  # 0 problems
 python3 scripts/contrast_check.py    # 125 pairs; no token changed here
@@ -105,7 +109,8 @@ the change was written in:
   mark should read as a 50 dp figure inside the circle/squircle rather than fill it, on the light and
   monochrome variants both.
 - Set *Language* to French on an English device and page around without restarting: the strings should
-  change under the finger, including on the settings screens themselves. Set it back to
+  change under the finger, including the bottom bar, the sidebar groups, the breadcrumb and the settings
+  screens themselves. Set it back to
   *Follow system* and confirm the device language returns. Force-stop and relaunch: the choice must
   survive.
 - With a non-device language pinned, check the surfaces that are not Compose: the two home-screen

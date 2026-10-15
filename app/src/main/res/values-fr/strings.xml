@@ -14,6 +14,15 @@
     <string name="nav_workouts">Séances</string>
     <string name="nav_progress">Progrès</string>
     <string name="nav_settings">Réglages</string>
+    <string name="nav_today">Aujourd’hui</string>
+    <string name="nav_health">Santé</string>
+    <string name="nav_group_library">Bibliothèque</string>
+    <string name="nav_group_system">Système</string>
+    <string name="title_category">Catégorie</string>
+    <string name="title_builder">Éditeur</string>
+    <string name="title_details">Séance</string>
+    <string name="title_session">Session</string>
+    <string name="title_backup">Sauvegarde</string>
 
     <!-- Home -->
     <string name="home_greeting">Aujourd’hui</string>

@@ -30,7 +30,7 @@ that can run anywhere.
 | --- | --- | --- |
 | Contrast (tokens ↔ XML ↔ Kotlin in lockstep) | `python3 scripts/contrast_check.py` | 125 pairs across 3 themes, all pass — see [CONTRAST.md](CONTRAST.md) |
 | Kotlin syntax gate (parse of every source file) | `python3 scripts/kotlin_parse_gate.py` | 93 files, 0 syntax errors |
-| Resource gate (`@color`/`@string`/`@drawable` resolve, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 603 names, 388 app + 63 wear EN strings (and the same in FR), 56 icons — OK |
+| Resource gate (`@color`/`@string`/`@drawable` resolve, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 612 names, 397 app + 63 wear EN strings (and the same in FR), 56 icons — OK |
 | Brand gate | `python3 scripts/check_brand.py` | OK |
 | Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
 | Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
@@ -40,8 +40,9 @@ does not match, so the file is generated, never hand-edited.
 
 The Android platform a build compiles against is resolved by the root `build.gradle.kts`: the
 documented API 37 when it is installed, otherwise the newest installed platform at or below it, with
-a line printed about the substitution, and an explicit `-Ppulse.compileSdk=<n>` honoured exactly (that
-is what the CI action passes). Before this, a Gradle invocation that did not come through
+a line printed about the substitution. An explicit `-Ppulse.compileSdk=<n>` — what the CI action passes —
+is honoured exactly, and the build stops rather than substituting when that platform is not installed:
+the point of naming one is a reproducible release. Before this, a Gradle invocation that did not come through
 `.github/actions/setup-pulse-build` — CodeQL's `autobuild`, a contributor's first `./gradlew assemble`
 — asked AGP for a platform the runner did not have, and the failure was a download attempt rather than
 a build: `Failed to find Platform SDK with path: platforms;android-37`. Nothing about the fallback is
@@ -89,7 +90,10 @@ Anything that needs hardware or a running Android system has **not** been observ
    your own machine to produce them.
 2. **Some UI copy is still English literals.** Primary screens are wired to string resources and
    translate (French covers the whole string table), but secondary strings inside Compose code remain
-   literals. `./gradlew :app:lintDebug` reports the strings that are not wired up yet.
+   literals. `./gradlew :app:lintDebug` reports the strings that are not wired up yet. The in-app
+   language choice covers exactly what comes from resources — which since 1.7.3 includes the shell:
+   the bar, the sidebar groups and the breadcrumb — and nothing that is a literal in a screen. Sweeping
+   the rest is its own change, and it is bigger than the selector.
 3. **Hardware-dependent behaviour is untested here:** vibration, headphone-unplug detection, audio
    focus negotiation, notification actions and TTS playback all require a device to confirm.
 4. **Wall-clock changes are immune by construction** (monotonic clock), but the "changed timezone

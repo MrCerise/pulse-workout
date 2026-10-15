@@ -176,11 +176,22 @@ private fun escapeRouteArg(value: String): String {
     }
 }
 
-private val primaryDestinations = listOf(
-    PulseNavItem(Routes.HOME, "Today", Icons.Filled.Home),
-    PulseNavItem(Routes.WORKOUTS, "Workouts", Icons.Filled.FitnessCenter),
-    PulseNavItem(Routes.PROGRESS, "Progress", Icons.Filled.Insights),
-    PulseNavItem(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
+/** The destinations the bottom bar, the rail and the sidebar all agree on. */
+private val primaryRoutes = listOf(Routes.HOME, Routes.WORKOUTS, Routes.PROGRESS, Routes.SETTINGS)
+
+/**
+ * The primary destinations, with their labels read as resources.
+ *
+ * The shell is deliberately resource-backed rather than literal: it is the first thing a user looks at
+ * after choosing a language in Settings → Appearance, and a bar that stays in English underneath a
+ * French app makes the setting look broken.
+ */
+@Composable
+private fun primaryDestinations(): List<PulseNavItem> = listOf(
+    PulseNavItem(Routes.HOME, stringResource(R.string.nav_today), Icons.Filled.Home),
+    PulseNavItem(Routes.WORKOUTS, stringResource(R.string.nav_workouts), Icons.Filled.FitnessCenter),
+    PulseNavItem(Routes.PROGRESS, stringResource(R.string.nav_progress), Icons.Filled.Insights),
+    PulseNavItem(Routes.SETTINGS, stringResource(R.string.nav_settings), Icons.Filled.Settings),
 )
 
 /**
@@ -188,22 +199,23 @@ private val primaryDestinations = listOf(
  * system pages. The phone bar and the tablet rail keep the three primary ones, so the shell never
  * grows chrome where there is no room for it.
  */
-private val sidebarGroups = listOf(
+@Composable
+private fun sidebarGroups(): List<PulseNavGroup> = listOf(
     PulseNavGroup(
         label = null,
-        items = primaryDestinations.take(3),
+        items = primaryDestinations().take(3),
     ),
     PulseNavGroup(
-        label = "Library",
+        label = stringResource(R.string.nav_group_library),
         items = listOf(
-            PulseNavItem(Routes.TEMPLATES, "Templates", Icons.Filled.GridView),
-            PulseNavItem(Routes.HEALTH, "Health", Icons.Filled.Healing),
+            PulseNavItem(Routes.TEMPLATES, stringResource(R.string.templates_title), Icons.Filled.GridView),
+            PulseNavItem(Routes.HEALTH, stringResource(R.string.nav_health), Icons.Filled.Healing),
         ),
     ),
     PulseNavGroup(
-        label = "System",
+        label = stringResource(R.string.nav_group_system),
         items = listOf(
-            PulseNavItem(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
+            PulseNavItem(Routes.SETTINGS, stringResource(R.string.nav_settings), Icons.Filled.Settings),
         ),
     ),
 )
@@ -312,7 +324,7 @@ private fun PulseAppRootContent(
         }
         val backStackEntry by navController.currentBackStackEntryAsState()
         val route = backStackEntry?.destination?.route
-        val onPrimaryDestination = route in primaryDestinations.map { it.route }
+        val onPrimaryDestination = route in primaryRoutes
         val immersive = route in immersiveRoutes
         // One breakpoint ladder, one navigation model: bar, rail, sidebar.
         val width = LocalConfiguration.current.screenWidthDp
@@ -370,7 +382,7 @@ private fun PulseAppRootContent(
         Row(Modifier.fillMaxSize()) {
             if (showSidebar) {
                 PulseAppSidebar(
-                    groups = sidebarGroups,
+                    groups = sidebarGroups(),
                     currentRoute = route,
                     onSelect = select,
                     header = { SidebarHeader() },
@@ -383,7 +395,7 @@ private fun PulseAppRootContent(
                 )
             } else if (showRail) {
                 PulseNavRail(
-                    items = primaryDestinations.take(3),
+                    items = primaryDestinations().take(3),
                     currentRoute = route,
                     onSelect = select,
                     header = { PulseLogo(size = 32.dp) },
@@ -653,7 +665,7 @@ private fun PulseAppRootContent(
                 }
                 if (onPrimaryDestination && !showSidebar && !showRail) {
                     PulseFloatingNavBar(
-                        items = primaryDestinations,
+                        items = primaryDestinations(),
                         currentRoute = route,
                         onSelect = select,
                     )
@@ -682,26 +694,31 @@ private fun PulseAppRootContent(
     }
 }
 
-/** What the breadcrumb calls the current page. Static per route: no screen has to publish a title. */
+/**
+ * What the breadcrumb calls the current page. Static per route — no screen has to publish a title — and
+ * read from the same resources the screens title themselves with wherever one exists, so the breadcrumb
+ * follows the chosen language like the page under it.
+ */
+@Composable
 private fun routeTitle(route: String?): String = when (route) {
-    Routes.HOME -> "Today"
-    Routes.WORKOUTS -> "Workouts"
-    Routes.PROGRESS -> "Progress"
-    Routes.SETTINGS -> "Settings"
-    Routes.TEMPLATES -> "Templates"
-    Routes.CATEGORY -> "Category"
-    Routes.QUICK_BUILDER -> "Quick builder"
-    Routes.ADVANCED_BUILDER -> "Builder"
-    Routes.JSON_IMPORT -> "AI workouts"
-    Routes.DETAILS -> "Workout"
-    Routes.HEALTH -> "Health"
-    Routes.SUMMARY -> "Session summary"
-    Routes.HISTORY -> "History"
-    Routes.SESSION_DETAIL -> "Session"
-    Routes.VOICE_STUDIO -> "Voice studio"
-    Routes.BACKUP -> "Backup"
-    Routes.HELP -> "Help"
-    else -> "Pulse"
+    Routes.HOME -> stringResource(R.string.nav_today)
+    Routes.WORKOUTS -> stringResource(R.string.workouts_title)
+    Routes.PROGRESS -> stringResource(R.string.progress_title)
+    Routes.SETTINGS -> stringResource(R.string.settings_title)
+    Routes.TEMPLATES -> stringResource(R.string.templates_title)
+    Routes.CATEGORY -> stringResource(R.string.title_category)
+    Routes.QUICK_BUILDER -> stringResource(R.string.builder_quick_title)
+    Routes.ADVANCED_BUILDER -> stringResource(R.string.title_builder)
+    Routes.JSON_IMPORT -> stringResource(R.string.json_title)
+    Routes.DETAILS -> stringResource(R.string.title_details)
+    Routes.HEALTH -> stringResource(R.string.nav_health)
+    Routes.SUMMARY -> stringResource(R.string.summary_title)
+    Routes.HISTORY -> stringResource(R.string.history_title)
+    Routes.SESSION_DETAIL -> stringResource(R.string.session_detail_title)
+    Routes.VOICE_STUDIO -> stringResource(R.string.voice_title)
+    Routes.BACKUP -> stringResource(R.string.title_backup)
+    Routes.HELP -> stringResource(R.string.help_title)
+    else -> stringResource(R.string.app_name)
 }
 
 /**
@@ -710,12 +727,14 @@ private fun routeTitle(route: String?): String = when (route) {
  * instead — which is also what keeps the breadcrumb and the page heading from saying the same thing
  * twice.
  */
+@Composable
 private fun routeParent(route: String?): String? = when (route) {
     Routes.TEMPLATES, Routes.CATEGORY, Routes.DETAILS, Routes.JSON_IMPORT,
-    Routes.QUICK_BUILDER, Routes.ADVANCED_BUILDER -> "Workouts"
-    Routes.HISTORY, Routes.SESSION_DETAIL -> "Progress"
-    Routes.VOICE_STUDIO, Routes.BACKUP, Routes.HELP -> "Settings"
-    Routes.HEALTH -> "Today"
+    Routes.QUICK_BUILDER, Routes.ADVANCED_BUILDER -> stringResource(R.string.workouts_title)
+
+    Routes.HISTORY, Routes.SESSION_DETAIL -> stringResource(R.string.progress_title)
+    Routes.VOICE_STUDIO, Routes.BACKUP, Routes.HELP -> stringResource(R.string.settings_title)
+    Routes.HEALTH -> stringResource(R.string.nav_today)
     else -> null
 }
 
