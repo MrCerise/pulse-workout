@@ -12,7 +12,7 @@ Version **1.6.7**, version code **15**, minimum SDK 26. No database schema migra
 
 ## Automated checks
 
-Local checks run in the Arena sandbox:
+Local checks:
 
 - `python3 scripts/check_ui.py`: resource references, XML/vector validity and English/French parity.
 - `python3 scripts/check_brand.py`: all shipped vectors match the supplied SVG.
@@ -24,10 +24,14 @@ GitHub Actions also runs `:engine:test :app:testDebugUnitTest` on the pull reque
 
 ## Device checks still required
 
-The Arena sandbox has no Android SDK/emulator; these checks are not completed:
+The development environment has no Android SDK or emulator; these checks are not completed:
 
 1. Upgrade a signed 1.6.6 install and verify workouts, sessions, settings and backups are preserved.
 2. Import backups below and above the size limit; verify the previewed snapshot is what gets imported and collisions preserve existing records.
 3. Open a `pulse://start/<id>` link: the workout must not start before confirmation. Dismissing must leave an active session running; confirmed replacement must record it as stopped.
 4. Verify oversized/deeply repeated workouts fail promptly and ordinary plans still start.
 5. Install the signed 1.6.7 release over 1.6.6 to confirm signing-key continuity.
+
+---
+
+See also: [CHANGELOG.md](../CHANGELOG.md#167--2026-10-14) · [VERIFICATION.md](VERIFICATION.md) · [RELEASING.md](RELEASING.md)

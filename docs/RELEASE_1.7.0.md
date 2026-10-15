@@ -24,3 +24,7 @@ and attaches them to the GitHub release.
 - Install the signed 1.7.0 APK over 1.6.7 to verify signing continuity and data preservation.
 
 These external setup/device checks are not claimed as completed by the source changes alone.
+
+---
+
+See also: [CHANGELOG.md](../CHANGELOG.md#170--2026-10-14) · [TRANSLATING.md](TRANSLATING.md) · [RELEASING.md](RELEASING.md)

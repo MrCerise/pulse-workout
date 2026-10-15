@@ -13,7 +13,7 @@ The obsolete volume-key preference is ignored on upgrade. Existing workouts/sett
 - New regressions: queued/flushed/stopped/rejected speech IDs; disabled/retriggered/overlapping
   ducks; controller sampling with no local music, watchdog and cleanup; empty/extreme share stats.
 
-## Device smoke checklist (not executable in the Arena sandbox)
+## Device smoke checklist (not executable without a device)
 
 These remain hardware/manual checks, not claims of a completed device test:
 
@@ -40,3 +40,7 @@ system-defined attenuation; PULSE cannot force another app to an exact percentag
 slider affects only a file selected in PULSE. Android 15+ requires the app to be foreground or have
 its workout foreground service running to request audio focus. Physical audio quality, Bluetooth
 latency and OEM focus behavior need the device checks above before a store rollout.
+
+---
+
+See also: [CHANGELOG.md](../CHANGELOG.md#165--2026-10-14) · [VERIFICATION.md](VERIFICATION.md) · [RELEASING.md](RELEASING.md)

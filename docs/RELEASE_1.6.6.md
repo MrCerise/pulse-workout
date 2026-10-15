@@ -40,7 +40,7 @@ GitHub Actions gates:
 
 ## Device checks still required
 
-The Arena sandbox has no Android SDK/emulator. These are a manual checklist, not completed tests:
+The development environment has no Android SDK or emulator. These are a manual checklist, not completed tests:
 
 1. Upgrade a signed 1.6.5 installation. Workouts, favorites, history, settings and old backups survive;
    old descriptions are absent from the interface. Removed parser entry points are gone.
@@ -59,3 +59,7 @@ The Arena sandbox has no Android SDK/emulator. These are a manual checklist, not
    and cue in long/manual workouts before saving. Clipboard is never inspected on resume.
 8. Check English and French. Start a workout, lock the screen, hear cues, end it and share a summary.
 9. Install the signed release over 1.6.5 to confirm signing-key continuity.
+
+---
+
+See also: [CHANGELOG.md](../CHANGELOG.md#166--2026-10-14) · [VERIFICATION.md](VERIFICATION.md) · [RELEASING.md](RELEASING.md)
