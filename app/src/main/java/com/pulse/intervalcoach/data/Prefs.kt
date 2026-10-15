@@ -59,6 +59,7 @@ enum class AppLanguage(val tag: String?) {
             GERMAN -> "🇩🇪"
             SPANISH -> "🇪🇸"
             ITALIAN -> "🇮🇹"
+            else -> "🌐"
         }
 
     /** Alias for [flag], for callers that name it differently. */
@@ -76,6 +77,7 @@ enum class AppLanguage(val tag: String?) {
             GERMAN -> "Deutsch"
             SPANISH -> "Español"
             ITALIAN -> "Italiano"
+            else -> name
         }
 
     val displayName: String get() = nativeName
