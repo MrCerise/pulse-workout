@@ -80,6 +80,10 @@ jobs:
             while IFS= read -r line; do
               echo "::error title=Unit test failure::$line"
             done < <(grep ' FAILED$' gradle-build.log | grep -v 'Task' | tail -n 40 || true)
+            # And the exception lines that follow them, so the annotation carries the reason.
+            while IFS= read -r line; do
+              echo "::error title=Unit test failure detail::$line"
+            done < <(grep -A 4 ' FAILED$' gradle-build.log | grep -E 'Exception|AssertionError|expected|at com.pulse' | head -n 30 || true)
           fi
 
       - name: Upload build logs when a job fails
@@ -184,6 +188,10 @@ jobs:
             while IFS= read -r line; do
               echo "::error title=Unit test failure::$line"
             done < <(grep ' FAILED$' gradle-build.log | grep -v 'Task' | tail -n 40 || true)
+            # And the exception lines that follow them, so the annotation carries the reason.
+            while IFS= read -r line; do
+              echo "::error title=Unit test failure detail::$line"
+            done < <(grep -A 4 ' FAILED$' gradle-build.log | grep -E 'Exception|AssertionError|expected|at com.pulse' | head -n 30 || true)
           fi
 
       - name: Upload build logs when a job fails
