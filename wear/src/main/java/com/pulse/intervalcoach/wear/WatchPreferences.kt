@@ -29,6 +29,11 @@ import kotlinx.coroutines.launch
  * The appearance and cue fields are mirrored from the phone (see [applySynced]); the watch can
  * override them locally between syncs. Undelivered session logs are queued here so a workout
  * finished away from the phone still lands in the phone's history later.
+ *
+ * [syncEnabled] is deliberately **not** mirrored: it is the watch's own switch for whether it talks
+ * to a phone at all. Off means the watch is a standalone device — no library, preference or
+ * session traffic in either direction — and nothing that already happened locally is lost, because
+ * the queue keeps its logs until a sync does happen.
  */
 data class WatchPreferences(
     val themeMode: WearThemeMode = WearThemeMode.SYSTEM,
@@ -38,6 +43,8 @@ data class WatchPreferences(
     val keepScreenOn: Boolean = true,
     val countdownFromSeconds: Int = 3,
     val halfwayAnnouncements: Boolean = true,
+    /** The watch's own switch for the phone link. Local-only, never mirrored from the phone. */
+    val syncEnabled: Boolean = true,
     val lastSyncAt: Long = 0L,
     val phoneAppVersion: String = "",
     val libraryTruncated: Boolean = false,
@@ -56,6 +63,7 @@ private object WatchPrefKeys {
     val keepScreenOn = booleanPreferencesKey("keep_screen_on")
     val countdown = intPreferencesKey("countdown_from_seconds")
     val halfway = booleanPreferencesKey("halfway_announcements")
+    val syncEnabled = booleanPreferencesKey("sync_enabled")
     val lastSyncAt = longPreferencesKey("last_sync_at")
     val phoneVersion = stringPreferencesKey("phone_app_version")
     val libraryTruncated = booleanPreferencesKey("library_truncated")
@@ -70,6 +78,7 @@ private fun Preferences.toWatchPreferences(): WatchPreferences = WatchPreference
     keepScreenOn = this[WatchPrefKeys.keepScreenOn] ?: true,
     countdownFromSeconds = this[WatchPrefKeys.countdown] ?: 3,
     halfwayAnnouncements = this[WatchPrefKeys.halfway] ?: true,
+    syncEnabled = this[WatchPrefKeys.syncEnabled] ?: true,
     lastSyncAt = this[WatchPrefKeys.lastSyncAt] ?: 0L,
     phoneAppVersion = this[WatchPrefKeys.phoneVersion] ?: "",
     libraryTruncated = this[WatchPrefKeys.libraryTruncated] ?: false,
@@ -100,6 +109,9 @@ class WatchPreferencesRepository(
     fun setKeepScreenOn(enabled: Boolean) = launchEdit { it[WatchPrefKeys.keepScreenOn] = enabled }
 
     fun setThemeMode(mode: WearThemeMode) = launchEdit { it[WatchPrefKeys.theme] = mode.name }
+
+    /** Turns the phone link on or off. The queue and the history are untouched either way. */
+    fun setSyncEnabled(enabled: Boolean) = launchEdit { it[WatchPrefKeys.syncEnabled] = enabled }
 
     /** Records what the phone's manifest said, so settings can show sync state honestly. */
     fun markSynced(manifest: LibraryManifest) = launchEdit {

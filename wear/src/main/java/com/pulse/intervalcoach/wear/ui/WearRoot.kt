@@ -12,9 +12,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.intervalcoach.wear.WearAppContainer
 import com.pulse.intervalcoach.wear.ui.theme.PulseWearTheme
 
-/** The watch's small screen graph: home, a local player, a remote player, the summary, settings. */
+/**
+ * The watch's small screen graph: home, a local player, a remote player, the summary, the watch's
+ * own history and settings. Every screen works with or without a phone.
+ */
 sealed interface WearScreen {
     data object Home : WearScreen
+    data object History : WearScreen
     data object Settings : WearScreen
     data class Player(val workoutId: String) : WearScreen
     data object RemotePlayer : WearScreen
@@ -50,8 +54,13 @@ fun PulseWearRoot(container: WearAppContainer) {
                 container = container,
                 onOpenWorkout = { backStack.add(WearScreen.Player(it)) },
                 onOpenSettings = { backStack.add(WearScreen.Settings) },
+                onOpenHistory = { backStack.add(WearScreen.History) },
                 onOpenRemote = { backStack.add(WearScreen.RemotePlayer) },
                 onOpenActive = { backStack.add(WearScreen.Player(it)) },
+            )
+            WearScreen.History -> WearHistoryScreen(
+                container = container,
+                onBack = { backStack.removeAt(backStack.lastIndex) },
             )
             is WearScreen.Player -> WearPlayerScreen(
                 container = container,

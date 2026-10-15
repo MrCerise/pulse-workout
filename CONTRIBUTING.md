@@ -73,8 +73,8 @@ If Gradle runs out of memory on a smaller machine, see
 CI runs these on every pull request. Running them locally first saves a round trip:
 
 ```bash
-# Unit tests (no device needed)
-./gradlew :engine:test :app:testDebugUnitTest
+# Unit tests (no device needed) — this is what PR CI runs
+./gradlew :engine:test :sync:test :library:test :app:testDebugUnitTest :wear:testDebugUnitTest
 
 # Lint
 ./gradlew :app:lintDebug

@@ -8,6 +8,7 @@ import com.pulse.engine.RepeatGroup
 import com.pulse.engine.TimelineExpander
 import com.pulse.engine.Validation
 import com.pulse.engine.WorkoutPlan
+import com.pulse.library.StarterWorkouts
 import com.pulse.intervalcoach.data.db.AudioAssetDao
 import com.pulse.intervalcoach.data.db.AudioAssetEntity
 import com.pulse.intervalcoach.data.db.ExerciseLabelDao

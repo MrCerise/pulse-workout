@@ -43,6 +43,7 @@ MODULES: list[tuple[Path, Path | None]] = [
     (ROOT / "app/src/main/java", ROOT / "app/src/main/res"),
     (ROOT / "engine/src/main/kotlin", None),
     (ROOT / "sync/src/main/kotlin", None),
+    (ROOT / "library/src/main/kotlin", None),
     (ROOT / "wear/src/main/java", ROOT / "wear/src/main/res"),
 ]
 

@@ -6,15 +6,31 @@
     <string name="library_resume">Resume workout</string>
     <string name="library_empty">No workouts yet</string>
     <string name="library_empty_hint">Open PULSE on your phone — your workouts sync here</string>
+    <string name="library_empty_solo">No workouts on this watch</string>
+    <string name="library_restore_starters">Tap to load the starter workouts</string>
     <string name="library_row_summary">%1$s · %2$d intervals</string>
     <string name="library_truncated">First %1$d workouts — library too large for the watch</string>
     <string name="library_replace_confirm">Tap again to replace the running workout</string>
+    <string name="library_takeover_confirm">Tap again to run here and stop the phone</string>
     <string name="library_never_synced">Not synced yet</string>
+    <string name="library_history">History</string>
+    <string name="library_history_count">%1$d workouts</string>
 
     <!-- Remote (phone) session -->
     <string name="remote_running">Running on phone</string>
     <string name="remote_badge">On phone</string>
     <string name="remote_ended">Phone session ended</string>
+
+    <!-- The watch's own history -->
+    <string name="history_title">On this watch</string>
+    <string name="history_empty">Nothing yet. Finish a workout and it is recorded here.</string>
+    <string name="history_row_detail">%1$s · %2$s · %3$s</string>
+    <string name="history_state_on_phone">On your phone</string>
+    <string name="history_state_on_watch">On this watch</string>
+    <string name="history_stopped">Stopped early</string>
+    <string name="history_pending_note">%1$d waiting for your phone</string>
+    <string name="history_clear">Clear history</string>
+    <string name="history_clear_confirm">Tap again to erase</string>
 
     <!-- Player -->
     <string name="player_pause">Pause</string>
@@ -36,13 +52,16 @@
     <string name="summary_skipped_value">%1$d skipped</string>
     <string name="summary_saved">Saved to phone history</string>
     <string name="summary_queued">Will sync to your phone when connected</string>
+    <string name="summary_on_watch">Saved on this watch</string>
     <string name="summary_done">Done</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
+    <string name="settings_sync_with_phone">Sync with phone</string>
+    <string name="settings_sync_on_hint">Library, settings and history follow your phone</string>
+    <string name="settings_sync_off_hint">This watch runs on its own</string>
     <string name="settings_sync_now">Sync now</string>
     <string name="settings_sync_requested">Sync requested</string>
-    <string name="settings_sync_hint">Ask the phone to re-send your library and settings</string>
     <string name="settings_haptics">Haptic cues</string>
     <string name="settings_keep_screen_on">Keep screen on</string>
     <string name="settings_theme">Theme</string>
@@ -52,4 +71,10 @@
     <string name="settings_theme_note">Appearance follows your phone\'s PULSE settings</string>
     <string name="settings_about">PULSE Watch %1$s · last sync %2$s</string>
     <string name="settings_back">Back</string>
+
+    <!-- Where this watch's data comes from and goes -->
+    <string name="sync_status_solo">Solo — no phone yet</string>
+    <string name="sync_status_off">Sync is off</string>
+    <string name="sync_status_connected">Phone connected</string>
+    <string name="sync_status_offline">No phone nearby</string>
 </resources>

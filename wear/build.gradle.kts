@@ -42,8 +42,8 @@ android {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = 17
-        versionName = "1.7.1"
+        versionCode = 18
+        versionName = "1.7.2"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -100,6 +100,7 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation(project(":engine"))
     implementation(project(":sync"))
+implementation(project(":library"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

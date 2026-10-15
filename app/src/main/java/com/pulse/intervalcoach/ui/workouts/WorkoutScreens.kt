@@ -58,7 +58,6 @@ import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
-import com.pulse.intervalcoach.data.StarterWorkouts
 import com.pulse.intervalcoach.data.WorkoutCategories
 import com.pulse.intervalcoach.data.WorkoutCategory
 import com.pulse.intervalcoach.data.WorkoutSummary
@@ -91,6 +90,7 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
+import com.pulse.library.StarterWorkouts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

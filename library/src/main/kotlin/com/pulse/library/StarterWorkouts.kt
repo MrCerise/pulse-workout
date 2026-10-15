@@ -1,4 +1,4 @@
-package com.pulse.intervalcoach.data
+package com.pulse.library
 
 import com.pulse.engine.HapticCue
 import com.pulse.engine.IntervalNode
@@ -19,6 +19,12 @@ import java.util.UUID
  * These are *editable examples*, not a pretend history: every duration shown in the UI is computed
  * by the engine from this structure, and the app never seeds fake completed sessions. Descriptions
  * are original copy written for PULSE.
+ *
+ * This lives in `:library` — a pure Kotlin module both APKs depend on — because the phone and the
+ * watch offer the same catalogue. The phone seeds these into Room on first run; the watch seeds
+ * them into its own store when it has never been paired, so a watch bought and worn without a
+ * phone still has workouts to run. The catalogue itself is data: no Android, no resources, no
+ * user-visible copy (the names are content, not UI strings, and are not translated).
  */
 object StarterWorkouts {
 
