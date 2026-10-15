@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
-import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -89,12 +88,11 @@ fun SessionView(
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(vertical = 4.dp),
         ) {
-            CircularProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.size(100.dp),
-                foregroundColor = phaseColor,
+            SessionRing(
+                progress = progress,
+                phaseColor = phaseColor,
                 trackColor = colors.track,
-                strokeWidth = 7.dp,
+                modifier = Modifier.size(100.dp),
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -134,7 +132,7 @@ fun SessionView(
         } else {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterHorizontally,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 ControlButton(
                     icon = if (data.paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
@@ -185,6 +183,44 @@ fun SessionView(
                 style = MaterialTheme.typography.button2,
             )
         }
+    }
+}
+
+/**
+ * The determinate progress ring, drawn directly: a full track circle plus a phase-coloured arc
+ * from twelve o'clock. Drawn with core Compose graphics so the dial has no component-API
+ * surface of its own to drift against.
+ */
+@Composable
+private fun SessionRing(
+    progress: Float,
+    phaseColor: Color,
+    trackColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    androidx.compose.foundation.Canvas(modifier = modifier) {
+        val stroke = 7.dp.toPx()
+        val inset = stroke / 2f
+        val arcSize = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke)
+        val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
+        drawArc(
+            color = trackColor,
+            startAngle = 0f,
+            sweepAngle = 360f,
+            useCenter = false,
+            topLeft = topLeft,
+            size = arcSize,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke),
+        )
+        drawArc(
+            color = phaseColor,
+            startAngle = -90f,
+            sweepAngle = 360f * progress.coerceIn(0f, 1f),
+            useCenter = false,
+            topLeft = topLeft,
+            size = arcSize,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke),
+        )
     }
 }
 

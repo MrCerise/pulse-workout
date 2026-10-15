@@ -52,9 +52,10 @@ class SyncProtocolTest {
 
     @Test
     fun `plan decoding tolerates unknown keys`() {
-        val json = SyncJson.encodePlan(samplePlan()).replace("{", "{\"futureField\":42,", ignoreCase = false, limit = 1)
-        // The replacement targets the outermost object only.
-        val decoded = SyncJson.decodePlan(json)
+        // A future phone adds a field the watch does not know; the codec must skip it.
+        val json = SyncJson.encodePlan(samplePlan())
+        val withExtraField = "{\"futureField\":42," + json.removePrefix("{")
+        val decoded = SyncJson.decodePlan(withExtraField)
         assertEquals("w-1", decoded.id)
     }
 
@@ -130,7 +131,7 @@ class SyncProtocolTest {
         assertEquals("INTERVAL_COMPLETED", expired.toLoggedEvent(1_500L)!!.kind)
         assertEquals("PAUSED", TimerEvent.SessionPaused.toLoggedEvent(2_000L)!!.kind)
         assertEquals("RESUMED", TimerEvent.SessionResumed.toLoggedEvent(2_100L)!!.kind)
-        val added = TimerEvent.TimeAdded(3, step, 15_000L).toLoggedEvent(3_000L)
+        val added = TimerEvent.TimeAdded(3, 15_000L).toLoggedEvent(3_000L)
         assertEquals(15_000L, added!!.durationMillis)
         assertEquals("LAP", TimerEvent.LapLogged(2, 1, 30_000L, 90_000L).toLoggedEvent(4_000L)!!.kind)
         val round = TimerEvent.RoundStarted("g1", "Block", 1, 4, 2)

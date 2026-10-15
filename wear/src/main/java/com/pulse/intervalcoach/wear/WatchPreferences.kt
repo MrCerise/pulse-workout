@@ -2,6 +2,7 @@ package com.pulse.intervalcoach.wear
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -9,16 +10,17 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.pulse.intervalcoach.wear.ui.theme.WearThemeMode
 import com.pulse.sync.LibraryManifest
 import com.pulse.sync.SessionLog
 import com.pulse.sync.SyncJson
 import com.pulse.sync.SyncedPreferences
-import com.pulse.intervalcoach.wear.ui.theme.WearThemeMode
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -45,74 +47,78 @@ data class WatchPreferences(
 
 private val Context.watchDataStore: DataStore<Preferences> by preferencesDataStore(name = "pulse_watch_prefs")
 
-class WatchPreferencesRepository(private val context: Context, scope: CoroutineScope) {
+/** Key names — top-level so the mapping below stays a plain function. */
+private object WatchPrefKeys {
+    val theme = stringPreferencesKey("theme_mode")
+    val highContrast = booleanPreferencesKey("high_contrast")
+    val reducedMotion = booleanPreferencesKey("reduced_motion")
+    val vibration = booleanPreferencesKey("vibration")
+    val keepScreenOn = booleanPreferencesKey("keep_screen_on")
+    val countdown = intPreferencesKey("countdown_from_seconds")
+    val halfway = booleanPreferencesKey("halfway_announcements")
+    val lastSyncAt = longPreferencesKey("last_sync_at")
+    val phoneVersion = stringPreferencesKey("phone_app_version")
+    val libraryTruncated = booleanPreferencesKey("library_truncated")
+    val pendingLogs = stringPreferencesKey("pending_session_logs")
+}
 
-    private object Keys {
-        val theme = stringPreferencesKey("theme_mode")
-        val highContrast = booleanPreferencesKey("high_contrast")
-        val reducedMotion = booleanPreferencesKey("reduced_motion")
-        val vibration = booleanPreferencesKey("vibration")
-        val keepScreenOn = booleanPreferencesKey("keep_screen_on")
-        val countdown = intPreferencesKey("countdown_from_seconds")
-        val halfway = booleanPreferencesKey("halfway_announcements")
-        val lastSyncAt = longPreferencesKey("last_sync_at")
-        val phoneVersion = stringPreferencesKey("phone_app_version")
-        val libraryTruncated = booleanPreferencesKey("library_truncated")
-        val pendingLogs = stringPreferencesKey("pending_session_logs")
-    }
+private fun Preferences.toWatchPreferences(): WatchPreferences = WatchPreferences(
+    themeMode = this[WatchPrefKeys.theme].toThemeMode(),
+    highContrast = this[WatchPrefKeys.highContrast] ?: false,
+    reducedMotion = this[WatchPrefKeys.reducedMotion] ?: false,
+    vibrationEnabled = this[WatchPrefKeys.vibration] ?: true,
+    keepScreenOn = this[WatchPrefKeys.keepScreenOn] ?: true,
+    countdownFromSeconds = this[WatchPrefKeys.countdown] ?: 3,
+    halfwayAnnouncements = this[WatchPrefKeys.halfway] ?: true,
+    lastSyncAt = this[WatchPrefKeys.lastSyncAt] ?: 0L,
+    phoneAppVersion = this[WatchPrefKeys.phoneVersion] ?: "",
+    libraryTruncated = this[WatchPrefKeys.libraryTruncated] ?: false,
+    pendingLogs = this[WatchPrefKeys.pendingLogs]?.let { SyncJson.decodeLogQueue(it) } ?: emptyList(),
+)
+
+private fun String?.toThemeMode(): WearThemeMode = when (this) {
+    "DARK" -> WearThemeMode.DARK
+    "TRUE_BLACK" -> WearThemeMode.TRUE_BLACK
+    // The watch has no light palette; a phone set to LIGHT follows the watch's system here.
+    else -> WearThemeMode.SYSTEM
+}
+
+class WatchPreferencesRepository(
+    private val context: Context,
+    private val scope: CoroutineScope,
+) {
 
     private val raw: Flow<Preferences> = context.watchDataStore.data
 
     /** Eager so the session controller and the sync link always see a current value. */
     val flow: StateFlow<WatchPreferences> = raw
-        .map { it.toPreferences() }
-        .stateIn(scope, kotlinx.coroutines.flow.SharingStarted.Eagerly, WatchPreferences())
+        .map { it.toWatchPreferences() }
+        .stateIn(scope, SharingStarted.Eagerly, WatchPreferences())
 
-    private fun Preferences.toPreferences(): WatchPreferences = WatchPreferences(
-        themeMode = this[Keys.theme]?.toThemeMode() ?: WearThemeMode.SYSTEM,
-        highContrast = this[Keys.highContrast] ?: false,
-        reducedMotion = this[Keys.reducedMotion] ?: false,
-        vibrationEnabled = this[Keys.vibration] ?: true,
-        keepScreenOn = this[Keys.keepScreenOn] ?: true,
-        countdownFromSeconds = this[Keys.countdown] ?: 3,
-        halfwayAnnouncements = this[Keys.halfway] ?: true,
-        lastSyncAt = this[Keys.lastSyncAt] ?: 0L,
-        phoneAppVersion = this[Keys.phoneVersion] ?: "",
-        libraryTruncated = this[Keys.libraryTruncated] ?: false,
-        pendingLogs = this[Keys.pendingLogs]?.let { SyncJson.decodeLogQueue(it) } ?: emptyList(),
-    )
+    fun setVibration(enabled: Boolean) = launchEdit { it[WatchPrefKeys.vibration] = enabled }
 
-    private fun String.toThemeMode(): WearThemeMode = when (this) {
-        "DARK" -> WearThemeMode.DARK
-        "TRUE_BLACK" -> WearThemeMode.TRUE_BLACK
-        // The watch has no light palette; a phone set to LIGHT follows the watch's system here.
-        else -> WearThemeMode.SYSTEM
-    }
+    fun setKeepScreenOn(enabled: Boolean) = launchEdit { it[WatchPrefKeys.keepScreenOn] = enabled }
 
-    fun setVibration(enabled: Boolean) = launchEdit { it[Keys.vibration] = enabled }
-
-    fun setKeepScreenOn(enabled: Boolean) = launchEdit { it[Keys.keepScreenOn] = enabled }
-
-    fun setThemeMode(mode: WearThemeMode) = launchEdit { it[Keys.theme] = mode.name }
+    fun setThemeMode(mode: WearThemeMode) = launchEdit { it[WatchPrefKeys.theme] = mode.name }
 
     /** Records what the phone's manifest said, so settings can show sync state honestly. */
     fun markSynced(manifest: LibraryManifest) = launchEdit {
-        it[Keys.lastSyncAt] = System.currentTimeMillis()
-        it[Keys.phoneVersion] = manifest.appVersion
-        it[Keys.libraryTruncated] = manifest.truncated
+        it[WatchPrefKeys.lastSyncAt] = System.currentTimeMillis()
+        it[WatchPrefKeys.phoneVersion] = manifest.appVersion
+        it[WatchPrefKeys.libraryTruncated] = manifest.truncated
     }
 
     fun applySynced(synced: SyncedPreferences) = launchEdit {
-        it[Keys.theme] = synced.themeMode
-        it[Keys.highContrast] = synced.highContrast
-        it[Keys.reducedMotion] = synced.reducedMotion
-        it[Keys.vibration] = synced.vibrationEnabled
-        it[Keys.keepScreenOn] = synced.keepScreenOn
-        it[Keys.countdown] = synced.countdownFromSeconds
-        it[Keys.halfway] = synced.halfwayAnnouncements
+        it[WatchPrefKeys.theme] = synced.themeMode
+        it[WatchPrefKeys.highContrast] = synced.highContrast
+        it[WatchPrefKeys.reducedMotion] = synced.reducedMotion
+        it[WatchPrefKeys.vibration] = synced.vibrationEnabled
+        it[WatchPrefKeys.keepScreenOn] = synced.keepScreenOn
+        it[WatchPrefKeys.countdown] = synced.countdownFromSeconds
+        it[WatchPrefKeys.halfway] = synced.halfwayAnnouncements
     }
 
-    private fun launchEdit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
+    private fun launchEdit(block: (MutablePreferences) -> Unit) {
         // Setters are called from UI callbacks, which cannot suspend; every edit is fire-and-forget
         // on the container scope. DataStore serializes edits, so ordering is preserved.
         scope.launch {
@@ -123,20 +129,20 @@ class WatchPreferencesRepository(private val context: Context, scope: CoroutineS
     /** Appends a finished session log to the queue. */
     suspend fun queueSessionLog(log: SessionLog) {
         context.watchDataStore.edit { prefs ->
-            val queue = prefs[Keys.pendingLogs]?.let { SyncJson.decodeLogQueue(it) } ?: emptyList()
+            val queue = prefs[WatchPrefKeys.pendingLogs]?.let { SyncJson.decodeLogQueue(it) } ?: emptyList()
             if (queue.none { it.sessionId == log.sessionId }) {
-                prefs[Keys.pendingLogs] = SyncJson.encodeLogQueue(queue + log)
+                prefs[WatchPrefKeys.pendingLogs] = SyncJson.encodeLogQueue(queue + log)
             }
         }
     }
 
-    /** Removes a delivered log and returns whether it was still queued. */
+    /** Removes a delivered log from the queue. */
     suspend fun removeQueuedSessionLog(sessionId: String) {
         context.watchDataStore.edit { prefs ->
-            val queue = prefs[Keys.pendingLogs]?.let { SyncJson.decodeLogQueue(it) } ?: emptyList()
+            val queue = prefs[WatchPrefKeys.pendingLogs]?.let { SyncJson.decodeLogQueue(it) } ?: emptyList()
             val remaining = queue.filterNot { it.sessionId == sessionId }
             if (remaining.size != queue.size) {
-                prefs[Keys.pendingLogs] = SyncJson.encodeLogQueue(remaining)
+                prefs[WatchPrefKeys.pendingLogs] = SyncJson.encodeLogQueue(remaining)
             }
         }
     }

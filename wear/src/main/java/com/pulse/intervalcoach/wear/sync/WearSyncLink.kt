@@ -60,6 +60,7 @@ class WearSyncLink(
     private val dataClient: DataClient by lazy { Wearable.getDataClient(context) }
     private val messageClient: MessageClient by lazy { Wearable.getMessageClient(context) }
     private val nodeClient: NodeClient by lazy { Wearable.getNodeClient(context) }
+    private val capabilityClient: CapabilityClient by lazy { Wearable.getCapabilityClient(context) }
 
     private val _remoteSession = MutableStateFlow<LiveSession?>(null)
     /** The phone's live session, or null. Stale snapshots expire on their own. */
