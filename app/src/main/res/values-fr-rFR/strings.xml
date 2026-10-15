@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PULSE</string>
-    <string name="app_tagline">Interval Coach</string>
+    <string name="app_name">Pulse</string>
+    <string name="app_tagline">Intervalle d\'entrainement</string>
     <!-- Navigation -->
-    <string name="nav_home">Home</string>
-    <string name="nav_workouts">Workouts</string>
-    <string name="nav_progress">Progress</string>
-    <string name="nav_settings">Settings</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_workouts">Entraînements</string>
+    <string name="nav_progress">Progression</string>
+    <string name="nav_settings">Paramètres</string>
     <!-- Home -->
-    <string name="home_greeting">Today</string>
-    <string name="home_quick_start">Quick start</string>
-    <string name="home_favorites">Favorites</string>
-    <string name="home_recent">Recent</string>
+    <string name="home_greeting">Aujourd’hui</string>
+    <string name="home_quick_start">Démarrage rapide</string>
+    <string name="home_favorites">Favoris</string>
+    <string name="home_recent">Récent</string>
     <string name="home_next_planned">Next planned</string>
     <string name="home_week_summary">This week</string>
     <string name="home_start">Start</string>
@@ -386,4 +386,23 @@
     <string name="help_health">Health sync</string>
     <string name="help_health_body">Connect Health Connect in Settings → Health to read heart rate and steps or sync workouts. Manage access in Android’s Health Connect settings.</string>
     <string name="help_permissions_body">Notifications: timer controls. Microphone: cue recording only. Health access: heart rate, steps and workout sync. Each is optional.</string>
+    <!-- Wear OS companion -->
+    <string name="watch_banner_title">Workout running on your watch</string>
+    <string name="watch_session_title">Watch session</string>
+    <string name="watch_session_subtitle">Live view of the workout running on your watch</string>
+    <string name="watch_session_none">No workout is running on your watch right now.</string>
+    <string name="watch_session_close">Close</string>
+    <string name="watch_session_step_of">%1$d of %2$d</string>
+    <string name="watch_session_paused">Paused</string>
+    <string name="watch_session_pause">Pause</string>
+    <string name="watch_session_resume">Resume</string>
+    <string name="watch_session_skip">Skip</string>
+    <string name="watch_session_add_time">+15s</string>
+    <string name="watch_session_elapsed">Elapsed</string>
+    <string name="watch_session_remaining">Remaining</string>
+    <string name="watch_session_open_ended">open-ended</string>
+    <string name="watch_session_stop">Stop workout</string>
+    <string name="watch_session_stop_confirm">Stop the watch workout?</string>
+    <string name="watch_session_stop_message">The workout on your watch will end and be saved as stopped early.</string>
+    <string name="watch_session_keep_going">Keep going</string>
 </resources>
