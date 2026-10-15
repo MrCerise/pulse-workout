@@ -373,7 +373,7 @@
     <string name="json_show_all">Afficher chaque intervalle</string>
     <string name="json_show_less">Afficher moins d\'intervalles</string>
     <string name="json_import_count">Enregistrer les entraînements · %1$d</string>
-    <string name="json_file_error">Le fichier sélectionné n\'a pas pu être ouvert. Choisissez le à nouveau.</string>
+    <string name="json_file_error">Le fichier sélectionné n\'a pas pu être ouvert. Choisissez-le à nouveau.</string>
     <string name="json_clipboard_error">Impossible de copier l\'invitation. Veuillez réessayer.</string>
     <string name="summary_share_title">Partager l\'entraînement</string>
     <string name="summary_share_preparing">Préparation de l\'image…</string>
@@ -385,7 +385,7 @@
     <string name="share_intervals">Intervalles terminés</string>
     <string name="share_total_time">Temps total · pauses incluses</string>
     <string name="share_skipped">Intervalles ignorés</string>
-    <string name="share_rounds">Arrondes enregistrées</string>
+    <string name="share_rounds">Rounds enregistrées</string>
     <string name="share_recorded">Recorded with Pulse Workout</string>
     <!-- Theme & streamlined AI flow -->
     <string name="theme_switch_light">Basculer vers le thème clair</string>
@@ -396,9 +396,9 @@
     <string name="json_hide_editor">Cacher JSON</string>
     <string name="json_safety">Vérifiez les intervalles et les repères qui correspondent à vos capacités avant de sauvegarder.</string>
     <string name="json_clipboard_empty">Copiez d\'abord la réponse JSON de votre IA.</string>
-    <string name="json_paste_error">Impossible de coller. Utilisez Edit JSON ou ouvrez un fichier.</string>
+    <string name="json_paste_error">Impossible de coller. Utilisez Modifier JSON ou ouvrez un fichier.</string>
     <string name="help_health">Synchronisation de la santé</string>
-    <string name="help_health_body">Connectez Health Connect dans Réglages → Santé pour lire la fréquence cardiaque et les étapes ou synchroniser les entraînements. Gérez l\'accès dans les paramètres de Health Connect d\'Android.</string>
+    <string name="help_health_body">Connectez Health dans Paramètres→ Santé pour lire la fréquence cardiaque et les étapes ou synchroniser les entraînements. Gérez l\'accès dans les paramètres de Health d\'Android.</string>
     <string name="help_permissions_body">Notifications: commandes de minuterie. Microphone: enregistrement de cue seulement. Accès à la santé: fréquence cardiaque, pas et synchronisation d\'entraînement. Chacune est optionnelle.</string>
     <!-- Wear OS companion -->
     <string name="watch_banner_title">Entraînement en cours sur votre montre</string>
