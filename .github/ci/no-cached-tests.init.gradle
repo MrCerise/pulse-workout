@@ -1,0 +1,24 @@
+// CI only: every `Test` task executes on every run.
+//
+// gradle.properties turns the build cache on, and that is what makes a second run on the same branch
+// cheap: sources that did not change come back as compiled classes instead of being recompiled. Test
+// results are cacheable in exactly the same way, and a gate that restores a result instead of
+// running the test is a gate that did not run. Two reasons that matters here in particular:
+//
+//   * a test that never executes cannot catch anything, so "the tests pass" would stop meaning what
+//     the branch protection reads it as; and
+//   * `DatabaseMigrationTest` reads app/schemas/com.pulse.intervalcoach.data.db.PulseDatabase/2.json
+//     from the project directory, which Gradle cannot see as an input of the test task, so a change
+//     to that file would not even invalidate a restored result.
+//
+// `upToDateWhen { false }` is documented to mean the task is out of date *and* that no outputs are
+// loaded from the build cache; `cacheIf { false }` stops the results being stored there in the first
+// place, since nothing would ever load them. Compilation, resource, KSP and packaging tasks are
+// untouched and stay cached, and nothing outside CI reads this file: the workflow passes it with
+// `./gradlew -I .github/ci/no-cached-tests.init.gradle ...`.
+gradle.allprojects { project ->
+    project.tasks.withType(org.gradle.api.tasks.testing.Test).configureEach {
+        outputs.upToDateWhen { false }
+        outputs.cacheIf { false }
+    }
+}

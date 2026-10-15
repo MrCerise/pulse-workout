@@ -72,16 +72,51 @@ In PowerShell, generate the base64 value with:
 
 ## What the workflow does
 
-`.github/workflows/build-release.yml` has three jobs:
+`.github/workflows/build-release.yml`:
 
 | Job | Trigger | What it runs |
 | --- | --- | --- |
-| `resource-checks` | pull requests, manual runs | `check_ui.py`, `check_brand.py`, `kotlin_xref_gate.py`, `contrast_check.py`, then `git diff --exit-code -- docs/CONTRAST.md` |
-| `unit-tests` | pull requests, manual runs | `:engine:test :sync:test :library:test :app:testDebugUnitTest :wear:testDebugUnitTest`, with compiler diagnostics summarized in the job output |
+| `resource-checks` | pull requests, merges to `main`, tags, manual runs | `check_ui.py`, `check_brand.py`, `kotlin_xref_gate.py`, `contrast_check.py`, then `git diff --exit-code -- docs/CONTRAST.md` |
+| `unit-tests (engine, sync, library)` | pull requests, merges to `main`, manual runs | `:engine:test :sync:test :library:test` |
+| `unit-tests (app)` | pull requests, merges to `main`, manual runs | `:app:testDebugUnitTest` |
+| `unit-tests (wear)` | pull requests, merges to `main`, manual runs | `:wear:testDebugUnitTest` |
 | `release` | tags `v*`, manual runs with `release_tag` | signed `:app:assembleDebug :app:assembleRelease :wear:assembleDebug :wear:assembleRelease`, four APKs attached to the GitHub release |
 
-Pull-request runs are cancelled when a new push supersedes them; tag and manual release runs never
-are.
+Every Gradle job reports its own compiler diagnostics and failing test names in the job output, and
+keeps its build log as an artifact when it fails.
+
+Why the jobs are arranged this way:
+
+- **The unit tests are three jobs, not one.** A public repository gets as many runners as the run
+  has jobs, so the wall-clock cost of a pull request is the slowest job instead of the sum of all of
+  them, and a failure in one group cannot hide the results of the others.
+- **Merges to `main` run the same checks as pull requests, and they are what keeps CI fast.**
+  Gradle cache entries are branch-scoped, so the runs on `main` are the ones that produce a cache
+  every other branch and every tag can restore. Pull requests opened from this repository write
+  their own branch-scoped entries too, which is what makes a second push to the same pull request
+  cheaper than the first; a pull request from a fork stays read-only, so untrusted code cannot plant
+  a cache entry that a later trusted build would restore. Tag runs are read-only as well — an entry
+  written for a tag is visible to that tag alone — but they still restore `main`'s.
+- **Documentation-only changes skip CI.** A pull request or a merge whose files all match the
+  workflow's `paths-ignore` list runs nothing: prose, templates and the licence cannot change what
+  compiles. Path filters are not evaluated for tag pushes, so a release is never skipped this way.
+- **The Android SDK step probes the runner first.** The runner image already ships the platforms and
+  build tools, so the step only calls `sdkmanager` when nothing usable is on disk.
+
+A run waits for the slowest group — `:app` — instead of for the sum of the groups, and the groups
+are cached: `gradle.properties` enables the build cache, so a run after the first on the same branch
+restores compiled classes instead of compiling from scratch.
+
+The tests themselves are the exception. **A `Test` task is never satisfied from the cache or skipped
+as up to date in CI**: `.github/ci/no-cached-tests.init.gradle`, passed with `-I`, makes every test
+task execute, and the unit-test job then counts the test result files the run wrote and fails if
+there are none. A restored result would be a green run in which nothing ran, and at least one test
+here reads a schema file that is not an input Gradle can see, so a change to it would not even
+invalidate a restored result.
+
+Pull-request runs are cancelled when a new push supersedes them; merges to `main`, tag runs and
+manual release runs never are — the runs on `main` are what write the caches, and a cancelled
+release publishes nothing.
 
 ## Publishing
 

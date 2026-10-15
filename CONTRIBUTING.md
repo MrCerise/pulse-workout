@@ -70,7 +70,11 @@ If Gradle runs out of memory on a smaller machine, see
 
 ## Running the checks
 
-CI runs these on every pull request. Running them locally first saves a round trip:
+CI runs these on every pull request and on every merge to `main`. The five Gradle test tasks run as
+three jobs in parallel (engine/sync/library, app, wear), so a local run of all of them is the
+slowest way to find out what CI already knows: run the module you touched. A pull request that only
+changes documentation, templates or the licence skips CI entirely. Running the checks locally first
+saves a round trip:
 
 ```bash
 # Unit tests (no device needed) — this is what PR CI runs
