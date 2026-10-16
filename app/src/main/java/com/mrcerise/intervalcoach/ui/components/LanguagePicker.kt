@@ -36,8 +36,8 @@ fun LanguagePicker(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, modif
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     var expanded by remember { mutableStateOf(false) }
-    fun label(l: AppLanguage) = if (l == AppLanguage.SYSTEM) stringResource(R.string.settings_language_system) else l.nativeName
-    val systemLabel = label(AppLanguage.SYSTEM)
+    val systemLabel = stringResource(R.string.settings_language_system)
+    val selectedLabel = if (selected == AppLanguage.SYSTEM) systemLabel else selected.nativeName
     Surface(
         onClick = { expanded = true },
         modifier = modifier.fillMaxWidth(),
@@ -50,7 +50,7 @@ fun LanguagePicker(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, modif
             verticalAlignment = Alignment.CenterVertically) {
             Text("Language", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.width(dimens.s))
-            Text(selected.flag + " " + label(selected), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary,
+            Text(selected.flag + " " + selectedLabel, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary,
                 maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
                 textAlign = androidx.compose.ui.text.style.TextAlign.End)
             Spacer(Modifier.width(dimens.xs))

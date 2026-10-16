@@ -759,7 +759,7 @@ fun WorkoutDetailsScreen(
                         },
                         PulseMenuAction(stringResource(R.string.action_edit), icon = Icons.Filled.Edit) { onEdit(plan.id) },
                         PulseMenuAction(stringResource(R.string.planner_add), icon = Icons.Filled.Event) { onSchedule(plan.id) },
-                        PulseMenuAction("Share as QR code", icon = Icons.Filled.QrCode2) { showQr = true },
+                        PulseMenuAction("Share as QR code", icon = Icons.Filled.QrCode) { showQr = true },
                     ),
                 )
             }

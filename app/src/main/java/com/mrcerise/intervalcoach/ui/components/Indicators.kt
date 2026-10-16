@@ -18,11 +18,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -421,7 +426,7 @@ fun CategoryPicker(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    var expanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
     val effective = WorkoutCategories.byKey(selected.key)
     Column(modifier.fillMaxWidth()) {
         Text("Category", style = PulseType.SectionLabel, color = colors.textMuted,
@@ -440,7 +445,7 @@ fun CategoryPicker(
                 Spacer(Modifier.width(dimens.s))
                 Text(effective.title, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary,
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Icon(androidx.compose.material.icons.Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(20.dp))
+                Icon(KeyboardArrowDown, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(20.dp))
             }
         }
     }

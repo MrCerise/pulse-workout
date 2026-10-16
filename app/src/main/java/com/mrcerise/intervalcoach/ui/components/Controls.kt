@@ -838,8 +838,8 @@ fun DurationStepper(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(dimens.xs), verticalAlignment = Alignment.CenterVertically) {
             MinuteStepperButton("-1m", "Decrease $label by one minute", enabled && millis > min) { onChange((millis - 60_000L).coerceAtLeast(min)) }
-            StepperButton(Icons.Filled.Remove, "Decrease $label", enabled && millis > min) { onChange((millis - stepMillis).coerceAtLeast(min)) }
-            StepperButton(Icons.Filled.Add, "Increase $label", enabled && millis < maxMillis) { onChange((millis + stepMillis).coerceAtMost(maxMillis)) }
+            StepperButton(Icons.Filled.Remove, "Decrease $label", enabled && millis > min, onClick = { onChange((millis - stepMillis).coerceAtLeast(min)) })
+            StepperButton(Icons.Filled.Add, "Increase $label", enabled && millis < maxMillis, onClick = { onChange((millis + stepMillis).coerceAtMost(maxMillis)) })
             MinuteStepperButton("+1m", "Increase $label by one minute", enabled && millis < maxMillis) { onChange((millis + 60_000L).coerceAtMost(maxMillis)) }
         }
     }
