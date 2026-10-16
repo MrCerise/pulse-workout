@@ -204,6 +204,20 @@ jobs:
           name: release-${{ inputs.channel }}-${{ github.run_number }}
           path: release-assets
 
+      - name: Compute rollout fraction
+        id: rollout
+        if: env.HAS_PLAY_ACCESS == 'true'
+        run: |
+          set -euo pipefail
+          # GitHub expressions have no arithmetic, so the staged-rollout percent
+          # is divided down to a fraction here, in bash.
+          pct="${{ inputs.staged_rollout_percent }}"
+          case "${{ inputs.channel }}" in
+            production) frac="$(awk -v p="$pct" 'BEGIN { printf "%.2f", p / 100 }')" ;;
+            *)          frac="1.0" ;;
+          esac
+          echo "fraction=$frac" >> "$GITHUB_OUTPUT"
+
       - name: Upload to the ${{ inputs.channel }} track
         if: env.HAS_PLAY_ACCESS == 'true'
         uses: r0adkll/upload-google-play@v1.1.3
@@ -214,7 +228,7 @@ jobs:
           track: ${{ inputs.channel }}
           status: completed
           inAppUpdatePriority: ${{ inputs.channel == 'production' && 3 || 0 }}
-          userFraction: ${{ inputs.channel == 'production' && (inputs.staged_rollout_percent / 100) || 1.0 }}
+          userFraction: ${{ steps.rollout.outputs.fraction }}
 
       - name: Store upload skipped
         if: env.HAS_PLAY_ACCESS != 'true'
