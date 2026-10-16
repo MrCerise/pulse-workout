@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pulse Workout</string>
+    <string name="app_name">Cadence</string>
     <string name="app_tagline">Intervalle d\'entrainement</string>
     <!-- Navigation -->
     <string name="nav_home">Accueil</string>
@@ -284,20 +284,20 @@
     <string name="settings_reset_tips">Réafficher l\'accueil</string>
     <string name="settings_permissions">Autorisations utilisées</string>
     <!-- Import / export -->
-    <string name="export_title">Export Pulse Workout data</string>
+    <string name="export_title">Export Cadence data</string>
     <string name="export_success">Exporté vers le fichier sélectionné</string>
     <string name="export_failed">Échec de l\'exportation : %1$s</string>
-    <string name="import_title">Import Pulse Workout data</string>
+    <string name="import_title">Import Cadence data</string>
     <string name="import_success">Entraînements %1$d importés et sessions %2$d</string>
     <string name="import_failed">Échec de l\'importation : %1$s</string>
     <string name="import_preview_title">Réviser avant d\'importer</string>
     <string name="import_preview_body">Exercices %1$d · %2$d sessions · Balises %3$d</string>
     <string name="import_confirm">Importation</string>
-    <string name="import_corrupt">Invalid Pulse Workout backup. Nothing was changed.</string>
+    <string name="import_corrupt">Invalid Cadence backup. Nothing was changed.</string>
     <string name="backup_created">Sauvegarde écrite vers %1$s</string>
     <string name="backup_too_large">Impossible d’importer des sauvegardes de plus de %1$d Mio.</string>
     <!-- Onboarding -->
-    <string name="welcome_title">Pulse Workout</string>
+    <string name="welcome_title">Cadence</string>
     <string name="welcome_subtitle">Votre minuteur d\'intervalle.</string>
     <string name="welcome_theme">Choisir un thème</string>
     <string name="welcome_language">Choose a language</string>
@@ -306,14 +306,14 @@
     <string name="welcome_sample_workout">Essayez un démarrage de 4 minutes</string>
     <string name="welcome_skip">Ignorer</string>
     <string name="welcome_next">Suivant</string>
-    <string name="welcome_start">Start using Pulse Workout</string>
+    <string name="welcome_start">Start using Cadence</string>
     <string name="welcome_notifications">Les notifications ajoutent des contrôles de minuterie à votre écran de verrouillage.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. L\'entraînement fonctionne toujours, mais sans contrôle en direct.</string>
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
-    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Pulse Workout uses sound cues.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Cadence uses sound cues.</string>
     <string name="help_background">Opération d\'arrière-plan</string>
     <string name="help_background_body">Le chronométrage continue avec la désactivation de l\'écran. Activez les indices d\'extinction de l\'écran dans les paramètres pour continuer à jouer les annonces.</string>
     <string name="help_audio">Dépannage audio</string>
@@ -336,11 +336,11 @@
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Pulse Workout favorites</string>
-    <string name="widget_quick_start_name">Pulse Workout quick start</string>
+    <string name="widget_favorites_name">Cadence favorites</string>
+    <string name="widget_quick_start_name">Cadence quick start</string>
     <string name="widget_quick_start_label">Démarrage rapide</string>
     <string name="widget_quick_start_sub">Travail / repos</string>
-    <string name="widget_empty">Open Pulse Workout to star a workout</string>
+    <string name="widget_empty">Open Cadence to star a workout</string>
     <string name="shortcut_recent">Entraînements récents</string>
     <string name="shortcut_quick">Constructeur rapide</string>
     <!-- Notifications -->
@@ -386,7 +386,7 @@
     <string name="share_total_time">Temps total · pauses incluses</string>
     <string name="share_skipped">Intervalles ignorés</string>
     <string name="share_rounds">Arrondes enregistrées</string>
-    <string name="share_recorded">Recorded with Pulse Workout</string>
+    <string name="share_recorded">Recorded with Cadence</string>
     <!-- Theme & streamlined AI flow -->
     <string name="theme_switch_light">Basculer vers le thème clair</string>
     <string name="theme_switch_dark">Basculer vers le thème sombre</string>

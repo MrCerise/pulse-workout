@@ -790,7 +790,7 @@ private fun SidebarHeader() {
         Column {
             Text(
                 text = stringResource(R.string.app_name),
-                style = PulseType.SectionLabel,
+                style = MaterialTheme.typography.titleLarge,
                 color = colors.textPrimary,
                 maxLines = 1,
             )

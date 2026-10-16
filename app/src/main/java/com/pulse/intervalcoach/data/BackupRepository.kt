@@ -397,7 +397,7 @@ class BackupRepository(
     private fun parse(text: String): BackupFile {
         val trimmed = text.trim()
         if (!trimmed.startsWith("{")) {
-            throw SerializationException("This file is not a Pulse Workout backup (it does not look like JSON).")
+            throw SerializationException("This file is not a Cadence backup (it does not look like JSON).")
         }
         val backup = json.decodeFromString(BackupFile.serializer(), trimmed)
         if (backup.format != BackupFile.FORMAT) {

@@ -226,10 +226,9 @@ val LocalPulseColors = staticCompositionLocalOf {
  * Spacing, sizing and radius scale. Every screen composes from these steps only — a stray `13.dp`
  * in a screen is what makes an interface look hand-assembled, so there is no reason to write one.
  *
- * The base unit is 4 dp and the ramp is deliberately tighter than a mobile-marketing layout: Signal
- * is a dashboard, and a dashboard is *dense*. A 16 dp gutter, 16 dp of card padding and 12 dp
- * between cards put a workout row, its metadata and its action on one comfortable screen without
- * scroll.
+ * The base unit is 4 dp and the ramp stays tool-tight rather than marketing-loose: a 16 dp gutter,
+ * 16 dp of card padding and 12 dp between cards put a workout row, its metadata and its action on
+ * one comfortable screen without scroll.
  */
 @Immutable
 data class PulseDimens(
@@ -287,14 +286,14 @@ data class PulseDimens(
     val listRowHeight: Dp = 56.dp,
     /** One label/value line in a metric table. */
     val metricRowHeight: Dp = 44.dp,
-    /** The bottom navigation bar on a phone. */
-    val navBarHeight: Dp = 64.dp,
+    /** The floating bottom navigation pill on a phone. */
+    val navBarHeight: Dp = 68.dp,
     /** The icon rail on a tablet held upright. */
     val railWidth: Dp = 72.dp,
     /** The full sidebar, at the largest breakpoint. */
     val sidebarWidth: Dp = 244.dp,
-    /** Horizontal inset of the bottom navigation bar when it does not span the screen. */
-    val navBarInset: Dp = 12.dp,
+    /** Inset that lets the bottom navigation bar float: side gutter and the lift above the edge. */
+    val navBarInset: Dp = 14.dp,
 
     /** Minimum touch target. Never draw an interactive element smaller than this. */
     val minTouchTarget: Dp = 48.dp,
@@ -305,16 +304,16 @@ data class PulseDimens(
 
     // --- Radii -----------------------------------------------------------------------------------
     // Soft rectangles for controls and cards; pills remain reserved for labels and transport.
-    /** Cards and panels — the standard dashboard rectangle. */
-    val cardRadius: Dp = 16.dp,
+    /** Cards and panels — the standard rounded rectangle. */
+    val cardRadius: Dp = 22.dp,
     /** A surface nested inside a card: one step tighter so nesting reads as nesting. */
-    val panelRadius: Dp = 12.dp,
+    val panelRadius: Dp = 16.dp,
     /** Buttons, inputs, navigation items, icon buttons — and every selectable chip. */
-    val controlRadius: Dp = 12.dp,
+    val controlRadius: Dp = 16.dp,
     /** Label chips, badges and pill-shaped bars — fully round, because they carry no action. */
     val chipRadius: Dp = 999.dp,
     /** Bottom sheets and the largest surfaces. */
-    val sheetRadius: Dp = 24.dp,
+    val sheetRadius: Dp = 30.dp,
     /** Fully round: avatars and the single round transport control in the player. */
     val pillRadius: Dp = 999.dp,
 )
@@ -328,13 +327,13 @@ val LocalPulseDimens = staticCompositionLocalOf { PulseDimens() }
 @Immutable
 data class PulseShapes(
     /** Buttons, fields, steppers, navigation items — and every chip you can tap. */
-    val control: RoundedCornerShape = RoundedCornerShape(12.dp),
+    val control: RoundedCornerShape = RoundedCornerShape(16.dp),
     /** A surface nested inside a card, and the smallest radius Material's own components get. */
-    val panel: RoundedCornerShape = RoundedCornerShape(12.dp),
+    val panel: RoundedCornerShape = RoundedCornerShape(16.dp),
     /** Cards. */
-    val card: RoundedCornerShape = RoundedCornerShape(16.dp),
+    val card: RoundedCornerShape = RoundedCornerShape(22.dp),
     /** Sheets, dialogs, the largest surfaces. */
-    val sheet: RoundedCornerShape = RoundedCornerShape(24.dp),
+    val sheet: RoundedCornerShape = RoundedCornerShape(30.dp),
     /** Labels only: a phase tag, a category pill, a status badge, a progress track. Never a control. */
     val chip: RoundedCornerShape = RoundedCornerShape(999.dp),
     /** Fully round: avatars and the single round transport control in the player. */
@@ -344,7 +343,7 @@ data class PulseShapes(
 val LocalPulseShapes = staticCompositionLocalOf { PulseShapes() }
 
 /**
- * Elevation. Signal draws depth three ways and each has one job: a tonal fill step separates a
+ * Elevation. Momentum draws depth three ways and each has one job: a tonal fill step separates a
  * surface from the canvas, a hairline keeps that edge crisp on any density, and a real shadow is
  * reserved for things that genuinely float above the page — menus, dialogs, snackbars and the phone
  * navigation bar. Nothing else casts one, which is why the few shadows on screen still mean
@@ -365,27 +364,27 @@ data class PulseElevation(
 val LocalPulseElevation = staticCompositionLocalOf { PulseElevation() }
 
 /**
- * Motion. Signal moves quickly and quietly — 150 ms for feedback, 200 ms for selection, 250 ms for a
- * sheet — because a dashboard should feel immediate rather than choreographed. The reduced-motion
- * switch collapses every duration to zero, because an accessibility setting that still animates is
- * not an accessibility setting.
+ * Motion. Momentum moves with a beat — 180 ms for feedback, 260 ms for selection, 340 ms for a
+ * sheet — quick enough to answer a tap, long enough for a transition to read as one movement
+ * instead of a cut. The reduced-motion switch collapses every duration to zero, because an
+ * accessibility setting that still animates is not an accessibility setting.
  */
 @Immutable
 data class PulseMotion(val reduced: Boolean) {
-    /** 150 ms — hover, press, colour and elevation feedback. */
-    fun fast(): Int = if (reduced) 0 else 150
+    /** 180 ms — hover, press, colour and elevation feedback. */
+    fun fast(): Int = if (reduced) 0 else 180
 
-    /** 200 ms — selection, expansion, navigation transitions. */
-    fun standard(): Int = if (reduced) 0 else 200
+    /** 260 ms — selection, expansion, navigation transitions. */
+    fun standard(): Int = if (reduced) 0 else 260
 
-    /** 250 ms — sheets, dialogs and the player's ring sweep. */
-    fun slow(): Int = if (reduced) 0 else 250
+    /** 340 ms — sheets, dialogs and the player's ring sweep. */
+    fun slow(): Int = if (reduced) 0 else 340
 
     /** Duration in ms, collapsed to 0 when the user prefers reduced motion. */
     fun duration(normal: Int): Int = if (reduced) 0 else normal
 
     /** Slightly longer beat for a value that travels a long way, flattened when motion is reduced. */
-    fun emphasis(): Int = if (reduced) 0 else 240
+    fun emphasis(): Int = if (reduced) 0 else 300
 }
 
 val LocalPulseMotion = staticCompositionLocalOf { PulseMotion(reduced = false) }

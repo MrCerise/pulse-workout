@@ -30,50 +30,50 @@ the ratios above apply to the watch unchanged.
 
 | Pair | Foreground | Background | Ratio | Required | Result | Where it is used |
 | --- | --- | --- | --- | --- | --- | --- |
-| Primary text on canvas | `#F5F6F7` | `#17181B` | 16.41:1 | 4.5:1 | pass | page titles, body copy |
-| Primary text on card | `#F5F6F7` | `#202226` | 14.72:1 | 4.5:1 | pass | workout cards, list rows |
-| Primary text on raised | `#F5F6F7` | `#26282D` | 13.63:1 | 4.5:1 | pass | inputs, stat tiles |
-| Primary text on overlay | `#F5F6F7` | `#2A2D33` | 12.75:1 | 4.5:1 | pass | dialogs, menus, tooltips |
-| Primary text on nav | `#F5F6F7` | `#1C1D21` | 15.56:1 | 4.5:1 | pass | sidebar and bottom navigation |
-| Primary text on sunken | `#F5F6F7` | `#1B1C20` | 15.73:1 | 4.5:1 | pass | table headers, inset wells |
-| Secondary text on canvas | `#C3C7CC` | `#17181B` | 10.45:1 | 4.5:1 | pass | captions and hints |
-| Secondary text on card | `#C3C7CC` | `#202226` | 9.38:1 | 4.5:1 | pass | card captions and metadata |
-| Secondary text on raised | `#C3C7CC` | `#26282D` | 8.68:1 | 4.5:1 | pass | input placeholders |
-| Secondary text on overlay | `#C3C7CC` | `#2A2D33` | 8.12:1 | 4.5:1 | pass | dialog body copy |
-| Muted text on canvas | `#9CA2A9` | `#17181B` | 6.89:1 | 4.5:1 | pass | section labels, timestamps |
-| Muted text on card | `#9CA2A9` | `#202226` | 6.19:1 | 4.5:1 | pass | timeline row captions |
-| Muted text on raised | `#9CA2A9` | `#26282D` | 5.73:1 | 4.5:1 | pass | stat tile labels |
-| Control outline on canvas | `#8A9099` | `#17181B` | 5.52:1 | 3.0:1 | pass | input borders, focus rings |
-| Control outline on card | `#8A9099` | `#202226` | 4.95:1 | 3.0:1 | pass | card control boundaries |
-| Accent on canvas | `#F38020` | `#17181B` | 6.69:1 | 4.5:1 | pass | links and inline actions |
-| Accent on card | `#F38020` | `#202226` | 6.01:1 | 4.5:1 | pass | selected rows, activity labels |
-| Accent on overlay | `#F38020` | `#2A2D33` | 5.20:1 | 4.5:1 | pass | menu emphasis |
-| Accent chip label | `#F38020` | `#3A291C` | 5.23:1 | 4.5:1 | pass | selected filters, active navigation item |
+| Primary text on canvas | `#F4F6F8` | `#101216` | 17.31:1 | 4.5:1 | pass | page titles, body copy |
+| Primary text on card | `#F4F6F8` | `#181B20` | 15.93:1 | 4.5:1 | pass | workout cards, list rows |
+| Primary text on raised | `#F4F6F8` | `#1E2126` | 14.90:1 | 4.5:1 | pass | inputs, stat tiles |
+| Primary text on overlay | `#F4F6F8` | `#23262C` | 14.00:1 | 4.5:1 | pass | dialogs, menus, tooltips |
+| Primary text on nav | `#F4F6F8` | `#14161B` | 16.71:1 | 4.5:1 | pass | sidebar and bottom navigation |
+| Primary text on sunken | `#F4F6F8` | `#121418` | 17.02:1 | 4.5:1 | pass | table headers, inset wells |
+| Secondary text on canvas | `#C3C7CC` | `#101216` | 11.04:1 | 4.5:1 | pass | captions and hints |
+| Secondary text on card | `#C3C7CC` | `#181B20` | 10.16:1 | 4.5:1 | pass | card captions and metadata |
+| Secondary text on raised | `#C3C7CC` | `#1E2126` | 9.50:1 | 4.5:1 | pass | input placeholders |
+| Secondary text on overlay | `#C3C7CC` | `#23262C` | 8.92:1 | 4.5:1 | pass | dialog body copy |
+| Muted text on canvas | `#9CA2A9` | `#101216` | 7.28:1 | 4.5:1 | pass | section labels, timestamps |
+| Muted text on card | `#9CA2A9` | `#181B20` | 6.70:1 | 4.5:1 | pass | timeline row captions |
+| Muted text on raised | `#9CA2A9` | `#1E2126` | 6.27:1 | 4.5:1 | pass | stat tile labels |
+| Control outline on canvas | `#8A9099` | `#101216` | 5.83:1 | 3.0:1 | pass | input borders, focus rings |
+| Control outline on card | `#8A9099` | `#181B20` | 5.37:1 | 3.0:1 | pass | card control boundaries |
+| Accent on canvas | `#A3E635` | `#101216` | 12.43:1 | 4.5:1 | pass | links and inline actions |
+| Accent on card | `#A3E635` | `#181B20` | 11.45:1 | 4.5:1 | pass | selected rows, activity labels |
+| Accent on overlay | `#A3E635` | `#23262C` | 10.06:1 | 4.5:1 | pass | menu emphasis |
+| Accent chip label | `#A3E635` | `#232B10` | 9.78:1 | 4.5:1 | pass | selected filters, active navigation item |
 | Informational label | `#7CB7FF` | `#232B36` | 6.85:1 | 4.5:1 | pass | info banners, notes |
-| Informational on canvas | `#7CB7FF` | `#17181B` | 8.52:1 | 4.5:1 | pass | inline help links |
-| Work accent on canvas | `#4CC38A` | `#17181B` | 8.01:1 | 4.5:1 | pass | work phase label, chart bars |
-| Work accent on card | `#4CC38A` | `#202226` | 7.19:1 | 4.5:1 | pass | work phase label on a card |
-| Rest accent on card | `#6CABF8` | `#202226` | 6.69:1 | 4.5:1 | pass | rest phase label |
-| Prepare accent on card | `#F5B544` | `#202226` | 8.78:1 | 4.5:1 | pass | preparation phase label |
-| Cooldown accent on card | `#B18CFA` | `#202226` | 6.07:1 | 4.5:1 | pass | cool-down phase label |
-| Destructive on canvas | `#F87171` | `#17181B` | 6.42:1 | 4.5:1 | pass | destructive labels |
-| Destructive on card | `#F87171` | `#202226` | 5.76:1 | 4.5:1 | pass | delete actions in rows |
-| Work marker on canvas | `#4CC38A` | `#17181B` | 8.01:1 | 3.0:1 | pass | timeline segments, progress ring |
-| Rest marker on canvas | `#6CABF8` | `#17181B` | 7.45:1 | 3.0:1 | pass | timeline segments |
-| Prepare marker on canvas | `#F5B544` | `#17181B` | 9.79:1 | 3.0:1 | pass | timeline segments |
-| Cooldown marker on canvas | `#B18CFA` | `#17181B` | 6.76:1 | 3.0:1 | pass | timeline segments |
+| Informational on canvas | `#7CB7FF` | `#101216` | 8.99:1 | 4.5:1 | pass | inline help links |
+| Work accent on canvas | `#4CC38A` | `#101216` | 8.46:1 | 4.5:1 | pass | work phase label, chart bars |
+| Work accent on card | `#4CC38A` | `#181B20` | 7.79:1 | 4.5:1 | pass | work phase label on a card |
+| Rest accent on card | `#6CABF8` | `#181B20` | 7.25:1 | 4.5:1 | pass | rest phase label |
+| Prepare accent on card | `#F5B544` | `#181B20` | 9.52:1 | 4.5:1 | pass | preparation phase label |
+| Cooldown accent on card | `#B18CFA` | `#181B20` | 6.58:1 | 4.5:1 | pass | cool-down phase label |
+| Destructive on canvas | `#F87171` | `#101216` | 6.78:1 | 4.5:1 | pass | destructive labels |
+| Destructive on card | `#F87171` | `#181B20` | 6.24:1 | 4.5:1 | pass | delete actions in rows |
+| Work marker on canvas | `#4CC38A` | `#101216` | 8.46:1 | 3.0:1 | pass | timeline segments, progress ring |
+| Rest marker on canvas | `#6CABF8` | `#101216` | 7.87:1 | 3.0:1 | pass | timeline segments |
+| Prepare marker on canvas | `#F5B544` | `#101216` | 10.33:1 | 3.0:1 | pass | timeline segments |
+| Cooldown marker on canvas | `#B18CFA` | `#101216` | 7.14:1 | 3.0:1 | pass | timeline segments |
 | Work chip label | `#4CC38A` | `#1D2D28` | 6.50:1 | 4.5:1 | pass | phase chips, interval tiles |
 | Rest chip label | `#6CABF8` | `#212A36` | 6.09:1 | 4.5:1 | pass | phase chips |
 | Prepare chip label | `#F5B544` | `#322B20` | 7.71:1 | 4.5:1 | pass | phase chips |
 | Cooldown chip label | `#B18CFA` | `#292636` | 5.62:1 | 4.5:1 | pass | phase chips |
 | Destructive chip label | `#F87171` | `#322325` | 5.41:1 | 4.5:1 | pass | invalid import, error banners |
-| Primary button label | `#17181B` | `#F38020` | 6.69:1 | 4.5:1 | pass | the solid primary action |
-| Neutral chip label | `#F5F6F7` | `#2E3138` | 12.04:1 | 4.5:1 | pass | type badges, neutral metadata |
+| Primary button label | `#101216` | `#A3E635` | 12.43:1 | 4.5:1 | pass | the solid primary action |
+| Neutral chip label | `#F4F6F8` | `#2E3138` | 12.02:1 | 4.5:1 | pass | type badges, neutral metadata |
 | Neutral chip caption | `#C3C7CC` | `#2E3138` | 7.67:1 | 4.5:1 | pass | equipment and count pills |
-| Accent partner on canvas | `#FFC078` | `#17181B` | 11.04:1 | 3.0:1 | pass | bars, sweeps, rank badges |
-| Accent partner on card | `#FFC078` | `#202226` | 9.91:1 | 3.0:1 | pass | graphic fills inside cards |
-| Hero title on ink panel | `#F5F6F7` | `#1B1C20` | 15.73:1 | 4.5:1 | pass | the Today and summary hero |
-| Hero caption on ink panel | `#AEB4BB` | `#1B1C20` | 8.14:1 | 4.5:1 | pass | hero supporting copy |
+| Accent partner on canvas | `#D9F99D` | `#101216` | 16.06:1 | 3.0:1 | pass | bars, sweeps, rank badges |
+| Accent partner on card | `#D9F99D` | `#181B20` | 14.79:1 | 3.0:1 | pass | graphic fills inside cards |
+| Hero title on ink panel | `#F4F6F8` | `#131519` | 16.87:1 | 4.5:1 | pass | the Today and summary hero |
+| Hero caption on ink panel | `#A8B0BA` | `#131519` | 8.34:1 | 4.5:1 | pass | hero supporting copy |
 | Cardio category label | `#F0607A` | `#312126` | 4.84:1 | 4.5:1 | pass | category chips and cards |
 | Conditioning category label | `#F5B544` | `#322B20` | 7.71:1 | 4.5:1 | pass | category chips and cards |
 | Strength category label | `#B18CFA` | `#292636` | 5.62:1 | 4.5:1 | pass | category chips and cards |
@@ -85,11 +85,11 @@ the ratios above apply to the watch unchanged.
 
 | Pair | Foreground | Background | Ratio | Required | Result | Where it is used |
 | --- | --- | --- | --- | --- | --- | --- |
-| Primary text on canvas | `#F5F6F7` | `#000000` | 19.41:1 | 4.5:1 | pass | page titles on OLED |
-| Primary text on card | `#F5F6F7` | `#0B0C0E` | 18.08:1 | 4.5:1 | pass | workout cards |
-| Primary text on raised | `#F5F6F7` | `#131518` | 16.90:1 | 4.5:1 | pass | inputs, stat tiles |
-| Primary text on overlay | `#F5F6F7` | `#17191D` | 16.27:1 | 4.5:1 | pass | dialogs and menus |
-| Primary text on nav | `#F5F6F7` | `#000000` | 19.41:1 | 4.5:1 | pass | navigation chrome |
+| Primary text on canvas | `#F4F6F8` | `#000000` | 19.38:1 | 4.5:1 | pass | page titles on OLED |
+| Primary text on card | `#F4F6F8` | `#0B0C0E` | 18.06:1 | 4.5:1 | pass | workout cards |
+| Primary text on raised | `#F4F6F8` | `#131518` | 16.88:1 | 4.5:1 | pass | inputs, stat tiles |
+| Primary text on overlay | `#F4F6F8` | `#17191D` | 16.25:1 | 4.5:1 | pass | dialogs and menus |
+| Primary text on nav | `#F4F6F8` | `#000000` | 19.38:1 | 4.5:1 | pass | navigation chrome |
 | Secondary text on card | `#C3C7CC` | `#0B0C0E` | 11.52:1 | 4.5:1 | pass | card captions |
 | Secondary text on raised | `#C3C7CC` | `#131518` | 10.77:1 | 4.5:1 | pass | placeholders |
 | Muted text on canvas | `#9CA2A9` | `#000000` | 8.15:1 | 4.5:1 | pass | section labels |
@@ -97,11 +97,11 @@ the ratios above apply to the watch unchanged.
 | Muted text on hover | `#9CA2A9` | `#1E2024` | 6.33:1 | 4.5:1 | pass | pressed rows |
 | Control outline on canvas | `#8A9099` | `#000000` | 6.53:1 | 3.0:1 | pass | input borders, focus rings |
 | Control outline on card | `#8A9099` | `#0B0C0E` | 6.08:1 | 3.0:1 | pass | card control boundaries |
-| Accent on canvas | `#F38020` | `#000000` | 7.92:1 | 4.5:1 | pass | links and inline actions |
-| Accent on card | `#F38020` | `#0B0C0E` | 7.38:1 | 4.5:1 | pass | selected rows |
-| Accent chip label | `#F38020` | `#3A291C` | 5.23:1 | 4.5:1 | pass | selected filters |
-| Primary button label | `#17181B` | `#F38020` | 6.69:1 | 4.5:1 | pass | the solid primary action |
-| Neutral chip label | `#F5F6F7` | `#2E3138` | 12.04:1 | 4.5:1 | pass | metadata pills |
+| Accent on canvas | `#A3E635` | `#000000` | 13.93:1 | 4.5:1 | pass | links and inline actions |
+| Accent on card | `#A3E635` | `#0B0C0E` | 12.98:1 | 4.5:1 | pass | selected rows |
+| Accent chip label | `#A3E635` | `#232B10` | 9.78:1 | 4.5:1 | pass | selected filters |
+| Primary button label | `#101216` | `#A3E635` | 12.43:1 | 4.5:1 | pass | the solid primary action |
+| Neutral chip label | `#F4F6F8` | `#2E3138` | 12.02:1 | 4.5:1 | pass | metadata pills |
 | Work chip label | `#4CC38A` | `#1D2D28` | 6.50:1 | 4.5:1 | pass | phase chips |
 | Rest chip label | `#6CABF8` | `#212A36` | 6.09:1 | 4.5:1 | pass | phase chips |
 | Prepare chip label | `#F5B544` | `#322B20` | 7.71:1 | 4.5:1 | pass | phase chips |
@@ -109,47 +109,47 @@ the ratios above apply to the watch unchanged.
 | Destructive chip label | `#F87171` | `#322325` | 5.41:1 | 4.5:1 | pass | error banners |
 | Cardio category label | `#F0607A` | `#312126` | 4.84:1 | 4.5:1 | pass | category pills |
 | Strength category label | `#B18CFA` | `#292636` | 5.62:1 | 4.5:1 | pass | category pills |
-| Hero title on ink panel | `#F5F6F7` | `#1B1C20` | 15.73:1 | 4.5:1 | pass | the Today hero |
+| Hero title on ink panel | `#F4F6F8` | `#131519` | 16.87:1 | 4.5:1 | pass | the Today hero |
 
 ## Light
 
 | Pair | Foreground | Background | Ratio | Required | Result | Where it is used |
 | --- | --- | --- | --- | --- | --- | --- |
-| Primary text on canvas | `#1B1E21` | `#F5F6F7` | 15.47:1 | 4.5:1 | pass | page titles, body copy |
+| Primary text on canvas | `#1B1E21` | `#F4F6F8` | 15.45:1 | 4.5:1 | pass | page titles, body copy |
 | Primary text on card | `#1B1E21` | `#FFFFFF` | 16.74:1 | 4.5:1 | pass | workout cards, list rows |
-| Primary text on raised | `#1B1E21` | `#F7F8F9` | 15.75:1 | 4.5:1 | pass | inputs, stat tiles |
+| Primary text on raised | `#1B1E21` | `#F7F8FA` | 15.76:1 | 4.5:1 | pass | inputs, stat tiles |
 | Primary text on overlay | `#1B1E21` | `#FFFFFF` | 16.74:1 | 4.5:1 | pass | dialogs and menus |
 | Primary text on nav | `#1B1E21` | `#FFFFFF` | 16.74:1 | 4.5:1 | pass | sidebar and bottom navigation |
-| Primary text on sunken | `#1B1E21` | `#F1F2F4` | 14.95:1 | 4.5:1 | pass | table headers, inset wells |
-| Secondary text on canvas | `#4B5157` | `#F5F6F7` | 7.43:1 | 4.5:1 | pass | captions and hints |
+| Primary text on sunken | `#1B1E21` | `#EFF2F5` | 14.90:1 | 4.5:1 | pass | table headers, inset wells |
+| Secondary text on canvas | `#4B5157` | `#F4F6F8` | 7.42:1 | 4.5:1 | pass | captions and hints |
 | Secondary text on card | `#4B5157` | `#FFFFFF` | 8.03:1 | 4.5:1 | pass | card captions |
-| Secondary text on raised | `#4B5157` | `#F7F8F9` | 7.56:1 | 4.5:1 | pass | input placeholders |
-| Muted text on canvas | `#666C74` | `#F5F6F7` | 4.90:1 | 4.5:1 | pass | section labels, timestamps |
+| Secondary text on raised | `#4B5157` | `#F7F8FA` | 7.56:1 | 4.5:1 | pass | input placeholders |
+| Muted text on canvas | `#666C74` | `#F4F6F8` | 4.89:1 | 4.5:1 | pass | section labels, timestamps |
 | Muted text on card | `#666C74` | `#FFFFFF` | 5.30:1 | 4.5:1 | pass | timeline row captions |
-| Muted text on raised | `#666C74` | `#F7F8F9` | 4.98:1 | 4.5:1 | pass | stat tile labels |
-| Muted text on sunken | `#666C74` | `#F1F2F4` | 4.73:1 | 4.5:1 | pass | table headers |
-| Control outline on canvas | `#6B7280` | `#F5F6F7` | 4.47:1 | 3.0:1 | pass | input borders, focus rings |
+| Muted text on raised | `#666C74` | `#F7F8FA` | 4.99:1 | 4.5:1 | pass | stat tile labels |
+| Muted text on sunken | `#666C74` | `#EFF2F5` | 4.72:1 | 4.5:1 | pass | table headers |
+| Control outline on canvas | `#6B7280` | `#F4F6F8` | 4.46:1 | 3.0:1 | pass | input borders, focus rings |
 | Control outline on card | `#6B7280` | `#FFFFFF` | 4.83:1 | 3.0:1 | pass | card control boundaries |
-| Accent on canvas | `#B23A0B` | `#F5F6F7` | 5.54:1 | 4.5:1 | pass | links and inline actions |
-| Accent on card | `#B23A0B` | `#FFFFFF` | 5.99:1 | 4.5:1 | pass | selected rows, activity labels |
-| Accent on raised | `#B23A0B` | `#F7F8F9` | 5.64:1 | 4.5:1 | pass | selected list rows |
-| Accent chip label | `#B23A0B` | `#F8ECE7` | 5.18:1 | 4.5:1 | pass | selected filters, active navigation item |
+| Accent on canvas | `#3F6212` | `#F4F6F8` | 6.53:1 | 4.5:1 | pass | links and inline actions |
+| Accent on card | `#3F6212` | `#FFFFFF` | 7.08:1 | 4.5:1 | pass | selected rows, activity labels |
+| Accent on raised | `#3F6212` | `#F7F8FA` | 6.66:1 | 4.5:1 | pass | selected list rows |
+| Accent chip label | `#3F6212` | `#F1F5E1` | 6.37:1 | 4.5:1 | pass | selected filters, active navigation item |
 | Informational label | `#0B57C2` | `#E7EEF9` | 5.70:1 | 4.5:1 | pass | info banners, notes |
-| Informational on canvas | `#0B57C2` | `#F5F6F7` | 6.15:1 | 4.5:1 | pass | inline help links |
-| Primary button label | `#1B1E21` | `#F38020` | 6.31:1 | 4.5:1 | pass | the solid primary action |
-| Hero title on ink panel | `#F5F6F7` | `#1B1E21` | 15.47:1 | 4.5:1 | pass | the Today and summary hero |
-| Hero caption on ink panel | `#AEB4BB` | `#1B1E21` | 8.01:1 | 4.5:1 | pass | hero supporting copy |
-| Work accent on canvas | `#12603C` | `#F5F6F7` | 7.02:1 | 4.5:1 | pass | work phase label |
+| Informational on canvas | `#0B57C2` | `#F4F6F8` | 6.14:1 | 4.5:1 | pass | inline help links |
+| Primary button label | `#101216` | `#A3E635` | 12.43:1 | 4.5:1 | pass | the solid primary action |
+| Hero title on ink panel | `#F4F6F8` | `#131519` | 16.87:1 | 4.5:1 | pass | the Today and summary hero |
+| Hero caption on ink panel | `#A8B0BA` | `#131519` | 8.34:1 | 4.5:1 | pass | hero supporting copy |
+| Work accent on canvas | `#12603C` | `#F4F6F8` | 7.01:1 | 4.5:1 | pass | work phase label |
 | Work accent on card | `#12603C` | `#FFFFFF` | 7.60:1 | 4.5:1 | pass | work phase label on a card |
 | Rest accent on card | `#0A56A8` | `#FFFFFF` | 7.22:1 | 4.5:1 | pass | rest phase label |
 | Prepare accent on card | `#7A5100` | `#FFFFFF` | 6.99:1 | 4.5:1 | pass | preparation phase label |
 | Cooldown accent on card | `#5B21B6` | `#FFFFFF` | 8.98:1 | 4.5:1 | pass | cool-down phase label |
-| Destructive on canvas | `#A8291F` | `#F5F6F7` | 6.47:1 | 4.5:1 | pass | destructive labels |
+| Destructive on canvas | `#A8291F` | `#F4F6F8` | 6.46:1 | 4.5:1 | pass | destructive labels |
 | Destructive on card | `#A8291F` | `#FFFFFF` | 7.00:1 | 4.5:1 | pass | delete actions in rows |
-| Work marker on canvas | `#12603C` | `#F5F6F7` | 7.02:1 | 3.0:1 | pass | timeline segments, progress ring |
-| Rest marker on canvas | `#0A56A8` | `#F5F6F7` | 6.67:1 | 3.0:1 | pass | timeline segments |
-| Prepare marker on canvas | `#7A5100` | `#F5F6F7` | 6.46:1 | 3.0:1 | pass | timeline segments |
-| Cooldown marker on canvas | `#5B21B6` | `#F5F6F7` | 8.30:1 | 3.0:1 | pass | timeline segments |
+| Work marker on canvas | `#12603C` | `#F4F6F8` | 7.01:1 | 3.0:1 | pass | timeline segments, progress ring |
+| Rest marker on canvas | `#0A56A8` | `#F4F6F8` | 6.66:1 | 3.0:1 | pass | timeline segments |
+| Prepare marker on canvas | `#7A5100` | `#F4F6F8` | 6.45:1 | 3.0:1 | pass | timeline segments |
+| Cooldown marker on canvas | `#5B21B6` | `#F4F6F8` | 8.29:1 | 3.0:1 | pass | timeline segments |
 | Work chip label | `#12603C` | `#E7EFEC` | 6.50:1 | 4.5:1 | pass | phase chips, interval tiles |
 | Rest chip label | `#0A56A8` | `#E6EEF6` | 6.16:1 | 4.5:1 | pass | phase chips |
 | Prepare chip label | `#7A5100` | `#F2EEE6` | 6.04:1 | 4.5:1 | pass | phase chips |
@@ -157,8 +157,8 @@ the ratios above apply to the watch unchanged.
 | Destructive chip label | `#A8291F` | `#F6EAE9` | 5.95:1 | 4.5:1 | pass | error banners |
 | Neutral chip label | `#1B1E21` | `#E9EBEE` | 14.02:1 | 4.5:1 | pass | type badges, neutral metadata |
 | Neutral chip caption | `#4B5157` | `#E9EBEE` | 6.73:1 | 4.5:1 | pass | equipment and count pills |
-| Accent partner on canvas | `#9A3412` | `#F5F6F7` | 6.75:1 | 3.0:1 | pass | bars, sweeps, rank badges |
-| Accent partner on card | `#9A3412` | `#FFFFFF` | 7.31:1 | 3.0:1 | pass | graphic fills inside cards |
+| Accent partner on canvas | `#365314` | `#F4F6F8` | 8.06:1 | 3.0:1 | pass | bars, sweeps, rank badges |
+| Accent partner on card | `#365314` | `#FFFFFF` | 8.73:1 | 3.0:1 | pass | graphic fills inside cards |
 | Cardio category label | `#A3123A` | `#F6E7EB` | 6.49:1 | 4.5:1 | pass | category chips and cards |
 | Conditioning category label | `#7A5100` | `#F2EEE6` | 6.04:1 | 4.5:1 | pass | category chips and cards |
 | Strength category label | `#5B21B6` | `#EFE9F8` | 7.56:1 | 4.5:1 | pass | category chips and cards |

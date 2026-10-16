@@ -316,7 +316,7 @@ fun SettingsScreen(
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        Text("Pulse Workout ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text("Cadence ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
                 }
             }
@@ -833,7 +833,7 @@ fun BackupScreen(
                             preview = info
                             pendingBackup = text
                         }
-                        .onFailure { failure -> error = failure.message ?: "This file is not a valid Pulse Workout backup." }
+                        .onFailure { failure -> error = failure.message ?: "This file is not a valid Cadence backup." }
                 }
                 .onFailure { failure -> error = failure.message ?: "This file could not be read safely." }
         }

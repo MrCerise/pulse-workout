@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/brand/pulse.svg" width="88" height="88" alt="PULSE" />
+<img src="docs/brand/cadence.svg" width="88" height="88" alt="CADENCE" />
 
-# PULSE
+# CADENCE
 
 **Offline-first interval timer and workout coach for Android.**
 
@@ -22,7 +22,7 @@ Health Connect.
 
 ---
 
-PULSE runs entirely on your device. **No account, no ads, no analytics, no backend.** The only data
+CADENCE runs entirely on your device. **No account, no ads, no analytics, no backend.** The only data
 that ever leaves the app is what you explicitly share — a health record written to Health Connect,
 a backup file you exported, or a prompt you pasted into an AI tool of your own choosing.
 
@@ -44,7 +44,7 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
   cues alive while the phone is locked or another app is in front.
 - **A coach that keeps up, not one that lags behind.** Every cue passes through a gate so a Tabata
   block cannot build a speech backlog: interval changes always speak, countdowns are dropped when
-  they would arrive late, and if the device has no TTS voice PULSE falls back to tones and says so.
+  they would arrive late, and if the device has no TTS voice CADENCE falls back to tones and says so.
 - **A builder that scales with your workout.** Sixteen interval types, repeat blocks nested eight
   deep, ladders, supersets, per-interval overrides, drag reorder *and* Move up/down, undo/redo and a
   live timeline — in one screen.
@@ -125,7 +125,7 @@ Build problems? See [Troubleshooting](#troubleshooting) at the bottom of this pa
 | [docs/VERIFICATION.md](docs/VERIFICATION.md) | What is verified, how, and what is not verified yet |
 | [docs/DATA.md](docs/DATA.md) | Storage, privacy guarantees, export/import and backups |
 | [docs/WORKOUT_JSON.md](docs/WORKOUT_JSON.md) | The `pulse.workouts` JSON exchange format and the AI workflow |
-| [docs/TRANSLATING.md](docs/TRANSLATING.md) | Translating PULSE on Crowdin, and maintainer setup |
+| [docs/TRANSLATING.md](docs/TRANSLATING.md) | Translating CADENCE on Crowdin, and maintainer setup |
 | [docs/RELEASING.md](docs/RELEASING.md) | Versioning, signing and how a release is cut |
 | [docs/RELEASE_1.7.0.md](docs/RELEASE_1.7.0.md) and friends | Per-release verification notes |
 
@@ -178,10 +178,10 @@ voices.
 1. Android **Settings → System → Languages & input → Text-to-speech**
 2. Choose your engine (Google Speech Services, Samsung, eSpeak, …)
 3. **Install voice data** for your language and select an offline voice
-4. In PULSE: **Settings → Voice & audio studio** shows the engine and whether an offline voice is
+4. In CADENCE: **Settings → Voice & audio studio** shows the engine and whether an offline voice is
    present; use *Preview* to hear a cue
 
-If no engine is installed, PULSE says so in Voice Studio, offers a shortcut to the system settings,
+If no engine is installed, CADENCE says so in Voice Studio, offers a shortcut to the system settings,
 and uses sound cues during workouts.
 
 ## Contributing
@@ -196,13 +196,13 @@ development environment required.
 
 ## Security
 
-PULSE stores workout history and health data, so please report vulnerabilities privately rather
+CADENCE stores workout history and health data, so please report vulnerabilities privately rather
 than in a public issue. [SECURITY.md](SECURITY.md) explains how to reach us, what is in scope and
 what to expect.
 
 ## License
 
-PULSE is released under the [MIT License](LICENSE).
+CADENCE is released under the [MIT License](LICENSE).
 
 Typographic work uses [Inter](https://rsms.me/inter/) (SIL Open Font License 1.1, shipped in
 `app/src/main/res/raw/inter_ofl.txt`). Health data is read and written through

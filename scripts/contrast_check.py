@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PULSE contrast checker (v1.6 "Signal" design system).
+CADENCE contrast checker (v2.0 "Momentum" design system).
 
 Parses the palette out of the app's own resources (`app/src/main/res/values/colors.xml`), verifies
 that the Compose mirror in `ui/theme/Palette.kt` declares exactly the same values, and computes

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to PULSE are documented in this file.
+All notable changes to CADENCE are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *version name*
@@ -14,8 +14,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 
 ## [Unreleased]
 
-Nothing yet. See the [open issues](https://github.com/MrCerise/pulse-workout/issues) for what is
-being worked on.
+### Changed
+
+- **A new name and a new look: Pulse Workout is now Cadence, on the "Momentum" design system.**
+  Every feature is unchanged; the interface around them is new:
+  - A brand mark redrawn as a cadence beat — three rhythm bars and a dot — across the launcher,
+    the notification icon, the splash, the sidebar and the share card, in both apps.
+  - A new palette: deep blue-tinted ink neutrals with a single volt lime accent, re-measured across
+    all 125 contrast pairs (WCAG 2.1 AA, `docs/CONTRAST.md`).
+  - A two-family voice: Space Grotesk (OFL) for display type and every tabular figure, Inter for
+    text; a larger headline scale with the player countdown at 64 sp.
+  - Rounder geometry (16 dp controls, 22 dp cards, 30 dp sheets), cards that lift on a whisper of
+    shadow, a floating phone navigation pill, an accent beat dot in the sidebar, uppercase section
+    labels, and a volt wash inside the ink hero panel.
+  - Motion re-timed to one beat: 180 ms feedback, 260 ms selection, 340 ms overlays — still zero
+    under reduced motion.
+  - Settings → Appearance previews, the widgets, the Wear OS app and the high-contrast and
+    true-black modes all follow the new system automatically.
 
 ## [1.7.3] — 2026-10-15
 

@@ -280,7 +280,9 @@ private fun android.content.Context.findActivity(): android.app.Activity? {
 /** Never crossfade whole screens: doing so duplicates navigation and side effects. */
 @Composable
 private fun animatedColors(target: PulseColors, instant: Boolean): PulseColors {
-    val duration = if (instant) 0 else 220
+    // One Motion.standard() beat: long enough that a theme change reads as a fade, short enough
+    // that switching dark -> light never feels like the app lost a frame.
+    val duration = if (instant) 0 else 260
     @Composable
     fun colour(value: Color, name: String): Color =
         animateColorAsState(value, animationSpec = tween(duration), label = name).value

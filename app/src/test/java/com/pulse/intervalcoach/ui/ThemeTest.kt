@@ -51,6 +51,7 @@ class ThemeTest {
     @Test fun `reduced motion collapses every interaction duration`() {
         val motion = PulseMotion(reduced = true)
         assertEquals(listOf(0, 0, 0, 0, 0), listOf(motion.fast(), motion.standard(), motion.slow(), motion.emphasis(), motion.duration(220)))
-        assertTrue(PulseMotion(reduced = false).standard() in 150..250)
+        // The Momentum beat: feedback stays sub-350 ms so the app still answers instantly.
+        assertTrue(PulseMotion(reduced = false).standard() in 150..350)
     }
 }
