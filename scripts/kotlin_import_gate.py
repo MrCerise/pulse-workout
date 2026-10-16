@@ -14,7 +14,9 @@ The gate resolves, for every capitalised identifier a file uses:
   5. anything else                                        -> left alone (it is the platform's)
 
 Only the fourth case is reported: a name that this module declares, somewhere else, that this file
-has not brought into scope.
+has not brought into scope. A second pass covers the platform's own extension functions: the
+module's Compose imports are the evidence of which names are extensions, and a file that calls
+one of them — `.fillMaxHeight(` — without importing it is reported too.
 
 Exit 0 = no problems found.
 """
@@ -107,6 +109,35 @@ PLATFORM = {
     "AutoMigration", "AutoMigrationSpec", "Migration", "Room",
 }
 
+# Every Compose name the module imports anywhere is an API the module knows about. A file that
+# *uses* one of them — as a bare call `rememberCoroutineScope()` or as an extension call
+# `.fillMaxHeight(` — without importing it is missing an import: an extension function is not a
+# member of its receiver, so the import is what brings it into scope.
+COMPOSE_CALL = re.compile(r"(?<![\w.])(\w+)\s*\(")
+COMPOSE_EXTENSION_CALL = re.compile(r"\.([a-z][A-Za-z0-9_]*)\s*\(")
+
+universe = set()
+for path, source in code.items():
+    for line in source.split("\n"):
+        if line.startswith("import ") and "androidx.compose" in line:
+            universe.add(line.split(" ")[1].split(" as ")[-1].strip().split(".")[-1])
+
+# The packages whose names are top-level functions: a bare call to one of them needs an import.
+# The lazy-list scope's own members (`items`, `item`) do not, so that package is left out.
+BARE_CALL_PACKAGES = (
+    "androidx.compose.runtime",
+    "androidx.compose.ui",
+    "androidx.compose.foundation.layout",
+    "androidx.compose.material3",
+)
+bare_universe = set()
+for path, source in code.items():
+    for line in source.split("\n"):
+        if line.startswith("import ") and any(
+            line.split(" ")[1].strip().startswith(prefix) for prefix in BARE_CALL_PACKAGES
+        ):
+            bare_universe.add(line.split(" ")[1].split(" as ")[-1].strip().split(".")[-1])
+
 problems = []
 for path, source in code.items():
     package = PACKAGE.search(source)
@@ -144,6 +175,36 @@ for path, source in code.items():
                 f"(declared in {other.relative_to(ROOT)})"
             )
             break
+    # The extension-call pass: `.name(` where `name` is an API the module imports elsewhere.
+    imported_here = set()
+    for line in source.split("\n"):
+        if line.startswith("import "):
+            imported_here.add(line.split(" ")[1].split(" as ")[-1].strip().split(".")[-1])
+    used = set(COMPOSE_CALL.findall(body)) | set(COMPOSE_EXTENSION_CALL.findall(body))
+    for name in sorted(used):
+        if name in imported_here or name in own or name in PLATFORM:
+            continue
+        if name not in universe:
+            continue
+        # A fully-qualified call — `androidx.compose.runtime.rememberCoroutineScope()` — needs no
+        # import: the package is in the name.
+        if re.search(r"[A-Za-z0-9_]\." + re.escape(name) + r"\s*\(", body):
+            continue
+        # The lazy-list scope's own members need no import.
+        if name in ("item", "items", "stickyHeader"):
+            continue
+        # A name the module also declares at the top level in this file's own package is a local
+        # type: same package, no import needed.
+        if any(
+            name in {m.group(1) for m in TOP_LEVEL.finditer(other_source)}
+            and (PACKAGE.search(other_source).group(1) if PACKAGE.search(other_source) else "")
+            == package
+            for other_source in code.values()
+        ):
+            continue
+        problems.append(
+            f"{path.relative_to(ROOT)}: '{name}' is used but not imported"
+        )
 
 print("== problems ==")
 for problem in sorted(set(problems)):
