@@ -54,6 +54,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pulse.engine.RaceInfo
+import com.pulse.engine.RaceMath
 import com.pulse.engine.TimerStatus
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
@@ -61,6 +63,7 @@ import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.PlayerDensity
 import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.health.HrZones
+import com.pulse.intervalcoach.session.RunTracker
 import com.pulse.intervalcoach.session.formatClock
 import com.pulse.intervalcoach.ui.components.CategoryChip
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
@@ -232,20 +235,22 @@ fun PlayerScreen(
                     liveHr?.let { bpm ->
                         HeartRateBadge(bpm = bpm, modifier = Modifier.padding(end = dimens.s))
                     }
-                    PulseIconButton(
-                        icon = if (cuesMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
-                        contentDescription = if (cuesMuted) "Unmute cues" else "Mute cues",
-                        tooltip = if (cuesMuted) "Unmute cues" else "Mute cues",
-                        onClick = { controller.toggleCuesMuted() },
-                        tint = colors.textSecondary,
-                    )
-                    PulseIconButton(
-                        icon = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.player_end_session),
-                        tooltip = stringResource(R.string.player_end_session),
-                        onClick = { confirmEnd = true },
-                        tint = colors.textSecondary,
-                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.xs)) {
+                        PulseIconButton(
+                            icon = if (cuesMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                            contentDescription = if (cuesMuted) "Unmute cues" else "Mute cues",
+                            tooltip = if (cuesMuted) "Unmute cues" else "Mute cues",
+                            onClick = { controller.toggleCuesMuted() },
+                            tint = colors.textSecondary,
+                        )
+                        PulseIconButton(
+                            icon = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.player_end_session),
+                            tooltip = stringResource(R.string.player_end_session),
+                            onClick = { confirmEnd = true },
+                            tint = colors.textSecondary,
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(dimens.s))
@@ -277,6 +282,15 @@ fun PlayerScreen(
                             color = colors.textSecondary,
                         )
                     }
+                }
+
+                // --- Race info (the running system): live speed and distance --------------------
+                // Only for workouts whose category runs the system; placeholders stand in until
+                // the tracker has something honest to say — never fake numbers.
+                if (active?.plan?.category?.capabilities?.supportsRaceInfo == true) {
+                    Spacer(Modifier.height(dimens.m))
+                    val race by container.runTracker.raceInfo.collectAsStateWithLifecycle()
+                    RaceInfoBand(race = race, hasLocationPermission = RunTracker.hasLocationPermission(context))
                 }
 
                 Spacer(Modifier.height(dimens.l))
@@ -557,6 +571,77 @@ private fun TransportButton(
                 modifier = Modifier.size(32.dp),
             )
         }
+    }
+}
+
+/**
+ * The running system's race info: speed, distance, and the race's state — drawn as three labelled
+ * micro-stats in the same rhythm as the elapsed/remaining row. When a target distance is set the
+ * third column is what is left of the race; otherwise it is the live pace.
+ */
+@Composable
+private fun RaceInfoBand(race: RaceInfo?, hasLocationPermission: Boolean, modifier: Modifier = Modifier) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Column(modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            RaceStat(
+                label = stringResource(R.string.player_race_speed).uppercase(),
+                value = race?.takeIf { it.speedMps > 0.0 }?.let { "${RaceMath.formatSpeedKph(it.speedMps)} km/h" } ?: "—",
+            )
+            RaceStat(
+                label = stringResource(R.string.player_race_distance).uppercase(),
+                value = race?.let { "${RaceMath.formatDistanceKm(it.distanceMeters)} km" } ?: "—",
+                alignment = Alignment.CenterHorizontally,
+            )
+            if (race?.targetDistanceMeters != null) {
+                RaceStat(
+                    label = stringResource(R.string.player_race_left).uppercase(),
+                    value = "${RaceMath.formatDistanceKm(race.remainingMeters ?: 0.0)} km",
+                    alignment = Alignment.End,
+                )
+            } else {
+                RaceStat(
+                    label = stringResource(R.string.player_race_pace).uppercase(),
+                    value = race?.let { "${RaceMath.formatPace(it.paceSecondsPerKm)} /km" } ?: "—",
+                    alignment = Alignment.End,
+                )
+            }
+        }
+        Spacer(Modifier.height(dimens.microGap))
+        Text(
+            text = when {
+                race == null -> stringResource(R.string.player_race_starting)
+                race.hasFix -> stringResource(R.string.player_race_gps_live)
+                hasLocationPermission -> stringResource(R.string.player_race_waiting_gps)
+                else -> stringResource(R.string.player_race_estimated, RaceMath.formatPace(race.racePaceSecondsPerKm?.toDouble()))
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textMuted,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun RaceStat(
+    label: String,
+    value: String,
+    alignment: Alignment.Horizontal = Alignment.Start,
+) {
+    val colors = LocalPulseColors.current
+    Column(horizontalAlignment = alignment) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textMuted,
+        )
+        Text(
+            text = value,
+            style = PulseType.NumericSmall,
+            color = colors.textSecondary,
+        )
     }
 }
 

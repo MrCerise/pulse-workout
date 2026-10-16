@@ -22,6 +22,7 @@ import com.pulse.intervalcoach.health.HealthHub
 import com.pulse.intervalcoach.locale.AppLocale
 import com.pulse.intervalcoach.session.MusicController
 import com.pulse.intervalcoach.session.Notifications
+import com.pulse.intervalcoach.session.RunTracker
 import com.pulse.intervalcoach.session.SessionController
 import com.pulse.intervalcoach.wear.WearSyncManager
 import com.pulse.intervalcoach.work.ReminderWorker
@@ -69,6 +70,9 @@ class AppContainer(private val app: Application) {
         }
     }
 
+    /** The running system's GPS tracker, shared by the session and the player. */
+    val runTracker: RunTracker by lazy { RunTracker(app, appScope) }
+
     val sessionController: SessionController by lazy {
         SessionController(
             context = app,
@@ -80,6 +84,7 @@ class AppContainer(private val app: Application) {
             speech = speech,
             haptics = haptics,
             music = music,
+            runTracker = runTracker,
             limits = EngineLimits(),
         )
     }

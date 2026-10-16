@@ -57,6 +57,7 @@ import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.DeepLinks
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.AppLanguage
+import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.locale.Localized
 import com.pulse.intervalcoach.ui.builders.AdvancedBuilderScreen
 import com.pulse.intervalcoach.ui.builders.QuickBuilderScreen
@@ -70,7 +71,7 @@ import com.pulse.intervalcoach.ui.components.PulseLogo
 import com.pulse.intervalcoach.ui.components.PulseNavGroup
 import com.pulse.intervalcoach.ui.components.PulseNavItem
 import com.pulse.intervalcoach.ui.components.PulseNavRail
-import com.pulse.intervalcoach.ui.components.PulseSegmented
+import com.pulse.intervalcoach.ui.components.PulseChipGroup
 import com.pulse.intervalcoach.ui.components.PulseSnackbar
 import com.pulse.intervalcoach.ui.health.HealthScreen
 import com.pulse.intervalcoach.ui.home.HomeScreen
@@ -247,6 +248,7 @@ fun PulseAppRoot(
     deeplinks: StateFlow<String?>,
     onDeeplinkConsumed: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
+    onRequestLocationPermission: () -> Unit,
 ) {
     val language by container.preferences.flow
         .map { it.appLanguage }
@@ -257,6 +259,7 @@ fun PulseAppRoot(
             deeplinks = deeplinks,
             onDeeplinkConsumed = onDeeplinkConsumed,
             onRequestNotificationPermission = onRequestNotificationPermission,
+            onRequestLocationPermission = onRequestLocationPermission,
         )
     }
 }
@@ -268,6 +271,7 @@ private fun PulseAppRootContent(
     deeplinks: StateFlow<String?>,
     onDeeplinkConsumed: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
+    onRequestLocationPermission: () -> Unit,
 ) {
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val navController = rememberNavController()
@@ -312,6 +316,9 @@ private fun PulseAppRootContent(
                 val result = sessionController.startWorkout(plan, replaceActiveSession = replaceActive)
                 if (result.isSuccess) {
                     onRequestNotificationPermission()
+                    // Running workouts measure with GPS when the user allows it; without the
+                    // permission the race info falls back to the plan's target pace.
+                    if (plan.category.capabilities.supportsRaceInfo) onRequestLocationPermission()
                     navController.navigate(Routes.PLAYER)
                 } else {
                     snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "Could not start this workout")
@@ -562,6 +569,7 @@ private fun PulseAppRootContent(
                                     scope.launch {
                                         val result = sessionController.startWorkout(plan)
                                         if (result.isSuccess) {
+                                            if (plan.category.capabilities.supportsRaceInfo) onRequestLocationPermission()
                                             sessionController.clearSummary()
                                             navController.navigate(Routes.PLAYER) { popUpTo(Routes.SUMMARY) { inclusive = true } }
                                         }
@@ -814,7 +822,7 @@ private fun AppearanceControl(mode: ThemeMode, onSelect: (ThemeMode) -> Unit) {
                 modifier = Modifier.weight(1f),
             )
         }
-        PulseSegmented(
+        PulseChipGroup(
             options = listOf(
                 ThemeMode.SYSTEM to "Auto",
                 ThemeMode.LIGHT to "Light",

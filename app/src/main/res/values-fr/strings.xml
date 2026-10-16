@@ -157,6 +157,24 @@
     <string name="player_laps">%1$d tours</string>
     <string name="player_instructor">Vue instructeur</string>
 
+    <!-- Running system — race info in the player -->
+    <string name="player_race_speed">Vitesse</string>
+    <string name="player_race_distance">Distance</string>
+    <string name="player_race_left">Restant</string>
+    <string name="player_race_pace">Allure</string>
+    <string name="player_race_starting">Démarrage du suivi…</string>
+    <string name="player_race_gps_live">GPS actif</string>
+    <string name="player_race_waiting_gps">En attente du GPS · estimation selon l\'allure prévue</string>
+    <string name="player_race_estimated">Estimé · plan %1$s /km</string>
+    <string name="builder_race_section">Course</string>
+    <string name="builder_race_pace">Allure cible (par km)</string>
+    <string name="builder_race_distance">Distance de course (km)</string>
+    <string name="builder_race_distance_hint">0 = sortie libre · les infos de course affichent vitesse et distance</string>
+    <string name="summary_race_distance">Distance</string>
+    <string name="summary_race_avg_speed">Vitesse moyenne</string>
+    <string name="summary_race_source_gps">GPS</string>
+    <string name="summary_race_source_estimated">Estimé</string>
+
     <!-- Summary -->
     <string name="summary_title">Résumé de la séance</string>
     <string name="summary_completed_at">Terminée %1$s</string>

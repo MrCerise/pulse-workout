@@ -43,6 +43,7 @@ import com.pulse.engine.IntervalSpec
 import com.pulse.engine.Ladder
 import com.pulse.engine.Node
 import com.pulse.engine.PhaseKind
+import com.pulse.engine.RaceMath
 import com.pulse.engine.RepeatGroup
 import com.pulse.engine.SoundCue
 import com.pulse.engine.TimelineExpander
@@ -80,6 +81,7 @@ import java.io.File
 import java.nio.file.Files
 import java.security.MessageDigest
 import java.util.UUID
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -459,6 +461,12 @@ class AdvancedBuilderViewModel(
     fun setShuffle(value: Boolean) = mutate { it.copy(shuffleEager = value) }
     fun setIncludeFinalRest(value: Boolean) = mutate { it.copy(includeFinalRest = value) }
 
+    /** Running system — planned pace in whole seconds per kilometre. */
+    fun setRacePace(secondsPerKm: Int) = mutate { it.copy(racePaceSecondsPerKm = secondsPerKm.coerceAtLeast(30)) }
+
+    /** Running system — target race distance in metres, or null for an open-ended run. */
+    fun setRaceDistance(meters: Double?) = mutate { it.copy(raceDistanceMeters = meters?.takeIf { value -> value > 0.0 }) }
+
     fun addInterval(kind: PhaseKind = PhaseKind.WORK, millis: Long = 30_000) = mutate { plan ->
         val node = IntervalNode(
             UUID.randomUUID().toString(),
@@ -722,6 +730,38 @@ fun AdvancedBuilderScreen(
                 }
             }
 
+            // The running system: categories that track race info expose their pacing inputs here.
+            if (state.plan.category.capabilities.supportsRaceInfo) {
+                item { SectionHeader(stringResource(R.string.builder_race_section)) }
+                item {
+                    Column {
+                        DurationStepper(
+                            label = stringResource(R.string.builder_race_pace),
+                            millis = (state.plan.racePaceSecondsPerKm ?: RaceMath.DEFAULT_PACE_SECONDS_PER_KM) * 1000L,
+                            stepMillis = 5_000L,
+                            maxMillis = 3_600_000L,
+                            allowZero = false,
+                            onChange = { value ->
+                                viewModel.setRacePace((value.coerceIn(60_000L, 3_600_000L) / 1000L).toInt())
+                            },
+                        )
+                        NumberStepper(
+                            label = stringResource(R.string.builder_race_distance),
+                            value = ((state.plan.raceDistanceMeters ?: 0.0) / 1000.0).roundToInt(),
+                            min = 0,
+                            max = 200,
+                            onChange = { km -> viewModel.setRaceDistance(if (km <= 0) null else km * 1000.0) },
+                        )
+                        Text(
+                            text = stringResource(R.string.builder_race_distance_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
+                            modifier = Modifier.padding(top = LocalPulseDimens.current.xs),
+                        )
+                    }
+                }
+            }
+
             item {
                 Column {
                     Text(
@@ -853,7 +893,10 @@ private fun BuilderNodeCard(
 ) {
     val colors = LocalPulseColors.current
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.xs),
+        ) {
             Column(Modifier.weight(1f).clickable(onClick = onToggle)) {
                 when (node) {
                     is IntervalNode -> {
@@ -954,7 +997,7 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
         OptionRow(
             label = stringResource(R.string.builder_sound),
             options = listOf(SoundCue.TICK, SoundCue.BEEP, SoundCue.DOUBLE_BEEP, SoundCue.BELL, SoundCue.WHISTLE, SoundCue.CHIME, SoundCue.BUZZ, SoundCue.NONE)
-                .map { it to it.name.lowercase().replaceFirstChar { c -> c.uppercase() } },
+                .map { it to it.name.lowercase().replace('_', ' ').replaceFirstChar { c -> c.uppercase() } },
             selected = spec.sound,
             onSelect = { cue -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(sound = cue) } },
         )
@@ -1033,7 +1076,10 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
             Spacer(Modifier.height(LocalPulseDimens.current.xs))
             var expanded by remember { mutableStateOf(false) }
             Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.xs),
+                ) {
                     Column(Modifier.weight(1f).clickable { expanded = !expanded }) {
                         Text(
                             when (child) {

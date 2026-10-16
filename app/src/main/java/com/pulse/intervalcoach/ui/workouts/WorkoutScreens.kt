@@ -534,7 +534,10 @@ private fun WorkoutRow(
         leadingContainer = colors.categoryTint(category.hue),
         onClick = onOpen,
         trailing = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.xs),
+            ) {
                 PulseIconButton(
                     icon = if (workout.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = if (workout.isFavorite) "Remove from favorites" else "Add to favorites",

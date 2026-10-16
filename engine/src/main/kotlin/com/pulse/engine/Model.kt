@@ -66,6 +66,7 @@ enum class WorkoutType {
     E2MOM,
     AMRAP,
     STRENGTH,
+    RUN,
     RUN_WALK,
     STRETCHING,
     BREATHING,
@@ -196,6 +197,16 @@ data class WorkoutPlan(
      * session time while running (used by "repeating cue timer" workouts).
      */
     val periodicCueMillis: Long? = null,
+    /**
+     * Running system — target race distance in metres, or null when the run has no target
+     * distance. Drives "distance remaining" and the projected finish in the player.
+     */
+    val raceDistanceMeters: Double? = null,
+    /**
+     * Running system — planned pace in seconds per kilometre (e.g. 300 = 5:00 /km). Used to
+     * project race info when no GPS fix is available, and to pace a target-distance run.
+     */
+    val racePaceSecondsPerKm: Int? = null,
 ) {
     fun allIntervals(): List<IntervalSpec> = flattenIntervals(nodes)
 

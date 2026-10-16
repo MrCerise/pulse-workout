@@ -29,6 +29,7 @@ import com.pulse.intervalcoach.data.STATUS_STOPPED
 import com.pulse.intervalcoach.data.SessionRepository
 import com.pulse.intervalcoach.data.UserPreferences
 import com.pulse.intervalcoach.data.WorkoutRepository
+import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.db.SessionEventEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -70,6 +71,13 @@ data class SessionSummaryData(
     val roundsLogged: Int,
     val stoppedEarly: Boolean,
     val endedAt: Long = 0L,
+    /** Running system — race totals for a running workout, null otherwise. */
+    val raceDistanceMeters: Double? = null,
+    val raceAverageSpeedMps: Double? = null,
+    val raceTargetDistanceMeters: Double? = null,
+    /** "GPS" when measured, "ESTIMATED" when projected from the plan pace. */
+    val raceSource: String? = null,
+    val raceFinished: Boolean = false,
 )
 
 /**
@@ -90,6 +98,8 @@ class SessionController(
     val speech: SpeechCoach,
     val haptics: Haptics,
     private val music: MusicController,
+    /** The running system's GPS tracker — started with running workouts, frozen at session end. */
+    val runTracker: RunTracker,
     private val limits: EngineLimits = EngineLimits(),
 ) {
     private val engine = TimerEngine(AndroidMonotonicClock)
@@ -207,6 +217,10 @@ class SessionController(
         music.start()
         acquireWakeLockIfNeeded(current)
         ensureTicker()
+        // The running system: GPS race info for categories that carry it, projected pace otherwise.
+        if (plan.category.capabilities.supportsRaceInfo) {
+            runTracker.start(plan)
+        }
         WorkoutService.start(context)
         Result.success(session)
     }
@@ -337,6 +351,10 @@ class SessionController(
             STATUS_COMPLETED
         }
         val endedAt = System.currentTimeMillis()
+        // Freeze the race read-out before the summary is built: the tracker is the only thing that
+        // knows how far the runner actually went.
+        runTracker.stop()
+        val race = runTracker.finalInfo
         sessionRepository.finish(
             sessionId = active.sessionId,
             endedAt = endedAt,
@@ -364,6 +382,11 @@ class SessionController(
             roundsLogged = snapshot.laps,
             stoppedEarly = stoppedEarly,
             endedAt = endedAt,
+            raceDistanceMeters = race?.distanceMeters,
+            raceAverageSpeedMps = race?.takeIf { it.movingMillis > 0L }?.averageSpeedMps,
+            raceTargetDistanceMeters = race?.targetDistanceMeters,
+            raceSource = race?.source?.name,
+            raceFinished = race?.finished == true,
         )
         teardown()
     }
@@ -376,6 +399,7 @@ class SessionController(
         speech.stop()
         music.stop()
         haptics.cancel()
+        runTracker.stop()
         _active.value = null
         mutedByUser = false
         mutedByFocus = false
@@ -414,7 +438,10 @@ class SessionController(
     }
 
     private fun publish() {
-        _snapshot.value = engine.snapshot()
+        val snapshot = engine.snapshot()
+        // The race clock follows the timer: paused workouts cover no distance.
+        runTracker.setPaused(snapshot.isPaused || !snapshot.isActive)
+        _snapshot.value = snapshot
     }
 
     private suspend fun consumeEvents() {

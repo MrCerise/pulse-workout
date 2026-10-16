@@ -29,6 +29,8 @@ class MainActivity : ComponentActivity() {
     // property level — calling registerForActivityResult from a runtime callback would throw.
     private val notificationPermissionLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { }
+    private val locationPermissionLauncher =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +45,7 @@ class MainActivity : ComponentActivity() {
                 deeplinks = deeplinks.asStateFlow(),
                 onDeeplinkConsumed = { deeplinks.value = null },
                 onRequestNotificationPermission = ::requestNotificationPermissionIfNeeded,
+                onRequestLocationPermission = ::requestLocationPermissionIfNeeded,
             )
         }
         val container = (application as PulseApp).container
@@ -65,6 +68,22 @@ class MainActivity : ComponentActivity() {
             PackageManager.PERMISSION_GRANTED
         if (granted) return
         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    /**
+     * Asks for location when a running workout starts, so the running system can measure real
+     * speed and distance with GPS. Denial is handled by the app: race info falls back to the
+     * plan's target pace and is labelled "Estimated".
+     */
+    private fun requestLocationPermissionIfNeeded() {
+        val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        if (granted) return
+        locationPermissionLauncher.launch(
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+        )
     }
 }
 
