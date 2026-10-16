@@ -144,6 +144,23 @@
     <string name="player_lap">Lap</string>
     <string name="player_laps">%1$d laps</string>
     <string name="player_instructor">Instructor view</string>
+    <!-- Running system — race info in the player -->
+    <string name="player_race_speed">Speed</string>
+    <string name="player_race_distance">Distance</string>
+    <string name="player_race_left">Left</string>
+    <string name="player_race_pace">Pace</string>
+    <string name="player_race_starting">Starting race tracking…</string>
+    <string name="player_race_gps_live">GPS live</string>
+    <string name="player_race_waiting_gps">Waiting for GPS · estimating from plan pace</string>
+    <string name="player_race_estimated">Estimated · %1$s /km plan</string>
+    <string name="builder_race_section">Race</string>
+    <string name="builder_race_pace">Target pace (per km)</string>
+    <string name="builder_race_distance">Race distance (km)</string>
+    <string name="builder_race_distance_hint">0 = open-ended run · race info shows speed and distance</string>
+    <string name="summary_race_distance">Distance</string>
+    <string name="summary_race_avg_speed">Average speed</string>
+    <string name="summary_race_source_gps">GPS</string>
+    <string name="summary_race_source_estimated">Estimated</string>
     <!-- Summary -->
     <string name="summary_title">Session summary</string>
     <string name="summary_completed_at">Completed %1$s</string>
