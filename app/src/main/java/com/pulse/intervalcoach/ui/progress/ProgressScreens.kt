@@ -58,6 +58,7 @@ import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
