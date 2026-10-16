@@ -46,7 +46,7 @@ android {
         minSdk = 26
         targetSdk = pulseCompileSdk
         versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 23
-        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.0"
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.1"
         vectorDrawables.useSupportLibrary = true
     }
 

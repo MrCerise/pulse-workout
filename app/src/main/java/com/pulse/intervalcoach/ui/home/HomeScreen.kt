@@ -105,6 +105,8 @@ data class HomeUiState(
     val week: List<DailyActivity> = emptyList(),
     val weekSessions: Int = 0,
     val weekMillis: Long = 0L,
+    /** The user's own weekly target in active minutes — the hero and rings divide by this. */
+    val goalMinutes: Int = 150,
     val activePlanName: String? = null,
     val loading: Boolean = true,
 )
@@ -125,8 +127,8 @@ class HomeViewModel(
         container.sessions.observeRecent(6),
         container.reminders.enabled,
         container.sessionController.active,
-        combine(_quickState, container.preferences.flow) { quick, _ -> quick },
-    ) { summaries, recentSessions, reminders, active, _ ->
+        container.preferences.flow,
+    ) { summaries, recentSessions, reminders, active, prefs ->
         val byId = summaries.associateBy { it.id }
         val recent = recentSessions.mapNotNull { session -> byId[session.workoutId] }
             .distinctBy { it.id }
@@ -140,6 +142,7 @@ class HomeViewModel(
             week = activities,
             weekSessions = activities.sumOf { it.sessionCount },
             weekMillis = activities.sumOf { it.activeMillis },
+            goalMinutes = prefs.weeklyGoalMinutes,
             activePlanName = active?.plan?.name,
             loading = false,
         )
@@ -217,7 +220,8 @@ val homeStartableCategories: List<WorkoutCategory>
     get() = listOf("HIIT", "TABATA", "EMOM", "AMRAP", "STRENGTH", "RUN_WALK", "STRETCHING", "BREATHING", "FOCUS")
         .map { WorkoutCategories.byKey(it) }
 
-private const val WEEKLY_GOAL_MILLIS = 150L * 60L * 1000L // WHO 150 min/week guideline
+/** The WHO weekly guideline in active minutes — the default for the goal picker. */
+const val WHO_WEEKLY_MINUTES = 150
 
 /**
  * Today — the dashboard's overview page.
@@ -262,6 +266,7 @@ fun HomeScreen(
     val watchSession by container.wearSync.remoteWatchSession.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
+    val goalMillis = state.goalMinutes.coerceAtLeast(1).toLong() * 60L * 1000L
     val presets = remember { buildCategoryPresets() }
     val categories = remember { homeStartableCategories }
     val templates = remember { StarterWorkouts.templates }
@@ -294,6 +299,7 @@ fun HomeScreen(
                 TodayHero(
                     weekMillis = state.weekMillis,
                     weekSessions = state.weekSessions,
+                    goalMillis = goalMillis,
                     onStart = { onStartWorkout(viewModel.buildQuickPlan()) },
                 )
             }
@@ -368,13 +374,7 @@ fun HomeScreen(
             }
 
             // --- Start by category ---------------------------------------------------------------
-            item {
-                SectionHeader(
-                    text = "Start by category",
-                    actionLabel = if (onOpenLibrary != null) "All workouts" else null,
-                    onAction = onOpenLibrary,
-                )
-            }
+            item { SectionHeader("Start by category") }
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                     items(categories, key = { it.key }) { category ->
@@ -392,162 +392,120 @@ fun HomeScreen(
                     }
                 }
             }
+            // The library is a destination, so it gets a destination-sized control — the same
+            // full-width outlined button every other page ends its list with — not a floating
+            // two-word link in the section header.
+            if (onOpenLibrary != null) {
+                item {
+                    SecondaryActionButton(
+                        text = "All workouts",
+                        onClick = onOpenLibrary,
+                        icon = Icons.Filled.FitnessCenter,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
 
             // --- Quick start ---------------------------------------------------------------------
+            // Deliberately *not* a card: presets and steppers are already raised surfaces, so a
+            // container around them would be a container inside a container. The section sits
+            // directly on the canvas and the tiles carry the visual weight themselves.
             item {
-                PulseCard {
-                    Column(Modifier.fillMaxWidth()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(icon = Icons.Filled.Bolt, tint = colors.accent, container = colors.accentTint)
-                            Spacer(Modifier.width(dimens.m))
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    text = "Quick start",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.textPrimary,
-                                )
-                            }
+                Column(Modifier.fillMaxWidth()) {
+                    SectionHeader("Quick start")
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        presets.take(2).forEach { preset ->
+                            PresetTile(
+                                title = preset.category.title,
+                                icon = preset.category.icon,
+                                hue = colors.categoryColor(preset.category.hue),
+                                tint = colors.categoryTint(preset.category.hue),
+                                duration = presetDuration(preset.plan),
+                                onClick = { onStartWorkout(preset.plan) },
+                                modifier = Modifier.weight(1f),
+                            )
                         }
-                        Spacer(Modifier.height(dimens.m))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                            presets.take(2).forEach { preset ->
-                                PresetTile(
-                                    title = preset.category.title,
-                                    icon = preset.category.icon,
-                                    hue = colors.categoryColor(preset.category.hue),
-                                    tint = colors.categoryTint(preset.category.hue),
-                                    duration = presetDuration(preset.plan),
-                                    onClick = { onStartWorkout(preset.plan) },
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
+                    }
+                    Spacer(Modifier.height(dimens.s))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        presets.drop(2).forEach { preset ->
+                            PresetTile(
+                                title = preset.category.title,
+                                icon = preset.category.icon,
+                                hue = colors.categoryColor(preset.category.hue),
+                                tint = colors.categoryTint(preset.category.hue),
+                                duration = presetDuration(preset.plan),
+                                onClick = { onStartWorkout(preset.plan) },
+                                modifier = Modifier.weight(1f),
+                            )
                         }
-                        Spacer(Modifier.height(dimens.s))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                            presets.drop(2).forEach { preset ->
-                                PresetTile(
-                                    title = preset.category.title,
-                                    icon = preset.category.icon,
-                                    hue = colors.categoryColor(preset.category.hue),
-                                    tint = colors.categoryTint(preset.category.hue),
-                                    duration = presetDuration(preset.plan),
-                                    onClick = { onStartWorkout(preset.plan) },
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                        }
+                    }
 
-                        Spacer(Modifier.height(dimens.l))
-                        SectionHeader(text = "Custom", trailing = formatDuration(quickTotal(quick)))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
-                            DurationStepper(
-                                label = "Work",
-                                millis = quick.work,
-                                onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
-                                modifier = Modifier.weight(1f),
-                            )
-                            DurationStepper(
-                                label = "Rest",
-                                millis = quick.rest,
-                                onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        Spacer(Modifier.height(dimens.m))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
-                            NumberStepper(
-                                label = "Rounds",
-                                value = quick.rounds,
-                                onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
-                                modifier = Modifier.weight(1f),
-                            )
-                            DurationStepper(
-                                label = "Prep",
-                                millis = quick.prepMillis,
-                                onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        Spacer(Modifier.height(dimens.l))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                            PrimaryActionButton(
-                                text = "Start",
-                                onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
-                                icon = Icons.Filled.PlayArrow,
-                                modifier = Modifier.weight(1f),
-                            )
-                            SecondaryActionButton(
-                                text = "Customize",
-                                onClick = onQuickStart,
-                                icon = Icons.Filled.Tune,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+                    SectionHeader(text = "Custom", trailing = formatDuration(quickTotal(quick)))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
+                        DurationStepper(
+                            label = "Work",
+                            millis = quick.work,
+                            onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                        DurationStepper(
+                            label = "Rest",
+                            millis = quick.rest,
+                            onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Spacer(Modifier.height(dimens.m))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
+                        NumberStepper(
+                            label = "Rounds",
+                            value = quick.rounds,
+                            onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                        DurationStepper(
+                            label = "Prep",
+                            millis = quick.prepMillis,
+                            onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Spacer(Modifier.height(dimens.l))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        PrimaryActionButton(
+                            text = "Start",
+                            onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
+                            icon = Icons.Filled.PlayArrow,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SecondaryActionButton(
+                            text = "Customize",
+                            onClick = onQuickStart,
+                            icon = Icons.Filled.Tune,
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
             }
 
             // --- Weekly activity -----------------------------------------------------------------
-            item { SectionHeader(text = "This week") }
+            // The hero already answers "where am I against my goal", so this section is only the
+            // day-by-day chart — one container, one job, and no second copy of the same numbers.
+            item { SectionHeader(text = "This week", trailing = "${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}") }
             item {
                 PulseCard {
-                    Column(Modifier.fillMaxWidth()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            ProgressRing(
-                                progress = (state.weekMillis.toFloat() / WEEKLY_GOAL_MILLIS).coerceIn(0f, 1f),
-                                color = colors.accent,
-                                trackColor = colors.track,
-                                strokeWidth = 6.dp,
-                                modifier = Modifier.size(72.dp),
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = "${(state.weekMillis / 60000L).toInt()}",
-                                        style = PulseType.NumericMedium,
-                                        color = colors.textPrimary,
-                                    )
-                                    Text(
-                                        text = "min",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = colors.textMuted,
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.width(dimens.l))
-                            Column(
-                                Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(dimens.xs),
-                            ) {
-                                Text(
-                                    text = "${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.textPrimary,
-                                )
-                                Text(
-                                    text = "of the 150 min weekly guideline",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
-                                )
-                                Spacer(Modifier.height(dimens.xs))
-                                ProgressBar(
-                                    progress = state.weekMillis.toFloat() / WEEKLY_GOAL_MILLIS,
-                                    height = 4.dp,
-                                )
-                            }
-                        }
-                        Spacer(Modifier.height(dimens.l))
-                        ActivityChart(
-                            bars = state.week.map {
-                                ActivityBar(
-                                    label = it.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
-                                    value = it.activeMillis,
-                                )
-                            },
-                            height = dimens.chartHeight - 48.dp,
-                            emptyLabel = "No sessions recorded this week yet.",
-                            color = colors.accent,
-                        )
-                    }
+                    ActivityChart(
+                        bars = state.week.map {
+                            ActivityBar(
+                                label = it.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
+                                value = it.activeMillis,
+                            )
+                        },
+                        height = dimens.chartHeight - 48.dp,
+                        emptyLabel = "No sessions recorded this week yet.",
+                        color = colors.accent,
+                    )
                 }
             }
 
@@ -604,22 +562,22 @@ fun HomeScreen(
             }
 
             // --- Health snapshot (only when something is actually connected) ----------------------
+            // Flat tiles on the canvas: the tiles are already surfaces, so a card around them was
+            // a container inside a container with nothing to say.
             if (healthSnapshot.source != null) {
                 item { SectionHeader(text = "Today's health", trailing = healthSnapshot.source.orEmpty()) }
                 item {
-                    PulseCard(onClick = onOpenHealth) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
-                            StatTile(
-                                label = "Steps",
-                                value = healthSnapshot.stepsToday?.toString() ?: "—",
-                                modifier = Modifier.weight(1f),
-                            )
-                            StatTile(
-                                label = "Heart rate",
-                                value = healthSnapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
+                        StatTile(
+                            label = "Steps",
+                            value = healthSnapshot.stepsToday?.toString() ?: "—",
+                            modifier = Modifier.weight(1f),
+                        )
+                        StatTile(
+                            label = "Heart rate",
+                            value = healthSnapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
             }
@@ -660,7 +618,7 @@ fun HomeScreen(
 
             // --- Next planned & recent: one table, two sections ------------------------------------
             if (state.nextPlanned != null || state.recent.isNotEmpty()) {
-                item { SectionHeader("Recent activity", actionLabel = "History", onAction = onOpenProgress) }
+                item { SectionHeader("Recent activity") }
                 item {
                     PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.xs)) {
                         Column(Modifier.fillMaxWidth()) {
@@ -701,6 +659,14 @@ fun HomeScreen(
                         }
                     }
                 }
+                item {
+                    SecondaryActionButton(
+                        text = "Full history",
+                        onClick = onOpenProgress,
+                        icon = Icons.Filled.Insights,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
 
             if (state.loading) {
@@ -709,15 +675,13 @@ fun HomeScreen(
 
             if (state.favorites.isEmpty() && state.recent.isEmpty() && !state.loading) {
                 item {
-                    PulseCard {
-                        EmptyState(
-                            title = "Nothing here yet",
-                            body = "Star a workout to pin it here.",
-                            icon = Icons.Filled.FitnessCenter,
-                            actionLabel = if (onOpenLibrary != null) "Browse workouts" else null,
-                            onAction = onOpenLibrary,
-                        )
-                    }
+                    EmptyState(
+                        title = "Nothing here yet",
+                        body = "Star a workout to pin it here.",
+                        icon = Icons.Filled.FitnessCenter,
+                        actionLabel = if (onOpenLibrary != null) "Browse workouts" else null,
+                        onAction = onOpenLibrary,
+                    )
                 }
             }
         }
@@ -735,10 +699,12 @@ fun HomeScreen(
 private fun TodayHero(
     weekMillis: Long,
     weekSessions: Int,
+    goalMillis: Long,
     onStart: () -> Unit,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val goalMinutes = (goalMillis / 60000L).coerceAtLeast(1)
     PulseHeroCard {
         Column(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -763,7 +729,8 @@ private fun TodayHero(
                 )
                 Spacer(Modifier.width(dimens.s))
                 Text(
-                    text = "of 150 active minutes",
+                    text = "of $goalMinutes active minutes" +
+                        if (goalMinutes == WHO_WEEKLY_MINUTES.toLong()) " · WHO guideline" else "",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.heroMuted,
                     modifier = Modifier.padding(bottom = dimens.xs),
@@ -771,7 +738,7 @@ private fun TodayHero(
             }
             Spacer(Modifier.height(dimens.m))
             ProgressBar(
-                progress = weekMillis.toFloat() / WEEKLY_GOAL_MILLIS,
+                progress = (weekMillis.toFloat() / goalMillis.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f),
                 height = 4.dp,
                 trackColor = colors.heroMuted.copy(alpha = 0.28f),
             )

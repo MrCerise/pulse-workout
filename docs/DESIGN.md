@@ -39,7 +39,7 @@ numbers it depends on live in the generated [contrast report](CONTRAST.md).
    granted by *function*, not by size: whatever you tap is a rounded rectangle — a button, a field, a
    stepper, and a filter or option chip too — while a chip that only labels something (a phase tag, a
    category name, a status badge, a progress track) may be fully round, because it carries no action.
-4. **Dense, not cramped.** 4 dp base unit, 16 dp page gutter, 16 dp card padding, 56 dp list rows,
+4. **Dense, not cramped.** 4 dp base unit, 20 dp page gutter, 16 dp card padding, 56 dp list rows,
    40 dp compact controls and 48 dp action buttons.
 5. **Colour always means something.** Four interval phases, six category families, four semantic
    states. Every hue ships with the pre-composited tint it is drawn on, so a tinted chip's contrast
@@ -196,7 +196,7 @@ fixed advance width is genuinely wanted (the cue-script preview).
 | Token | Value | Notes |
 | --- | --- | --- |
 | `microGap` / `xs` / `s` / `m` / `l` / `xl` / `xxl` / `huge` / `massive` | 2 / 4 / 8 / 12 / 16 / 20 / 24 / 32 / 48 dp | 4 dp base unit |
-| `pagePadding` | 16 dp | every scrolling screen shares it |
+| `pagePadding` | 20 dp | every scrolling screen shares it |
 | `cardPadding` | 16 dp | `PulseCard` interior |
 | `cardGap` | 12 dp | between sibling cards |
 | `chipGap` | 6 dp | inside a cluster of chips |

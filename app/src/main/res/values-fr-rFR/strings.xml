@@ -138,6 +138,9 @@
     <string name="player_end_session">Fin de la session</string>
     <string name="player_countdown_resumed">Minuterie en cours d\'exécution</string>
     <string name="player_up_next">Suivant</string>
+    <string name="player_elapsed">Écoulé</string>
+    <string name="player_remaining">Restant</string>
+    <string name="settings_weekly_goal">Objectif hebdomadaire</string>
     <string name="player_lap">Tour</string>
     <string name="player_laps">%1$d tours</string>
     <string name="player_instructor">Vue de l\'instructeur</string>
@@ -303,6 +306,7 @@
     <string name="help_accessibility">Accessibilité</string>
     <string name="help_accessibility_body">Les mouvements réduits, les commandes à haut contraste et à gauche sont dans les paramètres. Utilisez Déplacer vers le haut / Déplacer vers le bas pour réorganiser les intervalles.</string>
     <!-- Common -->
+    <string name="builder_invalid_title">Impossible d’enregistrer pour le moment</string>
     <string name="ok">Ok</string>
     <string name="close">Fermer</string>
     <string name="back">Précédent</string>

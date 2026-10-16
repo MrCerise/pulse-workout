@@ -124,6 +124,8 @@ data class UserPreferences(
     val weightUnit: WeightUnit = WeightUnit.KG,
     val countdownFromSeconds: Int = 3,
     val halfwayMinSeconds: Int = 60,
+    /** Weekly active-minutes goal; drives the Today hero, the week ring and the Goals page. */
+    val weeklyGoalMinutes: Int = 150,
     val onboardingComplete: Boolean = false,
     val musicUri: String? = null,
     val musicVolume: Float = 0.6f,
@@ -176,6 +178,7 @@ class PreferencesRepository(private val context: Context) {
         val weightUnit = stringPreferencesKey("weight_unit")
         val countdownFrom = intPreferencesKey("countdown_from_seconds")
         val halfwayMin = intPreferencesKey("halfway_min_seconds")
+        val weeklyGoal = intPreferencesKey("weekly_goal_minutes")
         val onboarding = booleanPreferencesKey("onboarding_complete")
         val musicUri = stringPreferencesKey("music_uri")
         val musicVolume = floatPreferencesKey("music_volume")
@@ -220,6 +223,7 @@ class PreferencesRepository(private val context: Context) {
             weightUnit = prefs[Keys.weightUnit]?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() } ?: WeightUnit.KG,
             countdownFromSeconds = prefs[Keys.countdownFrom] ?: 3,
             halfwayMinSeconds = prefs[Keys.halfwayMin] ?: 60,
+            weeklyGoalMinutes = (prefs[Keys.weeklyGoal] ?: 150).coerceIn(30, 2_000),
             onboardingComplete = prefs[Keys.onboarding] ?: false,
             musicUri = prefs[Keys.musicUri],
             musicVolume = prefs[Keys.musicVolume] ?: 0.6f,
@@ -266,6 +270,7 @@ class PreferencesRepository(private val context: Context) {
     suspend fun setCountdownFrom(seconds: Int) = edit { it[Keys.countdownFrom] = seconds.coerceIn(0, 10) }
     suspend fun setHalfwayMin(seconds: Int) = edit { it[Keys.halfwayMin] = seconds.coerceIn(15, 600) }
     suspend fun setOnboardingComplete(value: Boolean) = edit { it[Keys.onboarding] = value }
+    suspend fun setWeeklyGoalMinutes(minutes: Int) = edit { it[Keys.weeklyGoal] = minutes.coerceIn(30, 2_000) }
     suspend fun setMusic(uri: String?, volume: Float? = null) = edit { prefs ->
         if (uri == null) prefs.remove(Keys.musicUri) else prefs[Keys.musicUri] = uri
         if (volume != null) prefs[Keys.musicVolume] = volume.coerceIn(0f, 1f)

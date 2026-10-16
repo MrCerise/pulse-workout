@@ -168,17 +168,27 @@ jobs:
           set -euo pipefail
           # The shared scheme (see release-train.yml): versionCode grows monotonically with the
           # semver, so a store upload from a tag can never regress below an earlier build.
-          #   versionCode = major*10_000_000 + minor*100_000 + patch*1_000   (build 0 for a tag)
+          #   versionCode = major*10_000_000 + minor*100_000 + patch*1_000
+          # A pre-release tag carries a suffix after the first `-` (v1.8.1-beta1.0): the suffix
+          # rides along in the versionName, and the versionCode adds the run number (mod 1000)
+          # so two pre-releases of the same core never collide, while a plain tag keeps build 0.
           tag="${GITHUB_REF_NAME#v}"
-          IFS='.' read -r major minor patch <<< "$tag"
-          if [[ -z "${major:-}" || -z "${minor:-}" || -z "${patch:-}" ]]; then
-            echo "::error::Release tags must look like v1.8.0 (got ${GITHUB_REF_NAME})."
+          core="${tag%%-*}"
+          suffix="${tag#*-}"
+          IFS='.' read -r major minor patch <<< "$core"
+          if [[ -z "${major:-}" || -z "${minor:-}" || -z "${patch:-}" ]] ||
+             ! [[ "$major" =~ ^[0-9]+$ && "$minor" =~ ^[0-9]+$ && "$patch" =~ ^[0-9]+$ ]]; then
+            echo "::error::Release tags must look like v1.8.0 or v1.8.1-beta1.0 (got ${GITHUB_REF_NAME})."
             exit 1
           fi
           code=$(( major * 10000000 + minor * 100000 + patch * 1000 ))
+          if [[ "$suffix" != "$tag" ]]; then
+            code=$(( code + ${{ github.run_number }} % 1000 ))
+          fi
           echo "name=$tag" >> "$GITHUB_OUTPUT"
           echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "::notice title=Release::$tag (versionCode $code)"
+          echo "prerelease=$([[ "$suffix" != "$tag" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Release::$tag (versionCode $code)$([[ "$suffix" != "$tag" ]] && echo ' — pre-release')"
 
       - name: Build signed APKs
         shell: bash
@@ -215,6 +225,9 @@ jobs:
           tag_name: ${{ inputs.release_tag || github.ref_name }}
           generate_release_notes: true
           overwrite_files: true
+          # A tag with a suffix (v1.8.1-beta1.0) is a test build: mark the release as such so it
+          # is never mistaken for, or presented as, the latest stable.
+          prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
           files: release-assets/*.apk
 
       - name: Summarize failure diagnostics

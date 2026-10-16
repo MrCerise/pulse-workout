@@ -21,12 +21,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -61,6 +61,7 @@ import com.pulse.intervalcoach.ui.components.DurationStepper
 import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
+import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
@@ -164,25 +165,6 @@ fun SettingsScreen(
                             selected = current.themeMode,
                             onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
                         )
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        LanguagePicker(
-                            selected = current.appLanguage,
-                            onSelect = { language ->
-                                // The app scope, not a scope tied to this composition: the platform
-                                // applies the locale as a configuration change, and a coroutine
-                                // cancelled mid-tap would leave the preference unwritten while the
-                                // screens below had already moved.
-                                container.appScope.launch {
-                                    container.preferences.setAppLanguage(language)
-                                    AppLocale.applySystemLocales(context.applicationContext, language)
-                                }
-                            },
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_language_note),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
                         ToggleRow(
                             label = stringResource(R.string.settings_dynamic_color),
                             checked = current.dynamicColor,
@@ -208,6 +190,35 @@ fun SettingsScreen(
                             options = PlayerDensity.entries.map { it to it.label() },
                             selected = current.playerDensity,
                             onSelect = { density -> scope.launch { container.preferences.setPlayerDensity(density) } },
+                        )
+                    }
+                }
+            }
+
+            // Language gets its own section: it is about content, not chrome, so it sat oddly
+            // inside Appearance — and its picker deserves to be findable in one glance.
+            item { SectionHeader("Language") }
+            item {
+                PulseCard {
+                    Column {
+                        LanguagePicker(
+                            selected = current.appLanguage,
+                            onSelect = { language ->
+                                // The app scope, not a scope tied to this composition: the platform
+                                // applies the locale as a configuration change, and a coroutine
+                                // cancelled mid-tap would leave the preference unwritten while the
+                                // screens below had already moved.
+                                container.appScope.launch {
+                                    container.preferences.setAppLanguage(language)
+                                    AppLocale.applySystemLocales(context.applicationContext, language)
+                                }
+                            },
+                        )
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        Text(
+                            text = stringResource(R.string.settings_language_note),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
                         )
                     }
                 }
@@ -262,7 +273,13 @@ fun SettingsScreen(
                             selected = current.headphoneBehavior,
                             onSelect = { value -> scope.launch { container.preferences.setHeadphoneBehavior(value) } },
                         )
-                        TextButton(onClick = onOpenVoiceStudio) { Text("Voice & audio") }
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        SecondaryActionButton(
+                            text = "Voice & audio",
+                            onClick = onOpenVoiceStudio,
+                            icon = Icons.Filled.VolumeDown,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }
@@ -695,7 +712,13 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                                             color = if (asset.missingDetectedAt != null) colors.destructive else colors.textSecondary,
                                         )
                                     }
-                                    TextButton(onClick = { scope.launch { container.audioAssets.remove(asset.id) } }) { Text(stringResource(R.string.action_delete)) }
+                                    PulseIconButton(
+                                        icon = Icons.Filled.Delete,
+                                        contentDescription = stringResource(R.string.action_delete),
+                                        tooltip = stringResource(R.string.action_delete),
+                                        onClick = { scope.launch { container.audioAssets.remove(asset.id) } },
+                                        tint = colors.destructive,
+                                    )
                                 }
                             }
                         }

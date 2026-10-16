@@ -78,6 +78,7 @@ import com.pulse.intervalcoach.ui.importer.JsonImportScreen
 import com.pulse.intervalcoach.ui.player.PlayerScreen
 import com.pulse.intervalcoach.ui.progress.HistoryScreen
 import com.pulse.intervalcoach.ui.progress.ProgressScreen
+import com.pulse.intervalcoach.ui.progress.ScheduleScreen
 import com.pulse.intervalcoach.ui.progress.SessionDetailScreen
 import com.pulse.intervalcoach.ui.settings.HelpScreen
 import com.pulse.intervalcoach.ui.settings.SettingsScreen
@@ -126,6 +127,8 @@ object Routes {
     const val PLAYER = "player"
     const val SUMMARY = "summary"
     const val HISTORY = "history"
+    const val SCHEDULE = "schedule?workoutId={workoutId}"
+    private const val SCHEDULE_PATH = "schedule"
     const val SESSION_DETAIL = "session/{id}"
     const val VOICE_STUDIO = "settings/voice"
     const val HELP = "settings/help"
@@ -135,6 +138,8 @@ object Routes {
     const val WATCH_SESSION = "watch-session"
 
     fun details(id: String) = "workout/$id"
+    fun schedule(workoutId: String?): String =
+        if (workoutId == null) SCHEDULE_PATH else "$SCHEDULE_PATH?workoutId=${escapeRouteArg(workoutId)}"
     fun session(id: String) = "session/$id"
     fun category(key: String) = "category/$key"
 
@@ -468,6 +473,7 @@ private fun PulseAppRootContent(
                                 // instead of opening a blank one that saves as a new entry.
                                 onEdit = { id -> navController.navigate(Routes.advancedBuilder(id)) },
                                 onStart = startSession,
+                                onSchedule = { id -> navController.navigate(Routes.schedule(id)) },
                             )
                         }
                         composable(Routes.QUICK_BUILDER) {
@@ -576,6 +582,23 @@ private fun PulseAppRootContent(
                                 onOpenSession = { navController.navigate(Routes.session(it)) },
                                 onOpenWorkout = { navController.navigate(Routes.details(it)) },
                                 onOpenHealth = { navController.navigate(Routes.HEALTH) },
+                                onOpenSchedule = { navController.navigate(Routes.schedule(null)) },
+                            )
+                        }
+                        composable(
+                            route = Routes.SCHEDULE,
+                            arguments = listOf(
+                                navArgument("workoutId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                    defaultValue = null
+                                },
+                            ),
+                        ) { entry ->
+                            ScheduleScreen(
+                                container = container,
+                                workoutId = entry.arguments?.getString("workoutId"),
+                                onBack = { navController.popBackStack() },
                             )
                         }
                         composable(Routes.HISTORY) {
@@ -677,6 +700,7 @@ private fun routeTitle(route: String?): String = when (route) {
     Routes.HEALTH -> stringResource(R.string.nav_health)
     Routes.SUMMARY -> stringResource(R.string.summary_title)
     Routes.HISTORY -> stringResource(R.string.history_title)
+    Routes.SCHEDULE -> stringResource(R.string.planner_add)
     Routes.SESSION_DETAIL -> stringResource(R.string.session_detail_title)
     Routes.VOICE_STUDIO -> stringResource(R.string.voice_title)
     Routes.HELP -> stringResource(R.string.help_title)
@@ -694,7 +718,7 @@ private fun routeParent(route: String?): String? = when (route) {
     Routes.CATEGORY, Routes.DETAILS, Routes.JSON_IMPORT,
     Routes.QUICK_BUILDER, Routes.ADVANCED_BUILDER -> stringResource(R.string.workouts_title)
 
-    Routes.HISTORY, Routes.SESSION_DETAIL -> stringResource(R.string.progress_title)
+    Routes.HISTORY, Routes.SESSION_DETAIL, Routes.SCHEDULE -> stringResource(R.string.progress_title)
     Routes.VOICE_STUDIO, Routes.HELP -> stringResource(R.string.settings_title)
     Routes.HEALTH -> stringResource(R.string.nav_today)
     else -> null
