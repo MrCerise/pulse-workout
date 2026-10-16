@@ -63,6 +63,7 @@ jobs:
           python3 scripts/check_brand.py
           python3 scripts/kotlin_xref_gate.py
           python3 scripts/kotlin_args_gate.py
+          python3 scripts/kotlin_import_gate.py
           python3 scripts/contrast_check.py
           git diff --exit-code -- docs/CONTRAST.md
 

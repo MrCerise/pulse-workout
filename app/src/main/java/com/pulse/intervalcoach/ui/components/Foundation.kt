@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -518,6 +519,8 @@ fun PulsePageHeader(
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val pageWidth = maxWidth
+            // Read once, in a composable context: the size callback is not one.
+            val density = LocalDensity.current
             // The width of the action cluster, measured once it has been laid out. The cluster is
             // always measured *as its content* — in both arrangements — so that a window which
             // grows re-reads the same number and can un-stack itself again.
@@ -528,7 +531,7 @@ fun PulsePageHeader(
             if (trailing != null && stacked) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     Row(
-                        modifier = Modifier.onSizeChanged { actionsWidth = with(LocalDensity.current) { it.width.toDp() } },
+                        modifier = Modifier.onSizeChanged { actionsWidth = with(density) { it.width.toDp() } },
                         horizontalArrangement = Arrangement.spacedBy(dimens.xs),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -576,7 +579,7 @@ fun PulsePageHeader(
                     Row(
                         modifier = Modifier
                             .align(Alignment.CenterEnd)
-                            .onSizeChanged { actionsWidth = with(LocalDensity.current) { it.width.toDp() } },
+                            .onSizeChanged { actionsWidth = with(density) { it.width.toDp() } },
                         horizontalArrangement = Arrangement.spacedBy(dimens.xs),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

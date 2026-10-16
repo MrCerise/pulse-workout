@@ -71,11 +71,12 @@ fun LabelChip(
     container: Color,
     contentColor: Color,
     modifier: Modifier = Modifier,
-    textStyle: TextStyle = MaterialTheme.typography.labelMedium,
+    textStyle: TextStyle? = null,
     glyph: @Composable (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
 ) {
     val dimens = LocalPulseDimens.current
+    val style = textStyle ?: MaterialTheme.typography.labelMedium
     Surface(
         modifier = modifier,
         shape = LocalPulseShapes.current.chip,
@@ -96,7 +97,7 @@ fun LabelChip(
             if (text != null) {
                 Text(
                     text = text,
-                    style = textStyle,
+                    style = style,
                     color = contentColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

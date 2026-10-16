@@ -33,7 +33,8 @@ that can run anywhere.
 | Resource gate (`@color`/`@string`/`@drawable` resolve, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 611 names, 392 app + 63 wear EN strings (and the same in FR), 60 icons — OK |
 | Brand gate | `python3 scripts/check_brand.py` | OK |
 | Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
-| Named-argument gate (every named argument at a call site exists on the declaration) | `python3 scripts/kotlin_args_gate.py` | 1335 named arguments, 0 unknown |
+| Named-argument gate (every named argument at a call site exists on the declaration) | `python3 scripts/kotlin_args_gate.py` | 1342 named arguments, 0 unknown |
+| Import gate (every shared symbol a file uses is imported there) | `python3 scripts/kotlin_import_gate.py` | 0 missing imports |
 | Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
 
 `contrast_check.py` rewrites [CONTRAST.md](CONTRAST.md) every run; CI fails if the committed report

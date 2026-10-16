@@ -85,6 +85,13 @@ its shape.
   draws everything from, each with its padding, radius and type taken from the token set rather
   than written by hand.
 
+**Verification**
+- Two new gates, both wired into CI: `scripts/kotlin_args_gate.py` resolves every named argument
+  at every call site against its declaration (1342 named arguments, 0 unknown), and
+  `scripts/kotlin_import_gate.py` resolves every shared symbol a file uses against the module's
+  declarations and that file's own imports, so a name that exists but was never imported is
+  caught before the compiler does (0 missing imports).
+
 ## [1.8.1-beta1.4] — 2026-10-16
 
 The sheet-and-hero pass: pickers become modern bottom sheets, page titles are centred, and the
