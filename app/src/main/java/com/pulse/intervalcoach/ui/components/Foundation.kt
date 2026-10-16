@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -527,7 +528,7 @@ fun PulsePageHeader(
             if (trailing != null && stacked) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                     Row(
-                        modifier = Modifier.onSizeChanged { actionsWidth = it.width },
+                        modifier = Modifier.onSizeChanged { actionsWidth = with(LocalDensity.current) { it.width.toDp() } },
                         horizontalArrangement = Arrangement.spacedBy(dimens.xs),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -575,7 +576,7 @@ fun PulsePageHeader(
                     Row(
                         modifier = Modifier
                             .align(Alignment.CenterEnd)
-                            .onSizeChanged { actionsWidth = it.width },
+                            .onSizeChanged { actionsWidth = with(LocalDensity.current) { it.width.toDp() } },
                         horizontalArrangement = Arrangement.spacedBy(dimens.xs),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
