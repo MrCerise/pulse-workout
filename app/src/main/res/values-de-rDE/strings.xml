@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Cadence</string>
+    <string name="app_name">Intervals</string>
     <string name="app_tagline">Interval Coach</string>
     <!-- Navigation -->
     <string name="nav_home">Home</string>
@@ -16,7 +16,6 @@
     <string name="title_builder">Builder</string>
     <string name="title_details">Workout</string>
     <string name="title_session">Session</string>
-    <string name="title_backup">Backup</string>
     <!-- Home -->
     <string name="home_greeting">Today</string>
     <string name="home_quick_start">Quick start</string>
@@ -32,7 +31,6 @@
     <!-- Workouts -->
     <string name="workouts_title">Workouts</string>
     <string name="workouts_search_hint">Search workouts, tags, equipment</string>
-    <string name="workouts_templates">Templates</string>
     <string name="workouts_new">New workout</string>
     <string name="workouts_empty_title">No workouts yet</string>
     <string name="workouts_empty_body">Create a workout or choose a template.</string>
@@ -47,7 +45,6 @@
     <string name="filter_favorites">Favorites</string>
     <string name="filter_all_folders">All folders</string>
     <string name="action_duplicate">Duplicate</string>
-    <string name="action_export">Export</string>
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
     <string name="action_share">Share</string>
@@ -56,7 +53,6 @@
     <string name="delete_workout_body">Delete “%1$s”? Session history is kept.</string>
     <string name="duplicated_toast">Duplicated “%1$s”</string>
     <!-- Templates -->
-    <string name="templates_title">Templates</string>
     <string name="templates_use">Use template</string>
     <string name="templates_added">Added “%1$s” to your workouts</string>
     <!-- Details -->
@@ -245,6 +241,7 @@
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System default</string>
     <string name="settings_language_note">Applied immediately. Widgets and notifications follow the same choice on Android 13 and newer.</string>
+    <string name="settings_health_title">Health Connect</string>
     <string name="settings_dynamic_color">Wallpaper accent</string>
     <string name="settings_reduced_motion">Reduced motion</string>
     <string name="settings_high_contrast">High contrast</string>
@@ -271,10 +268,6 @@
     <string name="headphone_pause">Pause the workout</string>
     <string name="headphone_continue">Keep going, speaker cues</string>
     <string name="settings_data">Data</string>
-    <string name="settings_export_all">Export all data…</string>
-    <string name="settings_import">Import from file…</string>
-    <string name="settings_backup_auto">Weekly backups</string>
-    <string name="settings_backup_location">Backup folder</string>
     <string name="settings_delete_all">Delete all sessions…</string>
     <string name="settings_delete_all_confirm">Session history will be permanently deleted. Workouts are kept.</string>
     <string name="settings_help">Help &amp; shortcuts</string>
@@ -284,21 +277,9 @@
     <string name="settings_reset_tips">Show welcome again</string>
     <string name="settings_permissions">Permissions used</string>
     <!-- Import / export -->
-    <string name="export_title">Export Cadence data</string>
-    <string name="export_success">Exported to the selected file</string>
-    <string name="export_failed">Export failed: %1$s</string>
-    <string name="import_title">Import Cadence data</string>
-    <string name="import_success">Imported %1$d workouts and %2$d sessions</string>
-    <string name="import_failed">Import failed: %1$s</string>
-    <string name="import_preview_title">Review before importing</string>
-    <string name="import_preview_body">%1$d workouts · %2$d sessions · %3$d tags</string>
-    <string name="import_confirm">Import</string>
-    <string name="import_corrupt">Invalid Cadence backup. Nothing was changed.</string>
-    <string name="backup_created">Backup written to %1$s</string>
-    <string name="backup_too_large">Backups larger than %1$d MiB cannot be imported.</string>
     <!-- Onboarding -->
-    <string name="welcome_title">Cadence</string>
-    <string name="welcome_subtitle">Your interval timer.</string>
+    <string name="welcome_title">Intervals</string>
+    <string name="welcome_subtitle">The HIIT &amp; Tabata interval timer.</string>
     <string name="welcome_theme">Choose a look</string>
     <string name="welcome_language">Choose a language</string>
     <string name="welcome_voice">Hear a cue</string>
@@ -306,20 +287,18 @@
     <string name="welcome_sample_workout">Try a 4-minute starter</string>
     <string name="welcome_skip">Skip</string>
     <string name="welcome_next">Next</string>
-    <string name="welcome_start">Start using Cadence</string>
+    <string name="welcome_start">Start using Intervals</string>
     <string name="welcome_notifications">Notifications add timer controls to your lock screen.</string>
     <string name="welcome_notifications_allow">Allow notifications</string>
     <string name="welcome_permission_denied">Notifications are off. The workout still runs, but without live controls.</string>
     <!-- Help -->
     <string name="help_title">Help</string>
     <string name="help_voice">Voice setup</string>
-    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Cadence uses sound cues.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Intervals uses sound cues.</string>
     <string name="help_background">Background operation</string>
     <string name="help_background_body">Timing continues with the screen off. Enable screen-off cues in Settings to keep announcements playing.</string>
     <string name="help_audio">Audio troubleshooting</string>
     <string name="help_audio_body">Check media volume, Do Not Disturb and cue volume in Voice &amp; audio. Ducking in other music apps depends on the player.</string>
-    <string name="help_import">Imported files</string>
-    <string name="help_import_body">Backups include workouts, sessions and settings, but not media files. Import adds copies without replacing your workouts.</string>
     <string name="help_gestures">Player controls</string>
     <string name="help_gestures_body">Volume buttons adjust media volume. Use the player or notification to pause, skip or end a session.</string>
     <string name="help_accessibility">Accessibility</string>
@@ -336,11 +315,11 @@
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Cadence favorites</string>
-    <string name="widget_quick_start_name">Cadence quick start</string>
+    <string name="widget_favorites_name">Intervals favorites</string>
+    <string name="widget_quick_start_name">Intervals quick start</string>
     <string name="widget_quick_start_label">Quick start</string>
     <string name="widget_quick_start_sub">Work / rest</string>
-    <string name="widget_empty">Open Cadence to star a workout</string>
+    <string name="widget_empty">Open Intervals to star a workout</string>
     <string name="shortcut_recent">Recent workouts</string>
     <string name="shortcut_quick">Quick builder</string>
     <!-- Notifications -->
@@ -352,8 +331,6 @@
     <string name="notif_action_resume">Resume</string>
     <string name="notif_action_next">Next</string>
     <string name="notif_action_stop">Stop</string>
-    <string name="notif_backup_channel">Backups</string>
-    <string name="notif_backup_channel_desc">Weekly local backup results</string>
     <!-- Portable workout import -->
     <string name="json_title">AI workouts</string>
     <string name="json_ai_help">Send to your AI app, then paste its reply. Only the prompt is shared.</string>
@@ -386,10 +363,8 @@
     <string name="share_total_time">Total time · incl. pauses</string>
     <string name="share_skipped">Intervals skipped</string>
     <string name="share_rounds">Rounds logged</string>
-    <string name="share_recorded">Recorded with Cadence</string>
+    <string name="share_recorded">Recorded with Intervals</string>
     <!-- Theme & streamlined AI flow -->
-    <string name="theme_switch_light">Switch to light theme</string>
-    <string name="theme_switch_dark">Switch to dark theme</string>
     <string name="json_send_prompt">Send to AI app</string>
     <string name="json_paste">Paste response</string>
     <string name="json_edit">Edit JSON</string>
