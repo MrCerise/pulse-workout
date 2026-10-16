@@ -94,27 +94,27 @@ fun wearColors(trueBlack: Boolean, highContrast: Boolean): WearColors {
  */
 data class WearDimens(
     /** The horizontal inset of the session view, inside the round screen's bezel. */
-    val screenPaddingHorizontal: Dp = dp(4f),
+    val screenPaddingHorizontal: Dp = 4.dp,
     /** The vertical breathing room around the session ring. */
-    val ringPaddingVertical: Dp = dp(4f),
+    val ringPaddingVertical: Dp = 4.dp,
     /** The diameter of the session ring. */
-    val ringSize: Dp = dp(100f),
+    val ringSize: Dp = 100.dp,
     /** The width of the ring's stroke. */
-    val ringStrokeWidth: Dp = dp(7f),
+    val ringStrokeWidth: Dp = 7.dp,
     /** The gap between the transport controls. */
-    val controlGap: Dp = dp(8f),
+    val controlGap: Dp = 8.dp,
     /** The diameter of a transport control. */
-    val controlButtonSize: Dp = dp(44f),
+    val controlButtonSize: Dp = 44.dp,
     /** The vertical inset of a row in a list. */
-    val rowPaddingVertical: Dp = dp(4f),
+    val rowPaddingVertical: Dp = 4.dp,
     /** The vertical inset of a row that is already tight. */
-    val tightRowPaddingVertical: Dp = dp(2f),
+    val tightRowPaddingVertical: Dp = 2.dp,
     /** The gap between the lines of a row. */
-    val rowLineGap: Dp = dp(1f),
+    val rowLineGap: Dp = 1.dp,
     /** The horizontal inset of the summary's figures. */
-    val summaryPaddingHorizontal: Dp = dp(8f),
+    val summaryPaddingHorizontal: Dp = 8.dp,
     /** The space above the summary's last figure. */
-    val summaryPaddingTop: Dp = dp(6f),
+    val summaryPaddingTop: Dp = 6.dp,
 )
 
 /** The watch's component metrics. */

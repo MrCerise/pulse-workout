@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -251,7 +250,7 @@ fun PulseCellGrid(
     modifier: Modifier = Modifier,
     minCellWidth: Dp? = null,
     gap: Dp? = null,
-    content: @Composable RowScope.(index: Int) -> Unit,
+    content: @Composable (index: Int) -> Unit,
 ) {
     if (count <= 0) return
     val dimens = LocalPulseDimens.current

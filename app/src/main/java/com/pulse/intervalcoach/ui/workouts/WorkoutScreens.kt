@@ -707,17 +707,15 @@ fun WorkoutDetailsScreen(
                             color = colors.textMuted,
                         )
                         Spacer(Modifier.height(dimens.l))
-                        PulseStatGrid(
-                            buildList {
-                                add(PulseStat(label = "Intervals", value = expanded.steps.size.toString()))
-                                expanded.steps.firstNotNullOfOrNull { it.roundsInGroup }?.let { rounds ->
-                                    add(PulseStat(label = "Rounds", value = rounds.toString()))
-                                }
-                                plan.equipment?.let {
-                                    add(PulseStat(label = "Equipment", value = it.take(12)))
-                                }
-                            },
-                        )
+                        val stats = mutableListOf<PulseStat>()
+                        stats.add(PulseStat(label = "Intervals", value = expanded.steps.size.toString()))
+                        expanded.steps.firstNotNullOfOrNull { it.roundsInGroup }?.let { rounds ->
+                            stats.add(PulseStat(label = "Rounds", value = rounds.toString()))
+                        }
+                        plan.equipment?.let {
+                            stats.add(PulseStat(label = "Equipment", value = it.take(12)))
+                        }
+                        PulseStatGrid(stats)
                         if (expanded.hasOpenEnded) {
                             Spacer(Modifier.height(dimens.m))
                             InfoBanner(stringResource(R.string.details_open_ended_note))
