@@ -41,7 +41,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -88,6 +87,7 @@ import com.pulse.intervalcoach.ui.summary.SessionSummaryScreen
 import com.pulse.engine.WorkoutPlan
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
+import com.pulse.intervalcoach.ui.theme.LocalPulseWindowSize
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseTheme
@@ -332,10 +332,12 @@ private fun PulseAppRootContent(
         val route = backStackEntry?.destination?.route
         val onPrimaryDestination = route in primaryRoutes
         val immersive = route in immersiveRoutes
-        // One breakpoint ladder, one navigation model: bar, rail, sidebar.
-        val width = LocalConfiguration.current.screenWidthDp
-        val showSidebar = width >= 1000 && !immersive
-        val showRail = !showSidebar && width >= 600 && !immersive
+        // One breakpoint ladder, one navigation model: bar, rail, sidebar. The ladder is the one
+        // the theme publishes, so the chrome and the pages can never disagree about how much
+        // room there is.
+        val windowSize = LocalPulseWindowSize.current
+        val showSidebar = windowSize.isExpanded && !immersive
+        val showRail = !showSidebar && !windowSize.isCompact && !immersive
 
         val select: (String) -> Unit = { destination ->
             navController.navigate(destination) {

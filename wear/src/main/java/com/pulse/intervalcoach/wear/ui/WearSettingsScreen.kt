@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
@@ -29,6 +28,7 @@ import androidx.wear.compose.material.VignettePosition
 import com.pulse.intervalcoach.wear.BuildConfig
 import com.pulse.intervalcoach.wear.R
 import com.pulse.intervalcoach.wear.WearAppContainer
+import com.pulse.intervalcoach.wear.ui.theme.LocalWearDimens
 import com.pulse.intervalcoach.wear.ui.theme.LocalWearColors
 import com.pulse.intervalcoach.wear.ui.theme.WearThemeMode
 import java.time.Instant
@@ -50,6 +50,7 @@ fun WearSettingsScreen(
     container: WearAppContainer,
     onBack: () -> Unit,
 ) {
+    val dimens = LocalWearDimens.current
     val colors = LocalWearColors.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle()
     val phoneLibrarySeen by container.workouts.phoneLibrarySeen.collectAsStateWithLifecycle()
@@ -80,7 +81,7 @@ fun WearSettingsScreen(
                     style = MaterialTheme.typography.caption1,
                     color = colors.textMuted,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = dimens.tightRowPaddingVertical),
                 )
             }
             if (prefs.syncEnabled) {
@@ -149,7 +150,7 @@ fun WearSettingsScreen(
                     text = aboutText(prefs.phoneAppVersion, prefs.lastSyncAt),
                     style = MaterialTheme.typography.caption1,
                     color = colors.textMuted,
-                    modifier = Modifier.padding(vertical = 4.dp),
+                    modifier = Modifier.padding(vertical = dimens.rowPaddingVertical),
                 )
             }
             item(key = "back") {

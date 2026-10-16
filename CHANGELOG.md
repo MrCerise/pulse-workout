@@ -12,6 +12,79 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.5] — 2026-10-16
+
+The component rework: one idea, one component; a page that adapts to its window without changing
+its shape.
+
+**Changed**
+- **The category badge is one component at four sizes.** The same "identify this thing with a
+  tinted tile" idea was drawn five different ways across the app — 32 dp on the Today page, 40 dp
+  on a library card, 48 dp on a workout's page, 64 dp on a category page and a private 32 dp tile
+  inside the Today screen. All of them are now `PulseIconTile`: one shape, one radius, one tint
+  treatment, four sizes. The list row's leading badge, the workout page's header, the library
+  card's tile, the category page's hero and the Settings health row are the same object.
+- **A row of statistics is one responsive component.** `StatTile` rows were hand-written in eight
+  places with three different gaps and two or three columns each — so a phone showed three
+  statistics squeezed into 100 dp apiece, with "Longest streak" truncated. `PulseStatGrid` asks
+  the width it is given and fits as many tiles as will hold their minimum: two across and one
+  below on a phone, three across on a tablet, the same tiles and the same height either way. The
+  Progress page, the workout page, the category page, the goals page, the health page, the session
+  page and the watch page all use it.
+- **The four label chips are one chip.** A phase tag, a category pill, a metadata pill and a
+  status badge each drew their own padding and type size; they are now one `LabelChip` with a
+  different colour and a different glyph. The library's dead second "category pill" — the one
+  with different padding from the real one — is gone.
+- **A stat tile is a card.** A `StatTile` was a flat rectangle with a border while a `PulseCard`
+  next to it was the same rectangle with a shadow; a tile and a card sitting together read as two
+  products. A tile is now a card with a number in it.
+- **The Today page's two "start a session" tiles are one tile.** The category rail's tile and the
+  quick-start grid's tile were separate components with different shapes and paddings; they are
+  now `PulseStartTile`, and the quick-start grid decides its own column count — two across on a
+  phone, four on a tablet, instead of a hard-coded two that stretched across a wide screen.
+- **Every dialog is the same dialog.** `PulseDialog` is the shell — one radius, one elevation, one
+  fill, one button system — and both the confirmation dialog and the builder's rename dialog are
+  built on it.
+- **The category breakdown draws the shared progress bar** instead of a hand-rolled track-and-fill
+  pair, so the bars on the Progress page are the same bar the weekly goal uses.
+- **The player's dense readout is a shared component too.** The race band's label-over-value
+  micro-stats were a private copy of the idea, and the heart-rate badge was a private pill with
+  its own padding — so the one place in the app that shows a number in a chip had a chip that
+  looked like no other. The race band now draws the shared micro-stat and the heart rate the
+  shared label chip, next to the music chip that was already shared.
+- **The player's round transport keeps its size in the token set** rather than as a raw number in
+  the screen.
+- **The watch has a token set of its own.** The watch screens wrote their paddings, gaps and
+  sizes by hand — sixteen raw numbers across four files — so a gap that was right on the session
+  view and wrong on the summary was a difference nobody could see the cause of. `WearDimens`
+  names them, and the screens read it the way the phone's screens read `PulseDimens`.
+
+**Added**
+- **A responsive layer.** The theme publishes a window size class (`COMPACT` / `MEDIUM` /
+  `EXPANDED`) from the window the app actually has — correct through a rotation, a fold, a
+  split-screen resize and a desktop window drag — and the shell draws its navigation from it
+  instead of reading the screen width for itself.
+- **A page has one measure.** `PulseScaffold` caps the content at 760 dp and centres it, so a
+  destination on a desktop is the same page as that destination on a phone rather than the same
+  content stretched across a monitor. A page's own bottom bar shares the measure, so its action
+  button sits in the same column as the page.
+- **One gutter.** `pageContentPadding()` is the single padding a scrolling page uses. Every
+  page's title now sits at the same height below the breadcrumb bar, and every card's left edge
+  lands in the same place — including the workout library's header, which used to sit flush
+  against the screen edge while every other destination's sat inside the gutter.
+- **The page title never collides with the page actions.** The header centres the title and
+  insets it by the width of the action cluster on *both* sides, so the two can no longer overlap;
+  when the cluster is too wide for that — three icon buttons on a phone — the actions take a row
+  of their own above the title.
+- **The Today hero keeps its presence on a big screen.** Its floor grows with the window — 168 dp
+  on a phone, 200 dp on a tablet, 216 dp on a desktop — so it does not shrink into a strip on a
+  large display. It never shrinks the content, only the air around it.
+- **The welcome flow is a column, not a wall.** Onboarding now uses the same measure as every
+  other page, so it stays a column in the middle of a tablet instead of stretching across it.
+- **One progress bar, one dialog shell, one set of chips** — the shared components the app now
+  draws everything from, each with its padding, radius and type taken from the token set rather
+  than written by hand.
+
 ## [1.8.1-beta1.4] — 2026-10-16
 
 The sheet-and-hero pass: pickers become modern bottom sheets, page titles are centred, and the

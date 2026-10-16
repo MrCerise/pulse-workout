@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
@@ -31,6 +30,7 @@ import androidx.wear.compose.material.Text
 import com.pulse.engine.PhaseKind
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.wear.R
+import com.pulse.intervalcoach.wear.ui.theme.LocalWearDimens
 import com.pulse.intervalcoach.wear.ui.theme.LocalWearColors
 
 /** What a session view needs to draw — the local engine and the phone mirror provide the same shape. */
@@ -62,6 +62,7 @@ fun SessionView(
     onStop: () -> Unit,
 ) {
     val colors = LocalWearColors.current
+    val dimens = LocalWearDimens.current
     val phaseColor = colors.phaseColor(data.phaseKind)
     val progress = if (data.stepDurationMillis > 0L) {
         1f - (data.stepRemainingMillis.toFloat() / data.stepDurationMillis.toFloat()).coerceIn(0f, 1f)
@@ -72,7 +73,7 @@ fun SessionView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = dimens.screenPaddingHorizontal),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -85,13 +86,13 @@ fun SessionView(
         )
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = dimens.ringPaddingVertical),
         ) {
             SessionRing(
                 progress = progress,
                 phaseColor = phaseColor,
                 trackColor = colors.track,
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier.size(dimens.ringSize),
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -110,7 +111,7 @@ fun SessionView(
 
         if (data.awaitingManual) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(dimens.controlGap),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ControlButton(
@@ -130,7 +131,7 @@ fun SessionView(
             }
         } else {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(dimens.controlGap),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ControlButton(
@@ -196,8 +197,9 @@ private fun SessionRing(
     trackColor: Color,
     modifier: Modifier = Modifier,
 ) {
+    val dimens = LocalWearDimens.current
     androidx.compose.foundation.Canvas(modifier = modifier) {
-        val stroke = 7.dp.toPx()
+        val stroke = dimens.ringStrokeWidth.toPx()
         val inset = stroke / 2f
         val arcSize = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke)
         val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
@@ -230,9 +232,10 @@ private fun ControlButton(
     content: Color,
     onClick: () -> Unit,
 ) {
+    val dimens = LocalWearDimens.current
     Button(
         onClick = onClick,
-        modifier = Modifier.size(44.dp),
+        modifier = Modifier.size(dimens.controlButtonSize),
         colors = ButtonDefaults.primaryButtonColors(backgroundColor = background, contentColor = content),
     ) {
         Icon(

@@ -257,8 +257,12 @@ fun ActivityChart(
 }
 
 /**
- * A horizontal progress bar: a flat accent fill in a rounded track. Used for the weekly goal and for
- * progress that would compete with a countdown if it were a ring.
+ * A horizontal progress bar: a flat fill in a rounded track.
+ *
+ * Used for the weekly goal and for progress that would compete with a countdown if it were a
+ * ring. The fill is the accent by default and takes a colour when the bar belongs to a category —
+ * one bar component with a colour, rather than a second bar component drawn by hand, which is how
+ * two bars on two pages end up with two different radii.
  */
 @Composable
 fun ProgressBar(
@@ -266,8 +270,8 @@ fun ProgressBar(
     modifier: Modifier = Modifier,
     height: Dp = 6.dp,
     trackColor: Color = LocalPulseColors.current.track,
+    fillColor: Color = LocalPulseColors.current.accent,
 ) {
-    val colors = LocalPulseColors.current
     val animated by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
         animationSpec = progressSpec(),
@@ -286,7 +290,7 @@ fun ProgressBar(
             modifier = Modifier
                 .fillMaxWidth(animated.coerceIn(0.001f, 1f))
                 .height(height)
-                .background(colors.accent),
+                .background(fillColor),
         )
     }
 }

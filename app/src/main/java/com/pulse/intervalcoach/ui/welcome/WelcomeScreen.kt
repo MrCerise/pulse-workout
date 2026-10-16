@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -53,6 +54,7 @@ import com.pulse.intervalcoach.ui.components.PulsePanel
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseLayout
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import com.pulse.intervalcoach.ui.theme.ThemeMode
@@ -88,264 +90,274 @@ fun WelcomeScreen(
     val example = remember { StarterWorkouts.templates.first { it.plan.name == "HIIT Starter" } }
     val exampleDuration = remember { StarterWorkouts.knownDuration(example.plan) }
 
-    Column(
-        Modifier
+    // The same measure as every other page: the welcome flow is a column, not a wall, so on a
+    // tablet it stays a column in the middle of the canvas instead of stretching across it.
+    Box(
+        modifier = Modifier
             .fillMaxSize()
             .background(colors.background)
-            .safeDrawingPadding()
-            .padding(horizontal = dimens.xl, vertical = dimens.l),
+            .safeDrawingPadding(),
+        contentAlignment = Alignment.TopCenter,
     ) {
         Column(
-            modifier = Modifier
-                .weight(1f)
+            Modifier
+                .widthIn(max = LocalPulseLayout.current.contentMaxWidth)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
+                .fillMaxHeight()
+                .padding(horizontal = dimens.xl, vertical = dimens.l),
         ) {
-            when (step) {
-                0 -> {
-                    PulseLogo(size = 64.dp)
-                    Spacer(Modifier.height(dimens.xl))
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.displaySmall,
-                        color = colors.textPrimary,
-                    )
-                    Spacer(Modifier.height(dimens.m))
-                    Text(
-                        text = stringResource(R.string.welcome_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                    Spacer(Modifier.height(dimens.xl))
-                    Text(stringResource(R.string.welcome_theme), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(dimens.s))
-                    ThemePicker(
-                        selected = prefs?.themeMode ?: ThemeMode.SYSTEM,
-                        onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
-                    )
-                    Spacer(Modifier.height(dimens.l))
-                    Text(stringResource(R.string.welcome_language), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(dimens.s))
-                    LanguagePicker(
-                        selected = prefs?.appLanguage ?: AppLanguage.SYSTEM,
-                        onSelect = { language ->
-                            // Apply the choice to the screens only. Handing it to the platform here
-                            // (LocaleManager.setApplicationLocales) can trigger a configuration
-                            // change that tears down the welcome tour before onboarding finishes;
-                            // PulseApp re-applies the stored choice to the platform at the next start.
-                            container.appScope.launch {
-                                container.preferences.setAppLanguage(language)
-                            }
-                        },
-                    )
-                }
-                1 -> {
-                    // The goal step: the one personal choice the tour can make for the user, so the
-                    // hero and the Goals page read "your target" from the first session onwards.
-                    var goal by remember(prefs?.weeklyGoalMinutes) {
-                        mutableIntStateOf(prefs?.weeklyGoalMinutes ?: WHO_WEEKLY_MINUTES)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                when (step) {
+                    0 -> {
+                        PulseLogo(size = 64.dp)
+                        Spacer(Modifier.height(dimens.xl))
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.displaySmall,
+                            color = colors.textPrimary,
+                        )
+                        Spacer(Modifier.height(dimens.m))
+                        Text(
+                            text = stringResource(R.string.welcome_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.textSecondary,
+                        )
+                        Spacer(Modifier.height(dimens.xl))
+                        Text(stringResource(R.string.welcome_theme), style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(dimens.s))
+                        ThemePicker(
+                            selected = prefs?.themeMode ?: ThemeMode.SYSTEM,
+                            onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
+                        )
+                        Spacer(Modifier.height(dimens.l))
+                        Text(stringResource(R.string.welcome_language), style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(dimens.s))
+                        LanguagePicker(
+                            selected = prefs?.appLanguage ?: AppLanguage.SYSTEM,
+                            onSelect = { language ->
+                                // Apply the choice to the screens only. Handing it to the platform here
+                                // (LocaleManager.setApplicationLocales) can trigger a configuration
+                                // change that tears down the welcome tour before onboarding finishes;
+                                // PulseApp re-applies the stored choice to the platform at the next start.
+                                container.appScope.launch {
+                                    container.preferences.setAppLanguage(language)
+                                }
+                            },
+                        )
                     }
-                    Text(
-                        text = "How much per week?",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = colors.textPrimary,
-                    )
-                    Spacer(Modifier.height(dimens.s))
-                    Text(
-                        text = "Pick a weekly target in active minutes. You can change it any time in Goals.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                    Spacer(Modifier.height(dimens.xl))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.chipGap)) {
-                        listOf(75, WHO_WEEKLY_MINUTES, 250).forEach { preset ->
-                            PulseChoiceChip(
-                                text = "$preset min",
-                                selected = goal == preset,
-                                onClick = { goal = preset },
-                                modifier = Modifier.weight(1f),
-                            )
+                    1 -> {
+                        // The goal step: the one personal choice the tour can make for the user, so the
+                        // hero and the Goals page read "your target" from the first session onwards.
+                        var goal by remember(prefs?.weeklyGoalMinutes) {
+                            mutableIntStateOf(prefs?.weeklyGoalMinutes ?: WHO_WEEKLY_MINUTES)
+                        }
+                        Text(
+                            text = "How much per week?",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = colors.textPrimary,
+                        )
+                        Spacer(Modifier.height(dimens.s))
+                        Text(
+                            text = "Pick a weekly target in active minutes. You can change it any time in Goals.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.textSecondary,
+                        )
+                        Spacer(Modifier.height(dimens.xl))
+                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.chipGap)) {
+                            listOf(75, WHO_WEEKLY_MINUTES, 250).forEach { preset ->
+                                PulseChoiceChip(
+                                    text = "$preset min",
+                                    selected = goal == preset,
+                                    onClick = { goal = preset },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(dimens.l))
+                        PulseSliderRow(
+                            label = "Weekly goal",
+                            value = goal.toFloat(),
+                            onValueChange = { goal = (Math.round(it / 15f) * 15).coerceIn(30, 600) },
+                            valueRange = 30f..600f,
+                            valueLabel = "$goal min",
+                        )
+                        Spacer(Modifier.height(dimens.l))
+                        PulsePanel {
+                            Column {
+                                Text(
+                                    text = "Your week at a glance",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = colors.textMuted,
+                                )
+                                Spacer(Modifier.height(dimens.xs))
+                                Text(
+                                    text = "$goal active minutes across the week — about " +
+                                        (goal / 30) + " half-hour session${if (goal / 30 == 1) "" else "s"}.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colors.textSecondary,
+                                )
+                            }
+                        }
+                        // Written straight through: leaving the step (or the tour) persists it.
+                        LaunchedEffect(goal) {
+                            if (goal != prefs?.weeklyGoalMinutes) {
+                                container.preferences.setWeeklyGoalMinutes(goal)
+                            }
                         }
                     }
-                    Spacer(Modifier.height(dimens.l))
-                    PulseSliderRow(
-                        label = "Weekly goal",
-                        value = goal.toFloat(),
-                        onValueChange = { goal = (Math.round(it / 15f) * 15).coerceIn(30, 600) },
-                        valueRange = 30f..600f,
-                        valueLabel = "$goal min",
-                    )
-                    Spacer(Modifier.height(dimens.l))
-                    PulsePanel {
-                        Column {
+                    2 -> {
+                        Text(
+                            text = stringResource(R.string.welcome_voice),
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = colors.textPrimary,
+                        )
+                        Spacer(Modifier.height(dimens.s))
+                        Text(
+                            text = stringResource(R.string.welcome_voice_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.textSecondary,
+                        )
+                        Spacer(Modifier.height(dimens.xl))
+                        ProgressRing(
+                            progress = 0.35f,
+                            color = colors.accent,
+                            trackColor = colors.track,
+                            strokeWidth = 6.dp,
+                            modifier = Modifier
+                                .size(168.dp)
+                                .align(Alignment.CenterHorizontally),
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "20",
+                                    style = PulseType.NumericDisplay,
+                                    color = colors.textPrimary,
+                                )
+                                Text(
+                                    text = "work",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.textMuted,
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(dimens.l))
+                        PulsePanel {
                             Text(
-                                text = "Your week at a glance",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = colors.textMuted,
-                            )
-                            Spacer(Modifier.height(dimens.xs))
-                            Text(
-                                text = "$goal active minutes across the week — about " +
-                                    (goal / 30) + " half-hour session${if (goal / 30 == 1) "" else "s"}.",
+                                text = "Round one. Work, twenty seconds. Three, two, one, go.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colors.textSecondary,
                             )
                         }
-                    }
-                    // Written straight through: leaving the step (or the tour) persists it.
-                    LaunchedEffect(goal) {
-                        if (goal != prefs?.weeklyGoalMinutes) {
-                            container.preferences.setWeeklyGoalMinutes(goal)
-                        }
-                    }
-                }
-                2 -> {
-                    Text(
-                        text = stringResource(R.string.welcome_voice),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = colors.textPrimary,
-                    )
-                    Spacer(Modifier.height(dimens.s))
-                    Text(
-                        text = stringResource(R.string.welcome_voice_body),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
-                    )
-                    Spacer(Modifier.height(dimens.xl))
-                    ProgressRing(
-                        progress = 0.35f,
-                        color = colors.accent,
-                        trackColor = colors.track,
-                        strokeWidth = 6.dp,
-                        modifier = Modifier
-                            .size(168.dp)
-                            .align(Alignment.CenterHorizontally),
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "20",
-                                style = PulseType.NumericDisplay,
-                                color = colors.textPrimary,
-                            )
-                            Text(
-                                text = "work",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.textMuted,
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(dimens.l))
-                    PulsePanel {
-                        Text(
-                            text = "Round one. Work, twenty seconds. Three, two, one, go.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.textSecondary,
+                        Spacer(Modifier.height(dimens.l))
+                        SecondaryActionButton(
+                            text = "Play voice sample",
+                            onClick = {
+                                container.speech.initialise()
+                                val spoken = container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.")
+                                if (!spoken) {
+                                    container.cueSoundPlayer.play(SoundCue.DOUBLE_BEEP)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
-                    Spacer(Modifier.height(dimens.l))
-                    SecondaryActionButton(
-                        text = "Play voice sample",
-                        onClick = {
-                            container.speech.initialise()
-                            val spoken = container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.")
-                            if (!spoken) {
-                                container.cueSoundPlayer.play(SoundCue.DOUBLE_BEEP)
+                    else -> {
+                        Text(
+                            text = "Start with an example",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = colors.textPrimary,
+                        )
+                        Spacer(Modifier.height(dimens.l))
+                        PulseCard {
+                            Column(verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
+                                Text(
+                                    text = example.plan.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = colors.textPrimary,
+                                )
+                                Text(
+                                    text = formatDuration(exampleDuration),
+                                    style = PulseType.NumericSmall,
+                                    color = colors.textMuted,
+                                )
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                else -> {
-                    Text(
-                        text = "Start with an example",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = colors.textPrimary,
-                    )
-                    Spacer(Modifier.height(dimens.l))
-                    PulseCard {
-                        Column(verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
-                            Text(
-                                text = example.plan.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = colors.textPrimary,
-                            )
-                            Text(
-                                text = formatDuration(exampleDuration),
-                                style = PulseType.NumericSmall,
-                                color = colors.textMuted,
-                            )
                         }
+                        Spacer(Modifier.height(dimens.l))
+                        SecondaryActionButton(
+                            text = stringResource(R.string.welcome_notifications_allow),
+                            onClick = onRequestNotificationPermission,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Spacer(Modifier.height(dimens.s))
+                        Text(
+                            text = stringResource(R.string.welcome_notifications),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
+                        )
                     }
-                    Spacer(Modifier.height(dimens.l))
-                    SecondaryActionButton(
-                        text = stringResource(R.string.welcome_notifications_allow),
-                        onClick = onRequestNotificationPermission,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(dimens.s))
-                    Text(
-                        text = stringResource(R.string.welcome_notifications),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textMuted,
-                    )
                 }
+                Spacer(Modifier.height(dimens.massive))
             }
-            Spacer(Modifier.height(dimens.massive))
-        }
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.semantics { contentDescription = "Step ${step + 1} of 4" },
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                repeat(4) { index ->
-                    Box(
-                        Modifier
-                            .size(
-                                width = if (index == step) dimens.xl else dimens.s,
-                                height = dimens.xs,
-                            )
-                            .clip(shapes.chip)
-                            .background(if (index <= step) colors.accent else colors.track),
-                    )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.semantics { contentDescription = "Step ${step + 1} of 4" },
+                ) {
+                    repeat(4) { index ->
+                        Box(
+                            Modifier
+                                .size(
+                                    width = if (index == step) dimens.xl else dimens.s,
+                                    height = dimens.xs,
+                                )
+                                .clip(shapes.chip)
+                                .background(if (index <= step) colors.accent else colors.track),
+                        )
+                    }
                 }
-            }
-            Spacer(Modifier.height(dimens.l))
-            PrimaryActionButton(
-                text = when (step) {
-                    0 -> "Continue"
-                    1 -> "Continue"
-                    2 -> "Continue"
-                    else -> stringResource(R.string.welcome_start)
-                },
-                onClick = {
-                    if (step < 2) {
-                        step++
-                    } else {
+                Spacer(Modifier.height(dimens.l))
+                PrimaryActionButton(
+                    text = when (step) {
+                        0 -> "Continue"
+                        1 -> "Continue"
+                        2 -> "Continue"
+                        else -> stringResource(R.string.welcome_start)
+                    },
+                    onClick = {
+                        if (step < 2) {
+                            step++
+                        } else {
+                            scope.launch {
+                                container.workouts.save(example.plan, tags = example.tags)
+                                container.preferences.setOnboardingComplete(true)
+                                onDone()
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                GhostActionButton(
+                    text = stringResource(R.string.welcome_skip),
+                    onClick = {
                         scope.launch {
-                            container.workouts.save(example.plan, tags = example.tags)
                             container.preferences.setOnboardingComplete(true)
                             onDone()
                         }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            GhostActionButton(
-                text = stringResource(R.string.welcome_skip),
-                onClick = {
-                    scope.launch {
-                        container.preferences.setOnboardingComplete(true)
-                        onDone()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }

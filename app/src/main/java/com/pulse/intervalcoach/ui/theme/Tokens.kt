@@ -267,16 +267,41 @@ data class PulseDimens(
     val barHeightRegular: Dp = 14.dp,
     /** Activity bar chart in Progress. */
     val chartHeight: Dp = 120.dp,
-    /** Minimum cell width for `GridCells.Adaptive`; the grid decides the columns. */
-    val gridCellMin: Dp = 168.dp,
     /** Width of a card in a horizontal carousel — narrow enough for a sliver of the next one. */
     val carouselCardWidth: Dp = 228.dp,
+    /** The side of the player's round transport control. */
+    val playerTransportSize: Dp = 76.dp,
     /** Height of the player's ring panel for each density preference. */
     val playerPanelCompact: Dp = 196.dp,
     val playerPanelStandard: Dp = 248.dp,
     val playerPanelLarge: Dp = 300.dp,
-    /** Height of the Today hero card on a phone. */
-    val heroHeight: Dp = 168.dp,
+
+    // --- Shared component metrics ----------------------------------------------------------------
+    // The paddings and heights that every chip, button and label shares. They are tokens because
+    // they are the *difference* between two components that are supposed to look like one: a
+    // three-pixel vertical padding that is right for one pill and wrong for the next is exactly
+    // how a screen ends up looking hand-assembled.
+
+    /** Horizontal padding inside a label chip. */
+    val chipPaddingHorizontal: Dp = 8.dp,
+    /** Vertical padding inside a label chip. */
+    val chipPaddingVertical: Dp = 3.dp,
+    /** The gap between a chip's dot or glyph and its label. */
+    val chipLabelGap: Dp = 5.dp,
+    /** The size of a glyph inside a label chip. */
+    val chipGlyphSize: Dp = 13.dp,
+    /** The height of a dot that carries a colour inside a chip or a badge. */
+    val statusDotSize: Dp = 6.dp,
+    /** Horizontal padding inside an action button. */
+    val buttonPaddingHorizontal: Dp = 20.dp,
+    /** Vertical padding inside an action button. */
+    val buttonPaddingVertical: Dp = 14.dp,
+    /** The height of a tappable option chip. */
+    val choiceChipHeight: Dp = 34.dp,
+    /** The height of a stepper's + / − button. */
+    val stepperButtonSize: Dp = 36.dp,
+    /** The minimum height of a stat tile, so a row of them lines up. */
+    val statTileHeight: Dp = 92.dp,
 
     /** Control heights. */
     val controlHeight: Dp = 40.dp,

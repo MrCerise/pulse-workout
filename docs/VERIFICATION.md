@@ -29,10 +29,11 @@ that can run anywhere.
 | Check | Command | Result |
 | --- | --- | --- |
 | Contrast (tokens ↔ XML ↔ Kotlin in lockstep) | `python3 scripts/contrast_check.py` | 125 pairs across 3 themes, all pass — see [CONTRAST.md](CONTRAST.md) |
-| Kotlin syntax gate (parse of every source file) | `python3 scripts/kotlin_parse_gate.py` | 93 files, 0 syntax errors |
-| Resource gate (`@color`/`@string`/`@drawable` resolve, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 612 names, 397 app + 63 wear EN strings (and the same in FR), 56 icons — OK |
+| Kotlin syntax gate (parse of every source file) | `python3 scripts/kotlin_parse_gate.py` | 100 files, 0 syntax errors |
+| Resource gate (`@color`/`@string`/`@drawable` resolve, vectors parse, EN/FR parity) | `python3 scripts/check_ui.py` | 611 names, 392 app + 63 wear EN strings (and the same in FR), 60 icons — OK |
 | Brand gate | `python3 scripts/check_brand.py` | OK |
 | Cross-file reference gate (imports, container refs, preference fields, component call sites) | `python3 scripts/kotlin_xref_gate.py` | 0 problems |
+| Named-argument gate (every named argument at a call site exists on the declaration) | `python3 scripts/kotlin_args_gate.py` | 1335 named arguments, 0 unknown |
 | Component call-site gate (every named argument exists on the declaration) | ad-hoc run of the same technique over `ui/components` | 43 components, 0 unknown arguments |
 
 `contrast_check.py` rewrites [CONTRAST.md](CONTRAST.md) every run; CI fails if the committed report

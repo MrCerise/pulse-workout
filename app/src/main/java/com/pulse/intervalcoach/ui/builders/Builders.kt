@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,7 +40,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -65,6 +63,7 @@ import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.PlanCodec
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.data.category
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.CategoryPicker
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
@@ -88,7 +87,6 @@ import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.components.ToggleRow
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import java.io.File
@@ -309,46 +307,26 @@ private fun RenameNameDialog(
     onSave: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    val elevation = LocalPulseElevation.current
     var value by remember { mutableStateOf(initial) }
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = LocalPulseShapes.current.sheet,
-            color = colors.surfaceOverlay,
-            contentColor = colors.textPrimary,
-            border = BorderStroke(dimens.borderWidth, colors.border),
-            shadowElevation = elevation.level3,
-        ) {
-            Column(
-                modifier = Modifier.padding(dimens.xl),
-                verticalArrangement = Arrangement.spacedBy(dimens.s),
-            ) {
-                Text(
-                    text = "Name this workout",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = colors.textPrimary,
-                )
-                PulseTextField(
-                    value = value,
-                    onValueChange = { value = it },
-                    label = "Workout name",
-                    singleLine = true,
-                )
-                Spacer(Modifier.height(dimens.s))
-                PrimaryActionButton(
-                    text = "Save name",
-                    onClick = { onSave(value) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                GhostActionButton(
-                    text = stringResource(R.string.cancel),
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
+    PulseDialog(title = "Name this workout", onDismiss = onDismiss) {
+        PulseTextField(
+            value = value,
+            onValueChange = { value = it },
+            label = "Workout name",
+            singleLine = true,
+        )
+        Spacer(Modifier.height(dimens.s))
+        PrimaryActionButton(
+            text = "Save name",
+            onClick = { onSave(value) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        GhostActionButton(
+            text = stringResource(R.string.cancel),
+            onClick = onDismiss,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -374,12 +352,7 @@ fun QuickBuilderScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = LocalPulseDimens.current.pagePadding,
-                end = LocalPulseDimens.current.pagePadding,
-                top = LocalPulseDimens.current.cardGap,
-                bottom = LocalPulseDimens.current.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item {
@@ -785,12 +758,7 @@ fun AdvancedBuilderScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = LocalPulseDimens.current.pagePadding,
-                end = LocalPulseDimens.current.pagePadding,
-                top = LocalPulseDimens.current.cardGap,
-                bottom = LocalPulseDimens.current.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item {

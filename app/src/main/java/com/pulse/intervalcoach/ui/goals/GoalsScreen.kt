@@ -2,8 +2,6 @@ package com.pulse.intervalcoach.ui.goals
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,12 +22,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.STATUS_RUNNING
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.ProgressBar
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseStat
+import com.pulse.intervalcoach.ui.components.PulseStatGrid
 import com.pulse.intervalcoach.ui.components.PulseSliderRow
-import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.home.WHO_WEEKLY_MINUTES
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
@@ -118,12 +118,7 @@ fun GoalsScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
@@ -143,21 +138,18 @@ fun GoalsScreen(
                 }
             } else {
                 item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        StatTile("Workouts", state.totalWorkouts.toString(), modifier = Modifier.weight(1f))
-                        StatTile("Total minutes", state.totalMinutes.toString(), modifier = Modifier.weight(1f))
-                    }
-                }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        StatTile(
-                            "Current streak",
-                            "${state.currentStreak}d",
-                            accent = colors.success,
-                            modifier = Modifier.weight(1f),
-                        )
-                        StatTile("Longest streak", "${state.longestStreak}d", modifier = Modifier.weight(1f))
-                    }
+                    PulseStatGrid(
+                        listOf(
+                            PulseStat(label = "Workouts", value = state.totalWorkouts.toString()),
+                            PulseStat(label = "Total minutes", value = state.totalMinutes.toString()),
+                            PulseStat(
+                                label = "Current streak",
+                                value = "${state.currentStreak}d",
+                                accent = colors.success,
+                            ),
+                            PulseStat(label = "Longest streak", value = "${state.longestStreak}d"),
+                        ),
+                    )
                 }
             }
 

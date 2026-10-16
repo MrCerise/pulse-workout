@@ -45,8 +45,9 @@ import com.pulse.intervalcoach.ui.components.ProgressRing
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseStat
+import com.pulse.intervalcoach.ui.components.PulseStatGrid
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
-import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.sync.LiveSession
@@ -77,7 +78,12 @@ fun WatchSessionScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = dimens.pagePadding),
+                .padding(
+                    start = dimens.pagePadding,
+                    end = dimens.pagePadding,
+                    top = dimens.cardGap,
+                    bottom = dimens.huge,
+                ),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             PulsePageHeader(
@@ -211,22 +217,19 @@ fun WatchSessionScreen(
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.s),
-                ) {
-                    StatTile(
-                        label = stringResource(R.string.watch_session_elapsed),
-                        value = formatDuration(live.sessionElapsedMillis),
-                        modifier = Modifier.weight(1f),
-                    )
-                    StatTile(
-                        label = stringResource(R.string.watch_session_remaining),
-                        value = live.sessionRemainingMillis?.let { formatDuration(it) }
-                            ?: stringResource(R.string.watch_session_open_ended),
-                        modifier = Modifier.weight(1f),
-                    )
-                }
+                PulseStatGrid(
+                    listOf(
+                        PulseStat(
+                            label = stringResource(R.string.watch_session_elapsed),
+                            value = formatDuration(live.sessionElapsedMillis),
+                        ),
+                        PulseStat(
+                            label = stringResource(R.string.watch_session_remaining),
+                            value = live.sessionRemainingMillis?.let { formatDuration(it) }
+                                ?: stringResource(R.string.watch_session_open_ended),
+                        ),
+                    ),
+                )
 
                 Spacer(Modifier.height(dimens.s))
                 DangerActionButton(

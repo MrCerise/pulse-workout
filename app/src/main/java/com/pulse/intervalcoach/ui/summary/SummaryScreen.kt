@@ -36,7 +36,7 @@ import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.health.HrStats
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.MetricRow
-import com.pulse.intervalcoach.ui.components.NeutralChip
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseDivider
@@ -47,7 +47,6 @@ import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
-import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
@@ -118,12 +117,7 @@ fun SessionSummaryScreen(
             modifier = Modifier
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(
-                    start = dimens.pagePadding,
-                    end = dimens.pagePadding,
-                    top = dimens.cardGap,
-                    bottom = dimens.xxl,
-                ),
+                .padding(pageContentPadding()),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             PulsePageHeader(

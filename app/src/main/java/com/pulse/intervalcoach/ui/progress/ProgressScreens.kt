@@ -1,10 +1,7 @@
 package com.pulse.intervalcoach.ui.progress
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,26 +48,28 @@ import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.db.ReminderEntity
 import com.pulse.intervalcoach.data.db.SessionEntity
 import com.pulse.intervalcoach.data.db.SessionEventEntity
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.ActivityBar
 import com.pulse.intervalcoach.ui.components.ActivityChart
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
+import com.pulse.intervalcoach.ui.components.ProgressBar
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseStat
+import com.pulse.intervalcoach.ui.components.PulseStatGrid
 import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
-import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import java.time.Instant
 import java.time.LocalDateTime
@@ -164,12 +163,7 @@ fun ProgressScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
@@ -179,11 +173,13 @@ fun ProgressScreen(
             }
 
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    StatTile("Streak", "${state.streak}d", accent = colors.success, modifier = Modifier.weight(1f))
-                    StatTile("This week", "${(weekMillis / 60000L).toInt()}m", modifier = Modifier.weight(1f))
-                    StatTile("All time", formatDuration(state.totals), modifier = Modifier.weight(1f))
-                }
+                PulseStatGrid(
+                    listOf(
+                        PulseStat(label = "Streak", value = "${state.streak}d", accent = colors.success),
+                        PulseStat(label = "This week", value = "${(weekMillis / 60000L).toInt()}m"),
+                        PulseStat(label = "All time", value = formatDuration(state.totals)),
+                    ),
+                )
             }
             item {
                 PulseCard {
@@ -245,19 +241,13 @@ fun ProgressScreen(
                                     )
                                 }
                                 Spacer(Modifier.height(dimens.xs))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(dimens.barHeightCompact)
-                                        .background(colors.track, LocalPulseShapes.current.chip),
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth((millis.toFloat() / top.toFloat()).coerceIn(0f, 1f))
-                                            .height(dimens.barHeightCompact)
-                                            .background(hue, LocalPulseShapes.current.chip),
-                                    )
-                                }
+                                // The shared progress bar, filled in the category's own hue: the
+                                // same bar the weekly goal uses, so the two read as one system.
+                                ProgressBar(
+                                    progress = (millis.toFloat() / top.toFloat()).coerceIn(0f, 1f),
+                                    height = dimens.barHeightCompact,
+                                    fillColor = hue,
+                                )
                             }
                         }
                     }
@@ -440,12 +430,7 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.s),
         ) {
             item {
@@ -499,12 +484,7 @@ fun SessionDetailScreen(
         }
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
@@ -527,11 +507,13 @@ fun SessionDetailScreen(
                 }
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    StatTile("Active", formatDuration(current.activeMillis), accent = colors.success, modifier = Modifier.weight(1f))
-                    StatTile("Total", formatDuration(current.wallMillis), modifier = Modifier.weight(1f))
-                    StatTile("Skipped", current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
-                }
+                PulseStatGrid(
+                    listOf(
+                        PulseStat(label = "Active", value = formatDuration(current.activeMillis), accent = colors.success),
+                        PulseStat(label = "Total", value = formatDuration(current.wallMillis)),
+                        PulseStat(label = "Skipped", value = current.skippedIntervals.toString()),
+                    ),
+                )
             }
             if (current.status == STATUS_INTERRUPTED) {
                 item {

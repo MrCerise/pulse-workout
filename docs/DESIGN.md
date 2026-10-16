@@ -51,6 +51,12 @@ numbers it depends on live in the generated [contrast report](CONTRAST.md).
    is a measured number rather than an alpha estimate.
 7. **Motion is felt, not watched.** 180 ms feedback, 260 ms selection, 340 ms overlays — and zero
    when the user turns on reduced motion.
+8. **One idea, one component.** A category badge, a phase tag, a status pill or a stat tile is one
+   component wherever it appears. If two pages can each have their own version of something, they
+   will — and then they will drift.
+9. **One measure, one gutter.** Every page is capped at the same width and inset by the same
+   padding, so a destination is the same page at every window size, and every page's title sits at
+   the same height.
 
 ---
 
@@ -207,10 +213,13 @@ fixed advance width is genuinely wanted (the cue-script preview).
 | `cardPadding` | 16 dp | `PulseCard` interior |
 | `cardGap` | 12 dp | between sibling cards |
 | `chipGap` | 6 dp | inside a cluster of chips |
+| `chipPaddingHorizontal` / `chipPaddingVertical` | 8 / 3 dp | inside every label chip |
+| `buttonPaddingHorizontal` / `buttonPaddingVertical` | 20 / 14 dp | inside every action button |
 | `controlHeight` / `buttonHeight` / `namePlateHeight` | 40 / 56 / 64 dp | compact controls / action buttons / the builder name plate |
 | `iconButtonSize` | 36 dp | inside a 48 dp touch target |
 | `listRowHeight` | 56 dp | `PulseListRow` |
 | `metricRowHeight` | 44 dp | `MetricRow` |
+| `statTileHeight` | 92 dp | a stat tile, so a row of them lines up |
 | `topBarHeight` | 56 dp | breadcrumb bar (before the status-bar inset) |
 | `navBarHeight` | 68 dp | phone floating navigation pill |
 | `railWidth` / `sidebarWidth` | 72 / 244 dp | tablet rail, desktop sidebar |
@@ -218,7 +227,45 @@ fixed advance width is genuinely wanted (the cue-script preview).
 | elevation | 0 / 1 / 4 / 12 dp | flat / interactive / overlay / floating chrome |
 | motion | 180 / 260 / 260 / 340 ms | feedback / selection / theme palette / overlay — 0 under reduced motion |
 
+### The responsive layer
+
+A *size* is not a *style*: the colour of a card does not depend on the window, but the measure of a
+page and the number of columns a grid may use do. Those numbers live in `PulseLayout`
+(`ui/theme/Responsive.kt`), resolved once from the window size class.
+
+| Window | Class | Navigation | `contentMaxWidth` | `statTileMinWidth` | `cardMinWidth` | `tileMinWidth` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `< 600 dp` | `COMPACT` | floating navigation pill | 760 dp | 124 dp | 196 dp | 140 dp |
+| `600–999 dp` | `MEDIUM` | 72 dp icon rail | 760 dp | 124 dp | 196 dp | 140 dp |
+| `>= 1000 dp` | `EXPANDED` | 244 dp sidebar | 760 dp | 124 dp | 196 dp | 140 dp |
+
+* **The measure.** Every page's content is capped at `contentMaxWidth` and centred, so a
+  destination on a desktop is the *same page* as that destination on a phone — same gutter, same
+  measure, same place for the title — rather than the same content stretched across a monitor.
+  The page's own bottom bar shares the measure, so its action button sits in the same column as
+  the page it belongs to.
+* **The gutter.** `pageContentPadding()` is the one padding a scrolling page uses: 20 dp either
+  side, 12 dp above, 32 dp below. Every page's title therefore sits at the same height below the
+  breadcrumb bar, and every card's left edge lands in the same place.
+* **The columns.** `PulseStatGrid`, `PulseCellGrid` and the library's grid ask the width they are
+  actually given and fit as many cells as will hold their minimum; a row of three statistics is
+  three across on a tablet and two-plus-one on a phone, with the same tiles, the same gap and the
+  same height either way.
+* **The hero.** The ink panel on the Today page has a floor of 168 dp on a phone, 200 dp on a
+  tablet and 216 dp on a desktop, so it keeps its presence on a large screen instead of
+  shrinking into a strip. It never shrinks the content — only the air around it.
+
+
 ---
+
+### The watch
+
+The watch app is a second surface, not a second design system: it shares the phone's palette
+roles, the same phase colours and the same brand marks, and it has its own token set
+(`WearColors`, `WearDimens`) restricted to what a 200 dp round screen actually renders. The
+consequences are the same as on the phone — a padding that is named rather than written by hand,
+and no raw colour outside the theme — but the numbers are the watch's own, because a 4 dp gap and a
+12 dp gap do not mean the same thing on a 200 dp circle.
 
 ## 5. The shell
 
@@ -229,6 +276,10 @@ The application frame is one navigation model in three shapes, and the shape fol
 | `< 600 dp` (phone) | floating navigation pill, tinted indicator behind the active glyph, hovering above the system bar area on one shadow | breadcrumb bar + brand mark |
 | `>= 600 dp` (tablet, portrait) | 72 dp icon rail with the mark at its head | breadcrumb bar |
 | `>= 1000 dp` (desktop, tablet landscape) | 244 dp sidebar: wordmark, grouped destinations, an accent beat dot on the active row, appearance switch in the footer | breadcrumb bar |
+
+The ladder is published once, by the theme, as `LocalPulseWindowSize` (`COMPACT` / `MEDIUM` /
+`EXPANDED`). The shell draws its navigation from it and the page components draw their columns
+from it, so the chrome and the pages can never disagree about how much room there is.
 
 * **Breadcrumb bar** (`PulseBreadcrumbBar`) — one 56 dp row: where you are on the left, the global
   controls (theme, settings) on the right, a hairline under it. It owns the status-bar inset, so no
@@ -254,10 +305,11 @@ Everything lives in `ui/components/` and reads only from `LocalPulseColors`, `Lo
 | File | Provides |
 | --- | --- |
 | `Foundation.kt` | `PulseScaffold`, `PulseBreadcrumbBar`, `PulsePageHeader`, `PulseCard`, `PulseHeroCard`, `PulsePanel`, `SectionHeader`, `PulseDivider`, `PulseListRow` |
+| `Layout.kt` | `PulseIconTile` / `PulseIconTileSize`, `PulseStartTile`, `PulseStat` / `PulseStatGrid`, `PulseCellGrid`, `pageContentPadding` |
 | `Controls.kt` | `Primary/Secondary/Ghost/DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseSelect`, `PulseActionMenu`, `PulseBottomSheet`, `PulseSheetRow`, `PulseChipGroup`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper` |
-| `Indicators.kt` | `PhaseChip`, `NeutralChip`, `CategoryChip`, `StatusBadge`, `StatTile`, `MetricRow`, `InfoBanner`, `CategoryPicker` |
+| `Indicators.kt` | `LabelChip`, `PhaseChip`, `NeutralChip`, `CategoryChip`, `StatusBadge`, `StatTile`, `PulseMicroStat`, `MetricRow`, `InfoBanner`, `CategoryPicker` |
 | `DataDisplay.kt` | `TimelineBar`, `ProgressRing`, `ActivityChart`, `ProgressBar` |
-| `Feedback.kt` | `EmptyState`, `LoadingBox`, `ErrorState`, `ConfirmDialog`, `PulseSnackbar` |
+| `Feedback.kt` | `EmptyState`, `LoadingBox`, `ErrorState`, `PulseDialog`, `ConfirmDialog`, `PulseSnackbar` |
 | `PulseLogo.kt` | Shared monochrome vector mark |
 | `ThemePicker.kt` | Four theme-preview tiles, animated selection and theme toggle |
 | `Navigation.kt` | `PulseNavItem`, `PulseNavGroup`, `PulseFloatingNavBar`, `PulseNavRail`, `PulseAppSidebar`, `PulseRailDivider` |
@@ -266,6 +318,14 @@ Rules the components encode:
 
 * **One surface per idea.** A `PulseCard` groups; a `PulsePanel` nests *down* into a well; a table of
   numbers is one card with `MetricRow`s and `PulseDivider`s between them — not five stacked tiles.
+  A `StatTile` is a card with a number in it: same surface, same radius, same hairline, same
+  shadow. A tile that looked like a card but sat flat on the canvas was two products in one page.
+* **One idea, one component.** The category badge at the head of a list row, on a grid card, at
+  the head of a workout's page and on a category page is one component at four sizes
+  (`PulseIconTile`), not four components that happen to look similar. The same is true of the four
+  label chips — a phase, a category, metadata and a status are one `LabelChip` with a different
+  colour and a different glyph — and of the two "start a session" tiles on the Today page, which
+  are one `PulseStartTile`.
 * **The whole row is the tap target.** Rows, cards and chips answer the pointer (hover → `surfaceHover`,
   press → a slightly deeper wash) before the tap lands.
 * **A chip you tap is a control.** `PulseChoiceChip` — the library's filter rail and preset rows —
@@ -276,6 +336,16 @@ Rules the components encode:
   the chosen one, and a cluster of secondary actions becomes one `PulseActionMenu` trigger opening
   the same sheet — never a row of side-by-side buttons, never a web-form drop-down. Options never
   sit inside a track or panel, and an option whose label is ellipsized is not a choice.
+* **A dialog is a dialog.** `PulseDialog` is the shell: one radius, one elevation, one fill, one
+  type ramp, one button system. `ConfirmDialog` and the builder's rename dialog are the same
+  object, and neither of them is the platform's default.
+* **A page has one measure and one gutter.** `PulseScaffold` caps the content and centres it;
+  `pageContentPadding()` gives every scrolling page the same inset. A page that invents its own
+  padding is a page whose heading is a few pixels higher than every other heading.
+* **The title never collides with the actions.** `PulsePageHeader` centres the title on the page
+  and insets it by the width of the action cluster on *both* sides, so the two never overlap; when
+  the cluster is too wide for that — three icon buttons on a phone — the actions take a row of
+  their own above the title.
 * **States are explicit.** Every interactive component defines hover, pressed, focused, selected and
   disabled; focus is a 2 dp accent ring, disabled is `text_disabled` with no ripple.
 * **Empty, loading and error states are components**, not ad-hoc text: `EmptyState`, `LoadingBox`,
@@ -306,12 +376,16 @@ Rules the components encode:
 1. Wrap the content in `PulseScaffold { padding -> … }`; never draw your own top bar — the shell has it.
 2. Start the content with `PulsePageHeader(title, onBack = …, trailing = …)`; put the
    screen's primary action in `trailing`.
-3. Use `dimens.pagePadding` for the gutter, `dimens.cardGap` between cards and `dimens.huge` of bottom
-   padding so the last row clears the phone's navigation bar.
-4. Reach for `PulseCard` / `PulsePanel` / `PulseListRow` / `MetricRow` before writing layout by hand.
+3. Give the scrolling content `pageContentPadding()` — one gutter, one top inset, one bottom inset —
+   and `dimens.cardGap` between sections.
+4. Reach for `PulseCard` / `PulsePanel` / `PulseListRow` / `MetricRow` / `PulseIconTile` /
+   `PulseStatGrid` before writing layout by hand. A row of statistics is `PulseStatGrid`, never a
+   hand-written `Row` of weighted tiles: the grid is what makes the row wrap on a phone and sit
+   three across on a tablet.
 5. Take every colour from `LocalPulseColors`, every size from `LocalPulseDimens`, every radius from
-   `LocalPulseShapes`, every duration from `LocalPulseMotion` — a raw hex value, a stray 13 dp or a
-   `RoundedCornerShape(24.dp)` is what a review will catch.
+   `LocalPulseShapes`, every duration from `LocalPulseMotion` and every responsive number from
+   `LocalPulseLayout` — a raw hex value, a stray 13 dp or a `RoundedCornerShape(24.dp)` is what a
+   review will catch.
 6. Verify with the gates below; `check_ui.py` and `kotlin_xref_gate.py` catch the mechanical mistakes,
    `contrast_check.py` catches the optical ones.
 

@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
@@ -22,6 +21,7 @@ import androidx.wear.compose.material.TimeText
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.wear.R
 import com.pulse.intervalcoach.wear.WearAppContainer
+import com.pulse.intervalcoach.wear.ui.theme.LocalWearDimens
 import com.pulse.intervalcoach.wear.ui.theme.LocalWearColors
 
 /**
@@ -36,6 +36,7 @@ fun WearSummaryScreen(
     container: WearAppContainer,
     onDone: () -> Unit,
 ) {
+    val dimens = LocalWearDimens.current
     val colors = LocalWearColors.current
     val summary by container.session.summary.collectAsStateWithLifecycle()
     val prefs by container.preferences.flow.collectAsStateWithLifecycle()
@@ -47,7 +48,7 @@ fun WearSummaryScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier.padding(horizontal = dimens.summaryPaddingHorizontal),
             ) {
                 if (data == null) {
                     Text(
@@ -117,7 +118,7 @@ fun WearSummaryScreen(
                         backgroundColor = colors.accent,
                         contentColor = colors.onAccent,
                     ),
-                    modifier = Modifier.padding(top = 6.dp),
+                    modifier = Modifier.padding(top = dimens.summaryPaddingTop),
                 ) {
                     Text(stringResource(R.string.summary_done), style = MaterialTheme.typography.button)
                 }

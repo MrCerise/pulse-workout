@@ -15,7 +15,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -47,6 +46,7 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.WorkoutCategories
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.CategoryChip
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.LoadingBox
@@ -128,7 +128,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(horizontal = dimens.pagePadding, vertical = dimens.cardGap),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item { PulsePageHeader(title = stringResource(R.string.json_title), onBack = onBack) }

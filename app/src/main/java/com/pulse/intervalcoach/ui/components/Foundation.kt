@@ -9,12 +9,14 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -22,8 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
@@ -35,21 +37,25 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
+import com.pulse.intervalcoach.ui.theme.LocalPulseLayout
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
 /**
@@ -140,6 +146,11 @@ fun PulseHeroCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     contentPadding: PaddingValues = PaddingValues(LocalPulseDimens.current.cardPadding),
+    /**
+     * The smallest the panel may be. A hero that grows with the window keeps its presence on a
+     * tablet instead of shrinking into a strip; it never shrinks the content, only the air.
+     */
+    minHeight: Dp? = null,
     content: @Composable () -> Unit,
 ) {
     val colors = LocalPulseColors.current
@@ -171,6 +182,7 @@ fun PulseHeroCard(
             interactionSource = interaction,
             modifier = modifier
                 .fillMaxWidth()
+                .then(if (minHeight != null) Modifier.heightIn(min = minHeight) else Modifier)
                 .shadow(elevation.level2, shape),
             shape = shape,
             color = colors.heroSurface,
@@ -181,6 +193,7 @@ fun PulseHeroCard(
         Surface(
             modifier = modifier
                 .fillMaxWidth()
+                .then(if (minHeight != null) Modifier.heightIn(min = minHeight) else Modifier)
                 .shadow(elevation.level2, shape),
             shape = shape,
             color = colors.heroSurface,
@@ -308,20 +321,14 @@ fun PulseListRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (leadingIcon != null) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(dimens.controlRadius))
-                        .background(leadingContainer ?: colors.surfaceRaised),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = leadingIcon,
-                        contentDescription = null,
-                        tint = leadingTint ?: colors.textSecondary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
+                // The same icon tile the cards and the page headers draw: one size, one radius, one
+                // tint treatment, wherever a row identifies itself.
+                PulseIconTile(
+                    icon = leadingIcon,
+                    tint = leadingTint,
+                    container = leadingContainer,
+                    size = PulseIconTileSize.INLINE,
+                )
                 Spacer(Modifier.width(dimens.m))
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimens.microGap)) {
@@ -459,6 +466,13 @@ fun PulseBreadcrumbBar(
  * floating at the end of the same band. The back link is deliberately *in the page* rather than in
  * the shell: a page knows whether leaving it needs a confirmation (an unsaved builder does), and
  * the shell does not.
+ *
+ * Centring the title and floating the actions at the end of the same band are two ideas that
+ * fight each other on a narrow screen, so the header measures the action cluster and keeps the
+ * title clear of it: the title is inset by the cluster's width on **both** sides, which leaves it
+ * centred on the page and gives the actions their own space. When the cluster is too wide for
+ * that — three icon buttons on a phone — the actions move to a row of their own above the title
+ * rather than squeezing it.
  */
 @Composable
 fun PulsePageHeader(
@@ -501,42 +515,72 @@ fun PulsePageHeader(
             }
             Spacer(Modifier.height(dimens.s))
         }
-        Box(Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = if (trailing != null) dimens.massive else dimens.l),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(dimens.xs),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = colors.textPrimary,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (description != null) {
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val pageWidth = maxWidth
+            // The width of the action cluster, measured once it has been laid out. The cluster is
+            // always measured *as its content* — in both arrangements — so that a window which
+            // grows re-reads the same number and can un-stack itself again.
+            var actionsWidth by remember { mutableStateOf(0.dp) }
+            // A cluster wider than a quarter of the page would squeeze the title to a stub, so it
+            // takes a row of its own instead.
+            val stacked = trailing != null && pageWidth > 0.dp && actionsWidth > pageWidth / 4
+            if (trailing != null && stacked) {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                    Row(
+                        modifier = Modifier.onSizeChanged { actionsWidth = it.width },
+                        horizontalArrangement = Arrangement.spacedBy(dimens.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        trailing()
+                    }
+                }
+                Spacer(Modifier.height(dimens.s))
+            }
+            Box(Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = if (trailing != null && !stacked) {
+                                maxOf(actionsWidth, dimens.l)
+                            } else {
+                                dimens.l
+                            },
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(dimens.xs),
+                ) {
                     Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.textSecondary,
+                        text = title,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = colors.textPrimary,
                         textAlign = TextAlign.Center,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    if (description != null) {
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.textSecondary,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
-            }
-            if (trailing != null) {
-                Row(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.xs),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    trailing()
+                if (trailing != null && !stacked) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .onSizeChanged { actionsWidth = it.width },
+                        horizontalArrangement = Arrangement.spacedBy(dimens.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        trailing()
+                    }
                 }
             }
         }
@@ -550,6 +594,11 @@ fun PulsePageHeader(
  * content that is handed its padding rather than guessing at it. The header is **not** part of it —
  * the shell owns the breadcrumb bar, and a page owns its header ([PulsePageHeader]) — which is what
  * makes eighteen destinations share one gutter and one hierarchy without any of them owning either.
+ *
+ * The frame also owns the **measure**: the page's content is capped at
+ * [com.pulse.intervalcoach.ui.theme.PulseLayout.contentMaxWidth] and centred inside it, so a
+ * destination on a desktop is the same page as that destination on a phone — same gutter, same
+ * measure, same place for the title — rather than the same content stretched across a monitor.
  */
 @Composable
 fun PulseScaffold(
@@ -557,18 +606,72 @@ fun PulseScaffold(
     bottomBar: @Composable () -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
+    /** The widest the page's content may get. `null` uses the responsive measure. */
+    maxContentWidth: Dp? = null,
+    /** True for the immersive screens, which fill the whole window instead of the measure. */
+    fullWidth: Boolean = false,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val colors = LocalPulseColors.current
+    val layout = LocalPulseLayout.current
+    val measure: Dp? = when {
+        fullWidth -> null
+        maxContentWidth != null -> maxContentWidth
+        else -> layout.contentMaxWidth
+    }
     Scaffold(
         modifier = modifier,
         containerColor = colors.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = snackbarHost,
         floatingActionButton = floatingActionButton,
-        bottomBar = bottomBar,
-        content = content,
-    )
+        bottomBar = {
+            // The bar shares the measure: a page's action button sits in the same column as the
+            // page it belongs to, instead of floating at the edge of a wide window.
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .then(
+                            if (measure != null) {
+                                Modifier.widthIn(max = measure)
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .fillMaxWidth(),
+                ) {
+                    bottomBar()
+                }
+            }
+        },
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            Box(
+                modifier = Modifier
+                    .then(
+                        if (measure != null) {
+                            Modifier.widthIn(max = measure)
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+            ) {
+                // The frame has already applied the scaffold's own padding, so the page is handed
+                // an empty one: a screen that applied it a second time would double the inset.
+                content(PaddingValues(0.dp, 0.dp, 0.dp, 0.dp))
+            }
+        }
+    }
 }
 
 /**

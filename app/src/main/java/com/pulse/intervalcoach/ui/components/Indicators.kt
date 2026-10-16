@@ -25,8 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pulse.engine.PhaseKind
@@ -34,6 +36,7 @@ import com.pulse.intervalcoach.data.WorkoutCategories
 import com.pulse.intervalcoach.data.WorkoutCategory
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseColors
 import com.pulse.intervalcoach.ui.theme.PulseFonts
@@ -54,6 +57,60 @@ import com.pulse.intervalcoach.ui.theme.TABULAR_FIGURES
 enum class PulseTone { NEUTRAL, INFO, SUCCESS, WARNING, DANGER }
 
 /**
+ * The one label chip.
+ *
+ * Every pill in the app — a phase, a category, a piece of metadata, a status — is this component
+ * with a different colour and a different glyph. They share one padding, one radius, one type
+ * size and one dot, so a chip in a list row and a chip on a card are unmistakably the same object.
+ * A chip that carries an action is *not* this one: that is a [PulseChoiceChip], a control, and it
+ * is drawn as a rectangle.
+ */
+@Composable
+fun LabelChip(
+    text: String?,
+    container: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.labelMedium,
+    glyph: @Composable (() -> Unit)? = null,
+    trailing: @Composable (() -> Unit)? = null,
+) {
+    val dimens = LocalPulseDimens.current
+    Surface(
+        modifier = modifier,
+        shape = LocalPulseShapes.current.chip,
+        color = container,
+        contentColor = contentColor,
+    ) {
+        Row(
+            modifier = Modifier.padding(
+                horizontal = dimens.chipPaddingHorizontal,
+                vertical = dimens.chipPaddingVertical,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (glyph != null) {
+                glyph()
+                if (text != null) Spacer(Modifier.width(dimens.chipLabelGap))
+            }
+            if (text != null) {
+                Text(
+                    text = text,
+                    style = textStyle,
+                    color = contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (trailing != null) {
+                if (text != null || glyph != null) Spacer(Modifier.width(dimens.chipLabelGap))
+                trailing()
+            }
+        }
+    }
+}
+
+/**
  * The interval-phase label. A tinted pill with a phase dot, so the meaning survives greyscale and
  * colour-blindness.
  */
@@ -62,26 +119,17 @@ fun PhaseChip(kind: PhaseKind, name: String?, modifier: Modifier = Modifier) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val accent = colors.phaseColor(kind)
-    val label = name ?: PhaseKind.defaultLabel(kind)
-    Surface(
+    LabelChip(
+        text = name ?: PhaseKind.defaultLabel(kind),
+        container = colors.phaseTint(kind),
+        contentColor = accent,
         modifier = modifier,
-        shape = LocalPulseShapes.current.chip,
-        color = colors.phaseTint(kind),
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(6.dp).background(accent, CircleShape))
-            Spacer(Modifier.width(5.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = accent,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Box(
+            Modifier
+                .size(dimens.statusDotSize)
+                .background(accent, CircleShape),
+        )
     }
 }
 
@@ -90,30 +138,18 @@ fun PhaseChip(kind: PhaseKind, name: String?, modifier: Modifier = Modifier) {
 fun NeutralChip(text: String, modifier: Modifier = Modifier, icon: ImageVector? = null) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Surface(
+    LabelChip(
+        text = text,
+        container = colors.neutralFill,
+        contentColor = colors.textSecondary,
         modifier = modifier,
-        shape = LocalPulseShapes.current.chip,
-        color = colors.neutralFill,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = colors.textSecondary,
-                    modifier = Modifier.size(12.dp),
-                )
-                Spacer(Modifier.width(4.dp))
-            }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                color = colors.textSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = colors.textSecondary,
+                modifier = Modifier.size(dimens.chipGlyphSize),
             )
         }
     }
@@ -134,32 +170,18 @@ fun CategoryChip(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val hue = colors.categoryColor(category.hue)
-    Surface(
-        modifier = modifier,
-        shape = LocalPulseShapes.current.chip,
-        color = colors.categoryTint(category.hue),
+    LabelChip(
+        text = if (showTitle) category.title else null,
+        container = colors.categoryTint(category.hue),
         contentColor = hue,
+        modifier = modifier,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = category.icon,
-                contentDescription = null,
-                tint = hue,
-                modifier = Modifier.size(13.dp),
-            )
-            if (showTitle) {
-                Spacer(Modifier.width(5.dp))
-                Text(
-                    text = category.title,
-                    style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
+        Icon(
+            imageVector = category.icon,
+            contentDescription = null,
+            tint = hue,
+            modifier = Modifier.size(dimens.chipGlyphSize),
+        )
     }
 }
 
@@ -175,24 +197,17 @@ fun StatusBadge(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Surface(
-        modifier = modifier,
-        shape = LocalPulseShapes.current.chip,
-        color = toneTint(colors, tone),
+    LabelChip(
+        text = text,
+        container = toneTint(colors, tone),
         contentColor = colors.textSecondary,
+        modifier = modifier,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.s, vertical = 3.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(6.dp).background(toneAccent(colors, tone), CircleShape))
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-            )
-        }
+        Box(
+            Modifier
+                .size(dimens.statusDotSize)
+                .background(toneAccent(colors, tone), CircleShape),
+        )
     }
 }
 
@@ -202,6 +217,11 @@ fun StatusBadge(
  * The label is a quiet 12 sp line, the value is a tabular figure one step larger than the body copy,
  * and the caption explains it if asked. A row of tiles therefore reads like a table: same height,
  * same baseline, no jitter when a number changes.
+ *
+ * A tile is a **card** — the same surface, the same radius, the same hairline and the same shadow
+ * as anything else on the page — with a number in it. It used to be a flat rectangle with a border
+ * and no shadow, which is why a tile and a card sitting next to each other looked like two
+ * different products.
  *
  * [accent] and [icon] are optional and mutually compatible: a tile with neither is a number, a tile
  * with both is a headline.
@@ -217,15 +237,23 @@ fun StatTile(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val elevation = LocalPulseElevation.current
+    val shape = LocalPulseShapes.current.card
     val valueColor = accent ?: colors.textPrimary
     Surface(
-        modifier = modifier,
-        shape = LocalPulseShapes.current.card,
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(elevation.level1, shape),
+        shape = shape,
         color = colors.surface,
+        contentColor = colors.textPrimary,
         border = BorderStroke(dimens.borderWidth, colors.border),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.m),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = dimens.statTileHeight)
+                .padding(horizontal = dimens.m, vertical = dimens.m),
             verticalArrangement = Arrangement.spacedBy(dimens.xs),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -264,6 +292,40 @@ fun StatTile(
                 )
             }
         }
+    }
+}
+
+/**
+ * A micro-stat: a label over a value, with no surface of its own.
+ *
+ * The dense counterpart of [StatTile] — the readout you glance at from a metre away rather than
+ * read. It has no card because a card in a dense readout is noise, but it is still one component:
+ * the same label type, the same tabular value, the same muted label, wherever it appears.
+ */
+@Composable
+fun PulseMicroStat(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    alignment: Alignment.Horizontal = Alignment.Start,
+    valueColor: Color? = null,
+) {
+    val colors = LocalPulseColors.current
+    Column(modifier = modifier, horizontalAlignment = alignment) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textMuted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = value,
+            style = PulseType.NumericSmall,
+            color = valueColor ?: colors.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -309,8 +371,8 @@ fun InfoBanner(
             } else {
                 Box(
                     Modifier
-                        .padding(top = 6.dp)
-                        .size(7.dp)
+                        .padding(top = dimens.statusDotSize)
+                        .size(dimens.statusDotSize)
                         .background(accent, CircleShape),
                 )
                 Spacer(Modifier.width(dimens.m))

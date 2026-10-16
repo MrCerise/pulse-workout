@@ -2,7 +2,6 @@ package com.pulse.intervalcoach.ui.player
 
 import android.app.Activity
 import android.view.WindowManager
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -66,6 +64,8 @@ import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.health.HrZones
 import com.pulse.intervalcoach.session.RunTracker
 import com.pulse.intervalcoach.session.formatClock
+import com.pulse.intervalcoach.ui.components.LabelChip
+import com.pulse.intervalcoach.ui.components.PulseMicroStat
 import com.pulse.intervalcoach.ui.components.CategoryChip
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
@@ -553,7 +553,7 @@ private fun TransportButton(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .size(76.dp)
+            .size(LocalPulseDimens.current.playerTransportSize)
             .semantics { contentDescription = description },
         shape = CircleShape,
         // The transport is the phase: one round control, filled with the colour of the interval it
@@ -586,23 +586,23 @@ private fun RaceInfoBand(race: RaceInfo?, hasLocationPermission: Boolean, modifi
     val dimens = LocalPulseDimens.current
     Column(modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            RaceStat(
+            PulseMicroStat(
                 label = stringResource(R.string.player_race_speed).uppercase(),
                 value = race?.takeIf { it.speedMps > 0.0 }?.let { "${RaceMath.formatSpeedKph(it.speedMps)} km/h" } ?: "—",
             )
-            RaceStat(
+            PulseMicroStat(
                 label = stringResource(R.string.player_race_distance).uppercase(),
                 value = race?.let { "${RaceMath.formatDistanceKm(it.distanceMeters)} km" } ?: "—",
                 alignment = Alignment.CenterHorizontally,
             )
             if (race?.targetDistanceMeters != null) {
-                RaceStat(
+                PulseMicroStat(
                     label = stringResource(R.string.player_race_left).uppercase(),
                     value = "${RaceMath.formatDistanceKm(race.remainingMeters ?: 0.0)} km",
                     alignment = Alignment.End,
                 )
             } else {
-                RaceStat(
+                PulseMicroStat(
                     label = stringResource(R.string.player_race_pace).uppercase(),
                     value = race?.let { "${RaceMath.formatPace(it.paceSecondsPerKm)} /km" } ?: "—",
                     alignment = Alignment.End,
@@ -625,62 +625,34 @@ private fun RaceInfoBand(race: RaceInfo?, hasLocationPermission: Boolean, modifi
     }
 }
 
-@Composable
-private fun RaceStat(
-    label: String,
-    value: String,
-    alignment: Alignment.Horizontal = Alignment.Start,
-) {
-    val colors = LocalPulseColors.current
-    Column(horizontalAlignment = alignment) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.textMuted,
-        )
-        Text(
-            text = value,
-            style = PulseType.NumericSmall,
-            color = colors.textSecondary,
-        )
-    }
-}
-
 /** Live heart rate, shown only when a connected health platform actually reported one. */
 @Composable
 private fun HeartRateBadge(bpm: Int, modifier: Modifier = Modifier) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Surface(
+    // The shared label chip: the same pill the music state uses, with the heart glyph in it.
+    LabelChip(
+        text = "$bpm",
+        textStyle = PulseType.NumericSmall,
+        container = colors.warningTint,
+        contentColor = colors.textPrimary,
         modifier = modifier,
-        shape = LocalPulseShapes.current.chip,
-        color = colors.warningTint,
-        border = BorderStroke(dimens.borderWidth, colors.border),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.s, vertical = LocalPulseDimens.current.xs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        glyph = {
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = null,
                 tint = colors.prepare,
-                modifier = Modifier.size(12.dp),
+                modifier = Modifier.size(dimens.chipGlyphSize),
             )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = "$bpm",
-                style = PulseType.NumericSmall,
-                color = colors.textPrimary,
-            )
-            Spacer(Modifier.width(6.dp))
+        },
+        trailing = {
             Text(
                 text = HrZones.zone(bpm),
                 style = MaterialTheme.typography.labelMedium,
                 color = colors.textMuted,
             )
-        }
-    }
+        },
+    )
 }
 
 @Composable

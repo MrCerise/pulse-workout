@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.pulse.engine.PhaseKind
 
 /** Theme modes offered on the watch. The phone's `LIGHT` setting maps to [SYSTEM] here. */
@@ -82,6 +84,42 @@ fun wearColors(trueBlack: Boolean, highContrast: Boolean): WearColors {
     }
 }
 
+/**
+ * The watch's component metrics.
+ *
+ * The same idea as the phone's `PulseDimens`: the paddings, gaps and sizes that a component is
+ * built from are named, so two pages that use the same idea use the same numbers. A 4 dp gap that
+ * is written by hand in one file and named in another is how a watch screen ends up looking
+ * assembled rather than designed.
+ */
+data class WearDimens(
+    /** The horizontal inset of the session view, inside the round screen's bezel. */
+    val screenPaddingHorizontal: Dp = dp(4f),
+    /** The vertical breathing room around the session ring. */
+    val ringPaddingVertical: Dp = dp(4f),
+    /** The diameter of the session ring. */
+    val ringSize: Dp = dp(100f),
+    /** The width of the ring's stroke. */
+    val ringStrokeWidth: Dp = dp(7f),
+    /** The gap between the transport controls. */
+    val controlGap: Dp = dp(8f),
+    /** The diameter of a transport control. */
+    val controlButtonSize: Dp = dp(44f),
+    /** The vertical inset of a row in a list. */
+    val rowPaddingVertical: Dp = dp(4f),
+    /** The vertical inset of a row that is already tight. */
+    val tightRowPaddingVertical: Dp = dp(2f),
+    /** The gap between the lines of a row. */
+    val rowLineGap: Dp = dp(1f),
+    /** The horizontal inset of the summary's figures. */
+    val summaryPaddingHorizontal: Dp = dp(8f),
+    /** The space above the summary's last figure. */
+    val summaryPaddingTop: Dp = dp(6f),
+)
+
+/** The watch's component metrics. */
+val LocalWearDimens = staticCompositionLocalOf { WearDimens() }
+
 val LocalWearColors = staticCompositionLocalOf { wearColors(trueBlack = false, highContrast = false) }
 
 /**
@@ -100,7 +138,10 @@ fun PulseWearTheme(
         WearThemeMode.TRUE_BLACK -> true
     }
     val colors = wearColors(trueBlack = dark && themeMode == WearThemeMode.TRUE_BLACK, highContrast = highContrast)
-    CompositionLocalProvider(LocalWearColors provides colors) {
+    CompositionLocalProvider(
+        LocalWearColors provides colors,
+        LocalWearDimens provides WearDimens(),
+    ) {
         androidx.wear.compose.material.MaterialTheme(
             colors = androidx.wear.compose.material.Colors(
                 primary = colors.accent,

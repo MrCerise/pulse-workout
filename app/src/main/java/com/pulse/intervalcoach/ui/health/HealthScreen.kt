@@ -3,7 +3,6 @@ package com.pulse.intervalcoach.ui.health
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,14 +30,16 @@ import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.health.HC_REQUESTED_PERMISSIONS
 import com.pulse.intervalcoach.health.HcAvailability
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseStat
+import com.pulse.intervalcoach.ui.components.PulseStatGrid
 import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SectionHeader
-import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.StatusBadge
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
@@ -79,12 +80,7 @@ fun HealthScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
@@ -189,18 +185,18 @@ fun HealthScreen(
             // --- Your data, as the backend sees it ---
             item { SectionHeader("Your data") }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
-                    StatTile(
-                        "Steps today",
-                        snapshot.stepsToday?.let { "${it} " } ?: "—",
-                        modifier = Modifier.weight(1f),
-                    )
-                    StatTile(
-                        "Latest HR",
-                        snapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
-                        modifier = Modifier.weight(1f),
-                    )
-                }
+                PulseStatGrid(
+                    listOf(
+                        PulseStat(
+                            label = "Steps today",
+                            value = snapshot.stepsToday?.let { "${it} " } ?: "—",
+                        ),
+                        PulseStat(
+                            label = "Latest HR",
+                            value = snapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
+                        ),
+                    ),
+                )
             }
             item {
                 Column {

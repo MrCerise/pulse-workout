@@ -88,8 +88,21 @@ import com.pulse.intervalcoach.ui.theme.PulseType
  * obvious; sheets are for the rest.
  */
 
-/** Shared horizontal padding inside a button, so every action has the same optical weight. */
-private val buttonPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
+/**
+ * The shared padding inside a button, so every action has the same optical weight.
+ *
+ * It is a token rather than a constant because a button is one of the components that appears on
+ * every page: a padding that is right on one screen and a pixel off on another is exactly how a
+ * product stops looking like one product.
+ */
+@Composable
+private fun buttonPadding(): PaddingValues {
+    val dimens = LocalPulseDimens.current
+    return PaddingValues(
+        horizontal = dimens.buttonPaddingHorizontal,
+        vertical = dimens.buttonPaddingVertical,
+    )
+}
 
 // -------------------------------------------------------------------------------------------------
 // Buttons
@@ -121,7 +134,7 @@ fun PrimaryActionButton(
         contentColor = if (enabled) colors.actionText else colors.textDisabled,
     ) {
         Row(
-            modifier = Modifier.padding(buttonPadding),
+            modifier = Modifier.padding(buttonPadding()),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -164,7 +177,7 @@ fun SecondaryActionButton(
         border = BorderStroke(dimens.borderWidth, colors.borderStrong),
     ) {
         Row(
-            modifier = Modifier.padding(buttonPadding),
+            modifier = Modifier.padding(buttonPadding()),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -202,7 +215,7 @@ fun GhostActionButton(
         contentColor = if (enabled) colors.accent else colors.textDisabled,
     ) {
         Row(
-            modifier = Modifier.padding(buttonPadding),
+            modifier = Modifier.padding(buttonPadding()),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -241,7 +254,7 @@ fun DangerActionButton(
         border = BorderStroke(dimens.borderWidth, colors.error.copy(alpha = 0.32f)),
     ) {
         Row(
-            modifier = Modifier.padding(buttonPadding),
+            modifier = Modifier.padding(buttonPadding()),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -570,7 +583,7 @@ fun PulseActionMenu(
         border = BorderStroke(dimens.borderWidth, colors.borderStrong),
     ) {
         Row(
-            modifier = Modifier.padding(buttonPadding),
+            modifier = Modifier.padding(buttonPadding()),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -666,7 +679,7 @@ fun PulseChoiceChip(
     )
     Surface(
         onClick = onClick,
-        modifier = modifier.heightIn(min = 32.dp),
+        modifier = modifier.heightIn(min = dimens.choiceChipHeight),
         shape = LocalPulseShapes.current.control,
         color = container,
         contentColor = if (selected) tint else colors.textSecondary,
@@ -925,13 +938,15 @@ private fun StepperButton(
     description: String,
     enabled: Boolean,
     onClick: () -> Unit,
-    size: Dp = 36.dp,
+    size: Dp? = null,
 ) {
     val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    val buttonSize = size ?: dimens.stepperButtonSize
     Surface(
         onClick = onClick,
         enabled = enabled,
-        modifier = Modifier.size(size),
+        modifier = Modifier.size(buttonSize),
         shape = LocalPulseShapes.current.control,
         color = if (enabled) colors.surface else colors.surfaceHover,
         contentColor = if (enabled) colors.textPrimary else colors.textDisabled,

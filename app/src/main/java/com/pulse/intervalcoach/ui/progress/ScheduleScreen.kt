@@ -32,6 +32,7 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.categoryOrCustom
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCalendar
 import com.pulse.intervalcoach.ui.components.PulseCard
@@ -97,12 +98,7 @@ fun ScheduleScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
@@ -142,11 +138,10 @@ fun ScheduleScreen(
             }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.Schedule,
-                        contentDescription = null,
+                    PulseIconTile(
+                        icon = Icons.Filled.Schedule,
                         tint = colors.accent,
-                        modifier = Modifier.padding(end = dimens.s),
+                        container = colors.accentTint,
                     )
                     Text(
                         text = at.format(DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm", Locale.getDefault()))

@@ -1,6 +1,5 @@
 package com.pulse.intervalcoach.ui.workouts
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +38,6 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -64,6 +62,7 @@ import com.pulse.intervalcoach.data.WorkoutCategory
 import com.pulse.intervalcoach.data.WorkoutSummary
 import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.categoryOrCustom
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.ErrorState
@@ -74,6 +73,8 @@ import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseActionMenu
 import com.pulse.intervalcoach.ui.components.PulseBottomSheet
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseIconTile
+import com.pulse.intervalcoach.ui.components.PulseIconTileSize
 import com.pulse.intervalcoach.ui.components.PulseChoiceChip
 import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseIconButton
@@ -82,14 +83,15 @@ import com.pulse.intervalcoach.ui.components.PulseMenuAction
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseSheetRow
+import com.pulse.intervalcoach.ui.components.PulseStat
+import com.pulse.intervalcoach.ui.components.PulseStatGrid
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
-import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
+import com.pulse.intervalcoach.ui.theme.LocalPulseLayout
 import com.pulse.intervalcoach.ui.theme.PulseType
 import com.pulse.library.StarterWorkouts
 import kotlinx.coroutines.Dispatchers
@@ -216,9 +218,17 @@ fun WorkoutLibraryScreen(
     var showSortMenu by remember { mutableStateOf(false) }
 
     PulseScaffold { padding ->
-        Column(Modifier.padding(padding)) {
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                // The header is not inside a padded list here, so this screen carries the page
+                // gutter itself — otherwise its title and its actions sit flush against the screen
+                // edge, and a few pixels higher than every other destination's title.
+                .padding(top = dimens.cardGap),
+        ) {
             PulsePageHeader(
                 title = "Workouts",
+                modifier = Modifier.padding(horizontal = dimens.pagePadding),
                 trailing = {
                     PulseIconButton(
                         icon = Icons.Filled.Sort,
@@ -308,12 +318,8 @@ fun WorkoutLibraryScreen(
                 }
             } else if (state.grid) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = dimens.gridCellMin),
-                    contentPadding = PaddingValues(
-                        start = dimens.pagePadding,
-                        end = dimens.pagePadding,
-                        bottom = dimens.xxl,
-                    ),
+                    columns = GridCells.Adaptive(minSize = LocalPulseLayout.current.cardMinWidth),
+                    contentPadding = pageContentPadding(top = 0.dp, bottom = dimens.huge),
                     horizontalArrangement = Arrangement.spacedBy(dimens.cardGap),
                     verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
                 ) {
@@ -323,11 +329,7 @@ fun WorkoutLibraryScreen(
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(
-                        start = dimens.pagePadding,
-                        end = dimens.pagePadding,
-                        bottom = dimens.xxl,
-                    ),
+                    contentPadding = pageContentPadding(top = 0.dp, bottom = dimens.huge),
                     verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
                 ) {
                     // One surface for the whole list: rows are separated by hairlines rather than by
@@ -461,21 +463,14 @@ private fun WorkoutGridCard(
         tint = hue,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(dimens.s)) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    // The same category tile the details hero draws, one size step down: a square,
-                    // because the grid card and the details page describe one workout the same way.
-                    .background(colors.categoryTint(category.hue), LocalPulseShapes.current.control),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = category.icon,
-                    contentDescription = null,
-                    tint = hue,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
+            // The same category tile the details page draws, one size step down — the grid card
+            // and the details page describe one workout the same way.
+            PulseIconTile(
+                icon = category.icon,
+                tint = hue,
+                container = colors.categoryTint(category.hue),
+                size = PulseIconTileSize.SMALL,
+            )
             Text(
                 text = workout.name,
                 style = MaterialTheme.typography.titleMedium,
@@ -644,12 +639,7 @@ fun WorkoutDetailsScreen(
         val hue = colors.categoryColor(category.hue)
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
@@ -674,19 +664,12 @@ fun WorkoutDetailsScreen(
             item {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(colors.categoryTint(category.hue), LocalPulseShapes.current.control),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = category.icon,
-                                    contentDescription = null,
-                                    tint = hue,
-                                    modifier = Modifier.size(26.dp),
-                                )
-                            }
+                            PulseIconTile(
+                                icon = category.icon,
+                                tint = hue,
+                                container = colors.categoryTint(category.hue),
+                                size = PulseIconTileSize.MEDIUM,
+                            )
                             Spacer(Modifier.width(dimens.m))
                             Column(Modifier.weight(1f)) {
                                 Text(
@@ -724,15 +707,17 @@ fun WorkoutDetailsScreen(
                             color = colors.textMuted,
                         )
                         Spacer(Modifier.height(dimens.l))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                            StatTile("Intervals", expanded.steps.size.toString(), modifier = Modifier.weight(1f))
-                            expanded.steps.firstNotNullOfOrNull { it.roundsInGroup }?.let { rounds ->
-                                StatTile("Rounds", rounds.toString(), modifier = Modifier.weight(1f))
-                            }
-                            plan.equipment?.let {
-                                StatTile("Equipment", it.take(12), modifier = Modifier.weight(1f))
-                            }
-                        }
+                        PulseStatGrid(
+                            buildList {
+                                add(PulseStat(label = "Intervals", value = expanded.steps.size.toString()))
+                                expanded.steps.firstNotNullOfOrNull { it.roundsInGroup }?.let { rounds ->
+                                    add(PulseStat(label = "Rounds", value = rounds.toString()))
+                                }
+                                plan.equipment?.let {
+                                    add(PulseStat(label = "Equipment", value = it.take(12)))
+                                }
+                            },
+                        )
                         if (expanded.hasOpenEnded) {
                             Spacer(Modifier.height(dimens.m))
                             InfoBanner(stringResource(R.string.details_open_ended_note))
@@ -819,23 +804,6 @@ fun WorkoutDetailsScreen(
     }
 }
 
-/** A quiet category pill for places that only need the name. */
-@Composable
-private fun CategoryLabel(category: WorkoutCategory) {
-    Surface(
-        shape = LocalPulseShapes.current.chip,
-        color = LocalPulseColors.current.categoryTint(category.hue),
-        contentColor = LocalPulseColors.current.categoryColor(category.hue),
-    ) {
-        Text(
-            text = category.title,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
-            maxLines = 1,
-        )
-    }
-}
-
 /** Shares a readable text summary of a workout (structure only — never fake session numbers). */
 private fun shareWorkout(context: android.content.Context, container: AppContainer, workoutId: String) {
     val scope = kotlinx.coroutines.CoroutineScope(Dispatchers.Default)
@@ -898,12 +866,7 @@ fun CategoryScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             item {
@@ -917,19 +880,12 @@ fun CategoryScreen(
             // card around them was one more box with nothing to add.
             item {
                 Column {
-                        Box(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .background(colors.categoryTint(category.hue), LocalPulseShapes.current.card),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = category.icon,
-                                contentDescription = null,
-                                tint = hue,
-                                modifier = Modifier.size(32.dp),
-                            )
-                        }
+                        PulseIconTile(
+                            icon = category.icon,
+                            tint = hue,
+                            container = colors.categoryTint(category.hue),
+                            size = PulseIconTileSize.LARGE,
+                        )
                         Spacer(Modifier.height(dimens.l))
                         Text(
                             text = category.title,
@@ -937,26 +893,25 @@ fun CategoryScreen(
                             color = colors.textPrimary,
                         )
                         Spacer(Modifier.height(dimens.l))
-                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                            StatTile(
-                                label = "Work",
-                                value = formatDuration(category.defaults.workMillis),
-                                accent = hue,
-                                modifier = Modifier.weight(1f),
-                            )
-                            StatTile(
-                                label = "Rest",
-                                value = formatDuration(category.defaults.restMillis),
-                                accent = hue,
-                                modifier = Modifier.weight(1f),
-                            )
-                            StatTile(
-                                label = "Rounds",
-                                value = category.defaults.rounds.toString(),
-                                accent = hue,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+                        PulseStatGrid(
+                            listOf(
+                                PulseStat(
+                                    label = "Work",
+                                    value = formatDuration(category.defaults.workMillis),
+                                    accent = hue,
+                                ),
+                                PulseStat(
+                                    label = "Rest",
+                                    value = formatDuration(category.defaults.restMillis),
+                                    accent = hue,
+                                ),
+                                PulseStat(
+                                    label = "Rounds",
+                                    value = category.defaults.rounds.toString(),
+                                    accent = hue,
+                                ),
+                            ),
+                        )
                 }
             }
 

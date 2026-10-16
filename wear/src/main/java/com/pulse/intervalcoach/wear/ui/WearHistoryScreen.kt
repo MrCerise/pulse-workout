@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
@@ -33,6 +32,7 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.wear.R
 import com.pulse.intervalcoach.wear.WearAppContainer
 import com.pulse.intervalcoach.wear.history.WatchSessionRecord
+import com.pulse.intervalcoach.wear.ui.theme.LocalWearDimens
 import com.pulse.intervalcoach.wear.ui.theme.LocalWearColors
 import java.time.Instant
 import java.time.ZoneId
@@ -59,6 +59,7 @@ fun WearHistoryScreen(
     container: WearAppContainer,
     onBack: () -> Unit,
 ) {
+    val dimens = LocalWearDimens.current
     val colors = LocalWearColors.current
     val records by container.history.records.collectAsStateWithLifecycle()
     val prefs by container.preferences.flow.collectAsStateWithLifecycle()
@@ -81,7 +82,7 @@ fun WearHistoryScreen(
                     style = MaterialTheme.typography.title3,
                     color = colors.textPrimary,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = dimens.rowPaddingVertical),
                 )
             }
             if (pendingIds.isNotEmpty()) {
@@ -91,7 +92,7 @@ fun WearHistoryScreen(
                         style = MaterialTheme.typography.caption1,
                         color = colors.prepare,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = dimens.tightRowPaddingVertical),
                     )
                 }
             }
@@ -102,7 +103,7 @@ fun WearHistoryScreen(
                         style = MaterialTheme.typography.caption1,
                         color = colors.textMuted,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = dimens.rowPaddingVertical),
                     )
                 }
             }
@@ -159,13 +160,14 @@ private fun HistoryRow(
     record: WatchSessionRecord,
     waitingForPhone: Boolean,
 ) {
+    val dimens = LocalWearDimens.current
     val colors = LocalWearColors.current
     val state = stringResource(
         if (waitingForPhone) R.string.history_state_on_watch else R.string.history_state_on_phone,
     )
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(1.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = dimens.rowPaddingVertical),
+        verticalArrangement = Arrangement.spacedBy(dimens.rowLineGap),
     ) {
         Text(
             text = record.planName,

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -183,24 +184,26 @@ fun ErrorState(
 }
 
 /**
- * A confirmation dialog. It is only red when it destroys something — [destructive] is required for
- * the destructive styling, so a routine confirmation cannot accidentally look like a warning.
+ * The app's dialog shell.
+ *
+ * One radius, one elevation, one fill, one type ramp and one button system: a dialog in the
+ * builder and a dialog in Settings are the same object, and neither of them is the platform's
+ * default. The platform's own dialog would be the fastest thing to ship, and it would also be the
+ * one place in the app that does not look like PULSE.
  */
 @Composable
-fun ConfirmDialog(
+fun PulseDialog(
     title: String,
-    body: String,
-    confirmLabel: String,
-    dismissLabel: String,
-    onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    destructive: Boolean = false,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val elevation = LocalPulseElevation.current
     Dialog(onDismissRequest = onDismiss) {
         Surface(
+            modifier = modifier,
             shape = LocalPulseShapes.current.sheet,
             color = colors.surfaceOverlay,
             contentColor = colors.textPrimary,
@@ -216,24 +219,44 @@ fun ConfirmDialog(
                     style = MaterialTheme.typography.headlineSmall,
                     color = colors.textPrimary,
                 )
-                Text(
-                    text = body,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.textSecondary,
-                )
-                Spacer(Modifier.height(dimens.s))
-                if (destructive) {
-                    DangerActionButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
-                } else {
-                    PrimaryActionButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
-                }
-                GhostActionButton(
-                    text = dismissLabel,
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                content()
             }
         }
+    }
+}
+
+/**
+ * A confirmation dialog. It is only red when it destroys something — [destructive] is required for
+ * the destructive styling, so a routine confirmation cannot accidentally look like a warning.
+ */
+@Composable
+fun ConfirmDialog(
+    title: String,
+    body: String,
+    confirmLabel: String,
+    dismissLabel: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    destructive: Boolean = false,
+) {
+    val dimens = LocalPulseDimens.current
+    PulseDialog(title = title, onDismiss = onDismiss) {
+        Text(
+            text = body,
+            style = MaterialTheme.typography.bodyMedium,
+            color = LocalPulseColors.current.textSecondary,
+        )
+        Spacer(Modifier.height(dimens.s))
+        if (destructive) {
+            DangerActionButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+        } else {
+            PrimaryActionButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+        }
+        GhostActionButton(
+            text = dismissLabel,
+            onClick = onDismiss,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

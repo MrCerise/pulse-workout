@@ -1,8 +1,6 @@
 package com.pulse.intervalcoach.ui.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ChevronRight
@@ -28,7 +25,6 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -60,6 +55,7 @@ import com.pulse.intervalcoach.data.WorkoutSummary
 import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.categoryOrCustom
 import com.pulse.intervalcoach.data.db.ReminderEntity
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.ActivityBar
 import com.pulse.intervalcoach.ui.components.ActivityChart
 import com.pulse.intervalcoach.ui.components.CategoryChip
@@ -70,19 +66,23 @@ import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.ProgressBar
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseCellGrid
 import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseHeroCard
+import com.pulse.intervalcoach.ui.components.PulseIconTile
+import com.pulse.intervalcoach.ui.components.PulseStartTile
 import com.pulse.intervalcoach.ui.components.PulseListRow
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseStat
+import com.pulse.intervalcoach.ui.components.PulseStatGrid
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.library.StarterWorkouts
-import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
-import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
+import com.pulse.intervalcoach.ui.theme.LocalPulseLayout
 import com.pulse.intervalcoach.ui.theme.PulseType
 import java.time.Instant
 import java.time.LocalDate
@@ -276,12 +276,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.s,
-                bottom = dimens.huge,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
         ) {
             // --- Page heading -------------------------------------------------------------------
@@ -309,7 +304,7 @@ fun HomeScreen(
                 item {
                     PulseCard(onClick = onResumeSession) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(icon = Icons.Filled.PlayArrow, tint = colors.accent, container = colors.accentTint)
+                            PulseIconTile(icon = Icons.Filled.PlayArrow, tint = colors.accent, container = colors.accentTint)
                             Spacer(Modifier.width(dimens.m))
                             Column(
                                 Modifier.weight(1f),
@@ -343,7 +338,7 @@ fun HomeScreen(
                 item {
                     PulseCard(onClick = onOpenWatchSession) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(icon = Icons.Filled.Watch, tint = colors.work, container = colors.phaseTint(PhaseKind.WORK))
+                            PulseIconTile(icon = Icons.Filled.Watch, tint = colors.work, container = colors.phaseTint(PhaseKind.WORK))
                             Spacer(Modifier.width(dimens.m))
                             Column(
                                 Modifier.weight(1f),
@@ -378,9 +373,13 @@ fun HomeScreen(
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                     items(categories, key = { it.key }) { category ->
-                        CategoryStartTile(
-                            category = category,
+                        PulseStartTile(
+                            title = category.title,
+                            icon = category.icon,
+                            hue = colors.categoryColor(category.hue),
+                            tint = colors.categoryTint(category.hue),
                             duration = remember(category) { presetTotalMillis(category) },
+                            modifier = Modifier.width(132.dp),
                             onClick = {
                                 if (onOpenCategory != null) {
                                     onOpenCategory(category)
@@ -413,32 +412,19 @@ fun HomeScreen(
             item {
                 Column(Modifier.fillMaxWidth()) {
                     SectionHeader("Quick start")
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        presets.take(2).forEach { preset ->
-                            PresetTile(
-                                title = preset.category.title,
-                                icon = preset.category.icon,
-                                hue = colors.categoryColor(preset.category.hue),
-                                tint = colors.categoryTint(preset.category.hue),
-                                duration = presetDuration(preset.plan),
-                                onClick = { onStartWorkout(preset.plan) },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(dimens.s))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        presets.drop(2).forEach { preset ->
-                            PresetTile(
-                                title = preset.category.title,
-                                icon = preset.category.icon,
-                                hue = colors.categoryColor(preset.category.hue),
-                                tint = colors.categoryTint(preset.category.hue),
-                                duration = presetDuration(preset.plan),
-                                onClick = { onStartWorkout(preset.plan) },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+                    // Two across on a phone, four on a tablet: the grid decides, so the presets
+                    // are never two very wide tiles on a large screen.
+                    PulseCellGrid(count = presets.size) { index ->
+                        val preset = presets[index]
+                        PulseStartTile(
+                            title = preset.category.title,
+                            icon = preset.category.icon,
+                            hue = colors.categoryColor(preset.category.hue),
+                            tint = colors.categoryTint(preset.category.hue),
+                            duration = presetDuration(preset.plan),
+                            onClick = { onStartWorkout(preset.plan) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
 
                     SectionHeader(text = "Custom", trailing = formatDuration(quickTotal(quick)))
@@ -510,44 +496,42 @@ fun HomeScreen(
 
             // --- Progress & Goals: two equal nav tiles, so neither reads as a stray text link ----
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
-                    PulseCard(onClick = onOpenProgress, modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(icon = Icons.Filled.Insights, tint = colors.accent, container = colors.accentTint)
-                            Spacer(Modifier.width(dimens.s))
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    text = "Progress",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = colors.textPrimary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    text = "History & charts",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
-                        }
+                // One card per row on a phone — two side by side would squeeze "History & charts"
+                // into an ellipsis — and two across from a tablet up.
+                PulseCellGrid(count = 2, minCellWidth = 220.dp) { index ->
+                    val (title, subtitle, icon, tint, container, onOpen) = if (index == 0) {
+                        NavTile(
+                            title = "Progress",
+                            subtitle = "History & charts",
+                            icon = Icons.Filled.Insights,
+                            tint = colors.accent,
+                            container = colors.accentTint,
+                            onOpen = onOpenProgress,
+                        )
+                    } else {
+                        NavTile(
+                            title = "Goals",
+                            subtitle = "Weekly target",
+                            icon = Icons.Filled.Flag,
+                            tint = colors.prepare,
+                            container = colors.warningTint,
+                            onOpen = onOpenGoals,
+                        )
                     }
-                    PulseCard(onClick = onOpenGoals, modifier = Modifier.weight(1f)) {
+                    PulseCard(onClick = onOpen, modifier = Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(icon = Icons.Filled.Flag, tint = colors.prepare, container = colors.warningTint)
+                            PulseIconTile(icon = icon, tint = tint, container = container)
                             Spacer(Modifier.width(dimens.s))
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    text = "Goals",
+                                    text = title,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = colors.textPrimary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    text = "Weekly target",
+                                    text = subtitle,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.textMuted,
                                     maxLines = 1,
@@ -566,18 +550,18 @@ fun HomeScreen(
             if (healthSnapshot.source != null) {
                 item { SectionHeader(text = "Today's health", trailing = healthSnapshot.source.orEmpty()) }
                 item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
-                        StatTile(
-                            label = "Steps",
-                            value = healthSnapshot.stepsToday?.toString() ?: "—",
-                            modifier = Modifier.weight(1f),
-                        )
-                        StatTile(
-                            label = "Heart rate",
-                            value = healthSnapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    PulseStatGrid(
+                        listOf(
+                            PulseStat(
+                                label = "Steps",
+                                value = healthSnapshot.stepsToday?.toString() ?: "—",
+                            ),
+                            PulseStat(
+                                label = "Heart rate",
+                                value = healthSnapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
+                            ),
+                        ),
+                    )
                 }
             }
 
@@ -704,7 +688,8 @@ private fun TodayHero(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val goalMinutes = (goalMillis / 60000L).coerceAtLeast(1)
-    PulseHeroCard {
+    // The hero keeps its presence on a tablet instead of shrinking into a strip.
+    PulseHeroCard(minHeight = LocalPulseLayout.current.heroHeight) {
         Column(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -753,55 +738,20 @@ private fun TodayHero(
 }
 
 /**
- * A one-tap category tile: the category's glyph in its own hue on its own tint.
+ * One of the two navigation cards on the Today page.
  *
- * The rail exists because most people decide "intervals" or "a run" before they decide "HIIT
- * Starter 3", and because the registry makes the tile free to build for any category.
+ * They are the same card with different contents, so they are described by one record and drawn
+ * by one block of code — which is what keeps "Progress" and "Goals" looking like two entries in
+ * the same list rather than two things a designer drew twice.
  */
-@Composable
-private fun CategoryStartTile(
-    category: WorkoutCategory,
-    duration: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalPulseColors.current
-    val dimens = LocalPulseDimens.current
-    val hue = colors.categoryColor(category.hue)
-    Surface(
-        onClick = onClick,
-        modifier = modifier.width(132.dp),
-        shape = LocalPulseShapes.current.card,
-        color = colors.categoryTint(category.hue),
-        contentColor = hue,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.m),
-            verticalArrangement = Arrangement.spacedBy(dimens.s),
-            horizontalAlignment = Alignment.Start,
-        ) {
-            Icon(
-                imageVector = category.icon,
-                contentDescription = null,
-                tint = hue,
-                modifier = Modifier.size(20.dp),
-            )
-            Text(
-                text = category.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = colors.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = duration,
-                style = PulseType.NumericSmall,
-                color = colors.textMuted,
-                maxLines = 1,
-            )
-        }
-    }
-}
+private data class NavTile(
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector,
+    val tint: Color,
+    val container: Color,
+    val onOpen: () -> Unit,
+)
 
 /** A favourite in the horizontal rail, with its category hue on the icon tile. */
 @Composable
@@ -819,7 +769,7 @@ private fun FavoriteCard(
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconTile(
+                PulseIconTile(
                     icon = category.icon,
                     tint = colors.categoryColor(category.hue),
                     container = colors.categoryTint(category.hue),
@@ -912,71 +862,6 @@ private fun TemplateCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-        }
-    }
-}
-
-/**
- * The 32 dp icon tile used at the head of a row: a tinted rounded square that identifies the section
- * without introducing decoration. The tint carries meaning (accent for live, warning for scheduled).
- */
-@Composable
-private fun IconTile(
-    icon: ImageVector,
-    tint: Color,
-    container: Color? = null,
-) {
-    val colors = LocalPulseColors.current
-    Box(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(RoundedCornerShape(LocalPulseDimens.current.controlRadius))
-            .background(container ?: colors.neutralFill),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(17.dp))
-    }
-}
-
-/** A preset tile in the quick-start grid, coloured by its category. */
-@Composable
-private fun PresetTile(
-    title: String,
-    icon: ImageVector,
-    hue: Color,
-    tint: Color,
-    duration: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalPulseColors.current
-    val dimens = LocalPulseDimens.current
-    Surface(
-        onClick = onClick,
-        modifier = modifier,
-        shape = LocalPulseShapes.current.panel,
-        color = tint,
-        contentColor = hue,
-        border = null,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.m),
-            verticalArrangement = Arrangement.spacedBy(dimens.xs),
-        ) {
-            Icon(icon, contentDescription = null, tint = hue, modifier = Modifier.size(18.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = colors.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = duration,
-                style = PulseType.NumericSmall,
-                color = colors.textMuted,
-                maxLines = 1,
-            )
         }
     }
 }

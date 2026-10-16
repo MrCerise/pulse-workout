@@ -12,6 +12,7 @@ environment lacks what the check requires.
 - [v1.4.4 audio-ducking checks](#v144-audio-ducking-checks)
 - [v1.7.2 standalone and pairing checks](#v172-standalone-and-pairing-checks)
 - [v1.7.3 naming, branding and language checks](#v173-naming-branding-and-language-checks)
+- [v1.8.1 UI component rework checks](#v181-ui-component-rework-checks)
 
 For how these checks are run in CI and locally, see [VERIFICATION.md](VERIFICATION.md).
 
@@ -84,6 +85,28 @@ for the rest; the second is a shape decision, so it is checked against the desig
 | A builder option is readable, not ellipsized | `OptionRow` lays its choices out two to a row, the same grid `CategoryPicker` uses | **verified by construction** — seven equal columns on a 360 dp phone leave ~5 dp of text per option |
 | Material's own surfaces follow the tokens | `PulseTheme` maps `Shapes(extraSmall = shapes.panel, …)`; `MaterialTheme.shapes.extraSmall` is what a `DropdownMenu` draws its container with, and it used to be the 999 dp pill | **verified** — the library's sort, new-workout and overflow menus now take the 6 dp panel radius like `PulseDropdown` states |
 | Documentation and code agree | `scripts/check_ui.py`, `scripts/kotlin_xref_gate.py` | **verified** — 0 problems |
+
+## v1.8.1 UI component rework checks
+
+The v1.8.1 rework replaces "the same idea drawn several ways" with "one idea, one component", and
+makes the page adapt to its window without changing its shape. Both claims are checkable without a
+device, because both are statements about the code and the tokens rather than about pixels.
+
+| Check | How it is checked | Result |
+| --- | --- | --- |
+| A component looks the same wherever it appears | The category badge, the phase tag, the metadata pill, the status badge, the stat tile, the icon tile, the start tile, the progress bar and the dialog are each **one** declaration in `ui/components`, and every screen uses them | **verified by construction** — the private duplicates (`IconTile`, `CategoryStartTile`, `PresetTile`, `CategoryLabel`) are gone from the tree |
+| A call site cannot drift from a declaration | `scripts/kotlin_args_gate.py` resolves every named argument at every call site against the declaration's parameter list | **verified** — 1335 named arguments, 0 unknown |
+| Every screen imports its styling from the shared set | `scripts/kotlin_xref_gate.py`; no `Color(0x…)` outside `ui/theme` | **verified** — 0 problems, and no colour literal in `ui/` |
+| The padding of a chip, a button or a tile is a token, not a constant | `PulseDimens` carries the chip, button, stepper and stat-tile metrics; the components read them | **verified** — `scripts/check_ui.py` and the source audit show no hand-written padding left in a shared component |
+| Every scrolling page shares one gutter | `pageContentPadding()` is the only page padding in the tree; the workout library, the watch session, the summary and the import screen are the exceptions that now use it too | **verified** — every `LazyColumn` in `ui/` takes its content padding from that one function |
+| A page adapts without changing its shape | `LocalPulseWindowSize` (COMPACT / MEDIUM / EXPANDED at 600 / 1000 dp) is published by the theme, and the shell draws its navigation from it | **verified** — `scripts/kotlin_xref_gate.py` reports 0 problems; the ladder is read in one place |
+| A row of statistics fits the width it is given | `PulseStatGrid` and `PulseCellGrid` derive their column count from the width they are measured with, with a 124 dp floor for a tile and a 140 dp floor for a small cell | **verified by construction** — two tiles fit across a 360 dp phone, three across a tablet |
+| The title and the page actions cannot overlap | `PulsePageHeader` measures the action cluster and insets the title by its width on both sides, and stacks the cluster above the title when it is too wide | **verified by construction** |
+| The design document describes the code | `docs/DESIGN.md` §4 (the responsive layer), §6 (the component inventory) and §8 (adding a screen) | **verified** — the inventory lists `Layout.kt`, the responsive metrics and the one-measure rule |
+| Contrast is unchanged by the rework | `scripts/contrast_check.py` | **verified** — 125 measured pairings, all pass, see `docs/CONTRAST.md` |
+
+Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
+environment); the gates above are the ones that can run before it.
 
 ## v1.4.4 audio-ducking checks
 

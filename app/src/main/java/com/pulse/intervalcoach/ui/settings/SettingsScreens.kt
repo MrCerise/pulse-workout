@@ -10,7 +10,6 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.VolumeDown
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,6 +53,7 @@ import com.pulse.intervalcoach.data.VoiceVerbosity
 import com.pulse.intervalcoach.data.WeightUnit
 import com.pulse.intervalcoach.data.db.AudioAssetEntity
 import com.pulse.intervalcoach.locale.AppLocale
+import com.pulse.intervalcoach.ui.components.pageContentPadding
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DangerActionButton
 import com.pulse.intervalcoach.ui.components.DurationStepper
@@ -63,6 +62,7 @@ import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PulseActionMenu
 import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulseIconTile
 import com.pulse.intervalcoach.ui.components.PulseMenuAction
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
@@ -107,12 +107,7 @@ fun SettingsScreen(
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = LocalPulseDimens.current.pagePadding,
-                end = LocalPulseDimens.current.pagePadding,
-                top = LocalPulseDimens.current.cardGap,
-                bottom = LocalPulseDimens.current.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item {
@@ -129,11 +124,10 @@ fun SettingsScreen(
                 PulseCard(onClick = onOpenHealth) {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Filled.Favorite,
-                                contentDescription = null,
+                            PulseIconTile(
+                                icon = Icons.Filled.Favorite,
                                 tint = if (healthSnapshot.source != null) colors.work else colors.textSecondary,
-                                modifier = Modifier.padding(end = LocalPulseDimens.current.m),
+                                container = if (healthSnapshot.source != null) colors.successTint else colors.surfaceRaised,
                             )
                             Column(Modifier.weight(1f)) {
                                 Text(stringResource(R.string.settings_health_title), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
@@ -413,12 +407,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = LocalPulseDimens.current.pagePadding,
-                end = LocalPulseDimens.current.pagePadding,
-                top = LocalPulseDimens.current.cardGap,
-                bottom = LocalPulseDimens.current.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item {
@@ -767,12 +756,7 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
     PulseScaffold { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = LocalPulseDimens.current.pagePadding,
-                end = LocalPulseDimens.current.pagePadding,
-                top = LocalPulseDimens.current.cardGap,
-                bottom = LocalPulseDimens.current.xxl,
-            ),
+            contentPadding = pageContentPadding(),
             verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
         ) {
             item {

@@ -47,6 +47,10 @@ fun PulseTheme(
     val dimens = PulseDimens()
     val shapes = PulseShapes()
 
+    // The window size class is resolved once, here, so every screen reads the same ladder: the
+    // shell draws its navigation from it and the page components draw their columns from it.
+    val windowSize = currentWindowSize()
+
     // The activity draws edge-to-edge, so the status and navigation bar *icons* are ours to choose.
     // They follow the theme the user picked, not the system one: choosing Light on a dark device must
     // not leave white glyphs on white chrome.
@@ -67,6 +71,8 @@ fun PulseTheme(
         LocalPulseShapes provides shapes,
         LocalPulseElevation provides PulseElevation(),
         LocalPulseMotion provides PulseMotion(reducedMotion),
+        LocalPulseWindowSize provides windowSize,
+        LocalPulseLayout provides pulseLayout(windowSize),
     ) {
         MaterialTheme(
             colorScheme = colors.toMaterialScheme(),
