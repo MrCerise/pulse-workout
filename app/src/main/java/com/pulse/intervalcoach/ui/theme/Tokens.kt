@@ -280,7 +280,10 @@ data class PulseDimens(
 
     /** Control heights. */
     val controlHeight: Dp = 40.dp,
-    val buttonHeight: Dp = 48.dp,
+    /** Action buttons are deliberately taller than other controls: they carry the screen. */
+    val buttonHeight: Dp = 56.dp,
+    /** The builder's name plate: one imposing control that titles the whole plan. */
+    val namePlateHeight: Dp = 64.dp,
     val iconButtonSize: Dp = 36.dp,
     val topBarHeight: Dp = 56.dp,
     val listRowHeight: Dp = 56.dp,

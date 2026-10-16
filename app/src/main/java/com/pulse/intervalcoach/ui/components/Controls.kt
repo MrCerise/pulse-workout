@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,17 +62,21 @@ import com.pulse.intervalcoach.ui.theme.PulseType
  *
  * Three rules are baked into the components themselves, so a screen cannot get them wrong:
  *
- *  - **Exactly one primary action per screen, and it is the brand block.** A solid orange fill with
+ *  - **Exactly one primary action per screen, and it is the brand block.** A solid brand fill with
  *    ink on it is the single loudest thing a page can show, which is what makes "where do I tap"
  *    answerable before anything is read.
- *  - **Controls are 40 dp, radii are 6 dp.** Density is a feature: more of the workout fits on the
- *    screen, and the silhouette stays a tool rather than a toy.
+ *  - **Buttons are imposing, fields are dense.** An action button is 56 dp tall with the display
+ *    face on its label; fields, steppers and chips stay at 40 dp so the form keeps its rhythm.
  *  - **Every control has a real touch target.** A 36 dp icon button still exposes 48 dp, and a
  *    disabled control is flat, not dimmed.
+ *
+ * Enumerated choices are **drop-downs** (`PulseSelect`, and `PulseActionMenu` for clusters of
+ * secondary actions) — a row of side-by-side buttons is never drawn where a menu is the honest
+ * control. Buttons are for actions a screen makes obvious; menus are for the rest.
  */
 
 /** Shared horizontal padding inside a button, so every action has the same optical weight. */
-private val buttonPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+private val buttonPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
 
 // -------------------------------------------------------------------------------------------------
 // Buttons
@@ -79,8 +85,9 @@ private val buttonPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
 /**
  * The primary action: a solid brand block with ink on it, one per screen.
  *
- * Full width wherever it is used, 40 dp tall, 14 sp semibold label. It is the only element in the
- * interface allowed a saturated fill, so the screen always has exactly one obvious next step.
+ * Full width wherever it is used, 56 dp tall, the display face on the label. It is the only
+ * element in the interface allowed a saturated fill, so the screen always has exactly one obvious
+ * next step — and it looks like it.
  */
 @Composable
 fun PrimaryActionButton(
@@ -111,7 +118,7 @@ fun PrimaryActionButton(
             }
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelLarge,
+                style = PulseType.ButtonLabel,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -120,7 +127,7 @@ fun PrimaryActionButton(
 }
 
 /**
- * The secondary action: a white/raised surface with a visible border — the outlined button of the
+ * The secondary action: a raised surface with a visible border — the outlined button of the
  * system. It never competes with the brand block, and it is the default for "Cancel", "Save for
  * later" and everything else that is not the point of the screen.
  */
@@ -139,7 +146,7 @@ fun SecondaryActionButton(
         modifier = modifier.heightIn(min = dimens.buttonHeight),
         enabled = enabled,
         shape = LocalPulseShapes.current.control,
-        color = colors.surface,
+        color = colors.surfaceRaised,
         contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
         border = BorderStroke(dimens.borderWidth, colors.borderStrong),
     ) {
@@ -154,7 +161,7 @@ fun SecondaryActionButton(
             }
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelLarge,
+                style = PulseType.ButtonLabel,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -192,7 +199,7 @@ fun GhostActionButton(
             }
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelLarge,
+                style = PulseType.ButtonLabel,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -231,7 +238,7 @@ fun DangerActionButton(
             }
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelLarge,
+                style = PulseType.ButtonLabel,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -403,13 +410,13 @@ fun PulseTextField(
 // -------------------------------------------------------------------------------------------------
 
 /**
- * A labelled option group: a wrapping row of **standalone** chips on the canvas.
+ * A labelled drop-down: the control for every enumerated choice.
  *
- * Each choice is its own control with its own surface, border and touch target, spaced by
- * `chipGap` — never segments welded together inside a track, and never buttons packed into a
- * container. The chosen chip wears the accent; the rest stay outlined. Used for every enumerated
- * preference (audio interruption, headphone behaviour, density, units) and the builder's pickers,
- * so they all share one rhythm.
+ * A choice among many options is a menu, not a row of buttons: the trigger is one full-width
+ * control that shows the current value, and the options live in the drop-down where their labels
+ * are never squeezed. Used for every enumerated preference (audio interruption, headphone
+ * behaviour, density, units) and the builder's Phase / Sound / Vibration pickers, so they all
+ * share one rhythm.
  */
 @Composable
 fun <T> OptionRow(
@@ -418,25 +425,174 @@ fun <T> OptionRow(
     selected: T,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    PulseSelect(
+        label = label,
+        options = options,
+        selected = selected,
+        onSelect = onSelect,
+        modifier = modifier,
+        enabled = enabled,
+    )
+}
+
+/**
+ * The drop-down field: a labelled trigger showing the current value, and a menu of the options.
+ *
+ * The trigger is one well-filled control at button height — sunken fill, visible border — so a
+ * form's pickers carry the same presence as its actions; the chevron is what says "there is a menu
+ * here". The chosen entry wears the accent inside the menu.
+ */
+@Composable
+fun <T> PulseSelect(
+    label: String,
+    options: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(dimens.xs),
-    ) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLabel = options.firstOrNull { it.first == selected }?.second.orEmpty()
+    Column(modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = PulseType.SectionLabel,
             color = colors.textMuted,
             modifier = Modifier.padding(start = dimens.xs, bottom = dimens.xs),
         )
-        PulseChipGroup(
-            options = options,
-            selected = selected,
-            onSelect = onSelect,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        Box {
+            Surface(
+                onClick = { if (enabled) expanded = true },
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth(),
+                shape = LocalPulseShapes.current.control,
+                color = if (enabled) colors.surfaceSunken else colors.surfaceHover,
+                border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+                contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = dimens.buttonHeight)
+                        .padding(horizontal = dimens.m, vertical = dimens.s),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = selectedLabel,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (enabled) colors.textPrimary else colors.textDisabled,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(dimens.s))
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = if (enabled) colors.textSecondary else colors.textDisabled,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+            PulseDropdown(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { (value, text) ->
+                    PulseDropdownItem(
+                        text = text,
+                        selected = value == selected,
+                        onClick = {
+                            expanded = false
+                            onSelect(value)
+                        },
+                        leadingIcon = if (value == selected) Icons.Filled.Check else null,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * One entry in a [PulseActionMenu]. A cluster of secondary actions becomes one menu trigger
+ * instead of a row of half-width buttons.
+ */
+class PulseMenuAction(
+    val label: String,
+    val icon: ImageVector? = null,
+    val destructive: Boolean = false,
+    val enabled: Boolean = true,
+    val onClick: () -> Unit,
+)
+
+/**
+ * A full-width button that opens a menu of actions — the replacement for rows of side-by-side
+ * buttons ("Add interval" / "Add block", "Preview cues" / "Edit" / "Schedule").
+ *
+ * The trigger looks like a secondary action button and carries a chevron, so a screen still shows
+ * where the actions live without spending three buttons on them. Destructive entries wear the
+ * error colour; disabled entries stay flat.
+ */
+@Composable
+fun PulseActionMenu(
+    text: String,
+    items: List<PulseMenuAction>,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier) {
+        Surface(
+            onClick = { if (enabled) expanded = true },
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.buttonHeight),
+            shape = LocalPulseShapes.current.control,
+            color = if (enabled) colors.surfaceRaised else colors.surfaceHover,
+            contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
+            border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+        ) {
+            Row(
+                modifier = Modifier.padding(buttonPadding),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (icon != null) {
+                    Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(dimens.s))
+                }
+                Text(
+                    text = text,
+                    style = PulseType.ButtonLabel,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.width(dimens.s))
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+        PulseDropdown(expanded = expanded, onDismissRequest = { expanded = false }) {
+            items.forEach { action ->
+                PulseDropdownItem(
+                    text = action.label,
+                    onClick = {
+                        expanded = false
+                        action.onClick()
+                    },
+                    leadingIcon = action.icon,
+                    enabled = action.enabled,
+                    tint = if (action.destructive) colors.error else null,
+                )
+            }
+        }
     }
 }
 
@@ -810,25 +966,29 @@ fun PulseDropdownItem(
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     selected: Boolean = false,
+    enabled: Boolean = true,
+    tint: Color? = null,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val contentTint = tint ?: if (selected) colors.accent else colors.textPrimary
     androidx.compose.material3.DropdownMenuItem(
         text = {
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleSmall,
-                color = if (selected) colors.accent else colors.textPrimary,
+                color = if (enabled) contentTint else colors.textDisabled,
             )
         },
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier,
         leadingIcon = if (leadingIcon != null) {
             {
                 Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
-                    tint = if (selected) colors.accent else colors.textSecondary,
+                    tint = if (enabled) (tint ?: if (selected) colors.accent else colors.textSecondary) else colors.textDisabled,
                     modifier = Modifier.size(18.dp),
                 )
             }

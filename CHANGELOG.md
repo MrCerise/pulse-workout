@@ -12,6 +12,37 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.3] — 2026-10-16
+
+The interface pass: imposing buttons, drop-downs where a menu is the honest control, and a share
+image that can no longer draw text on top of text.
+
+**Changed**
+- **Buttons are modern and imposing.** Action buttons grow to 56 dp and speak in the display face
+  (Space Grotesk semibold) instead of 14 sp body text; secondary buttons sit on the raised surface
+  so they read as controls rather than as outlines. The stretched rows of half-width side-by-side
+  buttons are gone.
+- **Drop-downs replace button rows where a menu is the honest control.** Every enumerated choice —
+  Phase, Sound and Vibration in the interval editor, and audio interruption, headphone behaviour,
+  player density, units and verbosity in Settings — is now a labelled drop-down (`PulseSelect`)
+  whose trigger shows the current value. Clusters of secondary actions collapse into one
+  `PulseActionMenu`: **Add to workout** (interval / block), **Adjust all durations** (±5 / ±10 s),
+  **Interval actions** (left+right pair, delete), **More actions** on the workout page (preview
+  cues, edit, schedule), and the Voice & audio tools (voice actions, sound-cue preview, music).
+- **The quick builder's workout name is an imposing name plate**, not a small stretched field: one
+  64 dp button-styled plate with the name in 21 sp display type, centred, opening a rename dialog
+  on tap. The advanced builder uses the same plate.
+- **The advanced builder's interval editor drops open from the whole bar.** Clicking anywhere on an
+  interval or block row — not just its name — expands the editor; the row is the tap target.
+- The language note under Settings → Language ("Applied immediately. Widgets and notifications
+  follow the same choice on Android 13 and newer.") is removed.
+
+**Fixed**
+- The share image no longer draws text over text: the wordmark and its tagline are measured and
+  spaced from each other, the status line sits under the *rendered* title (so a two-line name
+  pushes it down instead of overrunning it), and the completion percentage and date are pinned to
+  the right margin instead of to guessed x-coordinates.
+
 ## [1.8.1-beta1.2] — 2026-10-16
 
 The running system, released as a pre-release for testing.

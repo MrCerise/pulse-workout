@@ -61,7 +61,9 @@ import com.pulse.intervalcoach.ui.components.DurationStepper
 import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
+import com.pulse.intervalcoach.ui.components.PulseActionMenu
 import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulseMenuAction
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
@@ -212,13 +214,6 @@ fun SettingsScreen(
                             }
                         },
                     )
-                    Spacer(Modifier.height(LocalPulseDimens.current.s))
-                    Text(
-                        text = stringResource(R.string.settings_language_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
-                    )
-
                 }
             }
 
@@ -463,18 +458,13 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         color = colors.textSecondary,
                     )
                     Spacer(Modifier.height(LocalPulseDimens.current.m))
-                    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                        SecondaryActionButton(
-                            text = "Text-to-speech settings",
-                            onClick = { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) },
-                            modifier = Modifier.weight(1f),
-                        )
-                        SecondaryActionButton(
-                            text = "Preview voice",
-                            onClick = { container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.") },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    PulseActionMenu(
+                        text = "Voice actions",
+                        items = listOf(
+                            PulseMenuAction("Text-to-speech settings") { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) },
+                            PulseMenuAction("Preview voice") { container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.") },
+                        ),
+                    )
 
                 }
             }
@@ -528,18 +518,15 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         onValueChange = { scope.launch { container.preferences.setCueVolume(it) } },
                         onValueChangeFinished = { container.cueSoundPlayer.volume = current.cueVolume },
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                        listOf(SoundCue.BEEP, SoundCue.BELL, SoundCue.CHIME).forEach { cue ->
-                            SecondaryActionButton(
-                                text = cue.name.lowercase().replaceFirstChar { it.uppercase() },
-                                onClick = {
-                                    container.cueSoundPlayer.volume = current.cueVolume
-                                    container.cueSoundPlayer.play(cue)
-                                },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
+                    PulseActionMenu(
+                        text = "Preview a sound cue",
+                        items = listOf(SoundCue.BEEP, SoundCue.BELL, SoundCue.CHIME).map { cue ->
+                            PulseMenuAction(cue.name.lowercase().replaceFirstChar { it.uppercase() }) {
+                                container.cueSoundPlayer.volume = current.cueVolume
+                                container.cueSoundPlayer.play(cue)
+                            }
+                        },
+                    )
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     if (!container.haptics.isAvailable) {
                         Text("Vibration unavailable", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
@@ -575,22 +562,17 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         onValueChangeFinished = { container.music.setVolume(current.musicVolume) },
                     )
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
-                    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                        SecondaryActionButton(
-                            stringResource(R.string.voice_music_pick),
-                            { musicPicker.launch(arrayOf("audio/*")) },
-                            Modifier.weight(1f),
-                        )
-                        SecondaryActionButton(
-                            stringResource(R.string.voice_music_clear),
-                            {
+                    PulseActionMenu(
+                        text = stringResource(R.string.voice_music_title),
+                        items = listOf(
+                            PulseMenuAction(stringResource(R.string.voice_music_pick)) { musicPicker.launch(arrayOf("audio/*")) },
+                            PulseMenuAction(stringResource(R.string.voice_music_clear)) {
                                 container.music.stop()
                                 previewingHere = false
                                 scope.launch { container.preferences.setMusic(null) }
                             },
-                            Modifier.weight(0.6f),
-                        )
-                    }
+                        ),
+                    )
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     SecondaryActionButton(
                         text = if (musicPlaying) {
