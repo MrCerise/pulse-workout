@@ -40,8 +40,8 @@ on:
       staged_rollout_percent:
         description: Production only — roll the store release out to this percent of users
         required: false
-        default: 100
-        type: number
+        default: "100"
+        type: string
       run_tests:
         description: Run the unit tests before building
         required: false
@@ -88,19 +88,14 @@ jobs:
           artifact-name: build-logs-tests-${{ github.run_id }}
 
   # --------------------------------------------------------------------------------------------
-  # Build & sign — release AABs (Play) and APKs (QA / GitHub Release) for both apps.
+  # Version preparation — calculate release version information once and share via job outputs.
   # --------------------------------------------------------------------------------------------
-  build:
-    name: Build ${{ inputs.channel }}
-    needs: unit-tests
-    if: ${{ !cancelled() && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') }}
+  version:
+    name: Resolve version
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 5
     env:
       CHANNEL: ${{ inputs.channel }}
-      PULSE_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-      PULSE_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      PULSE_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     outputs:
       version_name: ${{ steps.version.outputs.name }}
       version_code: ${{ steps.version.outputs.code }}
@@ -109,16 +104,15 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
-      - name: Set up build environment
-        uses: ./.github/actions/setup-pulse-build
-
       - name: Resolve version
         id: version
         shell: bash
+        env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: |
           set -euo pipefail
           # The repository's own release line is the default version name.
-          base="$(grep -oP 'pulse\.versionName"\) as String\?\s*\?:\s*"\K[0-9.]+' app/build.gradle.kts)"
+          base="$(grep -oP 'pulse\\.versionName"\\) as String\\?\\s*\\?:\\s*"\K[0-9.]+' app/build.gradle.kts)"
           if [[ -z "$base" ]]; then
             echo "::error::Could not read the default versionName from app/build.gradle.kts."
             exit 1
@@ -126,7 +120,7 @@ jobs:
           name="${{ inputs.version_name }}"
           name="${name:-$base}"
           IFS='.' read -r major minor patch <<< "$name"
-          build=$(( ${{ github.run_number }} % 1000 ))
+          build=$(( GITHUB_RUN_NUMBER % 1000 ))
           code=$(( major * 10000000 + minor * 100000 + patch * 1000 + build ))
           full="$name"
           if [ "$CHANNEL" = "beta" ]; then full="$name-beta.${{ github.run_number }}"; fi
@@ -135,6 +129,27 @@ jobs:
           echo "code=$code" >> "$GITHUB_OUTPUT"
           echo "full_name=$full" >> "$GITHUB_OUTPUT"
           echo "::notice title=Release train::$CHANNEL build $full (versionCode $code)"
+
+  # --------------------------------------------------------------------------------------------
+  # Android (phone) build — runs on its own runner, in parallel with the Wear OS build.
+  # --------------------------------------------------------------------------------------------
+  android-build:
+    name: Build Android (phone) ${{ inputs.channel }}
+    needs: [version, unit-tests]
+    if: "${{ !cancelled() && needs.version.result == 'success' && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHANNEL: ${{ inputs.channel }}
+      PULSE_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      PULSE_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      PULSE_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up build environment
+        uses: ./.github/actions/setup-pulse-build
 
       - name: Decode release signing key
         shell: bash
@@ -157,21 +172,138 @@ jobs:
           set -euo pipefail
           bash ./gradlew --console=plain --stacktrace \
             -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
-            -Ppulse.versionCode="${{ steps.version.outputs.code }}" \
-            -Ppulse.versionName="${{ steps.version.outputs.full_name }}" \
-            :app:bundleRelease :app:assembleRelease \
-            :wear:bundleRelease :wear:assembleRelease
+            -Ppulse.versionCode="${{ needs.version.outputs.version_code }}" \
+            -Ppulse.versionName="${{ needs.version.outputs.full_version_name }}" \
+            :app:bundleRelease :app:assembleRelease 2>&1 | tee gradle-build.log
+
+      - name: Stage Android artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p android-staging
+          cp app/build/outputs/bundle/release/app-release.aab android-staging/app-release.aab
+          cp app/build/outputs/apk/release/app-release.apk android-staging/app-release.apk
+          ls -la android-staging/
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: release-${{ inputs.channel }}-${{ github.run_number }}-android
+          path: android-staging/*
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Summarize failure diagnostics
+        if: failure()
+        uses: ./.github/actions/summarize-gradle-failure
+        with:
+          artifact-name: build-logs-android-${{ github.run_id }}
+
+  # --------------------------------------------------------------------------------------------
+  # Wear OS build — runs on its own runner, in parallel with the Android build.
+  # --------------------------------------------------------------------------------------------
+  wear-build:
+    name: Build Wear OS ${{ inputs.channel }}
+    needs: [version, unit-tests]
+    if: "${{ !cancelled() && needs.version.result == 'success' && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHANNEL: ${{ inputs.channel }}
+      PULSE_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      PULSE_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      PULSE_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up build environment
+        uses: ./.github/actions/setup-pulse-build
+
+      - name: Decode release signing key
+        shell: bash
+        env:
+          PULSE_RELEASE_STORE_FILE: ${{ runner.temp }}/pulse-release.jks
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$ANDROID_KEYSTORE_BASE64" || -z "$PULSE_RELEASE_STORE_PASSWORD" || -z "$PULSE_RELEASE_KEY_ALIAS" || -z "$PULSE_RELEASE_KEY_PASSWORD" ]]; then
+            echo "::error::Set ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD repository secrets to build a signed release."
+            exit 1
+          fi
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$PULSE_RELEASE_STORE_FILE"
+
+      - name: Build signed bundles and APKs
+        shell: bash
+        env:
+          PULSE_RELEASE_STORE_FILE: ${{ runner.temp }}/pulse-release.jks
+        run: |
+          set -euo pipefail
+          bash ./gradlew --console=plain --stacktrace \
+            -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
+            -Ppulse.versionCode="${{ needs.version.outputs.version_code }}" \
+            -Ppulse.versionName="${{ needs.version.outputs.full_version_name }}" \
+            :wear:bundleRelease :wear:assembleRelease 2>&1 | tee gradle-build.log
+
+      - name: Stage Wear artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p wear-staging
+          cp wear/build/outputs/bundle/release/wear-release.aab wear-staging/wear-release.aab
+          cp wear/build/outputs/apk/release/wear-release.apk wear-staging/wear-release.apk
+          ls -la wear-staging/
+
+      - name: Upload Wear artifacts
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: release-${{ inputs.channel }}-${{ github.run_number }}-wear
+          path: wear-staging/*
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Summarize failure diagnostics
+        if: failure()
+        uses: ./.github/actions/summarize-gradle-failure
+        with:
+          artifact-name: build-logs-wear-${{ github.run_id }}
+
+  # --------------------------------------------------------------------------------------------
+  # Stage release artifacts — wait for both builds, restore filenames, publish combined artifact.
+  # --------------------------------------------------------------------------------------------
+  publish:
+    name: Stage release artifacts
+    needs: [version, android-build, wear-build]
+    if: "${{ !cancelled() && needs.version.result == 'success' && needs.android-build.result == 'success' && needs.wear-build.result == 'success' }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      version_name: ${{ needs.version.outputs.version_name }}
+      version_code: ${{ needs.version.outputs.version_code }}
+      full_version_name: ${{ needs.version.outputs.full_version_name }}
+    steps:
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: release-${{ inputs.channel }}-${{ github.run_number }}-android
+          path: android-staging
+
+      - name: Download Wear artifacts
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: release-${{ inputs.channel }}-${{ github.run_number }}-wear
+          path: wear-staging
 
       - name: Stage artifacts
         shell: bash
         run: |
           set -euo pipefail
-          tag="${{ steps.version.outputs.full_name }}"
+          tag="${{ needs.version.outputs.full_version_name }}"
           mkdir -p release-assets
-          cp app/build/outputs/bundle/release/app-release.aab "release-assets/intervals-${tag}-release.aab"
-          cp wear/build/outputs/bundle/release/wear-release.aab "release-assets/intervals-${tag}-wear-release.aab"
-          cp app/build/outputs/apk/release/app-release.apk "release-assets/intervals-${tag}-release.apk"
-          cp wear/build/outputs/apk/release/wear-release.apk "release-assets/intervals-${tag}-wear-release.apk"
+          cp android-staging/app-release.aab "release-assets/intervals-${tag}-release.aab"
+          cp wear-staging/wear-release.aab "release-assets/intervals-${tag}-wear-release.aab"
+          cp android-staging/app-release.apk "release-assets/intervals-${tag}-release.apk"
+          cp wear-staging/wear-release.apk "release-assets/intervals-${tag}-wear-release.apk"
           ls -la release-assets/
 
       - name: Upload QA artifacts
@@ -189,7 +321,7 @@ jobs:
   # --------------------------------------------------------------------------------------------
   play:
     name: Play Store (${{ inputs.channel }})
-    needs: build
+    needs: publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: ${{ inputs.channel == 'production' && 'play-production' || 'play-testing' }}
@@ -224,7 +356,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ vars.PLAY_PACKAGE_NAME || 'com.pulse.intervalcoach' }}
-          releaseFiles: release-assets/intervals-${{ needs.build.outputs.full_version_name }}-release.aab
+          releaseFiles: release-assets/intervals-${{ needs.publish.outputs.full_version_name }}-release.aab
           track: ${{ inputs.channel }}
           status: completed
           inAppUpdatePriority: ${{ inputs.channel == 'production' && 3 || 0 }}
@@ -240,9 +372,9 @@ jobs:
   # the tag listener in `build-release.yml`) and attaches the signed APKs.
   # --------------------------------------------------------------------------------------------
   github-release:
-    name: GitHub Release (v${{ needs.build.outputs.version_name }})
+    name: GitHub Release (v${{ needs.publish.outputs.version_name }})
     if: ${{ inputs.channel == 'production' }}
-    needs: build
+    needs: publish
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -255,10 +387,10 @@ jobs:
           name: release-${{ inputs.channel }}-${{ github.run_number }}
           path: release-assets
 
-      - name: Attach release to v${{ needs.build.outputs.version_name }}
+      - name: Attach release to v${{ needs.publish.outputs.version_name }}
         uses: softprops/action-gh-release@v3.0.3
         with:
-          tag_name: v${{ needs.build.outputs.version_name }}
+          tag_name: v${{ needs.publish.outputs.version_name }}
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           overwrite_files: true
