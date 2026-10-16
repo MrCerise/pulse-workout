@@ -40,9 +40,9 @@ numbers it depends on live in the generated [contrast report](CONTRAST.md).
    stepper, and a filter or option chip too — while a chip that only labels something (a phase tag, a
    category name, a status badge, a progress track) may be fully round, because it carries no action.
 4. **Dense, not cramped.** 4 dp base unit, 20 dp page gutter, 16 dp card padding, 56 dp list rows,
-   40 dp compact controls and 48 dp action buttons.
+   40 dp compact controls and 56 dp action buttons.
 5. **One surface, not two.** A section sits directly on the canvas; the controls inside it carry
-   their own surfaces where they need one (a field, a segmented control, a button, a stat tile).
+   their own surfaces where they need one (a field, a drop-down trigger, a button, a stat tile).
    A container around containers — a card wrapping fields, buttons or tiles — is never drawn: a
    list of rows is one table surface with hairlines, and chips and badges may appear *inside* a
    surface only because they are labels, not containers.
@@ -190,6 +190,8 @@ fixed advance width is genuinely wanted (the cue-script preview).
 | `PulseType.NumericMedium` | 17 sp SemiBold tabular (Grotesk) | stat tile values |
 | `PulseType.NumericSmall` | 13 sp Medium tabular (Inter) | inline numbers |
 | `PulseType.SectionLabel` | 11 sp SemiBold, +0.8 tracking (Inter) | sidebar group labels |
+| `PulseType.ButtonLabel` | 15 sp SemiBold (Grotesk) | button and menu-trigger labels |
+| `PulseType.NamePlate` | 21 sp SemiBold (Grotesk) | the builder's workout-name plate |
 
 `pulseTypography()` binds Material's role scale to the same table, so a component that reads
 `MaterialTheme.typography.<role>` inherits the Momentum rhythm instead of Material's defaults.
@@ -205,7 +207,7 @@ fixed advance width is genuinely wanted (the cue-script preview).
 | `cardPadding` | 16 dp | `PulseCard` interior |
 | `cardGap` | 12 dp | between sibling cards |
 | `chipGap` | 6 dp | inside a cluster of chips |
-| `controlHeight` / `buttonHeight` | 40 / 48 dp | compact controls / action buttons |
+| `controlHeight` / `buttonHeight` / `namePlateHeight` | 40 / 56 / 64 dp | compact controls / action buttons / the builder name plate |
 | `iconButtonSize` | 36 dp | inside a 48 dp touch target |
 | `listRowHeight` | 56 dp | `PulseListRow` |
 | `metricRowHeight` | 44 dp | `MetricRow` |
@@ -250,7 +252,7 @@ Everything lives in `ui/components/` and reads only from `LocalPulseColors`, `Lo
 | File | Provides |
 | --- | --- |
 | `Foundation.kt` | `PulseScaffold`, `PulseBreadcrumbBar`, `PulsePageHeader`, `PulseCard`, `PulseHeroCard`, `PulsePanel`, `SectionHeader`, `PulseDivider`, `PulseListRow` |
-| `Controls.kt` | `Primary/Secondary/Ghost/DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseChipGroup`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper`, `PulseDropdown` |
+| `Controls.kt` | `Primary/Secondary/Ghost/DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseSelect`, `PulseActionMenu`, `PulseChipGroup`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper`, `PulseDropdown` |
 | `Indicators.kt` | `PhaseChip`, `NeutralChip`, `CategoryChip`, `StatusBadge`, `StatTile`, `MetricRow`, `InfoBanner`, `CategoryPicker` |
 | `DataDisplay.kt` | `TimelineBar`, `ProgressRing`, `ActivityChart`, `ProgressBar` |
 | `Feedback.kt` | `EmptyState`, `LoadingBox`, `ErrorState`, `ConfirmDialog`, `PulseSnackbar` |
@@ -264,13 +266,13 @@ Rules the components encode:
   numbers is one card with `MetricRow`s and `PulseDivider`s between them — not five stacked tiles.
 * **The whole row is the tap target.** Rows, cards and chips answer the pointer (hover → `surfaceHover`,
   press → a slightly deeper wash) before the tap lands.
-* **A chip you tap is a control.** `PulseChoiceChip` — the library's filters and the builder's option
-  rows — draws `shapes.control` with a hairline border, exactly like a button; `PhaseChip`,
-  `CategoryChip`, `NeutralChip` and `StatusBadge` label something and may draw the full `shapes.chip`.
-  `OptionRow` lays its choices out as a wrapping row of standalone chips (`PulseChipGroup`): every
-  option is its own control with its own surface and touch target, spaced by `chipGap`. Options never
-  sit inside a track or panel — a segmented bar of welded-together buttons is a container around
-  controls, and an option whose label is ellipsized is not a choice.
+* **A chip you tap is a control.** `PulseChoiceChip` — the library's filter rail and preset rows —
+  draws `shapes.control` with a hairline border, exactly like a button; `PhaseChip`, `CategoryChip`,
+  `NeutralChip` and `StatusBadge` label something and may draw the full `shapes.chip`. An enumerated
+  *preference* is not a rail of chips: `OptionRow` is a drop-down (`PulseSelect`) whose trigger shows
+  the current value and whose menu gives every label its full width, and a cluster of secondary
+  actions becomes one `PulseActionMenu` trigger instead of a row of side-by-side buttons. Options
+  never sit inside a track or panel, and an option whose label is ellipsized is not a choice.
 * **States are explicit.** Every interactive component defines hover, pressed, focused, selected and
   disabled; focus is a 2 dp accent ring, disabled is `text_disabled` with no ripple.
 * **Empty, loading and error states are components**, not ad-hoc text: `EmptyState`, `LoadingBox`,

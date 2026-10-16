@@ -1,6 +1,7 @@
 package com.pulse.intervalcoach.ui.builders
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +11,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -18,9 +22,12 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,8 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -59,12 +68,15 @@ import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.ui.components.CategoryPicker
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DurationStepper
+import com.pulse.intervalcoach.ui.components.GhostActionButton
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
+import com.pulse.intervalcoach.ui.components.PulseActionMenu
 import com.pulse.intervalcoach.ui.components.PulseIconButton
+import com.pulse.intervalcoach.ui.components.PulseMenuAction
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTextField
@@ -76,6 +88,8 @@ import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.components.ToggleRow
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
+import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 import java.io.File
 import java.nio.file.Files
@@ -229,6 +243,115 @@ class QuickBuilderViewModel(
     }
 }
 
+/**
+ * The workout's name as an imposing, button-styled plate.
+ *
+ * One full-width control, 64 dp tall, the name centred in the display face — the name of the plan
+ * is the title of the page, so it is drawn like the one thing you press, not like a small stretched
+ * field. A tap (or the pencil) opens the rename dialog; the plate itself never grows a cursor.
+ */
+@Composable
+fun WorkoutNamePlate(
+    name: String,
+    onRename: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "Name your workout",
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    var editing by remember { mutableStateOf(false) }
+    Surface(
+        onClick = { editing = true },
+        modifier = modifier.fillMaxWidth(),
+        shape = LocalPulseShapes.current.control,
+        color = colors.surfaceRaised,
+        contentColor = colors.textPrimary,
+        border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = dimens.namePlateHeight)
+                .padding(horizontal = dimens.l, vertical = dimens.m),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = name.ifBlank { placeholder },
+                style = PulseType.NamePlate,
+                color = if (name.isBlank()) colors.textMuted else colors.textPrimary,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(dimens.m))
+            Icon(
+                imageVector = Icons.Filled.Edit,
+                contentDescription = null,
+                tint = colors.textSecondary,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+    if (editing) {
+        RenameNameDialog(
+            initial = name,
+            onSave = { value -> editing = false; onRename(value) },
+            onDismiss = { editing = false },
+        )
+    }
+}
+
+/** The rename dialog behind [WorkoutNamePlate]: the app's own dialog shell, one button system. */
+@Composable
+private fun RenameNameDialog(
+    initial: String,
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    val elevation = LocalPulseElevation.current
+    var value by remember { mutableStateOf(initial) }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = LocalPulseShapes.current.sheet,
+            color = colors.surfaceOverlay,
+            contentColor = colors.textPrimary,
+            border = BorderStroke(dimens.borderWidth, colors.border),
+            shadowElevation = elevation.level3,
+        ) {
+            Column(
+                modifier = Modifier.padding(dimens.xl),
+                verticalArrangement = Arrangement.spacedBy(dimens.s),
+            ) {
+                Text(
+                    text = "Name this workout",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = colors.textPrimary,
+                )
+                PulseTextField(
+                    value = value,
+                    onValueChange = { value = it },
+                    label = "Workout name",
+                    singleLine = true,
+                )
+                Spacer(Modifier.height(dimens.s))
+                PrimaryActionButton(
+                    text = "Save name",
+                    onClick = { onSave(value) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                GhostActionButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun QuickBuilderScreen(
     container: AppContainer,
@@ -267,11 +390,9 @@ fun QuickBuilderScreen(
             }
 
             item {
-                PulseTextField(
-                    value = state.name,
-                    onValueChange = { value -> viewModel.update { it.copy(name = value) } },
-                    label = stringResource(R.string.sort_name),
-                    singleLine = true,
+                WorkoutNamePlate(
+                    name = state.name,
+                    onRename = { value -> viewModel.update { it.copy(name = value) } },
                 )
             }
             item { SectionHeader("Timing") }
@@ -696,11 +817,9 @@ fun AdvancedBuilderScreen(
             }
 
             item {
-                PulseTextField(
-                    value = state.plan.name,
-                    onValueChange = viewModel::rename,
-                    label = stringResource(R.string.sort_name),
-                    singleLine = true,
+                WorkoutNamePlate(
+                    name = state.plan.name,
+                    onRename = viewModel::rename,
                 )
             }
             item {
@@ -817,16 +936,25 @@ fun AdvancedBuilderScreen(
             }
 
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                    SecondaryActionButton("Add interval", { viewModel.addInterval() }, Modifier.weight(1f))
-                    SecondaryActionButton("Add block", { viewModel.addGroup() }, Modifier.weight(1f))
-                }
+                PulseActionMenu(
+                    text = "Add to workout",
+                    icon = Icons.Filled.Add,
+                    items = listOf(
+                        PulseMenuAction("Add interval") { viewModel.addInterval() },
+                        PulseMenuAction("Add block") { viewModel.addGroup() },
+                    ),
+                )
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                    SecondaryActionButton("−5 s all", { viewModel.bulkDuration(-5_000, null) }, Modifier.weight(1f))
-                    SecondaryActionButton("+5 s all", { viewModel.bulkDuration(5_000, null) }, Modifier.weight(1f))
-                }
+                PulseActionMenu(
+                    text = "Adjust all durations",
+                    items = listOf(
+                        PulseMenuAction("−10 s every interval") { viewModel.bulkDuration(-10_000, null) },
+                        PulseMenuAction("−5 s every interval") { viewModel.bulkDuration(-5_000, null) },
+                        PulseMenuAction("+5 s every interval") { viewModel.bulkDuration(5_000, null) },
+                        PulseMenuAction("+10 s every interval") { viewModel.bulkDuration(10_000, null) },
+                    ),
+                )
             }
             item {
                 PrimaryActionButton(
@@ -893,11 +1021,16 @@ private fun BuilderNodeCard(
 ) {
     val colors = LocalPulseColors.current
     Column {
+        // The whole row is the tap target: clicking anywhere on the bar — not just the name —
+        // drops the interval editor open. The action buttons consume their own taps first.
         Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.xs),
         ) {
-            Column(Modifier.weight(1f).clickable(onClick = onToggle)) {
+            Column(Modifier.weight(1f)) {
                 when (node) {
                     is IntervalNode -> {
                         Text(node.interval.displayName(), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -1021,20 +1154,17 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
             label = "Note (optional)",
         )
         Spacer(Modifier.height(LocalPulseDimens.current.s))
-        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-            SecondaryActionButton(
-                text = stringResource(R.string.builder_left_right),
-                onClick = { viewModel.addLeftRight(node.nodeId, groupId) },
-                modifier = Modifier.weight(1f),
-            )
-            if (groupId == null) {
-                SecondaryActionButton(
-                    text = stringResource(R.string.planner_delete),
-                    onClick = { viewModel.delete(node.nodeId) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
+        val leftRightLabel = stringResource(R.string.builder_left_right)
+        val deleteLabel = stringResource(R.string.planner_delete)
+        PulseActionMenu(
+            text = "Interval actions",
+            items = buildList {
+                add(PulseMenuAction(leftRightLabel) { viewModel.addLeftRight(node.nodeId, groupId) })
+                if (groupId == null) {
+                    add(PulseMenuAction(deleteLabel, destructive = true) { viewModel.delete(node.nodeId) })
+                }
+            },
+        )
     }
 }
 
@@ -1076,11 +1206,16 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
             Spacer(Modifier.height(LocalPulseDimens.current.xs))
             var expanded by remember { mutableStateOf(false) }
             Column {
+                // Whole-bar tap target, the same idiom as the interval table above: the row
+                // drops its editor wherever the click lands outside the action buttons.
                 Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = !expanded },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.xs),
                 ) {
-                    Column(Modifier.weight(1f).clickable { expanded = !expanded }) {
+                    Column(Modifier.weight(1f)) {
                         Text(
                             when (child) {
                                 is IntervalNode -> child.interval.displayName()

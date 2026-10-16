@@ -277,7 +277,6 @@
     <string name="theme_black">Noir absolu</string>
     <string name="settings_language">Langue</string>
     <string name="settings_language_system">Langue du système</string>
-    <string name="settings_language_note">Appliquée immédiatement. Widgets et notifications suivent le même choix à partir d\'Android 13.</string>
     <string name="settings_health_title">Health Connect</string>
     <string name="settings_dynamic_color">Couleur du fond d’écran</string>
     <string name="settings_reduced_motion">Mouvements réduits</string>

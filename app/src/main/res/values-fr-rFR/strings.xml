@@ -243,7 +243,6 @@
     <string name="theme_black">Vrai noir</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System default</string>
-    <string name="settings_language_note">Applied immediately. Widgets and notifications follow the same choice on Android 13 and newer.</string>
     <string name="settings_dynamic_color">Accent du fond d\'écran</string>
     <string name="settings_reduced_motion">Mouvement réduit</string>
     <string name="settings_high_contrast">Contraste élevé</string>

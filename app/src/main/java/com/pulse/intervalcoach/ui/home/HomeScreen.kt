@@ -472,20 +472,19 @@ fun HomeScreen(
                         )
                     }
                     Spacer(Modifier.height(dimens.l))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        PrimaryActionButton(
-                            text = "Start",
-                            onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
-                            icon = Icons.Filled.PlayArrow,
-                            modifier = Modifier.weight(1f),
-                        )
-                        SecondaryActionButton(
-                            text = "Customize",
-                            onClick = onQuickStart,
-                            icon = Icons.Filled.Tune,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    PrimaryActionButton(
+                        text = "Start",
+                        onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
+                        icon = Icons.Filled.PlayArrow,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(dimens.s))
+                    SecondaryActionButton(
+                        text = "Customize in the quick builder",
+                        onClick = onQuickStart,
+                        icon = Icons.Filled.Tune,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
 

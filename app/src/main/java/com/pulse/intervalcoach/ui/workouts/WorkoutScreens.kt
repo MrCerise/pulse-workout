@@ -71,6 +71,7 @@ import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.LoadingBox
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
+import com.pulse.intervalcoach.ui.components.PulseActionMenu
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseChoiceChip
 import com.pulse.intervalcoach.ui.components.PulseDivider
@@ -78,6 +79,7 @@ import com.pulse.intervalcoach.ui.components.PulseDropdown
 import com.pulse.intervalcoach.ui.components.PulseDropdownItem
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
+import com.pulse.intervalcoach.ui.components.PulseMenuAction
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTextField
@@ -745,27 +747,16 @@ fun WorkoutDetailsScreen(
                 )
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    SecondaryActionButton(
-                        text = if (preview == null) "Preview cues" else "Stop preview",
-                        onClick = {
+                PulseActionMenu(
+                    text = "More actions",
+                    icon = Icons.Filled.MoreVert,
+                    items = listOf(
+                        PulseMenuAction(if (preview == null) "Preview cues" else "Stop preview", icon = Icons.Filled.PlayArrow) {
                             if (preview == null) container.sessionController.startPreview(plan) else container.sessionController.stopPreview()
                         },
-                        modifier = Modifier.weight(1f),
-                    )
-                    SecondaryActionButton(
-                        text = stringResource(R.string.action_edit),
-                        onClick = { onEdit(plan.id) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-            item {
-                SecondaryActionButton(
-                    text = stringResource(R.string.planner_add),
-                    onClick = { onSchedule(plan.id) },
-                    icon = Icons.Filled.Event,
-                    modifier = Modifier.fillMaxWidth(),
+                        PulseMenuAction(stringResource(R.string.action_edit), icon = Icons.Filled.Edit) { onEdit(plan.id) },
+                        PulseMenuAction(stringResource(R.string.planner_add), icon = Icons.Filled.Event) { onSchedule(plan.id) },
+                    ),
                 )
             }
             preview?.let { state ->

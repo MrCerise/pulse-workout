@@ -56,12 +56,20 @@ object SummaryImage {
                 this.color = color
                 typeface = if (heavy) bold else regular
             }
+            /** Draws [value] at most [maxWidth] wide: long strings shrink, they never run into a neighbour. */
             fun text(value: String, x: Float, baseline: Float, size: Float, color: Int = WHITE, heavy: Boolean = false, width: Float = 936f) {
                 val p = paint(size, color, heavy)
                 // Size by measured glyph width, not by character count (emoji and French included).
                 val measured = p.measureText(value)
                 if (measured > width) p.textSize *= width / measured
                 canvas.drawText(value, x, baseline, p)
+            }
+            /** Same shrink rule, but the string's right edge is pinned to [right] — one margin, no guessing. */
+            fun textRight(value: String, right: Float, baseline: Float, size: Float, color: Int = WHITE, heavy: Boolean = false, width: Float = 936f) {
+                val p = paint(size, color, heavy)
+                val measured = p.measureText(value)
+                if (measured > width) p.textSize *= width / measured
+                canvas.drawText(value, right - p.measureText(value), baseline, p)
             }
             fun label(id: Int) = context.getString(id)
             canvas.drawColor(INK)
@@ -73,8 +81,13 @@ object SummaryImage {
             }
             canvas.drawRect(0f, HEIGHT - 420f, WIDTH.toFloat(), HEIGHT.toFloat(), wash)
             canvas.drawRect(72f, 0f, 184f, 12f, paint(1f, VOLT))
-            text("Intervals", 72f, 118f, 44f, heavy = true)
-            text("INTERVAL COACH", 248f, 117f, 23f, MUTED)
+            // The wordmark and its tagline are measured, not assumed: the tagline starts after the
+            // wordmark's real width and shrinks to fit the gap before the brand mark, so no font
+            // metrics can ever draw one string on top of the other.
+            val wordmark = paint(44f, heavy = true)
+            canvas.drawText("Intervals", 72f, 118f, wordmark)
+            val taglineX = 72f + wordmark.measureText("Intervals") + 28f
+            text("INTERVAL COACH", taglineX, 117f, 23f, MUTED, width = (884f - taglineX).coerceAtLeast(80f))
             ContextCompat.getDrawable(context, R.drawable.ic_pulse)?.mutate()?.apply {
                 setTint(WHITE)
                 setBounds(916, 56, 1008, 148)
@@ -87,15 +100,18 @@ object SummaryImage {
             canvas.translate(72f, 194f)
             title.draw(canvas)
             canvas.restore()
+            // The status line sits under the *rendered* title, not under an assumed one-liner:
+            // a two-line name pushes it down instead of being overrun by it.
             val statusColor = if (summary.stoppedEarly) WARNING else SUCCESS
-            canvas.drawCircle(81f, 377f, 7f, paint(1f, statusColor))
-            text(label(if (summary.stoppedEarly) R.string.share_ended_early else R.string.share_completed), 104f, 387f, 28f, statusColor)
+            val statusBaseline = 194f + title.height + 38f
+            canvas.drawCircle(81f, statusBaseline - 10f, 7f, paint(1f, statusColor))
+            text(label(if (summary.stoppedEarly) R.string.share_ended_early else R.string.share_completed), 104f, statusBaseline, 28f, statusColor, width = 904f)
 
             text(ShareMetrics.clock(summary.activeMillis), 64f, 604f, 176f, heavy = true)
             text(label(R.string.share_active_time), 76f, 666f, 27f, MUTED)
             val percentage = ShareMetrics.completion(summary.completedIntervals, summary.totalIntervals)
-            text(label(R.string.share_completion), 72f, 757f, 28f, MUTED)
-            text("$percentage%", 820f, 757f, 34f, heavy = true, width = 188f)
+            text(label(R.string.share_completion), 72f, 757f, 28f, MUTED, width = 620f)
+            textRight("$percentage%", 1008f, 757f, 34f, heavy = true, width = 188f)
             canvas.drawRoundRect(72f, 786f, 1008f, 800f, 7f, 7f, paint(1f, BORDER))
             if (percentage > 0) canvas.drawRoundRect(72f, 786f, 72f + 936f * percentage / 100f, 800f, 7f, 7f, paint(1f, VOLT))
 
@@ -109,12 +125,12 @@ object SummaryImage {
             stat(72f, 1012f, label(R.string.share_skipped), summary.skippedIntervals.toString())
             stat(552f, 1012f, label(R.string.share_rounds), summary.roundsLogged.toString())
             canvas.drawLine(72f, 1210f, 1008f, 1210f, paint(1f, BORDER).apply { strokeWidth = 2f })
-            text(label(R.string.share_recorded), 72f, 1269f, 23f, MUTED, width = 450f)
+            text(label(R.string.share_recorded), 72f, 1269f, 23f, MUTED, width = 500f)
             if (summary.endedAt > 0) {
                 val locale = context.resources.configuration.locales[0]
                 val date = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
                     .format(Instant.ofEpochMilli(summary.endedAt).atZone(ZoneId.systemDefault()))
-                text(date, 620f, 1269f, 23f, MUTED, width = 388f)
+                textRight(date, 1008f, 1269f, 23f, MUTED, width = 388f)
             }
             return bitmap
         } catch (error: Throwable) {

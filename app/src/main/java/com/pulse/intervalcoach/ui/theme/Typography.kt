@@ -123,6 +123,28 @@ object PulseType {
         letterSpacing = 0.8.sp,
     )
 
+    /**
+     * The action label on every button and menu trigger. Display face, semibold — a button label
+     * is the loudest short string on a screen, so it borrows the engineered voice of the page
+     * title instead of whispering in 14 sp body text.
+     */
+    val ButtonLabel = TextStyle(
+        fontFamily = PulseFonts.Numeric,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 15.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp,
+    )
+
+    /** The workout name on a builder name plate — big enough to be the title of the plan. */
+    val NamePlate = TextStyle(
+        fontFamily = PulseFonts.Numeric,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 21.sp,
+        lineHeight = 26.sp,
+        letterSpacing = (-0.2).sp,
+    )
+
     /** Value shown by a stepper. */
     val StepperValue = TextStyle(
         fontFamily = PulseFonts.Numeric,
