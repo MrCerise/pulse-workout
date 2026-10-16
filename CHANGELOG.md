@@ -12,6 +12,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.1] — 2026-10-16
+
+The container-within-container pass, released as a pre-release for testing.
+
+**Changed**
+- Settings and Voice & audio: every section now sits directly on the canvas — the segmented
+  controls, pickers, steppers and buttons keep their own surfaces, and the cards that wrapped
+  them are gone.
+- The workout details and category heroes are flat: icon tile, hue-tinted title, duration and
+  stat tiles on the canvas, with no card around them.
+- Favorites and templates in the Today rails: the Start/Use action is a control in the card's
+  own row (the template card itself is tappable) instead of a button block inside the card.
+- The builder pages are flat forms with section headers; the interval list is a hairline-
+  separated table rather than a stack of node cards.
+- Health, JSON import and Goals pages: same treatment — controls on the canvas, one surface
+  where one is needed. The Planner's schedule button sits under its list.
+- Design principle codified in `docs/DESIGN.md` (§1.5 "One surface, not two").
+
 ## [1.8.1-beta1.0] — 2026-10-16
 
 Interface polish pass, released as a pre-release for testing.

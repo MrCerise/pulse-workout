@@ -64,13 +64,11 @@ import com.pulse.intervalcoach.data.WorkoutCategory
 import com.pulse.intervalcoach.data.WorkoutSummary
 import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.categoryOrCustom
-import com.pulse.intervalcoach.ui.components.CategoryChip
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.ErrorState
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.LoadingBox
-import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
@@ -663,10 +661,12 @@ fun WorkoutDetailsScreen(
             }
 
             // --- Category hero ------------------------------------------------------------------
+            // Flat, not a card: the icon tile, the hue-tinted title and the stat tiles carry the
+            // category themselves — wrapping them in a tinted card was a container inside which
+            // every one of those is its own container.
             item {
-                PulseCard(tint = hue) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(48.dp)
@@ -730,7 +730,6 @@ fun WorkoutDetailsScreen(
                             Spacer(Modifier.height(dimens.m))
                             InfoBanner(stringResource(R.string.details_open_ended_note))
                         }
-                    }
                 }
             }
 
@@ -918,9 +917,10 @@ fun CategoryScreen(
                 )
             }
 
+            // Flat hero: the tinted icon tile and the stat tiles are containers themselves; a
+            // card around them was one more box with nothing to add.
             item {
-                PulseCard(tint = hue) {
-                    Column {
+                Column {
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
@@ -961,7 +961,6 @@ fun CategoryScreen(
                                 modifier = Modifier.weight(1f),
                             )
                         }
-                    }
                 }
             }
 

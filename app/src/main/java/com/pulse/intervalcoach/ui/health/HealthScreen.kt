@@ -33,7 +33,6 @@ import com.pulse.intervalcoach.health.HC_REQUESTED_PERMISSIONS
 import com.pulse.intervalcoach.health.HcAvailability
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
-import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
@@ -105,87 +104,85 @@ fun HealthScreen(
 
             // --- What is connected right now ---
             item {
-                PulseCard {
-                    Column {
-                        Text("Current connection", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        if (snapshot.source == null) {
-                            Text(
-                                "Not connected",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = colors.textPrimary,
-                            )
-                        } else {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.work, modifier = Modifier.padding(end = LocalPulseDimens.current.s))
-                                Text("${snapshot.source}", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
-                            }
+                Column {
+                    Text("Current connection", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    if (snapshot.source == null) {
+                        Text(
+                            "Not connected",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.textPrimary,
+                        )
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = colors.work, modifier = Modifier.padding(end = LocalPulseDimens.current.s))
+                            Text("${snapshot.source}", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
                         }
                     }
+
                 }
             }
 
             // --- Health Connect ---
             item { SectionHeader("Health Connect") }
             item {
-                PulseCard {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                hcStatusText(availability),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = colors.textPrimary,
-                                modifier = Modifier.weight(1f),
-                            )
-                            when (availability) {
-                                HcAvailability.AVAILABLE -> StatusBadge("ready", PulseTone.SUCCESS)
-                                else -> StatusBadge("unavailable", PulseTone.NEUTRAL)
-                            }
-                        }
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            hcStatusText(availability),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.textPrimary,
+                            modifier = Modifier.weight(1f),
+                        )
                         when (availability) {
-                            HcAvailability.NOT_INSTALLED -> {
-                                Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner(
-                                    "Install Health Connect from Google Play.",
-                                )
-                            }
-                            HcAvailability.NOT_ENABLED -> {
-                                Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("Enable Health Connect in Android Settings.")
-                            }
-                            HcAvailability.NO_PROVIDER -> {
-                                Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("No Health Connect provider found.")
-                            }
-                            HcAvailability.NOT_SUPPORTED -> {
-                                Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("Health Connect is not supported on this device.")
-                            }
-                            HcAvailability.AVAILABLE -> Unit
-                            HcAvailability.UNKNOWN -> {
-                                Spacer(Modifier.height(LocalPulseDimens.current.s))
-                                InfoBanner("Checking availability…")
-                            }
-                        }
-                        if (availability == HcAvailability.AVAILABLE) {
-                            Spacer(Modifier.height(LocalPulseDimens.current.m))
-                            permissionRow("Heart rate (read)", permissions.heartRateRead)
-                            permissionRow("Steps (read)", permissions.stepsRead)
-                            permissionRow("Workouts (write)", permissions.workoutWrite)
-                            if (!permissions.anyReadGranted || !permissions.workoutWrite) {
-                                Spacer(Modifier.height(LocalPulseDimens.current.m))
-                                PrimaryActionButton(
-                                    text = "Grant Health Connect access",
-                                    onClick = {
-                                        // The Health Connect system screen returns the new grants;
-                                        // refresh these rows whenever it returns.
-                                        healthConnectPermissionLauncher.launch(HC_REQUESTED_PERMISSIONS)
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
+                            HcAvailability.AVAILABLE -> StatusBadge("ready", PulseTone.SUCCESS)
+                            else -> StatusBadge("unavailable", PulseTone.NEUTRAL)
                         }
                     }
+                    when (availability) {
+                        HcAvailability.NOT_INSTALLED -> {
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
+                            InfoBanner(
+                                "Install Health Connect from Google Play.",
+                            )
+                        }
+                        HcAvailability.NOT_ENABLED -> {
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
+                            InfoBanner("Enable Health Connect in Android Settings.")
+                        }
+                        HcAvailability.NO_PROVIDER -> {
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
+                            InfoBanner("No Health Connect provider found.")
+                        }
+                        HcAvailability.NOT_SUPPORTED -> {
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
+                            InfoBanner("Health Connect is not supported on this device.")
+                        }
+                        HcAvailability.AVAILABLE -> Unit
+                        HcAvailability.UNKNOWN -> {
+                            Spacer(Modifier.height(LocalPulseDimens.current.s))
+                            InfoBanner("Checking availability…")
+                        }
+                    }
+                    if (availability == HcAvailability.AVAILABLE) {
+                        Spacer(Modifier.height(LocalPulseDimens.current.m))
+                        permissionRow("Heart rate (read)", permissions.heartRateRead)
+                        permissionRow("Steps (read)", permissions.stepsRead)
+                        permissionRow("Workouts (write)", permissions.workoutWrite)
+                        if (!permissions.anyReadGranted || !permissions.workoutWrite) {
+                            Spacer(Modifier.height(LocalPulseDimens.current.m))
+                            PrimaryActionButton(
+                                text = "Grant Health Connect access",
+                                onClick = {
+                                    // The Health Connect system screen returns the new grants;
+                                    // refresh these rows whenever it returns.
+                                    healthConnectPermissionLauncher.launch(HC_REQUESTED_PERMISSIONS)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+
                 }
             }
 
@@ -206,58 +203,57 @@ fun HealthScreen(
                 }
             }
             item {
-                PulseCard {
-                    Column {
+                Column {
+                    Text(
+                        "Last sync: " +
+                            (if (snapshot.lastSyncAt > 0) {
+                                LocalDateTime.ofInstant(Instant.ofEpochMilli(snapshot.lastSyncAt), ZoneId.systemDefault())
+                                    .format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm"))
+                            } else "never"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textSecondary,
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.m))
+                    PrimaryActionButton(
+                        text = "Sync last 7 days",
+                        onClick = {
+                            scope.launch {
+                                val sessions = container.sessions.history.first()
+                                val weekAgo = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
+                                val candidates = sessions.filter { it.endedAt in weekAgo..System.currentTimeMillis() }
+                                    .sortedByDescending { it.endedAt }
+                                    .take(20)
+                                if (candidates.isEmpty()) {
+                                    backfill = "No sessions in the last 7 days."
+                                } else {
+                                    var ok = 0
+                                    var failed = 0
+                                    for (session in candidates) {
+                                        val events = container.sessions.observeEvents(session.id).first()
+                                        if (container.health.writeSession(session, events)) ok++ else failed++
+                                    }
+                                    backfill = "Synced $ok of ${candidates.size} sessions" +
+                                        (if (failed > 0) " · $failed failed" else "")
+                                    container.health.refresh()
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = snapshot.source != null,
+                    )
+                    if (snapshot.source == null) {
+                        Spacer(Modifier.height(LocalPulseDimens.current.xs))
                         Text(
-                            "Last sync: " +
-                                (if (snapshot.lastSyncAt > 0) {
-                                    LocalDateTime.ofInstant(Instant.ofEpochMilli(snapshot.lastSyncAt), ZoneId.systemDefault())
-                                        .format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm"))
-                                } else "never"),
+                            "Connect a health app to sync.",
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        PrimaryActionButton(
-                            text = "Sync last 7 days",
-                            onClick = {
-                                scope.launch {
-                                    val sessions = container.sessions.history.first()
-                                    val weekAgo = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
-                                    val candidates = sessions.filter { it.endedAt in weekAgo..System.currentTimeMillis() }
-                                        .sortedByDescending { it.endedAt }
-                                        .take(20)
-                                    if (candidates.isEmpty()) {
-                                        backfill = "No sessions in the last 7 days."
-                                    } else {
-                                        var ok = 0
-                                        var failed = 0
-                                        for (session in candidates) {
-                                            val events = container.sessions.observeEvents(session.id).first()
-                                            if (container.health.writeSession(session, events)) ok++ else failed++
-                                        }
-                                        backfill = "Synced $ok of ${candidates.size} sessions" +
-                                            (if (failed > 0) " · $failed failed" else "")
-                                        container.health.refresh()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = snapshot.source != null,
-                        )
-                        if (snapshot.source == null) {
-                            Spacer(Modifier.height(LocalPulseDimens.current.xs))
-                            Text(
-                                "Connect a health app to sync.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
-                            )
-                        }
-                        backfill?.let {
-                            Spacer(Modifier.height(LocalPulseDimens.current.s))
-                            Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-                        }
                     }
+                    backfill?.let {
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                    }
+
                 }
             }
 

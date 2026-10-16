@@ -41,10 +41,15 @@ numbers it depends on live in the generated [contrast report](CONTRAST.md).
    category name, a status badge, a progress track) may be fully round, because it carries no action.
 4. **Dense, not cramped.** 4 dp base unit, 20 dp page gutter, 16 dp card padding, 56 dp list rows,
    40 dp compact controls and 48 dp action buttons.
-5. **Colour always means something.** Four interval phases, six category families, four semantic
+5. **One surface, not two.** A section sits directly on the canvas; the controls inside it carry
+   their own surfaces where they need one (a field, a segmented control, a button, a stat tile).
+   A container around containers — a card wrapping fields, buttons or tiles — is never drawn: a
+   list of rows is one table surface with hairlines, and chips and badges may appear *inside* a
+   surface only because they are labels, not containers.
+6. **Colour always means something.** Four interval phases, six category families, four semantic
    states. Every hue ships with the pre-composited tint it is drawn on, so a tinted chip's contrast
    is a measured number rather than an alpha estimate.
-6. **Motion is felt, not watched.** 180 ms feedback, 260 ms selection, 340 ms overlays — and zero
+7. **Motion is felt, not watched.** 180 ms feedback, 260 ms selection, 340 ms overlays — and zero
    when the user turns on reduced motion.
 
 ---
