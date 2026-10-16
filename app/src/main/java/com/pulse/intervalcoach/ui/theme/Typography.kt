@@ -15,7 +15,7 @@ import com.pulse.intervalcoach.R
  *
  *  - [SpaceGrotesk] is the **display** face. Its slightly squared, engineered letterforms give the
  *    page titles, the hero figures and the countdown a voice of their own — the thing that makes a
- *    screen read as Cadence rather than as a settings page. It carries every number the user is
+ *    screen read as Intervals rather than as a settings page. It carries every number the user is
  *    meant to *feel* (the timer, the session totals) and every heading the user is meant to *see*.
  *  - [Inter] is the **text** face. A grotesque with a tall x-height, it keeps 12–14 sp labels
  *    legible at a glance mid-workout, and its tabular digits stop any inline count from reflowing.

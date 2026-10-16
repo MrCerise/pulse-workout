@@ -6,7 +6,7 @@
   lets Settings → Appearance offer German, Spanish and Italian alongside French.
 -->
 <resources>
-    <string name="app_name">Cadence</string>
+    <string name="app_name">Intervals</string>
     <string name="app_tagline">Coach d\'intervalles</string>
 
     <!-- Navigation -->
@@ -22,7 +22,6 @@
     <string name="title_builder">Éditeur</string>
     <string name="title_details">Séance</string>
     <string name="title_session">Session</string>
-    <string name="title_backup">Sauvegarde</string>
 
     <!-- Home -->
     <string name="home_greeting">Aujourd’hui</string>
@@ -40,7 +39,6 @@
     <!-- Workouts -->
     <string name="workouts_title">Séances</string>
     <string name="workouts_search_hint">Rechercher une séance, un tag, du matériel</string>
-    <string name="workouts_templates">Modèles</string>
     <string name="workouts_new">Nouvelle séance</string>
     <string name="workouts_empty_title">Aucune séance pour l\'instant</string>
     <string name="workouts_empty_body">Créez une séance ou choisissez un modèle.</string>
@@ -55,7 +53,6 @@
     <string name="filter_favorites">Favoris</string>
     <string name="filter_all_folders">Tous les dossiers</string>
     <string name="action_duplicate">Dupliquer</string>
-    <string name="action_export">Exporter</string>
     <string name="action_delete">Supprimer</string>
     <string name="action_edit">Modifier</string>
     <string name="action_share">Partager</string>
@@ -65,7 +62,6 @@
     <string name="duplicated_toast">« %1$s » dupliquée</string>
 
     <!-- Templates -->
-    <string name="templates_title">Modèles</string>
     <string name="templates_use">Utiliser ce modèle</string>
     <string name="templates_added">« %1$s » ajoutée à vos séances</string>
 
@@ -261,6 +257,7 @@
     <string name="settings_language">Langue</string>
     <string name="settings_language_system">Langue du système</string>
     <string name="settings_language_note">Appliquée immédiatement. Widgets et notifications suivent le même choix à partir d\'Android 13.</string>
+    <string name="settings_health_title">Health Connect</string>
     <string name="settings_dynamic_color">Couleur du fond d’écran</string>
     <string name="settings_reduced_motion">Mouvements réduits</string>
     <string name="settings_high_contrast">Contraste élevé</string>
@@ -287,10 +284,6 @@
     <string name="headphone_pause">Mettre la séance en pause</string>
     <string name="headphone_continue">Continuer, annonces sur le haut-parleur</string>
     <string name="settings_data">Données</string>
-    <string name="settings_export_all">Exporter toutes les données…</string>
-    <string name="settings_import">Importer depuis un fichier…</string>
-    <string name="settings_backup_auto">Sauvegardes hebdomadaires</string>
-    <string name="settings_backup_location">Dossier de sauvegarde</string>
     <string name="settings_delete_all">Supprimer toutes les séances…</string>
     <string name="settings_delete_all_confirm">L’historique sera supprimé définitivement. Les séances sont conservées.</string>
     <string name="settings_help">Aide et raccourcis</string>
@@ -301,22 +294,10 @@
     <string name="settings_permissions">Autorisations utilisées</string>
 
     <!-- Import / export -->
-    <string name="export_title">Exporter les données Cadence</string>
-    <string name="export_success">Exporté vers le fichier sélectionné</string>
-    <string name="export_failed">Échec de l\'export : %1$s</string>
-    <string name="import_title">Importer des données Cadence</string>
-    <string name="import_success">%1$d séances et %2$d sessions importées</string>
-    <string name="import_failed">Échec de l\'import : %1$s</string>
-    <string name="import_preview_title">Vérifier avant d\'importer</string>
-    <string name="import_preview_body">%1$d séances · %2$d sessions · %3$d tags</string>
-    <string name="import_confirm">Importer</string>
-    <string name="import_corrupt">Sauvegarde Cadence invalide. Aucune modification.</string>
-    <string name="backup_created">Sauvegarde écrite dans %1$s</string>
-    <string name="backup_too_large">Les sauvegardes de plus de %1$d Mio ne peuvent pas être importées.</string>
 
     <!-- Onboarding -->
-    <string name="welcome_title">Cadence</string>
-    <string name="welcome_subtitle">Votre minuteur d’intervalles.</string>
+    <string name="welcome_title">Intervals</string>
+    <string name="welcome_subtitle">Le minuteur d’intervalles HIIT &amp; Tabata.</string>
     <string name="welcome_theme">Choisissez une apparence</string>
     <string name="welcome_language">Choisissez une langue</string>
     <string name="welcome_voice">Écoutez une annonce</string>
@@ -324,7 +305,7 @@
     <string name="welcome_sample_workout">Essayer une séance de 4 minutes</string>
     <string name="welcome_skip">Passer</string>
     <string name="welcome_next">Suivant</string>
-    <string name="welcome_start">Commencer avec Cadence</string>
+    <string name="welcome_start">Commencer avec Intervals</string>
     <string name="welcome_notifications">Les notifications ajoutent les commandes du minuteur à l’écran verrouillé.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. La séance fonctionne toujours, mais sans commandes en direct.</string>
@@ -332,13 +313,11 @@
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
-    <string name="help_voice_body">Pour le coaching hors ligne, installez une voix dans Réglages Android → Synthèse vocale. Sans voix, Cadence utilise des signaux sonores.</string>
+    <string name="help_voice_body">Pour le coaching hors ligne, installez une voix dans Réglages Android → Synthèse vocale. Sans voix, Intervals utilise des signaux sonores.</string>
     <string name="help_background">Fonctionnement en arrière-plan</string>
     <string name="help_background_body">Le minuteur continue écran éteint. Activez les annonces écran éteint dans les réglages pour les conserver.</string>
     <string name="help_audio">Dépannage audio</string>
     <string name="help_audio_body">Vérifiez le volume multimédia, Ne pas déranger et le volume dans Voix et audio. L’atténuation des autres apps dépend du lecteur.</string>
-    <string name="help_import">Fichiers importés</string>
-    <string name="help_import_body">Les sauvegardes contiennent les séances, sessions et réglages, sans les fichiers multimédias. L’import ajoute des copies sans remplacer vos séances.</string>
     <string name="help_gestures">Commandes du lecteur</string>
     <string name="help_gestures_body">Les touches de volume règlent le volume multimédia. Utilisez le lecteur ou la notification pour mettre en pause, avancer ou terminer.</string>
     <string name="help_accessibility">Accessibilité</string>
@@ -357,11 +336,11 @@
     <string name="hours_minutes">%1$sh %2$sm</string>
 
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Favoris Cadence</string>
-    <string name="widget_quick_start_name">Départ rapide Cadence</string>
+    <string name="widget_favorites_name">Favoris Intervals</string>
+    <string name="widget_quick_start_name">Départ rapide Intervals</string>
     <string name="widget_quick_start_label">Départ rapide</string>
     <string name="widget_quick_start_sub">Effort / repos</string>
-    <string name="widget_empty">Ouvrez Cadence pour mettre une séance en favori</string>
+    <string name="widget_empty">Ouvrez Intervals pour mettre une séance en favori</string>
     <string name="shortcut_recent">Séances récentes</string>
     <string name="shortcut_quick">Création rapide</string>
 
@@ -374,8 +353,6 @@
     <string name="notif_action_resume">Reprendre</string>
     <string name="notif_action_next">Suivant</string>
     <string name="notif_action_stop">Arrêter</string>
-    <string name="notif_backup_channel">Sauvegardes</string>
-    <string name="notif_backup_channel_desc">Résultats des sauvegardes locales hebdomadaires</string>
 
     <!-- Portable workout import -->
     <string name="json_title">Séances IA</string>
@@ -409,11 +386,9 @@
     <string name="share_total_time">Temps total · pauses incluses</string>
     <string name="share_skipped">Intervalles passés</string>
     <string name="share_rounds">Tours enregistrés</string>
-    <string name="share_recorded">Enregistré avec Cadence</string>
+    <string name="share_recorded">Enregistré avec Intervals</string>
 
     <!-- Theme & streamlined AI flow -->
-    <string name="theme_switch_light">Passer au thème clair</string>
-    <string name="theme_switch_dark">Passer au thème sombre</string>
     <string name="json_send_prompt">Envoyer à une app IA</string>
     <string name="json_paste">Coller la réponse</string>
     <string name="json_edit">Modifier le JSON</string>

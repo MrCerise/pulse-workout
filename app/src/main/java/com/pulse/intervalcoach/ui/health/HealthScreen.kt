@@ -1,6 +1,5 @@
 package com.pulse.intervalcoach.ui.health
 
-import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,13 +24,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
-import com.pulse.intervalcoach.health.FitAvailability
 import com.pulse.intervalcoach.health.HC_REQUESTED_PERMISSIONS
 import com.pulse.intervalcoach.health.HcAvailability
 import com.pulse.intervalcoach.ui.components.InfoBanner
@@ -42,7 +38,6 @@ import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTone
-import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.components.StatusBadge
@@ -58,9 +53,9 @@ import kotlinx.coroutines.launch
 /**
  * Health setup & sync screen.
  *
- * Health Connect is the primary backend (read heart rate & steps, write workout sessions); Google
- * Fit is a best-effort secondary because Google has deprecated its on-device API as of 2026. Every
- * state on this screen is a real platform state — nothing is faked, and every failure says why.
+ * Health Connect is the one backend: it reads heart rate and steps and receives finished workout
+ * sessions. Every state on this screen is a real platform state — nothing is faked, and every
+ * failure says why.
  */
 @Composable
 fun HealthScreen(
@@ -70,7 +65,6 @@ fun HealthScreen(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract(),
     ) {
@@ -79,8 +73,6 @@ fun HealthScreen(
 
     val availability by container.health.availability.collectAsStateWithLifecycle()
     val permissions by container.health.permissions.collectAsStateWithLifecycle()
-    val fitAvailability by container.health.fitAvailability.collectAsStateWithLifecycle()
-    val fitAuthorized by container.health.fitAuthorized.collectAsStateWithLifecycle()
     val snapshot by container.health.snapshot.collectAsStateWithLifecycle()
 
     var backfill by remember { mutableStateOf<String?>(null) }
@@ -189,56 +181,6 @@ fun HealthScreen(
                                         // refresh these rows whenever it returns.
                                         healthConnectPermissionLauncher.launch(HC_REQUESTED_PERMISSIONS)
                                     },
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // --- Google Fit ---
-            item { SectionHeader("Google Fit") }
-            item {
-                PulseCard {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Person, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.padding(end = LocalPulseDimens.current.s))
-                            Text(
-                                "Legacy integration",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = colors.prepare,
-                                modifier = Modifier.weight(1f),
-                            )
-                            when {
-                                fitAuthorized -> StatusBadge("connected", PulseTone.SUCCESS)
-                                fitAvailability == FitAvailability.AVAILABLE -> StatusBadge("optional", PulseTone.INFO)
-                                else -> StatusBadge("unavailable", PulseTone.NEUTRAL)
-                            }
-                        }
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        Text(
-                            when (fitAvailability) {
-                                FitAvailability.NOT_CONFIGURED ->
-                                    "Unavailable in this build. Use Health Connect."
-                                FitAvailability.PLAY_SERVICES_MISSING ->
-                                    "Google Play services unavailable."
-                                FitAvailability.AVAILABLE ->
-                                    if (fitAuthorized) {
-                                        "Connected as a fallback"
-                                    } else {
-                                        "Not connected"
-                                    }
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
-                        if (fitAvailability == FitAvailability.AVAILABLE && !fitAuthorized) {
-                            Spacer(Modifier.height(LocalPulseDimens.current.m))
-                            if (context is Activity) {
-                                SecondaryActionButton(
-                                    text = "Connect with Google",
-                                    onClick = { container.health.requestFitAuthorization(context) },
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }

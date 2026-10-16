@@ -1,4 +1,4 @@
-# Data, privacy and backups
+# Data and privacy
 
 PULSE is offline-first. This page states exactly what is stored, where it lives, what can leave the
 device, and how to move it.
@@ -7,7 +7,6 @@ device, and how to move it.
 - [Privacy guarantees](#privacy-guarantees)
 - [Health data](#health-data)
 - [Export and import](#export-and-import)
-- [Automatic backups](#automatic-backups)
 - [Device backup and transfer](#device-backup-and-transfer)
 
 ## What is stored
@@ -37,7 +36,6 @@ uninstalling the watch app removes them with it.
 
 - **PULSE's own code makes no network calls.** It never opens a socket, never sends analytics and
   never uploads anything. The `INTERNET` permission appears in the merged manifest only because the
-  Play services libraries used for Google Fit declare it for their own platform communication;
   Health Connect itself is an on-device IPC API.
 - **No analytics SDK, no advertising SDK, no crash reporter, no account, no cloud.**
 - **Files you export go only where you send them** through the system file picker.

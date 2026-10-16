@@ -1,14 +1,8 @@
 package com.pulse.intervalcoach.ui.components
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.LocalIndication
@@ -25,10 +19,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -126,29 +117,6 @@ private fun ThemePreview(mode: ThemeMode, modifier: Modifier = Modifier) {
                 drawRoundRect(palette.textMuted, Offset(w * 0.16f, h * 0.44f), Size(w * 0.52f, h * 0.05f), radius)
                 drawRoundRect(palette.actionFill, Offset(w * 0.16f, h * 0.62f), Size(w * 0.68f, h * 0.10f), radius)
             }
-        }
-    }
-}
-
-@Composable
-fun ThemeToggle(isDark: Boolean, onClick: () -> Unit) {
-    val motion = LocalPulseMotion.current
-    val label = stringResource(if (isDark) R.string.theme_switch_light else R.string.theme_switch_dark)
-    IconButton(onClick = onClick, modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget)) {
-        AnimatedContent(
-            targetState = isDark,
-            transitionSpec = {
-                (fadeIn(tween(motion.fast())) + scaleIn(tween(motion.standard()), initialScale = 0.8f)) togetherWith
-                    (fadeOut(tween(motion.fast())) + scaleOut(tween(motion.standard()), targetScale = 0.8f))
-            },
-            label = "themeToggle",
-        ) { dark ->
-            Icon(
-                if (dark) Icons.Filled.LightMode else Icons.Filled.DarkMode,
-                contentDescription = label,
-                tint = LocalPulseColors.current.textSecondary,
-                modifier = Modifier.size(20.dp),
-            )
         }
     }
 }

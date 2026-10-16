@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Cadence</string>
+    <string name="app_name">Intervals</string>
 
     <!-- Library -->
     <string name="library_resume">Reprendre</string>
     <string name="library_empty">Aucun entraînement</string>
-    <string name="library_empty_hint">Ouvrez Cadence sur votre téléphone — vos entraînements se synchronisent ici</string>
+    <string name="library_empty_hint">Ouvrez Intervals sur votre téléphone — vos entraînements se synchronisent ici</string>
     <string name="library_empty_solo">Aucun entraînement sur cette montre</string>
     <string name="library_restore_starters">Touchez pour charger les entraînements de base</string>
     <string name="library_row_summary">%1$s · %2$d intervalles</string>
@@ -68,8 +68,8 @@
     <string name="settings_theme_system">Suivre la montre</string>
     <string name="settings_theme_dark">Sombre</string>
     <string name="settings_theme_true_black">Noir profond</string>
-    <string name="settings_theme_note">L\'apparence suit les réglages de Cadence sur votre téléphone</string>
-    <string name="settings_about">Cadence pour montre %1$s · dernière synchro %2$s</string>
+    <string name="settings_theme_note">L\'apparence suit les réglages de Intervals sur votre téléphone</string>
+    <string name="settings_about">Intervals pour montre %1$s · dernière synchro %2$s</string>
     <string name="settings_back">Retour</string>
 
     <!-- Where this watch's data comes from and goes -->

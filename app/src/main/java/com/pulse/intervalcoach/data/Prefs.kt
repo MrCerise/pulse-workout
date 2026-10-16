@@ -125,19 +125,14 @@ data class UserPreferences(
     val countdownFromSeconds: Int = 3,
     val halfwayMinSeconds: Int = 60,
     val onboardingComplete: Boolean = false,
-    val autoBackupEnabled: Boolean = true,
-    val backupFolderUri: String? = null,
-    val lastAutoBackupAt: Long = 0L,
     val musicUri: String? = null,
     val musicVolume: Float = 0.6f,
     val showInstructorViewByDefault: Boolean = false,
-    // --- Health & fitness integrations (v1.3) ---
-    /** Master switch for writing finished sessions to Health / Google Fit. */
+    // --- Health integration ---
+    /** Master switch for writing finished sessions to Health Connect. */
     val healthSyncSessions: Boolean = true,
     /** Last successful sync-to-Health moment, in epoch millis. */
     val healthLastSyncAt: Long = 0L,
-    /** True after the user authorised the Google Fit scopes on this device. */
-    val fitAuthorized: Boolean = false,
 ) {
     /** Warning thresholds derived from the "count down from N seconds" preference. */
     val countdownThresholds: List<Int>
@@ -182,15 +177,11 @@ class PreferencesRepository(private val context: Context) {
         val countdownFrom = intPreferencesKey("countdown_from_seconds")
         val halfwayMin = intPreferencesKey("halfway_min_seconds")
         val onboarding = booleanPreferencesKey("onboarding_complete")
-        val autoBackup = booleanPreferencesKey("auto_backup")
-        val backupFolder = stringPreferencesKey("backup_folder_uri")
-        val lastBackup = longPreferencesKey("last_auto_backup_at")
         val musicUri = stringPreferencesKey("music_uri")
         val musicVolume = floatPreferencesKey("music_volume")
         val instructorView = booleanPreferencesKey("instructor_view_default")
         val healthSyncSessions = booleanPreferencesKey("health_sync_sessions")
         val healthLastSyncAt = longPreferencesKey("health_last_sync_at")
-        val fitAuthorized = booleanPreferencesKey("fit_authorized")
     }
 
     val flow: Flow<UserPreferences> = context.dataStore.data.map { prefs ->
@@ -230,15 +221,11 @@ class PreferencesRepository(private val context: Context) {
             countdownFromSeconds = prefs[Keys.countdownFrom] ?: 3,
             halfwayMinSeconds = prefs[Keys.halfwayMin] ?: 60,
             onboardingComplete = prefs[Keys.onboarding] ?: false,
-            autoBackupEnabled = prefs[Keys.autoBackup] ?: true,
-            backupFolderUri = prefs[Keys.backupFolder],
-            lastAutoBackupAt = prefs[Keys.lastBackup] ?: 0L,
             musicUri = prefs[Keys.musicUri],
             musicVolume = prefs[Keys.musicVolume] ?: 0.6f,
             showInstructorViewByDefault = prefs[Keys.instructorView] ?: false,
             healthSyncSessions = prefs[Keys.healthSyncSessions] ?: true,
             healthLastSyncAt = prefs[Keys.healthLastSyncAt] ?: 0L,
-            fitAuthorized = prefs[Keys.fitAuthorized] ?: false,
         )
     }
 
@@ -279,11 +266,6 @@ class PreferencesRepository(private val context: Context) {
     suspend fun setCountdownFrom(seconds: Int) = edit { it[Keys.countdownFrom] = seconds.coerceIn(0, 10) }
     suspend fun setHalfwayMin(seconds: Int) = edit { it[Keys.halfwayMin] = seconds.coerceIn(15, 600) }
     suspend fun setOnboardingComplete(value: Boolean) = edit { it[Keys.onboarding] = value }
-    suspend fun setAutoBackup(value: Boolean) = edit { it[Keys.autoBackup] = value }
-    suspend fun setBackupFolder(uri: String?) = edit { prefs ->
-        if (uri == null) prefs.remove(Keys.backupFolder) else prefs[Keys.backupFolder] = uri
-    }
-    suspend fun setLastBackup(at: Long) = edit { it[Keys.lastBackup] = at }
     suspend fun setMusic(uri: String?, volume: Float? = null) = edit { prefs ->
         if (uri == null) prefs.remove(Keys.musicUri) else prefs[Keys.musicUri] = uri
         if (volume != null) prefs[Keys.musicVolume] = volume.coerceIn(0f, 1f)
@@ -292,7 +274,6 @@ class PreferencesRepository(private val context: Context) {
     suspend fun setInstructorViewDefault(value: Boolean) = edit { it[Keys.instructorView] = value }
     suspend fun setHealthSyncSessions(value: Boolean) = edit { it[Keys.healthSyncSessions] = value }
     suspend fun setHealthLastSyncAt(at: Long) = edit { it[Keys.healthLastSyncAt] = at }
-    suspend fun setFitAuthorized(value: Boolean) = edit { it[Keys.fitAuthorized] = value }
 
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         context.dataStore.edit(block)

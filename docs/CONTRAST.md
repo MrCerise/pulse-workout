@@ -130,10 +130,10 @@ the ratios above apply to the watch unchanged.
 | Muted text on sunken | `#666C74` | `#EFF2F5` | 4.72:1 | 4.5:1 | pass | table headers |
 | Control outline on canvas | `#6B7280` | `#F4F6F8` | 4.46:1 | 3.0:1 | pass | input borders, focus rings |
 | Control outline on card | `#6B7280` | `#FFFFFF` | 4.83:1 | 3.0:1 | pass | card control boundaries |
-| Accent on canvas | `#3F6212` | `#F4F6F8` | 6.53:1 | 4.5:1 | pass | links and inline actions |
-| Accent on card | `#3F6212` | `#FFFFFF` | 7.08:1 | 4.5:1 | pass | selected rows, activity labels |
-| Accent on raised | `#3F6212` | `#F7F8FA` | 6.66:1 | 4.5:1 | pass | selected list rows |
-| Accent chip label | `#3F6212` | `#F1F5E1` | 6.37:1 | 4.5:1 | pass | selected filters, active navigation item |
+| Accent on canvas | `#4D7C0F` | `#F4F6F8` | 4.61:1 | 4.5:1 | pass | links and inline actions |
+| Accent on card | `#4D7C0F` | `#FFFFFF` | 4.99:1 | 4.5:1 | pass | selected rows, activity labels |
+| Accent on raised | `#4D7C0F` | `#F7F8FA` | 4.70:1 | 4.5:1 | pass | selected list rows |
+| Accent chip label | `#4D7C0F` | `#ECFCCB` | 4.60:1 | 4.5:1 | pass | selected filters, active navigation item |
 | Informational label | `#0B57C2` | `#E7EEF9` | 5.70:1 | 4.5:1 | pass | info banners, notes |
 | Informational on canvas | `#0B57C2` | `#F4F6F8` | 6.14:1 | 4.5:1 | pass | inline help links |
 | Primary button label | `#101216` | `#A3E635` | 12.43:1 | 4.5:1 | pass | the solid primary action |

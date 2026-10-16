@@ -129,9 +129,9 @@
     <color name="pulse_light_text_muted">#666C74</color>
     <color name="pulse_light_text_disabled">#A6ACB3</color>
     <color name="pulse_light_track">#E3E5E8</color>
-    <color name="pulse_light_accent">#3F6212</color>
+    <color name="pulse_light_accent">#4D7C0F</color>
     <color name="pulse_light_accent_alt">#365314</color>
-    <color name="pulse_light_accent_tint">#F1F5E1</color>
+    <color name="pulse_light_accent_tint">#ECFCCB</color>
     <color name="pulse_light_brand">#A3E635</color>
     <color name="pulse_light_on_brand">#101216</color>
     <color name="pulse_light_hero_surface">#131519</color>

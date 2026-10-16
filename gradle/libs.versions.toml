@@ -18,7 +18,6 @@ serialization = "1.7.3"
 documentfile = "1.0.1"
 work = "2.9.1"
 healthConnect = "1.1.0"
-playServicesFitness = "21.3.0"
 playServicesAuth = "21.2.0"
 playServicesWearable = "19.0.0"
 wearCompose = "1.4.0"
@@ -53,7 +52,6 @@ androidx-media3-session = { module = "androidx.media3:media3-session", version.r
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-health-connect-client = { module = "androidx.health.connect:connect-client", version.ref = "healthConnect" }
-gms-play-services-fitness = { module = "com.google.android.gms:play-services-fitness", version.ref = "playServicesFitness" }
 gms-play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 gms-play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearable" }
 androidx-wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "wearCompose" }

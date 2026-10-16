@@ -67,7 +67,6 @@ import com.pulse.intervalcoach.ui.components.PulseFloatingNavBar
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseLogo
-import com.pulse.intervalcoach.ui.components.ThemeToggle
 import com.pulse.intervalcoach.ui.components.PulseNavGroup
 import com.pulse.intervalcoach.ui.components.PulseNavItem
 import com.pulse.intervalcoach.ui.components.PulseNavRail
@@ -80,7 +79,6 @@ import com.pulse.intervalcoach.ui.player.PlayerScreen
 import com.pulse.intervalcoach.ui.progress.HistoryScreen
 import com.pulse.intervalcoach.ui.progress.ProgressScreen
 import com.pulse.intervalcoach.ui.progress.SessionDetailScreen
-import com.pulse.intervalcoach.ui.settings.BackupScreen
 import com.pulse.intervalcoach.ui.settings.HelpScreen
 import com.pulse.intervalcoach.ui.settings.SettingsScreen
 import com.pulse.intervalcoach.ui.settings.VoiceStudioScreen
@@ -97,7 +95,6 @@ import com.pulse.intervalcoach.ui.theme.ThemeMode
 import com.pulse.intervalcoach.ui.watchsession.WatchSessionScreen
 import com.pulse.intervalcoach.ui.welcome.WelcomeScreen
 import com.pulse.intervalcoach.ui.workouts.CategoryScreen
-import com.pulse.intervalcoach.ui.workouts.TemplateGalleryScreen
 import com.pulse.intervalcoach.ui.workouts.WorkoutDetailsScreen
 import com.pulse.intervalcoach.ui.workouts.WorkoutLibraryScreen
 import kotlinx.coroutines.flow.StateFlow
@@ -109,7 +106,6 @@ object Routes {
     const val WORKOUTS = "workouts"
     const val PROGRESS = "progress"
     const val SETTINGS = "settings"
-    const val TEMPLATES = "templates"
     const val CATEGORY = "category/{key}"
     const val QUICK_BUILDER = "builder/quick"
 
@@ -132,7 +128,6 @@ object Routes {
     const val HISTORY = "history"
     const val SESSION_DETAIL = "session/{id}"
     const val VOICE_STUDIO = "settings/voice"
-    const val BACKUP = "settings/backup"
     const val HELP = "settings/help"
     const val HEALTH = "health"
     const val WELCOME = "welcome"
@@ -208,7 +203,6 @@ private fun sidebarGroups(): List<PulseNavGroup> = listOf(
     PulseNavGroup(
         label = stringResource(R.string.nav_group_library),
         items = listOf(
-            PulseNavItem(Routes.TEMPLATES, stringResource(R.string.templates_title), Icons.Filled.GridView),
             PulseNavItem(Routes.HEALTH, stringResource(R.string.nav_health), Icons.Filled.Healing),
         ),
     ),
@@ -372,13 +366,6 @@ private fun PulseAppRootContent(
             if (!current.onboardingComplete) navController.navigate(Routes.WELCOME)
         }
 
-        val currentIsDark = LocalPulseColors.current.isDark
-        val toggleTheme: () -> Unit = {
-            scope.launch {
-                container.preferences.setTheme(if (currentIsDark) ThemeMode.LIGHT else ThemeMode.DARK)
-            }
-        }
-
         Row(Modifier.fillMaxSize()) {
             if (showSidebar) {
                 PulseAppSidebar(
@@ -399,9 +386,6 @@ private fun PulseAppRootContent(
                     currentRoute = route,
                     onSelect = select,
                     header = { PulseLogo(size = 32.dp) },
-                    footer = {
-                        ThemeToggle(isDark = currentIsDark, onClick = toggleTheme)
-                    },
                 )
             }
 
@@ -415,8 +399,6 @@ private fun PulseAppRootContent(
                         title = routeTitle(route),
                         parent = routeParent(route) ?: stringResource(R.string.app_name),
                         showMark = !showSidebar && !showRail,
-                        isDark = currentIsDark,
-                        onToggleTheme = toggleTheme,
                         onOpenSettings = { select(Routes.SETTINGS) },
                     )
                 }
@@ -448,7 +430,6 @@ private fun PulseAppRootContent(
                                 onStartWorkout = startSession,
                                 onQuickStart = { navController.navigate(Routes.QUICK_BUILDER) },
                                 onOpenProgress = { navController.navigate(Routes.PROGRESS) },
-                                onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
                                 onOpenGoals = { navController.navigate(Routes.GOALS) },
                                 onResumeSession = { navController.navigate(Routes.PLAYER) },
                                 onOpenHealth = { navController.navigate(Routes.HEALTH) },
@@ -461,7 +442,6 @@ private fun PulseAppRootContent(
                             WorkoutLibraryScreen(
                                 container = container,
                                 onOpenWorkout = { navController.navigate(Routes.details(it)) },
-                                onOpenTemplates = { navController.navigate(Routes.TEMPLATES) },
                                 onQuickBuilder = { navController.navigate(Routes.QUICK_BUILDER) },
                                 onAdvancedBuilder = { navController.navigate(Routes.advancedBuilder(null)) },
                                 onStartWorkout = startSession,
@@ -477,13 +457,6 @@ private fun PulseAppRootContent(
                                 onOpenWorkout = { navController.navigate(Routes.details(it)) },
                                 onStart = startSession,
                                 onBuild = { navController.navigate(Routes.QUICK_BUILDER) },
-                            )
-                        }
-                        composable(Routes.TEMPLATES) {
-                            TemplateGalleryScreen(
-                                container = container,
-                                onBack = { navController.popBackStack() },
-                                onOpenWorkout = { navController.navigate(Routes.details(it)) },
                             )
                         }
                         composable(Routes.DETAILS) { entry ->
@@ -624,22 +597,13 @@ private fun PulseAppRootContent(
                             SettingsScreen(
                                 container = container,
                                 onOpenVoiceStudio = { navController.navigate(Routes.VOICE_STUDIO) },
-                                onOpenBackup = { navController.navigate(Routes.BACKUP) },
                                 onOpenHelp = { navController.navigate(Routes.HELP) },
                                 onOpenWelcome = { navController.navigate(Routes.WELCOME) },
-                                onJsonImport = { navController.navigate(Routes.JSON_IMPORT) },
                                 onOpenHealth = { navController.navigate(Routes.HEALTH) },
                             )
                         }
                         composable(Routes.VOICE_STUDIO) {
                             VoiceStudioScreen(container = container, onBack = { navController.popBackStack() })
-                        }
-                        composable(Routes.BACKUP) {
-                            BackupScreen(
-                                container = container,
-                                onBack = { navController.popBackStack() },
-                                onMessage = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
-                            )
                         }
                         composable(Routes.HELP) {
                             HelpScreen(container = container, onBack = { navController.popBackStack() })
@@ -705,7 +669,6 @@ private fun routeTitle(route: String?): String = when (route) {
     Routes.WORKOUTS -> stringResource(R.string.workouts_title)
     Routes.PROGRESS -> stringResource(R.string.progress_title)
     Routes.SETTINGS -> stringResource(R.string.settings_title)
-    Routes.TEMPLATES -> stringResource(R.string.templates_title)
     Routes.CATEGORY -> stringResource(R.string.title_category)
     Routes.QUICK_BUILDER -> stringResource(R.string.builder_quick_title)
     Routes.ADVANCED_BUILDER -> stringResource(R.string.title_builder)
@@ -716,7 +679,6 @@ private fun routeTitle(route: String?): String = when (route) {
     Routes.HISTORY -> stringResource(R.string.history_title)
     Routes.SESSION_DETAIL -> stringResource(R.string.session_detail_title)
     Routes.VOICE_STUDIO -> stringResource(R.string.voice_title)
-    Routes.BACKUP -> stringResource(R.string.title_backup)
     Routes.HELP -> stringResource(R.string.help_title)
     else -> stringResource(R.string.app_name)
 }
@@ -729,11 +691,11 @@ private fun routeTitle(route: String?): String = when (route) {
  */
 @Composable
 private fun routeParent(route: String?): String? = when (route) {
-    Routes.TEMPLATES, Routes.CATEGORY, Routes.DETAILS, Routes.JSON_IMPORT,
+    Routes.CATEGORY, Routes.DETAILS, Routes.JSON_IMPORT,
     Routes.QUICK_BUILDER, Routes.ADVANCED_BUILDER -> stringResource(R.string.workouts_title)
 
     Routes.HISTORY, Routes.SESSION_DETAIL -> stringResource(R.string.progress_title)
-    Routes.VOICE_STUDIO, Routes.BACKUP, Routes.HELP -> stringResource(R.string.settings_title)
+    Routes.VOICE_STUDIO, Routes.HELP -> stringResource(R.string.settings_title)
     Routes.HEALTH -> stringResource(R.string.nav_today)
     else -> null
 }
@@ -751,8 +713,6 @@ private fun ShellBreadcrumb(
     title: String,
     parent: String?,
     showMark: Boolean,
-    isDark: Boolean,
-    onToggleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     PulseBreadcrumbBar(
@@ -764,7 +724,6 @@ private fun ShellBreadcrumb(
             null
         },
         actions = {
-            ThemeToggle(isDark = isDark, onClick = onToggleTheme)
             PulseIconButton(
                 icon = Icons.Filled.Settings,
                 contentDescription = "Settings",

@@ -19,9 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -74,6 +77,7 @@ import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
+import com.pulse.library.StarterWorkouts
 import com.pulse.intervalcoach.ui.components.StatTile
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
@@ -141,6 +145,9 @@ class HomeViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     init {
+        // Freshen the health snapshot so "Today's health" is current the moment the dashboard
+        // appears — the hub only refreshes itself on app start and in the Health screen.
+        container.health.refresh()
         viewModelScope.launch {
             val prefs = container.preferences.current()
             _quickState.value = QuickState(
@@ -166,6 +173,8 @@ class HomeViewModel(
 
     suspend fun planFor(id: String): WorkoutPlan? = container.workouts.plan(id)
     suspend fun favorite(id: String, favorite: Boolean) = container.workouts.setFavorite(id, favorite)
+    suspend fun saveTemplate(template: StarterWorkouts.Template) =
+        container.workouts.save(template.plan, tags = template.tags)
 }
 
 /**
@@ -235,7 +244,6 @@ fun HomeScreen(
     onStartWorkout: (WorkoutPlan) -> Unit,
     onQuickStart: () -> Unit,
     onOpenProgress: () -> Unit,
-    onOpenTemplates: () -> Unit,
     onOpenGoals: () -> Unit,
     onResumeSession: () -> Unit,
     onOpenHealth: () -> Unit,
@@ -255,6 +263,7 @@ fun HomeScreen(
     val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
     val presets = remember { buildCategoryPresets() }
     val categories = remember { homeStartableCategories }
+    val templates = remember { StarterWorkouts.templates }
 
     PulseScaffold { padding ->
         LazyColumn(
@@ -459,25 +468,26 @@ fun HomeScreen(
                             )
                         }
                         Spacer(Modifier.height(dimens.l))
-                        PrimaryActionButton(
-                            text = "Start now",
-                            onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
-                            modifier = Modifier.fillMaxWidth(),
-                            icon = Icons.Filled.PlayArrow,
-                        )
-                        Spacer(Modifier.height(dimens.s))
-                        SecondaryActionButton(
-                            text = "Quick builder",
-                            onClick = onQuickStart,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                            PrimaryActionButton(
+                                text = "Start",
+                                onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
+                                icon = Icons.Filled.PlayArrow,
+                                modifier = Modifier.weight(1f),
+                            )
+                            SecondaryActionButton(
+                                text = "Customize",
+                                onClick = onQuickStart,
+                                icon = Icons.Filled.Tune,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
             }
 
             // --- Weekly activity -----------------------------------------------------------------
-            item { SectionHeader(text = "This week", actionLabel = "Progress", onAction = onOpenProgress) }
-            item { SectionHeader(text = "Goals", actionLabel = "Goals", onAction = onOpenGoals) }
+            item { SectionHeader(text = "This week") }
             item {
                 PulseCard {
                     Column(Modifier.fillMaxWidth()) {
@@ -540,6 +550,58 @@ fun HomeScreen(
                 }
             }
 
+            // --- Progress & Goals: two equal nav tiles, so neither reads as a stray text link ----
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
+                    PulseCard(onClick = onOpenProgress, modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconTile(icon = Icons.Filled.Insights, tint = colors.accent, container = colors.accentTint)
+                            Spacer(Modifier.width(dimens.s))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    text = "Progress",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = "History & charts",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.textMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
+                        }
+                    }
+                    PulseCard(onClick = onOpenGoals, modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconTile(icon = Icons.Filled.Flag, tint = colors.prepare, container = colors.warningTint)
+                            Spacer(Modifier.width(dimens.s))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    text = "Goals",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = "Weekly target",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.textMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
+                        }
+                    }
+                }
+            }
+
             // --- Health snapshot (only when something is actually connected) ----------------------
             if (healthSnapshot.source != null) {
                 item { SectionHeader(text = "Today's health", trailing = healthSnapshot.source.orEmpty()) }
@@ -573,6 +635,24 @@ fun HomeScreen(
                                 onStart = { scope.launch { viewModel.planFor(workout.id)?.let(onStartWorkout) } },
                             )
                         }
+                    }
+                }
+            }
+
+            // --- Templates rail: the starters, inline — never a separate page ----------------------
+            item { SectionHeader("Templates") }
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
+                    items(templates, key = { it.plan.id }) { template ->
+                        TemplateCard(
+                            template = template,
+                            onUse = {
+                                scope.launch {
+                                    viewModel.saveTemplate(template)
+                                    onOpenWorkout(template.plan.id)
+                                }
+                            },
+                        )
                     }
                 }
             }
@@ -633,8 +713,8 @@ fun HomeScreen(
                             title = "Nothing here yet",
                             body = "Star a workout to pin it here.",
                             icon = Icons.Filled.FitnessCenter,
-                            actionLabel = "Browse templates",
-                            onAction = onOpenTemplates,
+                            actionLabel = if (onOpenLibrary != null) "Browse workouts" else null,
+                            onAction = onOpenLibrary,
                         )
                     }
                 }
@@ -806,6 +886,57 @@ private fun FavoriteCard(
                 text = "Start",
                 onClick = onStart,
                 icon = Icons.Filled.PlayArrow,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** A starter template in the horizontal rail. "Use" saves a copy and opens it. */
+@Composable
+private fun TemplateCard(
+    template: StarterWorkouts.Template,
+    onUse: () -> Unit,
+) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    val category = template.plan.category
+    PulseCard(
+        modifier = Modifier.width(dimens.carouselCardWidth),
+        tint = colors.categoryTint(category.hue),
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CategoryChip(category = category)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = formatDuration(StarterWorkouts.knownDuration(template.plan)),
+                    style = PulseType.NumericSmall,
+                    color = colors.textSecondary,
+                )
+            }
+            Spacer(Modifier.height(dimens.m))
+            Text(
+                text = template.plan.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.textPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            template.plan.equipment?.let {
+                Spacer(Modifier.height(dimens.xs))
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(Modifier.height(dimens.m))
+            SecondaryActionButton(
+                text = stringResource(R.string.templates_use),
+                onClick = onUse,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

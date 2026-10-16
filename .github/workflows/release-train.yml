@@ -1,0 +1,245 @@
+name: Release train
+
+# One dispatchable pipeline for every kind of release:
+#
+#   production — the app-store release: full tests, signed AAB + APKs, the Play "production"
+#                track (opt-in staged rollout) and a GitHub Release carrying the APKs. This is a
+#                *big* release; users on the store receive it.
+#   beta       — a test release: signed AAB to the Play "beta" track (closed testing) and QA
+#                artifacts on the workflow run. The production track is untouched.
+#   internal   — a small/hotfix build for testing: signed AAB to the Play "internal" track
+#                (up to 100 testers, ships within minutes) and QA artifacts. Nothing on the
+#                store changes for regular users.
+#
+# Version scheme (shared with `build-release.yml` so every upload to Play is monotonic):
+#
+#   versionCode = major*10_000_000 + minor*100_000 + patch*1_000 + build   (build = run no. mod 1000)
+#   versionName = <input or the repository default>, suffixed -beta.N / -internal.N off production
+#
+# Play upload requires the `ANDROID_SERVICE_ACCOUNT_JSON` repository secret (a Google Play
+# service-account key with the API access enabled). Without it the pipeline still builds, signs,
+# publishes QA artifacts, and (on production) cuts the GitHub Release — it only skips the store
+# step, with a notice saying so.
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Where this build goes
+        required: true
+        default: internal
+        type: choice
+        options:
+          - internal
+          - beta
+          - production
+      version_name:
+        description: 'Version name, e.g. 1.8.1 (semver, no "v"). Defaults to the current repository version.'
+        required: false
+        type: string
+      staged_rollout_percent:
+        description: Production only — roll the store release out to this percent of users
+        required: false
+        default: 100
+        type: number
+      run_tests:
+        description: Run the unit tests before building
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write # production attaches the GitHub Release
+
+concurrency:
+  # Two trains on the same channel must not race for the store track; different channels can.
+  group: release-train-${{ inputs.channel }}
+  cancel-in-progress: false
+
+jobs:
+  # --------------------------------------------------------------------------------------------
+  # Unit tests — the fast combined pass. Skippable for a throwaway internal build.
+  # --------------------------------------------------------------------------------------------
+  unit-tests:
+    name: Unit tests
+    if: ${{ inputs.run_tests }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up build environment
+        uses: ./.github/actions/setup-pulse-build
+
+      - name: Run unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash ./gradlew --console=plain --stacktrace \
+            -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
+            :engine:test :sync:test :library:test \
+            :app:testDebugUnitTest :wear:testDebugUnitTest
+
+      - name: Summarize failure diagnostics
+        if: failure()
+        uses: ./.github/actions/summarize-gradle-failure
+        with:
+          artifact-name: build-logs-tests-${{ github.run_id }}
+
+  # --------------------------------------------------------------------------------------------
+  # Build & sign — release AABs (Play) and APKs (QA / GitHub Release) for both apps.
+  # --------------------------------------------------------------------------------------------
+  build:
+    name: Build ${{ inputs.channel }}
+    needs: unit-tests
+    if: ${{ !cancelled() && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHANNEL: ${{ inputs.channel }}
+      PULSE_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      PULSE_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      PULSE_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    outputs:
+      version_name: ${{ steps.version.outputs.name }}
+      version_code: ${{ steps.version.outputs.code }}
+      full_version_name: ${{ steps.version.outputs.full_name }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up build environment
+        uses: ./.github/actions/setup-pulse-build
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The repository's own release line is the default version name.
+          base="$(grep -oP 'pulse\.versionName"\) as String\? \? : "\K[0-9.]+' app/build.gradle.kts)"
+          name="${{ inputs.version_name }}"
+          name="${name:-$base}"
+          IFS='.' read -r major minor patch <<< "$name"
+          build=$(( github.run_number % 1000 ))
+          code=$(( major * 10000000 + minor * 100000 + patch * 1000 + build ))
+          full="$name"
+          if [ "$CHANNEL" = "beta" ]; then full="$name-beta.${{ github.run_number }}"; fi
+          if [ "$CHANNEL" = "internal" ]; then full="$name-internal.${{ github.run_number }}"; fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "full_name=$full" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Release train::$CHANNEL build $full (versionCode $code)"
+
+      - name: Decode release signing key
+        shell: bash
+        env:
+          PULSE_RELEASE_STORE_FILE: ${{ runner.temp }}/pulse-release.jks
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$ANDROID_KEYSTORE_BASE64" || -z "$PULSE_RELEASE_STORE_PASSWORD" || -z "$PULSE_RELEASE_KEY_ALIAS" || -z "$PULSE_RELEASE_KEY_PASSWORD" ]]; then
+            echo "::error::Set ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD repository secrets to build a signed release."
+            exit 1
+          fi
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$PULSE_RELEASE_STORE_FILE"
+
+      - name: Build signed bundles and APKs
+        shell: bash
+        env:
+          PULSE_RELEASE_STORE_FILE: ${{ runner.temp }}/pulse-release.jks
+        run: |
+          set -euo pipefail
+          bash ./gradlew --console=plain --stacktrace \
+            -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
+            -Ppulse.versionCode="${{ steps.version.outputs.code }}" \
+            -Ppulse.versionName="${{ steps.version.outputs.full_name }}" \
+            :app:bundleRelease :app:assembleRelease \
+            :wear:bundleRelease :wear:assembleRelease
+
+      - name: Stage artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${{ steps.version.outputs.full_name }}"
+          mkdir -p release-assets
+          cp app/build/outputs/bundle/release/app-release.aab "release-assets/intervals-${tag}-release.aab"
+          cp wear/build/outputs/bundle/release/wear-release.aab "release-assets/intervals-${tag}-wear-release.aab"
+          cp app/build/outputs/apk/release/app-release.apk "release-assets/intervals-${tag}-release.apk"
+          cp wear/build/outputs/apk/release/wear-release.apk "release-assets/intervals-${tag}-wear-release.apk"
+          ls -la release-assets/
+
+      - name: Upload QA artifacts
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: release-${{ inputs.channel }}-${{ github.run_number }}
+          path: release-assets/*
+          retention-days: 30
+          if-no-files-found: error
+
+  # --------------------------------------------------------------------------------------------
+  # Play Store upload — the channel's track. Needs ANDROID_SERVICE_ACCOUNT_JSON; when the
+  # secret is absent the train still completes and says so. The Wear bundle is distributed
+  # through the GitHub Release, not the store listing.
+  # --------------------------------------------------------------------------------------------
+  play:
+    name: Play Store (${{ inputs.channel }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.channel == 'production' && 'play-production' || 'play-testing' }}
+    steps:
+      - name: Download signed bundles
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: release-${{ inputs.channel }}-${{ github.run_number }}
+          path: release-assets
+
+      - name: Upload to the ${{ inputs.channel }} track
+        if: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON != '' }}
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ vars.PLAY_PACKAGE_NAME || 'com.pulse.intervalcoach' }}
+          releaseFiles: release-assets/intervals-${{ needs.build.outputs.full_version_name }}-release.aab
+          track: ${{ inputs.channel }}
+          status: completed
+          inAppUpdatePriority: ${{ inputs.channel == 'production' && 3 || 0 }}
+          userFraction: ${{ inputs.channel == 'production' && (inputs.staged_rollout_percent / 100) || 1.0 }}
+
+      - name: Store upload skipped
+        if: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON == '' }}
+        run: |
+          echo "::notice title=Play upload skipped::Set the ANDROID_SERVICE_ACCOUNT_JSON secret (and optionally the PLAY_PACKAGE_NAME repository variable) to let the train reach the ${{ inputs.channel }} track. Signed artifacts are on this run."
+
+  # --------------------------------------------------------------------------------------------
+  # GitHub Release — production only. Creates `v<version>` (via the API, so it does not re-trigger
+  # the tag listener in `build-release.yml`) and attaches the signed APKs.
+  # --------------------------------------------------------------------------------------------
+  github-release:
+    name: GitHub Release (v${{ needs.build.outputs.version_name }})
+    if: ${{ inputs.channel == 'production' }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download signed APKs
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: release-${{ inputs.channel }}-${{ github.run_number }}
+          path: release-assets
+
+      - name: Attach release to v${{ needs.build.outputs.version_name }}
+        uses: softprops/action-gh-release@v3.0.3
+        with:
+          tag_name: v${{ needs.build.outputs.version_name }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          overwrite_files: true
+          files: |
+            release-assets/*.apk
+            release-assets/*.aab

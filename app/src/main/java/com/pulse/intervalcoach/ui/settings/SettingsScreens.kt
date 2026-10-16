@@ -8,8 +8,6 @@ import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.VolumeDown
@@ -49,7 +49,6 @@ import com.pulse.intervalcoach.audio.DuckPhase
 import com.pulse.intervalcoach.audio.SpeechAvailability
 import com.pulse.intervalcoach.data.AppLanguage
 import com.pulse.intervalcoach.data.AudioInterruptionBehavior
-import com.pulse.intervalcoach.data.BackupRepository
 import com.pulse.intervalcoach.data.HeadphoneBehavior
 import com.pulse.intervalcoach.data.PlayerDensity
 import com.pulse.intervalcoach.data.VoiceVerbosity
@@ -59,7 +58,6 @@ import com.pulse.intervalcoach.locale.AppLocale
 import com.pulse.intervalcoach.ui.components.ConfirmDialog
 import com.pulse.intervalcoach.ui.components.DangerActionButton
 import com.pulse.intervalcoach.ui.components.DurationStepper
-import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.NeutralChip
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
@@ -68,7 +66,6 @@ import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseSliderRow
-import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.ToggleRow
@@ -92,10 +89,8 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     container: AppContainer,
     onOpenVoiceStudio: () -> Unit,
-    onOpenBackup: () -> Unit,
     onOpenHelp: () -> Unit,
     onOpenWelcome: () -> Unit,
-    onJsonImport: () -> Unit,
     onOpenHealth: () -> Unit,
 ) {
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
@@ -138,7 +133,7 @@ fun SettingsScreen(
                                 modifier = Modifier.padding(end = LocalPulseDimens.current.m),
                             )
                             Column(Modifier.weight(1f)) {
-                                Text("Health Connect & Google Fit", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
+                                Text(stringResource(R.string.settings_health_title), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary)
                             }
                             healthSnapshot.source?.let { NeutralChip(it) }
                         }
@@ -272,42 +267,6 @@ fun SettingsScreen(
                 }
             }
 
-            item { SectionHeader("Data") }
-            item {
-                PulseCard {
-                    Column {
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        SecondaryActionButton("Import / export & backups", onOpenBackup, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        DangerActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        ToggleRow(
-                            label = stringResource(R.string.settings_backup_auto),
-                            checked = current.autoBackupEnabled,
-                            onCheckedChange = { scope.launch { container.preferences.setAutoBackup(it) } },
-                        )
-                        Text(
-                            if (current.lastAutoBackupAt > 0) {
-                                "Last backup: " + LocalDateTime.ofInstant(
-                                    Instant.ofEpochMilli(current.lastAutoBackupAt),
-                                    ZoneId.systemDefault(),
-                                ).format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm"))
-                            } else {
-                                "No backups yet"
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
-                    }
-                }
-            }
-
-            item { SectionHeader("Create workouts") }
-            item {
-                PulseCard {
-                    SecondaryActionButton(stringResource(R.string.json_title), onJsonImport, Modifier.fillMaxWidth())
-                }
-            }
             item { SectionHeader("Help & about") }
             item {
                 PulseCard {
@@ -315,9 +274,29 @@ fun SettingsScreen(
                         SecondaryActionButton("Help", onOpenHelp, Modifier.fillMaxWidth())
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        Text("Cadence ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
+                }
+            }
+
+            item { SectionHeader("Danger zone") }
+            item {
+                PulseCard {
+                    DangerActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
+                }
+            }
+
+            // The build identity, always available and never more than a glance away: version and
+            // the build number that produced it, bottom-right in the quietest ink on the page.
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    Text(
+                        text = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.textDisabled,
+                    )
                 }
             }
         }
@@ -790,186 +769,6 @@ private fun VoiceVerbosity.label(): String = when (this) {
 // ---------------------------------------------------------------------------------------------
 
 @Composable
-fun BackupScreen(
-    container: AppContainer,
-    onBack: () -> Unit,
-    onMessage: (String) -> Unit,
-) {
-    val colors = LocalPulseColors.current
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val repository = remember { BackupRepository(context, container) }
-    var preview by remember { mutableStateOf<com.pulse.intervalcoach.data.BackupPreview?>(null) }
-    var pendingBackup by remember { mutableStateOf<String?>(null) }
-    var backups by remember { mutableStateOf(repository.automaticBackups()) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    val createDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) {
-            scope.launch {
-                runCatching { repository.writeTo(uri) }
-                    .onSuccess { onMessage("Exported to the selected file") }
-                    .onFailure { error = it.message ?: "Export failed" }
-            }
-        }
-    }
-
-    val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            error = null
-            preview = null
-            pendingBackup = null
-            val stream = runCatching { context.contentResolver.openInputStream(uri) }.getOrNull()
-            if (stream == null) {
-                error = "Cannot read this file. Choose it again."
-                return@launch
-            }
-            val snapshot = runCatching { stream.use { repository.readSnapshot(it).getOrThrow() } }
-            snapshot
-                .onSuccess { text ->
-                    repository.preview(text)
-                        .onSuccess { info ->
-                            preview = info
-                            pendingBackup = text
-                        }
-                        .onFailure { failure -> error = failure.message ?: "This file is not a valid Cadence backup." }
-                }
-                .onFailure { failure -> error = failure.message ?: "This file could not be read safely." }
-        }
-    }
-
-    PulseScaffold { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = LocalPulseDimens.current.pagePadding,
-                end = LocalPulseDimens.current.pagePadding,
-                top = LocalPulseDimens.current.cardGap,
-                bottom = LocalPulseDimens.current.xxl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.cardGap),
-        ) {
-            item {
-                PulsePageHeader(
-                    title = "Backups & import",
-                    onBack = onBack,
-                )
-            }
-
-            item { SectionHeader("Export") }
-            item {
-                PulseCard {
-                    Column {
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        PrimaryActionButton(
-                            text = stringResource(R.string.settings_export_all),
-                            onClick = { createDocument.launch("pulse-backup.json") },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
-
-            item { SectionHeader("Import") }
-            item {
-                PulseCard {
-                    Column {
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        SecondaryActionButton(
-                            text = stringResource(R.string.settings_import),
-                            onClick = { openDocument.launch(arrayOf("application/json", "text/plain", "*/*")) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
-
-            item { SectionHeader("Automatic backups") }
-            item {
-                PulseCard {
-                    Column {
-                        if (backups.isEmpty()) {
-                            Text("No backups yet", color = colors.textSecondary)
-                        } else {
-                            backups.take(5).forEach { file ->
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(file.name, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
-                                        Text(
-                                            "${file.length() / 1024} KB · " + LocalDateTime.ofInstant(
-                                                Instant.ofEpochMilli(file.lastModified()),
-                                                ZoneId.systemDefault(),
-                                            ).format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm")),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = colors.textSecondary,
-                                        )
-                                    }
-                                    TextButton(onClick = {
-                                        scope.launch {
-                                            repository.readAutomaticBackup(file).use { stream ->
-                                                repository.import(stream)
-                                                    .onSuccess { (w, s) -> onMessage("Imported $w workouts and $s sessions") }
-                                                    .onFailure { error = it.message }
-                                            }
-                                        }
-                                    }) { Text("Restore") }
-                                }
-                            }
-                        }
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        SecondaryActionButton(
-                            text = "Back up now",
-                            onClick = {
-                                scope.launch {
-                                    runCatching { repository.writeAutomaticBackup() }
-                                        .onSuccess { backups = repository.automaticBackups(); onMessage("Backup written") }
-                                        .onFailure { error = it.message }
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
-
-            error?.let { message ->
-                item {
-                    InfoBanner(
-                        text = message,
-                        tone = PulseTone.DANGER,
-                    )
-                }
-            }
-        }
-    }
-
-    preview?.let { info ->
-        ConfirmDialog(
-            title = stringResource(R.string.import_preview_title),
-            body = "${info.workouts} workouts · ${info.sessions} sessions · ${info.tags} tags" +
-                info.warnings.takeIf { it.isNotEmpty() }?.joinToString(" ") { " ⚠ $it" }.orEmpty(),
-            confirmLabel = stringResource(R.string.import_confirm),
-            dismissLabel = stringResource(R.string.cancel),
-            onConfirm = {
-                val snapshot = pendingBackup
-                preview = null
-                pendingBackup = null
-                if (snapshot != null) {
-                    scope.launch {
-                        repository.import(snapshot)
-                            .onSuccess { (workoutsImported, sessionsImported) ->
-                                onMessage("Imported $workoutsImported workouts and $sessionsImported sessions")
-                            }
-                            .onFailure { failure -> error = failure.message }
-                    }
-                }
-            },
-            onDismiss = { preview = null; pendingBackup = null },
-        )
-    }
-}
-
 // ---------------------------------------------------------------------------------------------
 // Help
 // ---------------------------------------------------------------------------------------------
@@ -1001,7 +800,6 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
                 R.string.help_health to R.string.help_health_body,
                 R.string.help_background to R.string.help_background_body,
                 R.string.help_audio to R.string.help_audio_body,
-                R.string.help_import to R.string.help_import_body,
                 R.string.help_gestures to R.string.help_gestures_body,
                 R.string.help_accessibility to R.string.help_accessibility_body,
                 R.string.settings_permissions to R.string.help_permissions_body,

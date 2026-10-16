@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/brand/cadence.svg" width="88" height="88" alt="CADENCE" />
+<img src="docs/brand/pulse.svg" width="88" height="88" alt="INTERVALS" />
 
-# CADENCE
+# INTERVALS
 
 **Offline-first interval timer and workout coach for Android.**
 
@@ -22,7 +22,7 @@ Health Connect.
 
 ---
 
-CADENCE runs entirely on your device. **No account, no ads, no analytics, no backend.** The only data
+INTERVALS runs entirely on your device. **No account, no ads, no analytics, no backend.** The only data
 that ever leaves the app is what you explicitly share — a health record written to Health Connect,
 a backup file you exported, or a prompt you pasted into an AI tool of your own choosing.
 
@@ -33,7 +33,10 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 [Troubleshooting](#troubleshooting)
 
 **Releases** — [latest APKs](https://github.com/MrCerise/pulse-workout/releases/latest) ·
-[CHANGELOG.md](CHANGELOG.md)
+[CHANGELOG.md](CHANGELOG.md) · store releases run through the **release train**
+(`.github/workflows/release-train.yml`): a tagged `v*` push builds the production APKs, and a
+workflow dispatch ships `internal` / `beta` / `production` builds — Play tracks when the
+`ANDROID_SERVICE_ACCOUNT_JSON` secret is set, signed artifacts on the run either way.
 
 ## Highlights
 
@@ -44,14 +47,14 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
   cues alive while the phone is locked or another app is in front.
 - **A coach that keeps up, not one that lags behind.** Every cue passes through a gate so a Tabata
   block cannot build a speech backlog: interval changes always speak, countdowns are dropped when
-  they would arrive late, and if the device has no TTS voice CADENCE falls back to tones and says so.
+  they would arrive late, and if the device has no TTS voice INTERVALS falls back to tones and says so.
 - **A builder that scales with your workout.** Sixteen interval types, repeat blocks nested eight
   deep, ladders, supersets, per-interval overrides, drag reorder *and* Move up/down, undo/redo and a
   live timeline — in one screen.
 - **Bring your own AI.** Copy a schema-aware prompt, paste the response back, preview the expanded
   timeline and save. No API keys, no network calls, nothing sent on your behalf.
-- **Health Connect, with Google Fit as a best-effort fallback.** Live heart rate in the player,
-  finished sessions written as workout sessions with per-interval segments.
+- **Health Connect.** Live heart rate in the player, finished sessions written as workout
+  sessions with per-interval segments.
 - **On your wrist, on its own or paired.** The Wear OS app runs the same engine on the watch —
   same drift-free timing, haptic cues, the same theme. With no phone it is a complete app: the
   bundled catalogue seeds itself, sessions are recorded on the wrist, and History says what ran.
@@ -67,11 +70,12 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 | **Building** | Quick builder, advanced builder (nesting depth 8, ladders, group/ungroup, multi-select, bulk edit), 15 starter templates, clone with scaling |
 | **Library** | Search, tags, favourites, folders, sort, list/grid, duplicate, share, delete, JSON import/export |
 | **Player** | Full-screen tabular timer, current/next interval, round and position, elapsed and remaining totals, left-handed layout, tablet instructor view |
-| **History & progress** | Per-session details with the workout as it was run, weekly chart, daily minutes, streaks, all-time totals, a monthly goal and a local planner with reminders |
-| **Health** | Health Connect (primary) and Google Fit (secondary): live HR with zones, steps, session writes, 7-day backfill, an honest setup screen |
+| **History & progress** | Per-session details with the workout as it was run, weekly chart, daily minutes, streaks, all-time totals, a monthly goal and a local planner with reminders; starter templates live right on Today |
+| **Today** | One-tap category starts, quick work/rest/rounds builder, favourites, templates, weekly progress and goals — everything one tap from the dashboard |
+| **Health** | Health Connect: live HR with zones, steps, session writes, 7-day backfill, an honest setup screen |
 | **Voice studio** | Engine and offline-voice status, rate, pitch, verbosity, profiles, cue volume, vibration, ducking switch and depth, your own recordings |
 | **Look & feel** | Light, dark, true black and system themes, high contrast, reduced motion, dynamic colour, adjustable density; 125 contrast pairs measured in CI |
-| **System** | Home-screen widgets, dynamic shortcuts, SAF backup/restore with preview, weekly automatic backups, drafts that survive process death |
+| **System** | Home-screen widgets, dynamic shortcuts, drafts that survive process death |
 | **Wear OS** | Same engine and theme as the phone, usable with no phone at all (bundled workouts, on-watch history, a link switch); when paired, library/preferences sync, two-way live session mirroring and remote control, and watch sessions saved to the phone's history (and Health Connect) |
 | **Locales** | English and French complete; every Crowdin-approved locale is packaged and falls back to English string by string; Settings → Appearance follows the device or pins English, French, German, Spanish or Italian |
 
@@ -125,7 +129,7 @@ Build problems? See [Troubleshooting](#troubleshooting) at the bottom of this pa
 | [docs/VERIFICATION.md](docs/VERIFICATION.md) | What is verified, how, and what is not verified yet |
 | [docs/DATA.md](docs/DATA.md) | Storage, privacy guarantees, export/import and backups |
 | [docs/WORKOUT_JSON.md](docs/WORKOUT_JSON.md) | The `pulse.workouts` JSON exchange format and the AI workflow |
-| [docs/TRANSLATING.md](docs/TRANSLATING.md) | Translating CADENCE on Crowdin, and maintainer setup |
+| [docs/TRANSLATING.md](docs/TRANSLATING.md) | Translating INTERVALS on Crowdin, and maintainer setup |
 | [docs/RELEASING.md](docs/RELEASING.md) | Versioning, signing and how a release is cut |
 | [docs/RELEASE_1.7.0.md](docs/RELEASE_1.7.0.md) and friends | Per-release verification notes |
 
@@ -140,7 +144,7 @@ pulse-workout/
 │   └── src/main/java/com/pulse/intervalcoach/
 │       ├── audio/     cue sounds, haptics, speech, the cue gate
 │       ├── data/      Room, DataStore, repositories, JSON import, backups, category registry
-│       ├── health/    Health Connect (primary) + Google Fit (secondary)
+│       ├── health/    Health Connect
 │       ├── locale/    the in-app language override and what it applies to
 │       ├── session/   CueScript, SessionController, WorkoutService, music
 │       ├── ui/        theme tokens, shared components, screens
@@ -178,10 +182,10 @@ voices.
 1. Android **Settings → System → Languages & input → Text-to-speech**
 2. Choose your engine (Google Speech Services, Samsung, eSpeak, …)
 3. **Install voice data** for your language and select an offline voice
-4. In CADENCE: **Settings → Voice & audio studio** shows the engine and whether an offline voice is
+4. In INTERVALS: **Settings → Voice & audio studio** shows the engine and whether an offline voice is
    present; use *Preview* to hear a cue
 
-If no engine is installed, CADENCE says so in Voice Studio, offers a shortcut to the system settings,
+If no engine is installed, INTERVALS says so in Voice Studio, offers a shortcut to the system settings,
 and uses sound cues during workouts.
 
 ## Contributing
@@ -196,13 +200,13 @@ development environment required.
 
 ## Security
 
-CADENCE stores workout history and health data, so please report vulnerabilities privately rather
+INTERVALS stores workout history and health data, so please report vulnerabilities privately rather
 than in a public issue. [SECURITY.md](SECURITY.md) explains how to reach us, what is in scope and
 what to expect.
 
 ## License
 
-CADENCE is released under the [MIT License](LICENSE).
+INTERVALS is released under the [MIT License](LICENSE).
 
 Typographic work uses [Inter](https://rsms.me/inter/) (SIL Open Font License 1.1, shipped in
 `app/src/main/res/raw/inter_ofl.txt`). Health data is read and written through

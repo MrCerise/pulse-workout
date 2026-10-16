@@ -209,7 +209,6 @@ internal fun formatClock(millis: Long): String {
 object Notifications {
     const val CHANNEL_WORKOUT = WorkoutService.CHANNEL_ID
     const val CHANNEL_REMINDERS = "pulse.reminders"
-    const val CHANNEL_BACKUP = "pulse.backup"
 
     fun manager(context: Context): NotificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -233,13 +232,6 @@ object Notifications {
                 context.getString(R.string.notif_channel_reminders_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply { description = context.getString(R.string.notif_channel_reminders_desc) }
-        )
-        manager.createNotificationChannel(
-            NotificationChannel(
-                CHANNEL_BACKUP,
-                context.getString(R.string.notif_backup_channel),
-                NotificationManager.IMPORTANCE_MIN,
-            ).apply { description = context.getString(R.string.notif_backup_channel_desc) }
         )
     }
 }
