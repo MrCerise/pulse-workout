@@ -12,6 +12,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.2] — 2026-10-16
+
+The running system, released as a pre-release for testing.
+
+**Added**
+- **Race info for running workouts.** New **Running** category (and Run / Walk) runs the running
+  system: during the session the player shows live **speed**, **distance**, and — when the workout
+  has a race distance — **what is left of the race**, plus the projected finish.
+- **GPS when you grant it, honest numbers when you don't.** Location is requested only when a
+  running workout starts. With permission, speed and distance are measured from real fixes (glitchy
+  fixes and jumps are filtered); without it, or indoors, numbers are projected from the plan's
+  target pace and labelled *Estimated* — never presented as measurements. Pauses stop both the
+  distance and the moving clock.
+- **Race setup in the builder** (Race section): target pace per kilometre and race distance in
+  kilometres (0 = open-ended run). The session summary reports distance, average speed and the
+  source (GPS / Estimated).
+- **5K Race Run** starter template, wired for race info out of the box.
+- The exchange format's `type` accepts `RUN` (schema and docs updated).
+
+**Changed**
+- Every option picker — Phase, Sound and Vibration in the interval editor, and audio interruption,
+  headphone behaviour, player density, units and appearance in Settings — is now a wrapping row of
+  **standalone chips** (`PulseChipGroup`): each option is its own control with its own surface and
+  touch target, spaced apart. The segmented bar of welded-together buttons inside a track
+  (`PulseSegmented`) is gone; its cramped, truncated labels were the bug.
+- Rows of icon buttons (builder interval rows, the player top bar, library rows) now carry explicit
+  spacing, so no two touch targets touch.
+
 ## [1.8.1-beta1.1] — 2026-10-16
 
 The container-within-container pass, released as a pre-release for testing.

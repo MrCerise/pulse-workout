@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.SportsMma
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
@@ -40,6 +41,8 @@ data class CategoryCapabilities(
     val supportsPeriodicCue: Boolean = false,
     /** Structured intervals are described by a repeating block rather than a flat list. */
     val blockBased: Boolean = true,
+    /** The running system is live: the player tracks and shows race info (speed, distance). */
+    val supportsRaceInfo: Boolean = false,
 )
 
 /** The timings a new workout of this category starts from. */
@@ -210,6 +213,25 @@ object WorkoutCategories {
         keywords = listOf("weights", "hypertrophy", "sets", "barbell", "dumbbell"),
     )
 
+    private val run = WorkoutCategory(
+        type = WorkoutType.RUN,
+        title = "Running",
+        hue = CategoryHue.CARDIO,
+        icon = Icons.Filled.Speed,
+        defaults = CategoryDefaults(
+            workMillis = 300_000L,
+            restMillis = 60_000L,
+            rounds = 4,
+            preparationMillis = 0L,
+            cooldownMillis = 300_000L,
+            workName = "Run",
+            restName = "Break",
+            includeFinalRest = true,
+        ),
+        capabilities = CategoryCapabilities(supportsLadder = true, supportsRaceInfo = true),
+        keywords = listOf("race", "5k", "10k", "marathon", "pace", "speed", "distance", "endurance", "road run"),
+    )
+
     private val runWalk = WorkoutCategory(
         type = WorkoutType.RUN_WALK,
         title = "Run / Walk",
@@ -224,7 +246,7 @@ object WorkoutCategories {
             restName = "Walk",
             includeFinalRest = true,
         ),
-        capabilities = CategoryCapabilities(supportsLadder = true),
+        capabilities = CategoryCapabilities(supportsLadder = true, supportsRaceInfo = true),
         keywords = listOf("running", "couch to 5k", "jeffing", "endurance"),
     )
 
@@ -360,6 +382,7 @@ object WorkoutCategories {
         e2mom,
         amrap,
         strength,
+        run,
         runWalk,
         stretching,
         breathing,

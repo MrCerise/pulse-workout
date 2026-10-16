@@ -250,7 +250,7 @@ Everything lives in `ui/components/` and reads only from `LocalPulseColors`, `Lo
 | File | Provides |
 | --- | --- |
 | `Foundation.kt` | `PulseScaffold`, `PulseBreadcrumbBar`, `PulsePageHeader`, `PulseCard`, `PulseHeroCard`, `PulsePanel`, `SectionHeader`, `PulseDivider`, `PulseListRow` |
-| `Controls.kt` | `Primary/Secondary/Ghost/DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseSegmented`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper`, `PulseDropdown` |
+| `Controls.kt` | `Primary/Secondary/Ghost/DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseChipGroup`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper`, `PulseDropdown` |
 | `Indicators.kt` | `PhaseChip`, `NeutralChip`, `CategoryChip`, `StatusBadge`, `StatTile`, `MetricRow`, `InfoBanner`, `CategoryPicker` |
 | `DataDisplay.kt` | `TimelineBar`, `ProgressRing`, `ActivityChart`, `ProgressBar` |
 | `Feedback.kt` | `EmptyState`, `LoadingBox`, `ErrorState`, `ConfirmDialog`, `PulseSnackbar` |
@@ -267,8 +267,10 @@ Rules the components encode:
 * **A chip you tap is a control.** `PulseChoiceChip` — the library's filters and the builder's option
   rows — draws `shapes.control` with a hairline border, exactly like a button; `PhaseChip`,
   `CategoryChip`, `NeutralChip` and `StatusBadge` label something and may draw the full `shapes.chip`.
-  `OptionRow` lays its choices out two to a row, because an option whose label is ellipsized is not a
-  choice.
+  `OptionRow` lays its choices out as a wrapping row of standalone chips (`PulseChipGroup`): every
+  option is its own control with its own surface and touch target, spaced by `chipGap`. Options never
+  sit inside a track or panel — a segmented bar of welded-together buttons is a container around
+  controls, and an option whose label is ellipsized is not a choice.
 * **States are explicit.** Every interactive component defines hover, pressed, focused, selected and
   disabled; focus is a 2 dp accent ring, disabled is `text_disabled` with no ripple.
 * **Empty, loading and error states are components**, not ad-hoc text: `EmptyState`, `LoadingBox`,

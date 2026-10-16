@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pulse.engine.RaceMath
 import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
@@ -178,6 +179,37 @@ fun SessionSummaryScreen(
                     if (current.roundsLogged > 0) {
                         PulseDivider()
                         MetricRow(label = "Rounds", value = current.roundsLogged.toString())
+                    }
+                }
+            }
+
+            // --- Race info (the running system): what the run actually covered ---
+            if (current.raceDistanceMeters != null) {
+                SectionHeader(stringResource(R.string.builder_race_section))
+                PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.s)) {
+                    Column(Modifier.fillMaxWidth()) {
+                        val sourceLabel = if (current.raceSource == "GPS") {
+                            stringResource(R.string.summary_race_source_gps)
+                        } else {
+                            stringResource(R.string.summary_race_source_estimated)
+                        }
+                        MetricRow(
+                            label = stringResource(R.string.summary_race_distance) + " · " + sourceLabel,
+                            value = "${RaceMath.formatDistanceKm(current.raceDistanceMeters!!)} km",
+                        )
+                        PulseDivider()
+                        MetricRow(
+                            label = stringResource(R.string.summary_race_avg_speed),
+                            value = current.raceAverageSpeedMps?.let { "${RaceMath.formatSpeedKph(it)} km/h" } ?: "—",
+                        )
+                        val target = current.raceTargetDistanceMeters
+                        if (target != null) {
+                            PulseDivider()
+                            MetricRow(
+                                label = if (current.raceFinished) "Race distance" else "Race distance (ended early)",
+                                value = "${RaceMath.formatDistanceKm(target)} km",
+                            )
+                        }
                     }
                 }
             }

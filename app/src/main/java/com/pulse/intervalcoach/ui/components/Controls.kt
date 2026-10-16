@@ -403,13 +403,13 @@ fun PulseTextField(
 // -------------------------------------------------------------------------------------------------
 
 /**
- * A labelled option group, drawn as one modern segmented control: a sunken track with a raised
- * segment for the current choice. Replaces the old two-column chip grid — a set of options is a
- * single decision, so it is drawn as a single control, and the selected segment visibly sits
- * *in* the control rather than floating beside the label.
+ * A labelled option group: a wrapping row of **standalone** chips on the canvas.
  *
- * Used for every enumerated preference (audio interruption, headphone behaviour, density, units)
- * and the builder's pickers, so they all share one rhythm.
+ * Each choice is its own control with its own surface, border and touch target, spaced by
+ * `chipGap` — never segments welded together inside a track, and never buttons packed into a
+ * container. The chosen chip wears the accent; the rest stay outlined. Used for every enumerated
+ * preference (audio interruption, headphone behaviour, density, units) and the builder's pickers,
+ * so they all share one rhythm.
  */
 @Composable
 fun <T> OptionRow(
@@ -431,7 +431,7 @@ fun <T> OptionRow(
             color = colors.textMuted,
             modifier = Modifier.padding(start = dimens.xs, bottom = dimens.xs),
         )
-        PulseSegmented(
+        PulseChipGroup(
             options = options,
             selected = selected,
             onSelect = onSelect,
@@ -441,69 +441,30 @@ fun <T> OptionRow(
 }
 
 /**
- * A segmented control: a sunken track with a raised segment for the current choice.
- *
- * The selected segment is lifted rather than merely tinted, so "you are here" is legible at a glance
- * even when the accent is being used somewhere else on the same screen.
+ * A wrapping row of standalone option chips — the unlabelled core of [OptionRow], also used where
+ * a screen already has its own label. Options flow onto as many lines as they need; a label is
+ * never ellipsized into a lie, and no chip touches its neighbour.
  */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-fun <T> PulseSegmented(
+fun <T> PulseChipGroup(
     options: List<Pair<T, String>>,
     selected: T,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    Surface(
+    androidx.compose.foundation.layout.FlowRow(
         modifier = modifier.fillMaxWidth(),
-        shape = LocalPulseShapes.current.control,
-        color = colors.surfaceSunken,
-        border = BorderStroke(dimens.borderWidth, colors.border),
+        horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
+        verticalArrangement = Arrangement.spacedBy(dimens.chipGap),
     ) {
-        Row(
-            modifier = Modifier.padding(dimens.xs),
-            horizontalArrangement = Arrangement.spacedBy(dimens.xs),
-        ) {
-            options.forEach { (value, text) ->
-                val isSelected = value == selected
-                val container by animateColorAsState(
-                    animationSpec = tween(LocalPulseMotion.current.fast()),
-                    targetValue = if (isSelected) colors.surface else Color.Transparent,
-                    label = "segment",
-                )
-                Surface(
-                    onClick = { onSelect(value) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = dimens.controlHeight - dimens.s),
-                    shape = LocalPulseShapes.current.control,
-                    color = container,
-                    contentColor = if (isSelected) colors.textPrimary else colors.textSecondary,
-                    border = if (isSelected) {
-                        BorderStroke(dimens.borderWidth, colors.borderStrong)
-                    } else {
-                        null
-                    },
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = text,
-                            style = if (isSelected) {
-                                MaterialTheme.typography.labelLarge
-                            } else {
-                                MaterialTheme.typography.labelMedium
-                            },
-                            // Two lines, so an honest label like "Keep timing, mute" is never
-                            // truncated into a lie ("Keep timing…"); short labels stay on one.
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(vertical = dimens.xs),
-                        )
-                    }
-                }
-            }
+        options.forEach { (value, text) ->
+            PulseChoiceChip(
+                text = text,
+                selected = value == selected,
+                onClick = { onSelect(value) },
+            )
         }
     }
 }

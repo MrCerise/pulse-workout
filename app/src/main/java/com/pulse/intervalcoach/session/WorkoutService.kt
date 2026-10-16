@@ -69,7 +69,17 @@ class WorkoutService : Service() {
     }
 
     private fun startForegroundCompat(notification: Notification) {
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0
+        var type = 0
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            // The running system measures with GPS while the screen is off. Android 14+ requires
+            // the location type to be declared *and* held at startForeground time, so it joins the
+            // type only when a run is actually tracked and the user granted location.
+            val trackingRun = controller.runTracker.isTracking
+            if (trackingRun && RunTracker.hasLocationPermission(this)) {
+                type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            }
+        }
         runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type) }
     }
 
