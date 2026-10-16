@@ -57,6 +57,7 @@ import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.data.WorkoutCategories
 import com.pulse.intervalcoach.data.WorkoutCategory
 import com.pulse.intervalcoach.data.WorkoutSummary
+import com.pulse.intervalcoach.data.category
 import com.pulse.intervalcoach.data.categoryOrCustom
 import com.pulse.intervalcoach.data.db.ReminderEntity
 import com.pulse.intervalcoach.ui.components.ActivityBar
