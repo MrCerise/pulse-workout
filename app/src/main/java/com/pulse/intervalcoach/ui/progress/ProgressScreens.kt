@@ -325,15 +325,16 @@ fun ProgressScreen(
                                 if (index != state.reminders.lastIndex) PulseDivider()
                             }
                         }
-                        Spacer(Modifier.height(dimens.s))
-                        SecondaryActionButton(
-                            text = stringResource(R.string.planner_add),
-                            onClick = onOpenSchedule,
-                            icon = Icons.Filled.Event,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
                     }
                 }
+            }
+            item {
+                SecondaryActionButton(
+                    text = stringResource(R.string.planner_add),
+                    onClick = onOpenSchedule,
+                    icon = Icons.Filled.Event,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
             item { SectionHeader("Recent sessions") }

@@ -159,39 +159,38 @@ fun SettingsScreen(
 
             item { SectionHeader("Appearance") }
             item {
-                PulseCard {
-                    Column {
-                        ThemePicker(
-                            selected = current.themeMode,
-                            onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
-                        )
-                        ToggleRow(
-                            label = stringResource(R.string.settings_dynamic_color),
-                            checked = current.dynamicColor,
-                            onCheckedChange = { scope.launch { container.preferences.setDynamicColor(it) } },
-                        )
-                        ToggleRow(
-                            label = stringResource(R.string.settings_reduced_motion),
-                            checked = current.reducedMotion,
-                            onCheckedChange = { scope.launch { container.preferences.setReducedMotion(it) } },
-                        )
-                        ToggleRow(
-                            label = stringResource(R.string.settings_high_contrast),
-                            checked = current.highContrast,
-                            onCheckedChange = { scope.launch { container.preferences.setHighContrast(it) } },
-                        )
-                        ToggleRow(
-                            label = stringResource(R.string.settings_left_handed),
-                            checked = current.leftHandedPlayer,
-                            onCheckedChange = { scope.launch { container.preferences.setLeftHanded(it) } },
-                        )
-                        OptionRow(
-                            label = stringResource(R.string.settings_player_density),
-                            options = PlayerDensity.entries.map { it to it.label() },
-                            selected = current.playerDensity,
-                            onSelect = { density -> scope.launch { container.preferences.setPlayerDensity(density) } },
-                        )
-                    }
+                Column {
+                    ThemePicker(
+                        selected = current.themeMode,
+                        onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
+                    )
+                    ToggleRow(
+                        label = stringResource(R.string.settings_dynamic_color),
+                        checked = current.dynamicColor,
+                        onCheckedChange = { scope.launch { container.preferences.setDynamicColor(it) } },
+                    )
+                    ToggleRow(
+                        label = stringResource(R.string.settings_reduced_motion),
+                        checked = current.reducedMotion,
+                        onCheckedChange = { scope.launch { container.preferences.setReducedMotion(it) } },
+                    )
+                    ToggleRow(
+                        label = stringResource(R.string.settings_high_contrast),
+                        checked = current.highContrast,
+                        onCheckedChange = { scope.launch { container.preferences.setHighContrast(it) } },
+                    )
+                    ToggleRow(
+                        label = stringResource(R.string.settings_left_handed),
+                        checked = current.leftHandedPlayer,
+                        onCheckedChange = { scope.launch { container.preferences.setLeftHanded(it) } },
+                    )
+                    OptionRow(
+                        label = stringResource(R.string.settings_player_density),
+                        options = PlayerDensity.entries.map { it to it.label() },
+                        selected = current.playerDensity,
+                        onSelect = { density -> scope.launch { container.preferences.setPlayerDensity(density) } },
+                    )
+
                 }
             }
 
@@ -199,107 +198,101 @@ fun SettingsScreen(
             // inside Appearance — and its picker deserves to be findable in one glance.
             item { SectionHeader("Language") }
             item {
-                PulseCard {
-                    Column {
-                        LanguagePicker(
-                            selected = current.appLanguage,
-                            onSelect = { language ->
-                                // The app scope, not a scope tied to this composition: the platform
-                                // applies the locale as a configuration change, and a coroutine
-                                // cancelled mid-tap would leave the preference unwritten while the
-                                // screens below had already moved.
-                                container.appScope.launch {
-                                    container.preferences.setAppLanguage(language)
-                                    AppLocale.applySystemLocales(context.applicationContext, language)
-                                }
-                            },
-                        )
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        Text(
-                            text = stringResource(R.string.settings_language_note),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
-                    }
+                Column {
+                    LanguagePicker(
+                        selected = current.appLanguage,
+                        onSelect = { language ->
+                            // The app scope, not a scope tied to this composition: the platform
+                            // applies the locale as a configuration change, and a coroutine
+                            // cancelled mid-tap would leave the preference unwritten while the
+                            // screens below had already moved.
+                            container.appScope.launch {
+                                container.preferences.setAppLanguage(language)
+                                AppLocale.applySystemLocales(context.applicationContext, language)
+                            }
+                        },
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    Text(
+                        text = stringResource(R.string.settings_language_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textSecondary,
+                    )
+
                 }
             }
 
             item { SectionHeader("Workout defaults") }
             item {
-                PulseCard {
-                    Column {
-                        DurationStepper("Default work", current.defaultWorkMillis) { scope.launch { container.preferences.setDefaultWork(it) } }
-                        DurationStepper("Default rest", current.defaultRestMillis) { scope.launch { container.preferences.setDefaultRest(it) } }
-                        NumberStepper("Default rounds", current.defaultRounds, onChange = { scope.launch { container.preferences.setDefaultRounds(it) } })
-                        DurationStepper("Default preparation", current.defaultPreparationMillis) { scope.launch { container.preferences.setDefaultPreparation(it) } }
-                        ToggleRow(
-                            label = "Include final rest by default",
-                            checked = current.defaultIncludeFinalRest,
-                            onCheckedChange = { scope.launch { container.preferences.setDefaultIncludeFinalRest(it) } },
-                        )
-                        OptionRow(
-                            label = stringResource(R.string.settings_units),
-                            options = WeightUnit.entries.map { it to it.label() },
-                            selected = current.weightUnit,
-                            onSelect = { unit -> scope.launch { container.preferences.setWeightUnit(unit) } },
-                        )
-                    }
+                Column {
+                    DurationStepper("Default work", current.defaultWorkMillis) { scope.launch { container.preferences.setDefaultWork(it) } }
+                    DurationStepper("Default rest", current.defaultRestMillis) { scope.launch { container.preferences.setDefaultRest(it) } }
+                    NumberStepper("Default rounds", current.defaultRounds, onChange = { scope.launch { container.preferences.setDefaultRounds(it) } })
+                    DurationStepper("Default preparation", current.defaultPreparationMillis) { scope.launch { container.preferences.setDefaultPreparation(it) } }
+                    ToggleRow(
+                        label = "Include final rest by default",
+                        checked = current.defaultIncludeFinalRest,
+                        onCheckedChange = { scope.launch { container.preferences.setDefaultIncludeFinalRest(it) } },
+                    )
+                    OptionRow(
+                        label = stringResource(R.string.settings_units),
+                        options = WeightUnit.entries.map { it to it.label() },
+                        selected = current.weightUnit,
+                        onSelect = { unit -> scope.launch { container.preferences.setWeightUnit(unit) } },
+                    )
+
                 }
             }
 
             item { SectionHeader("During workouts") }
             item {
-                PulseCard {
-                    Column {
-                        ToggleRow(
-                            label = "Keep the screen on",
-                            checked = current.keepScreenOn,
-                            onCheckedChange = { scope.launch { container.preferences.setKeepScreenOn(it) } },
-                        )
-                        ToggleRow(
-                            label = stringResource(R.string.settings_screen_off_cues),
-                            checked = current.continueCuesScreenOff,
-                            onCheckedChange = { scope.launch { container.preferences.setContinueCuesScreenOff(it) } },
-                        )
-                        OptionRow(
-                            label = "When audio is interrupted",
-                            options = AudioInterruptionBehavior.entries.map { it to it.label() },
-                            selected = current.audioInterruptionBehavior,
-                            onSelect = { value -> scope.launch { container.preferences.setAudioInterruption(value) } },
-                        )
-                        OptionRow(
-                            label = stringResource(R.string.settings_headphone_unplug),
-                            options = HeadphoneBehavior.entries.map { it to it.label() },
-                            selected = current.headphoneBehavior,
-                            onSelect = { value -> scope.launch { container.preferences.setHeadphoneBehavior(value) } },
-                        )
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        SecondaryActionButton(
-                            text = "Voice & audio",
-                            onClick = onOpenVoiceStudio,
-                            icon = Icons.Filled.VolumeDown,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                Column {
+                    ToggleRow(
+                        label = "Keep the screen on",
+                        checked = current.keepScreenOn,
+                        onCheckedChange = { scope.launch { container.preferences.setKeepScreenOn(it) } },
+                    )
+                    ToggleRow(
+                        label = stringResource(R.string.settings_screen_off_cues),
+                        checked = current.continueCuesScreenOff,
+                        onCheckedChange = { scope.launch { container.preferences.setContinueCuesScreenOff(it) } },
+                    )
+                    OptionRow(
+                        label = "When audio is interrupted",
+                        options = AudioInterruptionBehavior.entries.map { it to it.label() },
+                        selected = current.audioInterruptionBehavior,
+                        onSelect = { value -> scope.launch { container.preferences.setAudioInterruption(value) } },
+                    )
+                    OptionRow(
+                        label = stringResource(R.string.settings_headphone_unplug),
+                        options = HeadphoneBehavior.entries.map { it to it.label() },
+                        selected = current.headphoneBehavior,
+                        onSelect = { value -> scope.launch { container.preferences.setHeadphoneBehavior(value) } },
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    SecondaryActionButton(
+                        text = "Voice & audio",
+                        onClick = onOpenVoiceStudio,
+                        icon = Icons.Filled.VolumeDown,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
                 }
             }
 
             item { SectionHeader("Help & about") }
             item {
-                PulseCard {
-                    Column {
-                        SecondaryActionButton("Help", onOpenHelp, Modifier.fillMaxWidth())
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
-                    }
+                Column {
+                    SecondaryActionButton("Help", onOpenHelp, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
+
                 }
             }
 
             item { SectionHeader("Danger zone") }
             item {
-                PulseCard {
-                    DangerActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
-                }
+                DangerActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
             }
 
             // The build identity, always available and never more than a glance away: version and
@@ -444,285 +437,279 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
 
             item { SectionHeader("Speech engine") }
             item {
-                PulseCard {
-                    Column {
-                        val availability = speechInfo.availability
-                        Text(
-                            when (availability) {
-                                is SpeechAvailability.Ready -> "Speech engine ready"
-                                is SpeechAvailability.Initialising -> "Checking speech engine…"
-                                is SpeechAvailability.NoEngine -> "No speech engine available"
-                                is SpeechAvailability.MissingLanguageData -> "No voice data for ${availability.languageTag}"
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (availability is SpeechAvailability.Ready) colors.work else colors.prepare,
-                        )
-                        Spacer(Modifier.height(LocalPulseDimens.current.xs))
-                        speechInfo.engineLabel?.let {
-                            Text("Engine: $it", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
-                        }
-                        Text(
-                            when {
-                                speechInfo.offlineVoiceInstalled -> "Offline voice installed"
-                                availability is SpeechAvailability.NoEngine -> "No voice installed. Sound cues will be used."
-                                else -> "Install an offline voice for coaching without a connection."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textSecondary,
-                        )
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                            SecondaryActionButton(
-                                text = "Text-to-speech settings",
-                                onClick = { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) },
-                                modifier = Modifier.weight(1f),
-                            )
-                            SecondaryActionButton(
-                                text = "Preview voice",
-                                onClick = { container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.") },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
+                Column {
+                    val availability = speechInfo.availability
+                    Text(
+                        when (availability) {
+                            is SpeechAvailability.Ready -> "Speech engine ready"
+                            is SpeechAvailability.Initialising -> "Checking speech engine…"
+                            is SpeechAvailability.NoEngine -> "No speech engine available"
+                            is SpeechAvailability.MissingLanguageData -> "No voice data for ${availability.languageTag}"
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (availability is SpeechAvailability.Ready) colors.work else colors.prepare,
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.xs))
+                    speechInfo.engineLabel?.let {
+                        Text("Engine: $it", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
+                    Text(
+                        when {
+                            speechInfo.offlineVoiceInstalled -> "Offline voice installed"
+                            availability is SpeechAvailability.NoEngine -> "No voice installed. Sound cues will be used."
+                            else -> "Install an offline voice for coaching without a connection."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textSecondary,
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.m))
+                    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
+                        SecondaryActionButton(
+                            text = "Text-to-speech settings",
+                            onClick = { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) },
+                            modifier = Modifier.weight(1f),
+                        )
+                        SecondaryActionButton(
+                            text = "Preview voice",
+                            onClick = { container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.") },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+
                 }
             }
 
             item { SectionHeader("Coaching style") }
             item {
-                PulseCard {
-                    Column {
-                        PulseSliderRow(
-                            label = "Speaking rate",
-                            value = current.voiceRate,
-                            valueRange = 0.5f..2.0f,
-                            valueLabel = "${"%.2f".format(current.voiceRate)}×",
-                            onValueChange = { scope.launch { container.preferences.setVoiceRate(it) } },
-                            onValueChangeFinished = { container.speech.rate = current.voiceRate },
-                        )
-                        PulseSliderRow(
-                            label = "Pitch",
-                            value = current.voicePitch,
-                            valueRange = 0.5f..2.0f,
-                            valueLabel = "${"%.2f".format(current.voicePitch)}×",
-                            onValueChange = { scope.launch { container.preferences.setVoicePitch(it) } },
-                            onValueChangeFinished = { container.speech.pitch = current.voicePitch },
-                        )
-                        OptionRow(
-                            label = stringResource(R.string.voice_verbosity),
-                            options = VoiceVerbosity.entries.map { it to it.label() },
-                            selected = current.verbosity,
-                            onSelect = { verbosity ->
-                                scope.launch {
-                                    container.preferences.setVerbosity(verbosity)
-                                    container.speech.verbose = verbosity
-                                }
-                            },
-                        )
-                        ToggleRow("Spoken 3-2-1 countdown", current.spokenCountdown) { scope.launch { container.preferences.setSpokenCountdown(it) } }
-                        ToggleRow("Halfway announcements (1 min+)", current.halfwayAnnouncements) { scope.launch { container.preferences.setHalfway(it) } }
-                        ToggleRow("Announce the next interval", current.announceNext) { scope.launch { container.preferences.setAnnounceNext(it) } }
-                        ToggleRow("Vibration", current.vibrationEnabled) { scope.launch { container.preferences.setVibration(it) } }
-                    }
+                Column {
+                    PulseSliderRow(
+                        label = "Speaking rate",
+                        value = current.voiceRate,
+                        valueRange = 0.5f..2.0f,
+                        valueLabel = "${"%.2f".format(current.voiceRate)}×",
+                        onValueChange = { scope.launch { container.preferences.setVoiceRate(it) } },
+                        onValueChangeFinished = { container.speech.rate = current.voiceRate },
+                    )
+                    PulseSliderRow(
+                        label = "Pitch",
+                        value = current.voicePitch,
+                        valueRange = 0.5f..2.0f,
+                        valueLabel = "${"%.2f".format(current.voicePitch)}×",
+                        onValueChange = { scope.launch { container.preferences.setVoicePitch(it) } },
+                        onValueChangeFinished = { container.speech.pitch = current.voicePitch },
+                    )
+                    OptionRow(
+                        label = stringResource(R.string.voice_verbosity),
+                        options = VoiceVerbosity.entries.map { it to it.label() },
+                        selected = current.verbosity,
+                        onSelect = { verbosity ->
+                            scope.launch {
+                                container.preferences.setVerbosity(verbosity)
+                                container.speech.verbose = verbosity
+                            }
+                        },
+                    )
+                    ToggleRow("Spoken 3-2-1 countdown", current.spokenCountdown) { scope.launch { container.preferences.setSpokenCountdown(it) } }
+                    ToggleRow("Halfway announcements (1 min+)", current.halfwayAnnouncements) { scope.launch { container.preferences.setHalfway(it) } }
+                    ToggleRow("Announce the next interval", current.announceNext) { scope.launch { container.preferences.setAnnounceNext(it) } }
+                    ToggleRow("Vibration", current.vibrationEnabled) { scope.launch { container.preferences.setVibration(it) } }
+
                 }
             }
 
             item { SectionHeader("Sound cues") }
             item {
-                PulseCard {
-                    Column {
-                        PulseSliderRow(
-                            label = "Cue volume",
-                            value = current.cueVolume,
-                            valueRange = 0f..1f,
-                            valueLabel = "${(current.cueVolume * 100).toInt()}%",
-                            onValueChange = { scope.launch { container.preferences.setCueVolume(it) } },
-                            onValueChangeFinished = { container.cueSoundPlayer.volume = current.cueVolume },
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                            listOf(SoundCue.BEEP, SoundCue.BELL, SoundCue.CHIME).forEach { cue ->
-                                SecondaryActionButton(
-                                    text = cue.name.lowercase().replaceFirstChar { it.uppercase() },
-                                    onClick = {
-                                        container.cueSoundPlayer.volume = current.cueVolume
-                                        container.cueSoundPlayer.play(cue)
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                        }
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        if (!container.haptics.isAvailable) {
-                            Text("Vibration unavailable", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                Column {
+                    PulseSliderRow(
+                        label = "Cue volume",
+                        value = current.cueVolume,
+                        valueRange = 0f..1f,
+                        valueLabel = "${(current.cueVolume * 100).toInt()}%",
+                        onValueChange = { scope.launch { container.preferences.setCueVolume(it) } },
+                        onValueChangeFinished = { container.cueSoundPlayer.volume = current.cueVolume },
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
+                        listOf(SoundCue.BEEP, SoundCue.BELL, SoundCue.CHIME).forEach { cue ->
+                            SecondaryActionButton(
+                                text = cue.name.lowercase().replaceFirstChar { it.uppercase() },
+                                onClick = {
+                                    container.cueSoundPlayer.volume = current.cueVolume
+                                    container.cueSoundPlayer.play(cue)
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
                         }
                     }
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    if (!container.haptics.isAvailable) {
+                        Text("Vibration unavailable", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                    }
+
                 }
             }
 
             item { SectionHeader(stringResource(R.string.voice_music_title)) }
             item {
-                PulseCard {
-                    Column {
+                Column {
+                    Text(
+                        current.musicUri?.let { "Selected: " + it.substringAfterLast('/') }
+                            ?: stringResource(R.string.voice_music_none),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textPrimary,
+                    )
+                    musicUnavailable?.let { reason ->
+                        Spacer(Modifier.height(LocalPulseDimens.current.xs))
                         Text(
-                            current.musicUri?.let { "Selected: " + it.substringAfterLast('/') }
-                                ?: stringResource(R.string.voice_music_none),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.textPrimary,
-                        )
-                        musicUnavailable?.let { reason ->
-                            Spacer(Modifier.height(LocalPulseDimens.current.xs))
-                            Text(
-                                stringResource(R.string.voice_music_unavailable, reason),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.destructive,
-                            )
-                        }
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        PulseSliderRow(
-                            label = stringResource(R.string.voice_music_volume),
-                            value = current.musicVolume,
-                            valueRange = 0f..1f,
-                            valueLabel = (current.musicVolume * 100).toInt().toString() + "%",
-                            onValueChange = { scope.launch { container.preferences.setMusicVolume(it) } },
-                            onValueChangeFinished = { container.music.setVolume(current.musicVolume) },
-                        )
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
-                            SecondaryActionButton(
-                                stringResource(R.string.voice_music_pick),
-                                { musicPicker.launch(arrayOf("audio/*")) },
-                                Modifier.weight(1f),
-                            )
-                            SecondaryActionButton(
-                                stringResource(R.string.voice_music_clear),
-                                {
-                                    container.music.stop()
-                                    previewingHere = false
-                                    scope.launch { container.preferences.setMusic(null) }
-                                },
-                                Modifier.weight(0.6f),
-                            )
-                        }
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        SecondaryActionButton(
-                            text = if (musicPlaying) {
-                                stringResource(R.string.voice_music_stop)
-                            } else {
-                                stringResource(R.string.voice_music_play)
-                            },
-                            onClick = {
-                                if (musicPlaying) {
-                                    container.music.stop()
-                                    previewingHere = false
-                                } else {
-                                    container.music.start()
-                                    previewingHere = true
-                                }
-                            },
-                            enabled = current.musicUri != null,
-                            modifier = Modifier.fillMaxWidth(),
+                            stringResource(R.string.voice_music_unavailable, reason),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.destructive,
                         )
                     }
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    PulseSliderRow(
+                        label = stringResource(R.string.voice_music_volume),
+                        value = current.musicVolume,
+                        valueRange = 0f..1f,
+                        valueLabel = (current.musicVolume * 100).toInt().toString() + "%",
+                        onValueChange = { scope.launch { container.preferences.setMusicVolume(it) } },
+                        onValueChangeFinished = { container.music.setVolume(current.musicVolume) },
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.s)) {
+                        SecondaryActionButton(
+                            stringResource(R.string.voice_music_pick),
+                            { musicPicker.launch(arrayOf("audio/*")) },
+                            Modifier.weight(1f),
+                        )
+                        SecondaryActionButton(
+                            stringResource(R.string.voice_music_clear),
+                            {
+                                container.music.stop()
+                                previewingHere = false
+                                scope.launch { container.preferences.setMusic(null) }
+                            },
+                            Modifier.weight(0.6f),
+                        )
+                    }
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    SecondaryActionButton(
+                        text = if (musicPlaying) {
+                            stringResource(R.string.voice_music_stop)
+                        } else {
+                            stringResource(R.string.voice_music_play)
+                        },
+                        onClick = {
+                            if (musicPlaying) {
+                                container.music.stop()
+                                previewingHere = false
+                            } else {
+                                container.music.start()
+                                previewingHere = true
+                            }
+                        },
+                        enabled = current.musicUri != null,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
                 }
             }
 
             item { SectionHeader(stringResource(R.string.voice_duck_title)) }
             item {
-                PulseCard {
-                    Column {
-                        ToggleRow(
-                            label = stringResource(R.string.voice_duck_music),
-                            hint = stringResource(R.string.voice_duck_hint),
-                            checked = current.duckMusicDuringCues,
-                            onCheckedChange = { enabled -> scope.launch { container.preferences.setDuckMusic(enabled) } },
-                        )
-                        PulseSliderRow(
-                            label = stringResource(R.string.voice_duck_level),
-                            value = current.duckLevel,
-                            valueRange = 0f..1f,
-                            valueLabel = duckLevelLabel(current.duckLevel),
-                            onValueChange = { scope.launch { container.preferences.setDuckLevel(it) } },
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            NeutralChip(
-                                text = if (duckState.isDucked) {
-                                    stringResource(R.string.voice_duck_active)
-                                } else {
-                                    stringResource(R.string.voice_duck_idle)
-                                },
-                                icon = Icons.Filled.VolumeDown,
-                            )
-                            Spacer(Modifier.width(LocalPulseDimens.current.s))
-                            Text(
-                                stringResource(R.string.voice_duck_phase, duckState.phase.label()),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textSecondary,
-                            )
-                        }
-                        Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        // Hoisted: stringResource is a composable call and onClick is not a
-                        // composable lambda, so the sample line has to be read out here.
-                        val duckTestLine = stringResource(R.string.voice_test_line)
-                        SecondaryActionButton(
-                            text = stringResource(R.string.voice_duck_test),
-                            onClick = {
-                                if (!container.speech.speakPreview(duckTestLine)) {
-                                    container.music.previewDuck()
-                                }
+                Column {
+                    ToggleRow(
+                        label = stringResource(R.string.voice_duck_music),
+                        hint = stringResource(R.string.voice_duck_hint),
+                        checked = current.duckMusicDuringCues,
+                        onCheckedChange = { enabled -> scope.launch { container.preferences.setDuckMusic(enabled) } },
+                    )
+                    PulseSliderRow(
+                        label = stringResource(R.string.voice_duck_level),
+                        value = current.duckLevel,
+                        valueRange = 0f..1f,
+                        valueLabel = duckLevelLabel(current.duckLevel),
+                        onValueChange = { scope.launch { container.preferences.setDuckLevel(it) } },
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        NeutralChip(
+                            text = if (duckState.isDucked) {
+                                stringResource(R.string.voice_duck_active)
+                            } else {
+                                stringResource(R.string.voice_duck_idle)
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            icon = Icons.Filled.VolumeDown,
+                        )
+                        Spacer(Modifier.width(LocalPulseDimens.current.s))
+                        Text(
+                            stringResource(R.string.voice_duck_phase, duckState.phase.label()),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textSecondary,
                         )
                     }
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    // Hoisted: stringResource is a composable call and onClick is not a
+                    // composable lambda, so the sample line has to be read out here.
+                    val duckTestLine = stringResource(R.string.voice_test_line)
+                    SecondaryActionButton(
+                        text = stringResource(R.string.voice_duck_test),
+                        onClick = {
+                            if (!container.speech.speakPreview(duckTestLine)) {
+                                container.music.previewDuck()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
                 }
             }
 
             item { SectionHeader("Your own cue recordings") }
             item {
-                PulseCard {
-                    Column {
+                Column {
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    if (recording == null) {
+                        SecondaryActionButton(
+                            text = "Record a cue",
+                            onClick = {
+                                val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                                    PackageManager.PERMISSION_GRANTED
+                                if (granted) startRecording(context, container) { recording = it } else micPermission.launch(Manifest.permission.RECORD_AUDIO)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        PrimaryActionButton(
+                            text = stringResource(R.string.voice_record_stop),
+                            onClick = {
+                                stopRecording(recording, context, container)
+                                recording = null
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    if (assets.isNotEmpty()) {
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
-                        if (recording == null) {
-                            SecondaryActionButton(
-                                text = "Record a cue",
-                                onClick = {
-                                    val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                                        PackageManager.PERMISSION_GRANTED
-                                    if (granted) startRecording(context, container) { recording = it } else micPermission.launch(Manifest.permission.RECORD_AUDIO)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        } else {
-                            PrimaryActionButton(
-                                text = stringResource(R.string.voice_record_stop),
-                                onClick = {
-                                    stopRecording(recording, context, container)
-                                    recording = null
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                        if (assets.isNotEmpty()) {
-                            Spacer(Modifier.height(LocalPulseDimens.current.s))
-                            assets.forEach { asset ->
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(asset.name, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
-                                        Text(
-                                            if (asset.missingDetectedAt != null) "File unavailable — re-record or re-import" else asset.source.lowercase(),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = if (asset.missingDetectedAt != null) colors.destructive else colors.textSecondary,
-                                        )
-                                    }
-                                    PulseIconButton(
-                                        icon = Icons.Filled.Delete,
-                                        contentDescription = stringResource(R.string.action_delete),
-                                        tooltip = stringResource(R.string.action_delete),
-                                        onClick = { scope.launch { container.audioAssets.remove(asset.id) } },
-                                        tint = colors.destructive,
+                        assets.forEach { asset ->
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(asset.name, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
+                                    Text(
+                                        if (asset.missingDetectedAt != null) "File unavailable — re-record or re-import" else asset.source.lowercase(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (asset.missingDetectedAt != null) colors.destructive else colors.textSecondary,
                                     )
                                 }
+                                PulseIconButton(
+                                    icon = Icons.Filled.Delete,
+                                    contentDescription = stringResource(R.string.action_delete),
+                                    tooltip = stringResource(R.string.action_delete),
+                                    onClick = { scope.launch { container.audioAssets.remove(asset.id) } },
+                                    tint = colors.destructive,
+                                )
                             }
                         }
                     }
+
                 }
             }
         }

@@ -69,7 +69,6 @@ import com.pulse.intervalcoach.ui.components.LoadingBox
 import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.ProgressBar
-import com.pulse.intervalcoach.ui.components.ProgressRing
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseHeroCard
@@ -80,6 +79,7 @@ import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.library.StarterWorkouts
 import com.pulse.intervalcoach.ui.components.StatTile
+import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
@@ -834,6 +834,16 @@ private fun FavoriteCard(
                     modifier = Modifier.weight(1f),
                     overflow = TextOverflow.Ellipsis,
                 )
+                // The start affordance is a control inside the card's own row, not a button
+                // block inside the button block the card already is.
+                PulseIconButton(
+                    icon = Icons.Filled.PlayArrow,
+                    contentDescription = "Start ${workout.name}",
+                    tooltip = "Start",
+                    onClick = onStart,
+                    tint = colors.textPrimary,
+                    modifier = Modifier.size(dimens.iconButtonSize),
+                )
             }
             Spacer(Modifier.height(dimens.m))
             Text(
@@ -848,13 +858,6 @@ private fun FavoriteCard(
                 text = if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis),
                 style = PulseType.NumericSmall,
                 color = colors.textMuted,
-            )
-            Spacer(Modifier.height(dimens.m))
-            SecondaryActionButton(
-                text = "Start",
-                onClick = onStart,
-                icon = Icons.Filled.PlayArrow,
-                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -872,6 +875,7 @@ private fun TemplateCard(
     PulseCard(
         modifier = Modifier.width(dimens.carouselCardWidth),
         tint = colors.categoryTint(category.hue),
+        onClick = onUse,
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -881,6 +885,14 @@ private fun TemplateCard(
                     text = formatDuration(StarterWorkouts.knownDuration(template.plan)),
                     style = PulseType.NumericSmall,
                     color = colors.textSecondary,
+                )
+                PulseIconButton(
+                    icon = Icons.Filled.PlayArrow,
+                    contentDescription = stringResource(R.string.templates_use),
+                    tooltip = stringResource(R.string.templates_use),
+                    onClick = onUse,
+                    tint = colors.textPrimary,
+                    modifier = Modifier.size(dimens.iconButtonSize),
                 )
             }
             Spacer(Modifier.height(dimens.m))
@@ -901,12 +913,6 @@ private fun TemplateCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(Modifier.height(dimens.m))
-            SecondaryActionButton(
-                text = stringResource(R.string.templates_use),
-                onClick = onUse,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 }

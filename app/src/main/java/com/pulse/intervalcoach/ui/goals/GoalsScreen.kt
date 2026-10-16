@@ -26,7 +26,6 @@ import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.data.STATUS_RUNNING
 import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.ProgressBar
-import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseSliderRow
@@ -164,39 +163,38 @@ fun GoalsScreen(
 
             // The goal card is always here — it is the one thing on the page a user can *do*.
             item {
-                PulseCard {
-                    Column {
-                        Text(
-                            text = "Weekly goal: ${state.goalMinutes} active minutes",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.textPrimary,
-                        )
-                        Spacer(Modifier.height(dimens.s))
-                        ProgressBar(
-                            progress = state.minutesThisWeek.toFloat() / state.goalMinutes.coerceAtLeast(1).toFloat(),
-                        )
-                        Spacer(Modifier.height(dimens.s))
-                        Text(
-                            text = "${state.minutesThisWeek} / ${state.goalMinutes} minutes this week" +
-                                if (state.goalMinutes == WHO_WEEKLY_MINUTES) " · WHO guideline" else "",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textMuted,
-                        )
-                        Spacer(Modifier.height(dimens.l))
-                        PulseSliderRow(
-                            label = stringResource(R.string.settings_weekly_goal),
-                            value = state.goalMinutes.toFloat(),
-                            onValueChange = { minutes ->
-                                val snapped = (Math.round(minutes / GOAL_STEP_MINUTES.toFloat()) * GOAL_STEP_MINUTES)
-                                    .coerceIn(GOAL_MIN_MINUTES, GOAL_MAX_MINUTES)
-                                if (snapped != state.goalMinutes) viewModel.setGoal(snapped)
-                            },
-                            valueRange = GOAL_MIN_MINUTES.toFloat()..GOAL_MAX_MINUTES.toFloat(),
-                            // No fixed tick marks: the value snaps to 15-minute steps in the
-                            // handler, and 38 slider dots would have been visual noise.
-                            valueLabel = "${((Math.round(state.goalMinutes.toFloat() / GOAL_STEP_MINUTES)) * GOAL_STEP_MINUTES)} min",
-                        )
-                    }
+                Column {
+                    Text(
+                        text = "Weekly goal: ${state.goalMinutes} active minutes",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.textPrimary,
+                    )
+                    Spacer(Modifier.height(dimens.s))
+                    ProgressBar(
+                        progress = state.minutesThisWeek.toFloat() / state.goalMinutes.coerceAtLeast(1).toFloat(),
+                    )
+                    Spacer(Modifier.height(dimens.s))
+                    Text(
+                        text = "${state.minutesThisWeek} / ${state.goalMinutes} minutes this week" +
+                            if (state.goalMinutes == WHO_WEEKLY_MINUTES) " · WHO guideline" else "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textMuted,
+                    )
+                    Spacer(Modifier.height(dimens.l))
+                    PulseSliderRow(
+                        label = stringResource(R.string.settings_weekly_goal),
+                        value = state.goalMinutes.toFloat(),
+                        onValueChange = { minutes ->
+                            val snapped = (Math.round(minutes / GOAL_STEP_MINUTES.toFloat()) * GOAL_STEP_MINUTES)
+                                .coerceIn(GOAL_MIN_MINUTES, GOAL_MAX_MINUTES)
+                            if (snapped != state.goalMinutes) viewModel.setGoal(snapped)
+                        },
+                        valueRange = GOAL_MIN_MINUTES.toFloat()..GOAL_MAX_MINUTES.toFloat(),
+                        // No fixed tick marks: the value snaps to 15-minute steps in the
+                        // handler, and 38 slider dots would have been visual noise.
+                        valueLabel = "${((Math.round(state.goalMinutes.toFloat() / GOAL_STEP_MINUTES)) * GOAL_STEP_MINUTES)} min",
+                    )
+
                 }
             }
         }

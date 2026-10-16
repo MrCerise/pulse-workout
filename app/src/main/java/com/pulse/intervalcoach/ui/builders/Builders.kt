@@ -63,13 +63,13 @@ import com.pulse.intervalcoach.ui.components.NumberStepper
 import com.pulse.intervalcoach.ui.components.OptionRow
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
-import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
+import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.SectionHeader
 import com.pulse.intervalcoach.ui.components.TimelineBar
 import com.pulse.intervalcoach.ui.components.ToggleRow
@@ -272,36 +272,36 @@ fun QuickBuilderScreen(
                     singleLine = true,
                 )
             }
+            item { SectionHeader("Timing") }
             item {
-                PulseCard {
-                    Column {
-                        DurationStepper("Work", state.work, onChange = { value -> viewModel.update { it.copy(work = value) } })
-                        DurationStepper("Rest", state.rest, onChange = { value -> viewModel.update { it.copy(rest = value) } })
-                        NumberStepper("Rounds", state.rounds, max = 100, onChange = { value -> viewModel.update { it.copy(rounds = value) } })
-                        DurationStepper("Preparation", state.preparation, onChange = { value -> viewModel.update { it.copy(preparation = value) } })
-                        DurationStepper("Cool-down", state.cooldown, onChange = { value -> viewModel.update { it.copy(cooldown = value) } })
-                        ToggleRow(
-                            label = stringResource(R.string.builder_include_final_rest),
-                            checked = state.includeFinalRest,
-                            onCheckedChange = { value -> viewModel.update { it.copy(includeFinalRest = value) } },
-                        )
-                    }
+                Column {
+                    DurationStepper("Work", state.work, onChange = { value -> viewModel.update { it.copy(work = value) } })
+                    DurationStepper("Rest", state.rest, onChange = { value -> viewModel.update { it.copy(rest = value) } })
+                    NumberStepper("Rounds", state.rounds, max = 100, onChange = { value -> viewModel.update { it.copy(rounds = value) } })
+                    DurationStepper("Preparation", state.preparation, onChange = { value -> viewModel.update { it.copy(preparation = value) } })
+                    DurationStepper("Cool-down", state.cooldown, onChange = { value -> viewModel.update { it.copy(cooldown = value) } })
+                    ToggleRow(
+                        label = stringResource(R.string.builder_include_final_rest),
+                        checked = state.includeFinalRest,
+                        onCheckedChange = { value -> viewModel.update { it.copy(includeFinalRest = value) } },
+                    )
+
                 }
             }
+            item { SectionHeader("Preview", trailing = formatDuration(duration)) }
             item {
-                PulseCard {
-                    Column {
-                        Text(formatDuration(duration), style = PulseType.NumericLarge, color = colors.textPrimary)
-                        Text("total time", style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        val expanded = remember(plan) { runCatching { TimelineExpander.expand(plan) }.getOrNull() }
-                        TimelineBar(
-                            kinds = expanded?.steps?.map { it.kind }.orEmpty(),
-                            currentIndex = -1,
-                            progressInStep = 0f,
-                            height = LocalPulseDimens.current.barHeightCompact,
-                        )
-                    }
+                Column {
+                    Text(formatDuration(duration), style = PulseType.NumericLarge, color = colors.textPrimary)
+                    Text("total time", style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
+                    Spacer(Modifier.height(LocalPulseDimens.current.m))
+                    val expanded = remember(plan) { runCatching { TimelineExpander.expand(plan) }.getOrNull() }
+                    TimelineBar(
+                        kinds = expanded?.steps?.map { it.kind }.orEmpty(),
+                        currentIndex = -1,
+                        progressInStep = 0f,
+                        height = LocalPulseDimens.current.barHeightCompact,
+                    )
+
                 }
             }
             item {
@@ -696,55 +696,53 @@ fun AdvancedBuilderScreen(
                 )
             }
             item {
-                PulseCard {
-                    Column {
-                        CategoryPicker(
-                            selected = state.plan.category,
-                            onSelect = { viewModel.setType(it.type) },
-                        )
-                        Spacer(Modifier.height(LocalPulseDimens.current.cardGap))
-                        PulseTextField(
-                            value = state.plan.equipment.orEmpty(),
-                            onValueChange = viewModel::setEquipment,
-                            label = stringResource(R.string.details_equipment),
-                            singleLine = true,
-                        )
-                        ToggleRow(
-                            label = stringResource(R.string.builder_include_final_rest),
-                            checked = state.plan.includeFinalRest,
-                            onCheckedChange = viewModel::setIncludeFinalRest,
-                        )
-                        ToggleRow(
-                            label = stringResource(R.string.builder_shuffle),
-                            checked = state.plan.shuffleEager,
-                            onCheckedChange = viewModel::setShuffle,
-                        )
-                    }
+                Column {
+                    CategoryPicker(
+                        selected = state.plan.category,
+                        onSelect = { viewModel.setType(it.type) },
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.cardGap))
+                    PulseTextField(
+                        value = state.plan.equipment.orEmpty(),
+                        onValueChange = viewModel::setEquipment,
+                        label = stringResource(R.string.details_equipment),
+                        singleLine = true,
+                    )
+                    ToggleRow(
+                        label = stringResource(R.string.builder_include_final_rest),
+                        checked = state.plan.includeFinalRest,
+                        onCheckedChange = viewModel::setIncludeFinalRest,
+                    )
+                    ToggleRow(
+                        label = stringResource(R.string.builder_shuffle),
+                        checked = state.plan.shuffleEager,
+                        onCheckedChange = viewModel::setShuffle,
+                    )
+
                 }
             }
 
             item {
-                PulseCard {
-                    Column {
-                        Text(
-                            expanded?.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded?.knownMillis ?: 0L)}",
-                            style = MaterialTheme.typography.displaySmall,
-                            color = colors.work,
-                        )
-                        Text(
-                            "${expanded?.steps?.size ?: 0} intervals" +
-                                (if (expanded?.hasOpenEnded == true) " · total is a minimum (some intervals wait for you)" else ""),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textMuted,
-                        )
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        TimelineBar(
-                            expanded?.steps?.map { it.kind }.orEmpty(),
-                            currentIndex = -1,
-                            progressInStep = 0f,
-                            height = LocalPulseDimens.current.barHeightCompact,
-                        )
-                    }
+                Column {
+                    Text(
+                        expanded?.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded?.knownMillis ?: 0L)}",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = colors.work,
+                    )
+                    Text(
+                        "${expanded?.steps?.size ?: 0} intervals" +
+                            (if (expanded?.hasOpenEnded == true) " · total is a minimum (some intervals wait for you)" else ""),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textMuted,
+                    )
+                    Spacer(Modifier.height(LocalPulseDimens.current.m))
+                    TimelineBar(
+                        expanded?.steps?.map { it.kind }.orEmpty(),
+                        currentIndex = -1,
+                        progressInStep = 0f,
+                        height = LocalPulseDimens.current.barHeightCompact,
+                    )
+
                 }
             }
 
@@ -758,16 +756,24 @@ fun AdvancedBuilderScreen(
 
             items(state.plan.nodes.size) { index ->
                 val node = state.plan.nodes[index]
-                BuilderNodeCard(
-                    node = node,
-                    position = index,
-                    total = state.plan.nodes.size,
-                    expanded = expandedNode == node.nodeId,
-                    onToggle = { expandedNode = if (expandedNode == node.nodeId) null else node.nodeId },
-                    viewModel = viewModel,
-                    onMoveUp = { viewModel.move(node.nodeId, -1) },
-                    onMoveDown = { viewModel.move(node.nodeId, 1) },
-                )
+                // The interval list is a table: hairline-separated rows on the canvas, the same
+                // idiom as the library and the Today page — not a stack of cards.
+                Column {
+                    BuilderNodeCard(
+                        node = node,
+                        position = index,
+                        total = state.plan.nodes.size,
+                        expanded = expandedNode == node.nodeId,
+                        onToggle = { expandedNode = if (expandedNode == node.nodeId) null else node.nodeId },
+                        viewModel = viewModel,
+                        onMoveUp = { viewModel.move(node.nodeId, -1) },
+                        onMoveDown = { viewModel.move(node.nodeId, 1) },
+                    )
+                    if (index != state.plan.nodes.lastIndex) {
+                        Spacer(Modifier.height(LocalPulseDimens.current.s))
+                        PulseDivider()
+                    }
+                }
             }
 
             item {
@@ -846,67 +852,66 @@ private fun BuilderNodeCard(
     onMoveDown: () -> Unit,
 ) {
     val colors = LocalPulseColors.current
-    PulseCard {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f).clickable(onClick = onToggle)) {
-                    when (node) {
-                        is IntervalNode -> {
-                            Text(node.interval.displayName(), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(
-                                if (node.interval.isIndefinite) "Manual" else formatDuration(node.interval.durationMillis),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textMuted,
-                            )
-                        }
-                        is RepeatGroup -> {
-                            Text("${node.name} × ${node.repeat}", style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
-                            Text(
-                                "${node.children.size} intervals" + if (node.restAfterGroupMillis > 0) " · rest ${formatDuration(node.restAfterGroupMillis)}" else "",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textMuted,
-                            )
-                        }
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f).clickable(onClick = onToggle)) {
+                when (node) {
+                    is IntervalNode -> {
+                        Text(node.interval.displayName(), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            if (node.interval.isIndefinite) "Manual" else formatDuration(node.interval.durationMillis),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
+                        )
+                    }
+                    is RepeatGroup -> {
+                        Text("${node.name} × ${node.repeat}", style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                        Text(
+                            "${node.children.size} intervals" + if (node.restAfterGroupMillis > 0) " · rest ${formatDuration(node.restAfterGroupMillis)}" else "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
+                        )
                     }
                 }
-                if (node is IntervalNode) PhaseChip(kind = node.interval.kind, name = null)
-                PulseIconButton(
-                    icon = Icons.Filled.ArrowUpward,
-                    contentDescription = stringResource(R.string.builder_move_up),
-                    tooltip = stringResource(R.string.builder_move_up),
-                    onClick = onMoveUp,
-                    enabled = position > 0,
-                )
-                PulseIconButton(
-                    icon = Icons.Filled.ArrowDownward,
-                    contentDescription = stringResource(R.string.builder_move_down),
-                    tooltip = stringResource(R.string.builder_move_down),
-                    onClick = onMoveDown,
-                    enabled = position < total - 1,
-                )
-                PulseIconButton(
-                    icon = Icons.Filled.ContentCopy,
-                    contentDescription = stringResource(R.string.action_duplicate),
-                    tooltip = stringResource(R.string.action_duplicate),
-                    onClick = { viewModel.duplicate(node.nodeId) },
-                )
-                PulseIconButton(
-                    icon = Icons.Filled.Delete,
-                    contentDescription = stringResource(R.string.action_delete),
-                    tooltip = stringResource(R.string.action_delete),
-                    onClick = { viewModel.delete(node.nodeId) },
-                    tint = colors.destructive,
-                )
             }
+            if (node is IntervalNode) PhaseChip(kind = node.interval.kind, name = null)
+            PulseIconButton(
+                icon = Icons.Filled.ArrowUpward,
+                contentDescription = stringResource(R.string.builder_move_up),
+                tooltip = stringResource(R.string.builder_move_up),
+                onClick = onMoveUp,
+                enabled = position > 0,
+            )
+            PulseIconButton(
+                icon = Icons.Filled.ArrowDownward,
+                contentDescription = stringResource(R.string.builder_move_down),
+                tooltip = stringResource(R.string.builder_move_down),
+                onClick = onMoveDown,
+                enabled = position < total - 1,
+            )
+            PulseIconButton(
+                icon = Icons.Filled.ContentCopy,
+                contentDescription = stringResource(R.string.action_duplicate),
+                tooltip = stringResource(R.string.action_duplicate),
+                onClick = { viewModel.duplicate(node.nodeId) },
+            )
+            PulseIconButton(
+                icon = Icons.Filled.Delete,
+                contentDescription = stringResource(R.string.action_delete),
+                tooltip = stringResource(R.string.action_delete),
+                onClick = { viewModel.delete(node.nodeId) },
+                tint = colors.destructive,
+            )
+        }
 
-            if (expanded) {
-                Spacer(Modifier.height(LocalPulseDimens.current.cardGap))
-                when (node) {
-                    is IntervalNode -> IntervalEditor(node, null, viewModel)
-                    is RepeatGroup -> RepeatGroupEditor(node, viewModel)
-                }
+        if (expanded) {
+            Spacer(Modifier.height(LocalPulseDimens.current.cardGap))
+            when (node) {
+                is IntervalNode -> IntervalEditor(node, null, viewModel)
+                is RepeatGroup -> RepeatGroupEditor(node, viewModel)
             }
         }
+
     }
 }
 
@@ -1027,51 +1032,50 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
         node.children.forEachIndexed { index, child ->
             Spacer(Modifier.height(LocalPulseDimens.current.xs))
             var expanded by remember { mutableStateOf(false) }
-            PulseCard {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f).clickable { expanded = !expanded }) {
-                            Text(
-                                when (child) {
-                                    is IntervalNode -> child.interval.displayName()
-                                    is RepeatGroup -> child.name
-                                },
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = colors.textPrimary,
-                            )
-                            Text(
-                                when (child) {
-                                    is IntervalNode -> if (child.interval.isIndefinite) "Manual" else formatDuration(child.interval.durationMillis)
-                                    is RepeatGroup -> "× ${child.repeat}"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colors.textMuted,
-                            )
-                        }
-                        PulseIconButton(
-                            icon = Icons.Filled.ArrowUpward,
-                            contentDescription = "Move up inside block",
-                            onClick = { viewModel.move(child.nodeId, -1) },
-                            enabled = index > 0,
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f).clickable { expanded = !expanded }) {
+                        Text(
+                            when (child) {
+                                is IntervalNode -> child.interval.displayName()
+                                is RepeatGroup -> child.name
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.textPrimary,
                         )
-                        PulseIconButton(
-                            icon = Icons.Filled.ArrowDownward,
-                            contentDescription = "Move down inside block",
-                            onClick = { viewModel.move(child.nodeId, 1) },
-                            enabled = index < node.children.lastIndex,
-                        )
-                        PulseIconButton(
-                            icon = Icons.Filled.Delete,
-                            contentDescription = "Delete interval",
-                            onClick = { viewModel.delete(child.nodeId) },
-                            tint = colors.destructive,
+                        Text(
+                            when (child) {
+                                is IntervalNode -> if (child.interval.isIndefinite) "Manual" else formatDuration(child.interval.durationMillis)
+                                is RepeatGroup -> "× ${child.repeat}"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textMuted,
                         )
                     }
-                    if (expanded && child is IntervalNode) {
-                        Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        IntervalEditor(child, node.nodeId, viewModel)
-                    }
+                    PulseIconButton(
+                        icon = Icons.Filled.ArrowUpward,
+                        contentDescription = "Move up inside block",
+                        onClick = { viewModel.move(child.nodeId, -1) },
+                        enabled = index > 0,
+                    )
+                    PulseIconButton(
+                        icon = Icons.Filled.ArrowDownward,
+                        contentDescription = "Move down inside block",
+                        onClick = { viewModel.move(child.nodeId, 1) },
+                        enabled = index < node.children.lastIndex,
+                    )
+                    PulseIconButton(
+                        icon = Icons.Filled.Delete,
+                        contentDescription = "Delete interval",
+                        onClick = { viewModel.delete(child.nodeId) },
+                        tint = colors.destructive,
+                    )
                 }
+                if (expanded && child is IntervalNode) {
+                    Spacer(Modifier.height(LocalPulseDimens.current.m))
+                    IntervalEditor(child, node.nodeId, viewModel)
+                }
+
             }
         }
         Spacer(Modifier.height(LocalPulseDimens.current.s))
