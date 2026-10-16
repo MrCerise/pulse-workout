@@ -258,8 +258,8 @@ object StarterWorkouts {
             Template(
                 plan = plan(
                     seed = "run-walk",
-                    name = "Run / Walk Intervals",
-                    type = WorkoutType.RUN_WALK,
+                    name = "Running Intervals",
+                    type = WorkoutType.RUN,
                     nodes = listOf(
                         node("Walk warm-up", PhaseKind.WARM_UP, 300_000, SoundCue.CHIME),
                         RepeatGroup(

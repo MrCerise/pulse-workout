@@ -106,7 +106,7 @@ echo "sdk.dir=$ANDROID_HOME" > local.properties
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The debug build uses the package id `com.pulse.intervalcoach.debug`, so it installs alongside a
+The debug build uses the package id `com.mrcerise.intervalcoach.debug`, so it installs alongside a
 release build without touching your data.
 
 Release artefacts: `./gradlew :app:assembleRelease` (unsigned without a keystore — see
@@ -141,7 +141,7 @@ pulse-workout/
 ├── sync/            pure-Kotlin phone↔watch protocol (payloads, codecs) + round-trip tests
 ├── library/         the bundled workout catalogue both APKs seed from + catalogue tests
 ├── app/             the Android app — Compose, Room, DataStore, Media3, WorkManager, widgets
-│   └── src/main/java/com/pulse/intervalcoach/
+│   └── src/main/java/com/mrcerise/intervalcoach/
 │       ├── audio/     cue sounds, haptics, speech, the cue gate
 │       ├── data/      Room, DataStore, repositories, JSON import, backups, category registry
 │       ├── health/    Health Connect

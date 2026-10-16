@@ -9,7 +9,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:data="pulse://quick-builder"
-            android:targetPackage="com.pulse.intervalcoach"
-            android:targetClass="com.pulse.intervalcoach.MainActivity" />
+            android:targetPackage="com.mrcerise.intervalcoach"
+            android:targetClass="com.mrcerise.intervalcoach.MainActivity" />
     </shortcut>
 </shortcuts>

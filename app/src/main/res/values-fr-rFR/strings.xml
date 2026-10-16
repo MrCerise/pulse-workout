@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Intervals</string>
+    <string name="app_name">Interval Coach</string>
     <string name="app_tagline">Intervalle d\'entrainement</string>
     <!-- Navigation -->
     <string name="nav_home">Accueil</string>
@@ -279,7 +279,7 @@
     <string name="settings_permissions">Autorisations utilisées</string>
     <!-- Import / export -->
     <!-- Onboarding -->
-    <string name="welcome_title">Intervals</string>
+    <string name="welcome_title">Interval Coach</string>
     <string name="welcome_subtitle">Le minuteur d\'intervalles HIIT &amp; Tabata.</string>
     <string name="welcome_theme">Choisir un thème</string>
     <string name="welcome_language">Choose a language</string>
@@ -288,14 +288,14 @@
     <string name="welcome_sample_workout">Essayez un démarrage de 4 minutes</string>
     <string name="welcome_skip">Ignorer</string>
     <string name="welcome_next">Suivant</string>
-    <string name="welcome_start">Start using Intervals</string>
+    <string name="welcome_start">Start using Interval Coach</string>
     <string name="welcome_notifications">Les notifications ajoutent des contrôles de minuterie à votre écran de verrouillage.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. L\'entraînement fonctionne toujours, mais sans contrôle en direct.</string>
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
-    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Intervals uses sound cues.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Interval Coach uses sound cues.</string>
     <string name="help_background">Opération d\'arrière-plan</string>
     <string name="help_background_body">Le chronométrage continue avec la désactivation de l\'écran. Activez les indices d\'extinction de l\'écran dans les paramètres pour continuer à jouer les annonces.</string>
     <string name="help_audio">Dépannage audio</string>
@@ -317,11 +317,11 @@
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Intervals favorites</string>
-    <string name="widget_quick_start_name">Intervals quick start</string>
+    <string name="widget_favorites_name">Interval Coach favorites</string>
+    <string name="widget_quick_start_name">Interval Coach quick start</string>
     <string name="widget_quick_start_label">Démarrage rapide</string>
     <string name="widget_quick_start_sub">Travail / repos</string>
-    <string name="widget_empty">Open Intervals to star a workout</string>
+    <string name="widget_empty">Open Interval Coach to star a workout</string>
     <string name="shortcut_recent">Entraînements récents</string>
     <string name="shortcut_quick">Constructeur rapide</string>
     <!-- Notifications -->

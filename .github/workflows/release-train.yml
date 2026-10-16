@@ -355,7 +355,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ vars.PLAY_PACKAGE_NAME || 'com.pulse.intervalcoach' }}
+          packageName: ${{ vars.PLAY_PACKAGE_NAME || 'com.mrcerise.intervalcoach' }}
           releaseFiles: release-assets/intervals-${{ needs.publish.outputs.full_version_name }}-release.aab
           track: ${{ inputs.channel }}
           status: completed

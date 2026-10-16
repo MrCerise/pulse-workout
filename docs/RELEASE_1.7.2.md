@@ -7,7 +7,7 @@ phone and a 1.7.2 watch keep talking to each other).
 ## Changes
 
 - New `:library` module (pure Kotlin, `api(project(":engine"))`): the bundled starter catalogue,
-  moved out of `app/src/main/java/com/pulse/intervalcoach/data/StarterWorkouts.kt`. Both APKs
+  moved out of `app/src/main/java/com/mrcerise/intervalcoach/data/StarterWorkouts.kt`. Both APKs
   depend on it, so the phone and the watch offer the same fifteen workouts from one definition.
   `:library:test` proves the catalogue expands, passes the engine's own validation, keeps its
   documented ids and declares its open-ended members.

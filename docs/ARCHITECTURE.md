@@ -32,7 +32,7 @@ seed — can be tested exhaustively on the JVM, without an emulator and without 
 | `wear/` | The Wear OS app: the same engine running on the watch, the same design tokens mirrored for a round screen, the watch half of the Wear link (`sync/WearSyncLink.kt`), and the watch's own store, history and solo mode. Session-lifecycle, history and recorder tests in `wear/src/test`. |
 | `scripts/` | `contrast_check.py` (regenerates [`CONTRAST.md`](CONTRAST.md) and asserts the watch palette mirror), `check_ui.py` (resources, vectors, EN/FR parity per module), `check_brand.py` (phone and watch brand marks), `kotlin_parse_gate.py` and `kotlin_xref_gate.py` (dependency-free Kotlin syntax and cross-reference gates), `capture-screenshots.sh`. |
 
-Inside `app/src/main/java/com/pulse/intervalcoach/`:
+Inside `app/src/main/java/com/mrcerise/intervalcoach/`:
 
 | Package | Responsibility |
 | --- | --- |
