@@ -12,6 +12,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.4] — 2026-10-16
+
+The sheet-and-hero pass: pickers become modern bottom sheets, page titles are centred, and the
+session screen is rebuilt around the countdown.
+
+**Changed**
+- **Drop-downs are gone; pickers are modern bottom sheets.** Every option choice (Phase, Sound,
+  Vibration in the builders; audio interruption, headphone behaviour, density, units, verbosity in
+  Settings) now opens a `PulseBottomSheet`: a rounded sheet that slides up from the bottom with
+  large option rows and a check on the selected one. The pickers' rows are modern settings rows —
+  label on the left, current value and a chevron on the right — and action menus (**Add to
+  workout**, **Adjust all durations**, **Interval actions**, **More actions**, the Voice & audio
+  tools, the library's sort / new-workout / row actions) open the same sheet, so the app has one
+  modal surface instead of a web-form menu.
+- **Page titles are centred.** `PulsePageHeader` centres its H1 on the page — the workout title at
+  the top now sits in the same optical place as Progress and Settings — with the page actions
+  floating at the end of the same band.
+- **The session screen is rebuilt timer-first.** The countdown is the page: one dominant ring with
+  the interval's own colour as a soft wash rising behind it, the timer scaled up (~74 sp on standard
+  density), and the phase, round and side read inside the ring under the digits. The workout's name
+  is centred at the top between the exit and mute controls. Everything else is micro or anchored:
+  one centred line of session facts (elapsed · remaining · heart rate · music), the race band for
+  running workouts, and the next interval, timeline and transport controls stacked at the bottom.
+
 ## [1.8.1-beta1.3] — 2026-10-16
 
 The interface pass: imposing buttons, drop-downs where a menu is the honest control, and a share

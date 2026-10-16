@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
@@ -453,10 +454,11 @@ fun PulseBreadcrumbBar(
 /**
  * The page header: the way back, the H1, the one-line description and the actions of a page.
  *
- * Every destination starts with one of these inside its own content — the shell above it carries the
- * breadcrumb, so the header is free to be a real heading rather than a title bar. The back link is
- * deliberately *in the page* rather than in the shell: a page knows whether leaving it needs a
- * confirmation (an unsaved builder does), and the shell does not.
+ * The title is **centred** on the page — every destination's headline sits in the same optical
+ * place, from Progress and Settings to a workout named "5K Race Run", with the page actions
+ * floating at the end of the same band. The back link is deliberately *in the page* rather than in
+ * the shell: a page knows whether leaving it needs a confirmation (an unsaved builder does), and
+ * the shell does not.
  */
 @Composable
 fun PulsePageHeader(
@@ -499,28 +501,44 @@ fun PulsePageHeader(
             }
             Spacer(Modifier.height(dimens.s))
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                color = colors.textPrimary,
-            )
-            if (description != null) {
+        Box(Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = if (trailing != null) dimens.massive else dimens.l),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(dimens.xs),
+            ) {
                 Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.textSecondary,
+                    text = title,
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = colors.textPrimary,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
                 )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textSecondary,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
-        }
-        if (trailing != null) {
-            Spacer(Modifier.width(dimens.m))
-            trailing()
-        }
+            if (trailing != null) {
+                Row(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    trailing()
+                }
+            }
         }
     }
 }
