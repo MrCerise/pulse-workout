@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sort
@@ -819,12 +820,13 @@ fun WorkoutDetailsScreen(
             }
         }
     }
-    if (showQr) {
+    val qrPlan = plan
+    if (showQr && qrPlan != null) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { showQr = false }) {
             androidx.compose.material3.Surface(shape = LocalPulseShapes.current.sheet, color = colors.surfaceOverlay, contentColor = colors.textPrimary) {
                 Column(Modifier.padding(dimens.xl), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(dimens.m)) {
-                    Text(plan.name, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
-                    com.mrcerise.intervalcoach.ui.components.WorkoutQrCode(content = com.mrcerise.intervalcoach.data.PlanCodec.encode(plan))
+                    Text(qrPlan.name, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
+                    com.mrcerise.intervalcoach.ui.components.WorkoutQrCode(content = com.mrcerise.intervalcoach.data.PlanCodec.encode(qrPlan))
                     SecondaryActionButton(text = stringResource(R.string.cancel), onClick = { showQr = false }, modifier = Modifier.fillMaxWidth())
                 }
             }
