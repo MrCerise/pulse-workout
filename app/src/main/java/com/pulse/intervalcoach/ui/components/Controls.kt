@@ -1,6 +1,7 @@
 package com.pulse.intervalcoach.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -20,7 +21,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -36,6 +40,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -52,7 +58,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
+import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
 import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
@@ -71,9 +80,10 @@ import com.pulse.intervalcoach.ui.theme.PulseType
  *  - **Every control has a real touch target.** A 36 dp icon button still exposes 48 dp, and a
  *    disabled control is flat, not dimmed.
  *
- * Enumerated choices are **drop-downs** (`PulseSelect`, and `PulseActionMenu` for clusters of
- * secondary actions) — a row of side-by-side buttons is never drawn where a menu is the honest
- * control. Buttons are for actions a screen makes obvious; menus are for the rest.
+ * Enumerated choices and action clusters open a **bottom sheet** (`PulseSelect` / `PulseActionMenu`
+ * over `PulseBottomSheet`) — a row of side-by-side buttons is never drawn where a menu is the
+ * honest control, and no picker ever looks like a web form. Buttons are for actions a screen makes
+ * obvious; sheets are for the rest.
  */
 
 /** Shared horizontal padding inside a button, so every action has the same optical weight. */
@@ -439,11 +449,12 @@ fun <T> OptionRow(
 }
 
 /**
- * The drop-down field: a labelled trigger showing the current value, and a menu of the options.
+ * The picker field: a modern row showing the label and the current value, opening a
+ * [PulseBottomSheet] with the options.
  *
- * The trigger is one well-filled control at button height — sunken fill, visible border — so a
- * form's pickers carry the same presence as its actions; the chevron is what says "there is a menu
- * here". The chosen entry wears the accent inside the menu.
+ * The trigger is a settings-style row — label on the left, the current value and a chevron on the
+ * right — so a form reads like a modern settings list rather than a stack of web form fields. The
+ * chosen option wears the accent and a check inside the sheet.
  */
 @Composable
 fun <T> PulseSelect(
@@ -458,59 +469,59 @@ fun <T> PulseSelect(
     val dimens = LocalPulseDimens.current
     var expanded by remember { mutableStateOf(false) }
     val selectedLabel = options.firstOrNull { it.first == selected }?.second.orEmpty()
-    Column(modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = PulseType.SectionLabel,
-            color = colors.textMuted,
-            modifier = Modifier.padding(start = dimens.xs, bottom = dimens.xs),
-        )
-        Box {
-            Surface(
-                onClick = { if (enabled) expanded = true },
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth(),
-                shape = LocalPulseShapes.current.control,
-                color = if (enabled) colors.surfaceSunken else colors.surfaceHover,
-                border = BorderStroke(dimens.borderWidth, colors.borderStrong),
-                contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = dimens.buttonHeight)
-                        .padding(horizontal = dimens.m, vertical = dimens.s),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = selectedLabel,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (enabled) colors.textPrimary else colors.textDisabled,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(Modifier.width(dimens.s))
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = if (enabled) colors.textSecondary else colors.textDisabled,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            }
-            PulseDropdown(expanded = expanded, onDismissRequest = { expanded = false }) {
-                options.forEach { (value, text) ->
-                    PulseDropdownItem(
-                        text = text,
-                        selected = value == selected,
-                        onClick = {
-                            expanded = false
-                            onSelect(value)
-                        },
-                        leadingIcon = if (value == selected) Icons.Filled.Check else null,
-                    )
-                }
+    Surface(
+        onClick = { if (enabled) expanded = true },
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth(),
+        shape = LocalPulseShapes.current.control,
+        color = if (enabled) colors.surfaceRaised else colors.surfaceHover,
+        contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
+        border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = dimens.buttonHeight)
+                .padding(horizontal = dimens.l, vertical = dimens.m),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (enabled) colors.textPrimary else colors.textDisabled,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.width(dimens.s))
+            Text(
+                text = selectedLabel,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (enabled) colors.textSecondary else colors.textDisabled,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.End,
+            )
+            Spacer(Modifier.width(dimens.xs))
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowDown,
+                contentDescription = null,
+                tint = if (enabled) colors.textSecondary else colors.textDisabled,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+    if (expanded) {
+        PulseBottomSheet(title = label, onDismiss = { expanded = false }) {
+            options.forEach { (value, text) ->
+                PulseSheetRow(
+                    text = text,
+                    selected = value == selected,
+                    onClick = {
+                        expanded = false
+                        onSelect(value)
+                    },
+                )
             }
         }
     }
@@ -529,12 +540,12 @@ class PulseMenuAction(
 )
 
 /**
- * A full-width button that opens a menu of actions — the replacement for rows of side-by-side
+ * A full-width button that opens a sheet of actions — the replacement for rows of side-by-side
  * buttons ("Add interval" / "Add block", "Preview cues" / "Edit" / "Schedule").
  *
  * The trigger looks like a secondary action button and carries a chevron, so a screen still shows
- * where the actions live without spending three buttons on them. Destructive entries wear the
- * error colour; disabled entries stay flat.
+ * where the actions live without spending three buttons on them. The actions open in the same
+ * bottom sheet as every other picker; destructive entries wear the error colour.
  */
 @Composable
 fun PulseActionMenu(
@@ -547,50 +558,49 @@ fun PulseActionMenu(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     var expanded by remember { mutableStateOf(false) }
-    Box(modifier) {
-        Surface(
-            onClick = { if (enabled) expanded = true },
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.buttonHeight),
-            shape = LocalPulseShapes.current.control,
-            color = if (enabled) colors.surfaceRaised else colors.surfaceHover,
-            contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
-            border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+    Surface(
+        onClick = { if (enabled) expanded = true },
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth().heightIn(min = dimens.buttonHeight),
+        shape = LocalPulseShapes.current.control,
+        color = if (enabled) colors.surfaceRaised else colors.surfaceHover,
+        contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
+        border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+    ) {
+        Row(
+            modifier = Modifier.padding(buttonPadding),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.padding(buttonPadding),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (icon != null) {
-                    Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(dimens.s))
-                }
-                Text(
-                    text = text,
-                    style = PulseType.ButtonLabel,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            if (icon != null) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(dimens.s))
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                )
             }
+            Text(
+                text = text,
+                style = PulseType.ButtonLabel,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.width(dimens.s))
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowDown,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
         }
-        PulseDropdown(expanded = expanded, onDismissRequest = { expanded = false }) {
+    }
+    if (expanded) {
+        PulseBottomSheet(title = text, onDismiss = { expanded = false }) {
             items.forEach { action ->
-                PulseDropdownItem(
+                PulseSheetRow(
                     text = action.label,
+                    leadingIcon = action.icon,
+                    destructive = action.destructive,
                     onClick = {
                         expanded = false
                         action.onClick()
                     },
-                    leadingIcon = action.icon,
-                    enabled = action.enabled,
-                    tint = if (action.destructive) colors.error else null,
                 )
             }
         }
@@ -936,68 +946,154 @@ private fun StepperButton(
 }
 
 // -------------------------------------------------------------------------------------------------
-// Menus
+// Sheets — the one modal surface: options and action menus both open here.
 // -------------------------------------------------------------------------------------------------
 
-/** A dropdown menu surface: overlay fill, hairline border, the app's floating elevation. */
+/**
+ * A modern bottom sheet: a scrim, and a rounded sheet that slides up from the bottom edge.
+ *
+ * This is the app's one modal picker surface — option choices and action menus both open a sheet —
+ * drawn in the app's own dialog shell (one radius, one elevation, one button system) rather than
+ * the platform's menu popup, which reads as a web form on a phone.
+ */
 @Composable
-fun PulseDropdown(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
+fun PulseBottomSheet(
+    title: String,
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    androidx.compose.material3.DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest,
-        modifier = modifier
-            .background(colors.surfaceOverlay, LocalPulseShapes.current.panel)
-            .border(dimens.borderWidth, colors.border, LocalPulseShapes.current.panel),
-        content = content,
-    )
+    val elevation = LocalPulseElevation.current
+    val motion = LocalPulseMotion.current
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        val slide = remember { Animatable(1f) }
+        LaunchedEffect(Unit) { slide.animateTo(0f, tween(motion.standard())) }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.scrim)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss,
+                ),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer { translationY = slide.value * size.height },
+                shape = RoundedCornerShape(topStart = dimens.sheetRadius, topEnd = dimens.sheetRadius),
+                color = colors.surfaceOverlay,
+                contentColor = colors.textPrimary,
+                shadowElevation = elevation.level3,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 560.dp)
+                        .padding(bottom = dimens.xl),
+                ) {
+                    Spacer(Modifier.height(dimens.s))
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .width(36.dp)
+                                .height(4.dp)
+                                .background(colors.border, LocalPulseShapes.current.chip),
+                        )
+                    }
+                    Spacer(Modifier.height(dimens.l))
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = colors.textPrimary,
+                        modifier = Modifier.padding(horizontal = dimens.l),
+                    )
+                    Spacer(Modifier.height(dimens.s))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = dimens.s),
+                        content = content,
+                    )
+                }
+            }
+        }
+    }
 }
 
-/** One entry in a [PulseDropdown]. */
+/**
+ * One large row inside a [PulseBottomSheet]: an option you pick or an action you take.
+ *
+ * The row is the full width of the sheet and 48 dp tall at minimum — a choice in a sheet is never
+ * a small tap target. The selected option wears the accent tint and a check; a destructive action
+ * wears the error colour.
+ */
 @Composable
-fun PulseDropdownItem(
+fun PulseSheetRow(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     selected: Boolean = false,
-    enabled: Boolean = true,
-    tint: Color? = null,
+    destructive: Boolean = false,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    val contentTint = tint ?: if (selected) colors.accent else colors.textPrimary
-    androidx.compose.material3.DropdownMenuItem(
-        text = {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleSmall,
-                color = if (enabled) contentTint else colors.textDisabled,
-            )
-        },
+    val tint = when {
+        destructive -> colors.error
+        selected -> colors.accent
+        else -> colors.textPrimary
+    }
+    Surface(
         onClick = onClick,
-        enabled = enabled,
-        modifier = modifier,
-        leadingIcon = if (leadingIcon != null) {
-            {
+        modifier = modifier.fillMaxWidth(),
+        shape = LocalPulseShapes.current.control,
+        color = if (selected) colors.accentTint else Color.Transparent,
+        contentColor = tint,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = dimens.buttonHeight)
+                .padding(horizontal = dimens.l, vertical = dimens.m),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (leadingIcon != null) {
                 Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
-                    tint = if (enabled) (tint ?: if (selected) colors.accent else colors.textSecondary) else colors.textDisabled,
-                    modifier = Modifier.size(18.dp),
+                    tint = if (destructive) colors.error else if (selected) colors.accent else colors.textSecondary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.width(dimens.m))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                color = tint,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            if (selected) {
+                Spacer(Modifier.width(dimens.s))
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = colors.accent,
+                    modifier = Modifier.size(20.dp),
                 )
             }
-        } else {
-            null
-        },
-        contentPadding = PaddingValues(horizontal = dimens.m, vertical = dimens.xs),
-    )
+        }
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

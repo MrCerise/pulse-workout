@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -170,10 +171,12 @@ fun PlayerScreen(
         List(snapshot.totalSteps) { com.pulse.engine.PhaseKind.CUSTOM }
     }
     val density = prefs?.playerDensity ?: PlayerDensity.STANDARD
+    // The countdown is the page, so it is sized like one: 74 sp on standard density, with the
+    // density preference scaling it and long clocks (h:mm:ss) stepping down to stay inside the ring.
     val timerStyle = when (density) {
-        PlayerDensity.COMPACT -> PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 0.75f)
-        PlayerDensity.STANDARD -> PulseType.NumericDisplay
-        PlayerDensity.LARGE -> PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 1.3f)
+        PlayerDensity.COMPACT -> PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 0.9f)
+        PlayerDensity.STANDARD -> PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 1.15f)
+        PlayerDensity.LARGE -> PulseType.NumericDisplay.copy(fontSize = PulseType.NumericDisplay.fontSize * 1.5f)
     }
     val leftHanded = prefs?.leftHandedPlayer == true
 
@@ -214,123 +217,44 @@ fun PlayerScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = dimens.m, bottom = dimens.s),
+                    .padding(top = dimens.xs, bottom = dimens.s),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // --- Top bar: session name, heart rate, mute, close ---
+                // --- Top bar: the workout's name centred between the two session controls -----
+                // The name is the one piece of identity on the screen, so it sits centred at the
+                // top; exiting and muting flank it symmetrically.
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = active?.plan?.name ?: "",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colors.textPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Spacer(Modifier.height(dimens.xs))
-                        // The category chip carries the same icon and hue the library showed for
-                        // this workout, so the player is recognisably the same session mid-effort.
-                        active?.plan?.let { plan -> CategoryChip(category = plan.category) }
-                    }
-                    liveHr?.let { bpm ->
-                        HeartRateBadge(bpm = bpm, modifier = Modifier.padding(end = dimens.s))
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.xs)) {
-                        PulseIconButton(
-                            icon = if (cuesMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
-                            contentDescription = if (cuesMuted) "Unmute cues" else "Mute cues",
-                            tooltip = if (cuesMuted) "Unmute cues" else "Mute cues",
-                            onClick = { controller.toggleCuesMuted() },
-                            tint = colors.textSecondary,
-                        )
-                        PulseIconButton(
-                            icon = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.player_end_session),
-                            tooltip = stringResource(R.string.player_end_session),
-                            onClick = { confirmEnd = true },
-                            tint = colors.textSecondary,
-                        )
-                    }
+                    PulseIconButton(
+                        icon = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.player_end_session),
+                        tooltip = stringResource(R.string.player_end_session),
+                        onClick = { confirmEnd = true },
+                        tint = colors.textSecondary,
+                    )
+                    Text(
+                        text = active?.plan?.name ?: "",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.textPrimary,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = dimens.s),
+                    )
+                    PulseIconButton(
+                        icon = if (cuesMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                        contentDescription = if (cuesMuted) "Unmute cues" else "Mute cues",
+                        tooltip = if (cuesMuted) "Unmute cues" else "Mute cues",
+                        onClick = { controller.toggleCuesMuted() },
+                        tint = colors.textSecondary,
+                    )
                 }
 
-                Spacer(Modifier.height(dimens.s))
-
-                // --- Elapsed / remaining: two labelled micro-stats at the edges ---------------
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.player_elapsed).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.textMuted,
-                        )
-                        Text(
-                            text = formatClock(snapshot.sessionElapsedMillis),
-                            style = PulseType.NumericSmall,
-                            color = colors.textSecondary,
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = stringResource(R.string.player_remaining).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colors.textMuted,
-                        )
-                        Text(
-                            text = snapshot.sessionRemainingMillis?.let { formatClock(it) }
-                                ?: stringResource(R.string.player_open_ended),
-                            style = PulseType.NumericSmall,
-                            color = colors.textSecondary,
-                        )
-                    }
-                }
-
-                // --- Race info (the running system): live speed and distance --------------------
-                // Only for workouts whose category runs the system; placeholders stand in until
-                // the tracker has something honest to say — never fake numbers.
-                if (active?.plan?.category?.capabilities?.supportsRaceInfo == true) {
-                    Spacer(Modifier.height(dimens.m))
-                    val race by container.runTracker.raceInfo.collectAsStateWithLifecycle()
-                    RaceInfoBand(race = race, hasLocationPermission = RunTracker.hasLocationPermission(context))
-                }
-
-                Spacer(Modifier.height(dimens.l))
-
-                // --- Phase + round + side + music, as one centred band -------------------------
-                // Centre-aligned: the ring below is centred, so the band above it used to hang left
-                // while everything else floated — the "ragged left, empty right" look.
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.s, Alignment.CenterHorizontally),
-                ) {
-                    step?.let { PhaseChip(kind = it.kind, name = it.name) }
-                    step?.roundInGroup?.let { round ->
-                        val total = step.roundsInGroup
-                        Text(
-                            text = if (total != null && total > 0) "Round $round of $total" else "Round $round",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.textMuted,
-                        )
-                    }
-                    step?.sideLabel?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
-                    }
-                    // Only shown when the listener picked a background track: the chip says whether
-                    // it is playing, and drops to "lowered" for as long as the coach is talking.
-                    if (musicPlaying) {
-                        NeutralChip(
-                            text = if (musicDucked.isDucked) {
-                                stringResource(R.string.player_music_ducked)
-                            } else {
-                                stringResource(R.string.player_music_on)
-                            },
-                            icon = if (musicDucked.isDucked) Icons.Filled.VolumeDown else Icons.Filled.VolumeUp,
-                        )
-                    }
-                }
-
-                // --- The timer itself ---
-                val showing = if (snapshot.status == TimerStatus.AWAITING_MANUAL) snapshot.stepElapsedMillis else snapshot.stepRemainingMillis
+                // --- The hero: the countdown is the page ------------------------------------
+                // One dominant ring with the interval's own colour as a soft wash rising behind
+                // it. Everything that used to crowd above the timer — phase, round, side — now
+                // reads inside the ring, under the digits, in one micro line.
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -343,36 +267,72 @@ fun PlayerScreen(
                         PlayerDensity.STANDARD -> LocalPulseDimens.current.playerPanelStandard
                         PlayerDensity.LARGE -> LocalPulseDimens.current.playerPanelLarge
                     }
-                    ProgressRing(
-                        progress = if (snapshot.status == TimerStatus.AWAITING_MANUAL) 0f else snapshot.intervalProgress,
-                        color = accent,
-                        trackColor = colors.track,
-                        strokeWidth = 10.dp,
-                        showRemainder = true,
-                        modifier = Modifier.size(minOf(available, preferred)),
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = formatClock(showing),
-                                style = timerStyle,
-                                color = colors.textPrimary,
-                                maxLines = 1,
-                            )
-                            Text(
-                                text = when (snapshot.status) {
-                                    TimerStatus.PAUSED -> "PAUSED"
-                                    TimerStatus.AWAITING_MANUAL -> "Tap when done"
-                                    else -> "of ${formatClock(snapshot.stepDurationMillis)}"
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                color = if (snapshot.status == TimerStatus.PAUSED) colors.prepare else colors.textMuted,
-                            )
+                    val ringSize = minOf(available, preferred)
+                    Box(Modifier.size(ringSize), contentAlignment = Alignment.Center) {
+                        // The phase wash: the interval's colour as light, not as a filled panel.
+                        Box(
+                            Modifier
+                                .size(ringSize * 1.28f)
+                                .background(
+                                    Brush.radialGradient(
+                                        listOf(accent.copy(alpha = 0.16f), Color.Transparent),
+                                    ),
+                                ),
+                        )
+                        val showing = if (snapshot.status == TimerStatus.AWAITING_MANUAL) snapshot.stepElapsedMillis else snapshot.stepRemainingMillis
+                        val showingText = formatClock(showing)
+                        val fittedStyle = if (showingText.length > 5) {
+                            timerStyle.copy(fontSize = timerStyle.fontSize * 0.7f)
+                        } else {
+                            timerStyle
+                        }
+                        ProgressRing(
+                            progress = if (snapshot.status == TimerStatus.AWAITING_MANUAL) 0f else snapshot.intervalProgress,
+                            color = accent,
+                            trackColor = colors.track,
+                            strokeWidth = 12.dp,
+                            showRemainder = true,
+                            modifier = Modifier.size(ringSize),
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = showingText,
+                                    style = fittedStyle,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                )
+                                Text(
+                                    text = when (snapshot.status) {
+                                        TimerStatus.PAUSED -> "PAUSED"
+                                        TimerStatus.AWAITING_MANUAL -> "Tap when done"
+                                        else -> "of ${formatClock(snapshot.stepDurationMillis)}"
+                                    },
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (snapshot.status == TimerStatus.PAUSED) colors.prepare else colors.textMuted,
+                                )
+                                step?.let { current ->
+                                    Spacer(Modifier.height(dimens.xs))
+                                    Text(
+                                        text = buildString {
+                                            append(current.name)
+                                            current.roundInGroup?.let { round ->
+                                                val total = current.roundsInGroup
+                                                append(if (total != null && total > 0) " · Round $round of $total" else " · Round $round")
+                                            }
+                                            current.sideLabel?.let { append(" · $it") }
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = accent,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
-                // The spoken cue lives outside the ring: two lines of body text inside a 260 dp circle
-                // pushed the countdown off-centre and clipped.
+                // --- The spoken cue, micro --------------------------------------------------
                 if (lastCue != null && !cuesMuted) {
                     Text(
                         text = lastCue!!,
@@ -381,19 +341,58 @@ fun PlayerScreen(
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = dimens.xl, vertical = dimens.s),
+                        modifier = Modifier.padding(horizontal = dimens.xl, vertical = dimens.xs),
                     )
                 }
 
-                // --- Next interval ---------------------------------------------------------------
-                // A flat centred line rather than a bordered panel: under a centred ring, a box
-                // hanging with a ragged right edge read as a stray container. "Up next" is a
-                // caption, not a card.
+                // --- One micro band of session facts -----------------------------------------
+                // Elapsed, remaining, heart rate and the music state, one centred line — the
+                // numbers you glance at, never the numbers you read.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.s, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "${formatClock(snapshot.sessionElapsedMillis)} elapsed",
+                        style = PulseType.NumericSmall,
+                        color = colors.textMuted,
+                    )
+                    Text(text = "·", style = MaterialTheme.typography.bodySmall, color = colors.textDisabled)
+                    Text(
+                        text = snapshot.sessionRemainingMillis?.let { "${formatClock(it)} left" }
+                            ?: stringResource(R.string.player_open_ended),
+                        style = PulseType.NumericSmall,
+                        color = colors.textMuted,
+                    )
+                    liveHr?.let { bpm -> HeartRateBadge(bpm = bpm) }
+                    if (musicPlaying) {
+                        NeutralChip(
+                            text = if (musicDucked.isDucked) {
+                                stringResource(R.string.player_music_ducked)
+                            } else {
+                                stringResource(R.string.player_music_on)
+                            },
+                            icon = if (musicDucked.isDucked) Icons.Filled.VolumeDown else Icons.Filled.VolumeUp,
+                        )
+                    }
+                }
+
+                // --- Race info (the running system): live speed and distance ----------------
+                // Only for workouts whose category runs the system; placeholders stand in until
+                // the tracker has something honest to say — never fake numbers.
+                if (active?.plan?.category?.capabilities?.supportsRaceInfo == true) {
+                    Spacer(Modifier.height(dimens.xs))
+                    val race by container.runTracker.raceInfo.collectAsStateWithLifecycle()
+                    RaceInfoBand(race = race, hasLocationPermission = RunTracker.hasLocationPermission(context))
+                }
+
+                // --- Next interval, timeline and controls: anchored to the bottom -----------
                 snapshot.nextStep?.let { next ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = dimens.s),
+                            .padding(top = dimens.m),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimens.s, Alignment.CenterHorizontally),
                     ) {
@@ -417,6 +416,8 @@ fun PlayerScreen(
                     }
                 }
 
+                Spacer(Modifier.height(dimens.m))
+
                 TimelineBar(
                     kinds = timelineKinds,
                     currentIndex = snapshot.stepIndex,
@@ -424,7 +425,7 @@ fun PlayerScreen(
                     height = dimens.barHeightRegular,
                 )
 
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(dimens.l))
 
                 // --- Controls (mirrored for left-handed use) ---
                 val mainControls: @Composable () -> Unit = {

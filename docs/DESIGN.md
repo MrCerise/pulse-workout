@@ -235,7 +235,9 @@ The application frame is one navigation model in three shapes, and the shape fol
   screen ever reasons about insets.
 * **Back navigation lives in the page**, not in the bar (`PulsePageHeader(onBack = …)`), because a
   page knows whether leaving it needs a confirmation — an unsaved builder does, and the shell does
-  not.
+  not. The header's H1 is **centred** on the page: every destination's headline — Progress,
+  Settings, a workout named "5K Race Run" — sits in the same optical place, with the page actions
+  floating at the end of the same band.
 * **Immersive routes** (`player`, `welcome`) draw no shell at all.
 * Destinations that are not in the bar (builders, details, health, history…) are reached from the
   pages that own them; starter templates are not a destination at all — they are a rail on Today.
@@ -252,7 +254,7 @@ Everything lives in `ui/components/` and reads only from `LocalPulseColors`, `Lo
 | File | Provides |
 | --- | --- |
 | `Foundation.kt` | `PulseScaffold`, `PulseBreadcrumbBar`, `PulsePageHeader`, `PulseCard`, `PulseHeroCard`, `PulsePanel`, `SectionHeader`, `PulseDivider`, `PulseListRow` |
-| `Controls.kt` | `Primary/Secondary/Ghost/DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseSelect`, `PulseActionMenu`, `PulseChipGroup`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper`, `PulseDropdown` |
+| `Controls.kt` | `Primary/Secondary/Ghost/DangerActionButton`, `PulseIconButton`, `PulseTextField`, `OptionRow`, `PulseSelect`, `PulseActionMenu`, `PulseBottomSheet`, `PulseSheetRow`, `PulseChipGroup`, `PulseChoiceChip`, `ToggleRow`, `PulseSliderRow`, `DurationStepper`, `NumberStepper` |
 | `Indicators.kt` | `PhaseChip`, `NeutralChip`, `CategoryChip`, `StatusBadge`, `StatTile`, `MetricRow`, `InfoBanner`, `CategoryPicker` |
 | `DataDisplay.kt` | `TimelineBar`, `ProgressRing`, `ActivityChart`, `ProgressBar` |
 | `Feedback.kt` | `EmptyState`, `LoadingBox`, `ErrorState`, `ConfirmDialog`, `PulseSnackbar` |
@@ -269,10 +271,11 @@ Rules the components encode:
 * **A chip you tap is a control.** `PulseChoiceChip` — the library's filter rail and preset rows —
   draws `shapes.control` with a hairline border, exactly like a button; `PhaseChip`, `CategoryChip`,
   `NeutralChip` and `StatusBadge` label something and may draw the full `shapes.chip`. An enumerated
-  *preference* is not a rail of chips: `OptionRow` is a drop-down (`PulseSelect`) whose trigger shows
-  the current value and whose menu gives every label its full width, and a cluster of secondary
-  actions becomes one `PulseActionMenu` trigger instead of a row of side-by-side buttons. Options
-  never sit inside a track or panel, and an option whose label is ellipsized is not a choice.
+  *preference* is not a rail of chips: `OptionRow` is a sheet picker (`PulseSelect`) whose row shows
+  the current value and whose `PulseBottomSheet` gives every label its full width with a check on
+  the chosen one, and a cluster of secondary actions becomes one `PulseActionMenu` trigger opening
+  the same sheet — never a row of side-by-side buttons, never a web-form drop-down. Options never
+  sit inside a track or panel, and an option whose label is ellipsized is not a choice.
 * **States are explicit.** Every interactive component defines hover, pressed, focused, selected and
   disabled; focus is a 2 dp accent ring, disabled is `text_disabled` with no ripple.
 * **Empty, loading and error states are components**, not ad-hoc text: `EmptyState`, `LoadingBox`,

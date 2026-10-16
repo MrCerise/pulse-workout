@@ -72,16 +72,16 @@ import com.pulse.intervalcoach.ui.components.LoadingBox
 import com.pulse.intervalcoach.ui.components.PhaseChip
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseActionMenu
+import com.pulse.intervalcoach.ui.components.PulseBottomSheet
 import com.pulse.intervalcoach.ui.components.PulseCard
 import com.pulse.intervalcoach.ui.components.PulseChoiceChip
 import com.pulse.intervalcoach.ui.components.PulseDivider
-import com.pulse.intervalcoach.ui.components.PulseDropdown
-import com.pulse.intervalcoach.ui.components.PulseDropdownItem
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
 import com.pulse.intervalcoach.ui.components.PulseMenuAction
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.PulseSheetRow
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
 import com.pulse.intervalcoach.ui.components.SectionHeader
@@ -220,56 +220,26 @@ fun WorkoutLibraryScreen(
             PulsePageHeader(
                 title = "Workouts",
                 trailing = {
-                    Box {
-                        PulseIconButton(
-                            icon = Icons.Filled.Sort,
-                            contentDescription = stringResource(R.string.workouts_sort),
-                            tooltip = "Sort",
-                            onClick = { showSortMenu = true },
-                            tint = if (state.sort != LibrarySort.RECENT) colors.accent else colors.textSecondary,
-                        )
-                        PulseDropdown(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
-                            LibrarySort.entries.forEach { option ->
-                                PulseDropdownItem(
-                                    text = option.label(),
-                                    selected = option == state.sort,
-                                    onClick = { viewModel.setSort(option); showSortMenu = false },
-                                )
-                            }
-                        }
-                    }
+                    PulseIconButton(
+                        icon = Icons.Filled.Sort,
+                        contentDescription = stringResource(R.string.workouts_sort),
+                        tooltip = "Sort",
+                        onClick = { showSortMenu = true },
+                        tint = if (state.sort != LibrarySort.RECENT) colors.accent else colors.textSecondary,
+                    )
                     PulseIconButton(
                         icon = if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
                         contentDescription = if (state.grid) "List view" else "Grid view",
                         tooltip = if (state.grid) "List view" else "Grid view",
                         onClick = viewModel::toggleGrid,
                     )
-                    Box {
-                        PulseIconButton(
-                            icon = Icons.Filled.Add,
-                            contentDescription = "New workout",
-                            tooltip = "New workout",
-                            onClick = { showNewMenu = true },
-                            tint = colors.textPrimary,
-                        )
-                        PulseDropdown(expanded = showNewMenu, onDismissRequest = { showNewMenu = false }) {
-                            PulseDropdownItem(
-                                text = "Quick builder",
-                                leadingIcon = Icons.Filled.FitnessCenter,
-                                onClick = { showNewMenu = false; onQuickBuilder() },
-                            )
-                            PulseDropdownItem(
-                                text = "Advanced builder",
-                                leadingIcon = Icons.Filled.Tune,
-                                onClick = { showNewMenu = false; onAdvancedBuilder() },
-                            )
-                            PulseDropdownItem(
-                                text = stringResource(R.string.json_title),
-                                leadingIcon = Icons.Filled.ContentCopy,
-                                onClick = { showNewMenu = false; onJsonImport() },
-                            )
-                        }
-                    }
+                    PulseIconButton(
+                        icon = Icons.Filled.Add,
+                        contentDescription = "New workout",
+                        tooltip = "New workout",
+                        onClick = { showNewMenu = true },
+                        tint = colors.textPrimary,
+                    )
                 },
             )
 
@@ -389,6 +359,37 @@ fun WorkoutLibraryScreen(
                     }
                 }
             }
+        }
+    }
+
+    if (showSortMenu) {
+        PulseBottomSheet(title = stringResource(R.string.workouts_sort), onDismiss = { showSortMenu = false }) {
+            LibrarySort.entries.forEach { option ->
+                PulseSheetRow(
+                    text = option.label(),
+                    selected = option == state.sort,
+                    onClick = { viewModel.setSort(option); showSortMenu = false },
+                )
+            }
+        }
+    }
+    if (showNewMenu) {
+        PulseBottomSheet(title = "New workout", onDismiss = { showNewMenu = false }) {
+            PulseSheetRow(
+                text = "Quick builder",
+                leadingIcon = Icons.Filled.FitnessCenter,
+                onClick = { showNewMenu = false; onQuickBuilder() },
+            )
+            PulseSheetRow(
+                text = "Advanced builder",
+                leadingIcon = Icons.Filled.Tune,
+                onClick = { showNewMenu = false; onAdvancedBuilder() },
+            )
+            PulseSheetRow(
+                text = stringResource(R.string.json_title),
+                leadingIcon = Icons.Filled.ContentCopy,
+                onClick = { showNewMenu = false; onJsonImport() },
+            )
         }
     }
 
@@ -556,32 +557,33 @@ private fun WorkoutRow(
                     tint = colors.textPrimary,
                     modifier = Modifier.size(dimens.iconButtonSize),
                 )
-                Box {
-                    PulseIconButton(
-                        icon = Icons.Filled.MoreVert,
-                        contentDescription = "More actions",
-                        onClick = { menu = true },
-                        modifier = Modifier.size(dimens.iconButtonSize),
-                    )
-                    PulseDropdown(expanded = menu, onDismissRequest = { menu = false }) {
-                        PulseDropdownItem(
+                PulseIconButton(
+                    icon = Icons.Filled.MoreVert,
+                    contentDescription = "More actions",
+                    onClick = { menu = true },
+                    modifier = Modifier.size(dimens.iconButtonSize),
+                )
+                if (menu) {
+                    PulseBottomSheet(title = "More actions", onDismiss = { menu = false }) {
+                        PulseSheetRow(
                             text = stringResource(R.string.action_edit),
                             leadingIcon = Icons.Filled.Edit,
                             onClick = { menu = false; onEdit() },
                         )
-                        PulseDropdownItem(
+                        PulseSheetRow(
                             text = stringResource(R.string.action_duplicate),
                             leadingIcon = Icons.Filled.ContentCopy,
                             onClick = { menu = false; onDuplicate() },
                         )
-                        PulseDropdownItem(
+                        PulseSheetRow(
                             text = "Share summary",
                             leadingIcon = Icons.Filled.Share,
                             onClick = { menu = false; onShare() },
                         )
-                        PulseDropdownItem(
+                        PulseSheetRow(
                             text = stringResource(R.string.action_delete),
                             leadingIcon = Icons.Filled.Delete,
+                            destructive = true,
                             onClick = { menu = false; onDelete() },
                         )
                     }
