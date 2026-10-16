@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
 /**
@@ -99,7 +100,7 @@ fun PulseFloatingNavBar(
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.navigationBars)
             .padding(horizontal = dimens.navBarInset, vertical = dimens.navBarInset)
-            .shadow(dimens.level3, LocalPulseShapes.current.pill),
+            .shadow(LocalPulseElevation.current.level3, LocalPulseShapes.current.pill),
         shape = LocalPulseShapes.current.pill,
         color = colors.nav,
         contentColor = colors.textPrimary,

@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.pulse.intervalcoach.ui.theme.LocalPulseColors
 import com.pulse.intervalcoach.ui.theme.LocalPulseMotion
 import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
+import com.pulse.intervalcoach.ui.theme.LocalPulseElevation
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
 /**
@@ -84,6 +85,7 @@ fun PulseCard(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val elevation = LocalPulseElevation.current
     val shape = LocalPulseShapes.current.card
     val border = BorderStroke(dimens.borderWidth, colors.border)
     val background = tint?.let { wash(containerColor, it) } ?: containerColor
@@ -106,7 +108,7 @@ fun PulseCard(
             // A clickable card lifts: one elevation step of shadow, answered by the brighter fill.
             modifier = modifier
                 .fillMaxWidth()
-                .shadow(if (lift) dimens.level2 else dimens.level1, shape),
+                .shadow(if (lift) elevation.level2 else elevation.level1, shape),
             shape = shape,
             color = fill,
             contentColor = colors.textPrimary,
@@ -116,7 +118,7 @@ fun PulseCard(
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .shadow(dimens.level1, shape),
+                .shadow(elevation.level1, shape),
             shape = shape,
             color = background,
             contentColor = colors.textPrimary,
@@ -141,6 +143,7 @@ fun PulseHeroCard(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
+    val elevation = LocalPulseElevation.current
     val shape = LocalPulseShapes.current.card
     val body: @Composable () -> Unit = {
         Box {
@@ -167,7 +170,7 @@ fun PulseHeroCard(
             interactionSource = interaction,
             modifier = modifier
                 .fillMaxWidth()
-                .shadow(dimens.level2, shape),
+                .shadow(elevation.level2, shape),
             shape = shape,
             color = colors.heroSurface,
             contentColor = colors.heroText,
@@ -177,7 +180,7 @@ fun PulseHeroCard(
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .shadow(dimens.level2, shape),
+                .shadow(elevation.level2, shape),
             shape = shape,
             color = colors.heroSurface,
             contentColor = colors.heroText,
