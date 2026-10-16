@@ -28,8 +28,6 @@
         </intent>
         <!-- Health Connect platform app (bundled on Android 14+ Pixels, otherwise via Play). -->
         <package android:name="com.google.android.apps.healthdata" />
-        <!-- Google Play services, which hosts the Google Fit APIs. -->
-        <package android:name="com.google.android.gms" />
     </queries>
 
     <application

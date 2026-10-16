@@ -1,6 +1,6 @@
-# CADENCE design system — "Momentum"
+# INTERVALS design system — "Momentum"
 
-As of v1.8.0, CADENCE ships the **Momentum** system: deep blue-tinted ink neutrals, a single volt
+As of v1.8.0, INTERVALS ships the **Momentum** system: deep blue-tinted ink neutrals, a single volt
 lime accent, and a two-family voice — Space Grotesk for display and numbers, Inter for text. Cards
 float on a whisper of shadow behind rounder silhouettes, the phone navigation bar is a detached
 pill, and the ink hero panel carries a volt wash rising from its lower edge. The three-bar beat mark
@@ -156,7 +156,7 @@ headline never looks like one more card in a stack.
 ## 3. Typography
 
 Two families, two jobs. **Space Grotesk** (Medium, SemiBold, Bold) is the display face: page
-titles, hero figures and the countdown — the engineered voice that makes a screen read as Cadence.
+titles, hero figures and the countdown — the engineered voice that makes a screen read as Intervals.
 **Inter** (Regular, Medium, SemiBold, Bold) is the text face: a tall-x-height grotesque that keeps
 12–14 sp labels legible mid-workout. Both ship as static instances subset to Latin, each with its
 SIL OFL licence in `res/raw/`.
@@ -220,7 +220,7 @@ The application frame is one navigation model in three shapes, and the shape fol
 | Window width | Navigation | Chrome |
 | --- | --- | --- |
 | `< 600 dp` (phone) | floating navigation pill, tinted indicator behind the active glyph, hovering above the system bar area on one shadow | breadcrumb bar + brand mark |
-| `>= 600 dp` (tablet, portrait) | 72 dp icon rail with the mark at its head and the theme toggle in its footer | breadcrumb bar |
+| `>= 600 dp` (tablet, portrait) | 72 dp icon rail with the mark at its head | breadcrumb bar |
 | `>= 1000 dp` (desktop, tablet landscape) | 244 dp sidebar: wordmark, grouped destinations, an accent beat dot on the active row, appearance switch in the footer | breadcrumb bar |
 
 * **Breadcrumb bar** (`PulseBreadcrumbBar`) — one 56 dp row: where you are on the left, the global
@@ -230,8 +230,10 @@ The application frame is one navigation model in three shapes, and the shape fol
   page knows whether leaving it needs a confirmation — an unsaved builder does, and the shell does
   not.
 * **Immersive routes** (`player`, `welcome`) draw no shell at all.
-* Destinations that are not in the bar (templates, builders, details, health, history…) are reached
-  from the pages that own them, which keeps the bar to four items on a phone and seven in the sidebar.
+* Destinations that are not in the bar (builders, details, health, history…) are reached from the
+  pages that own them; starter templates are not a destination at all — they are a rail on Today.
+* The shell carries no theme switch: appearance is configured in Settings → Appearance (and the
+  sidebar footer), never from a sun/moon glyph that can flip colours mid-session.
 
 ---
 
@@ -319,7 +321,7 @@ running as parallel jobs; signed APKs on a `v*` tag.
 
 ## 10. Branding and theme interaction
 
-`docs/brand/cadence.svg` is the normalized source. `ic_pulse.xml` is used by Compose and share images;
+`docs/brand/pulse.svg` is the normalized source. `ic_pulse.xml` is used by Compose and share images;
 launcher, monochrome, notification and splash vectors use the same path. Adaptive launcher layers
 place 50 dp of artwork, centred, in the 108 dp viewport — smaller than the 66 dp safe zone so no mask
 shape clips the bars. The splash uses a vector drawable item, not a bitmap.
@@ -328,4 +330,4 @@ Settings and onboarding show System, Light, Dark and True black in a two-column 
 System preview is split light/dark. Selection animates its check and outline; pressing scales a tile
 to 97%. Theme changes interpolate palette tokens over 260 ms without duplicating screen composition.
 Route changes fade over 180–260 ms. All these durations respect Reduced motion; Android’s animator
-scale also applies. The shell sun/moon action reads the resolved system theme, not just the stored enum.
+scale also applies. The shell carries no quick theme toggle: a switch that can flip every colour mid-session lives behind Settings → Appearance, where the previews show exactly what changes.

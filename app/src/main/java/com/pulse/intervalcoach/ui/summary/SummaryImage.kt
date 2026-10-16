@@ -60,7 +60,7 @@ object SummaryImage {
             }
             canvas.drawRect(0f, 0f, WIDTH.toFloat(), 700f, gradient)
             canvas.drawRect(72f, 0f, 184f, 12f, paint(1f, ORANGE))
-            text("Cadence", 72f, 118f, 44f, heavy = true)
+            text("Intervals", 72f, 118f, 44f, heavy = true)
             text("INTERVAL COACH", 248f, 117f, 23f, MUTED)
             ContextCompat.getDrawable(context, R.drawable.ic_pulse)?.mutate()?.apply {
                 setTint(WHITE)

@@ -47,8 +47,10 @@ android {
         applicationId = "com.pulse.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = 22
-        versionName = "1.7.6"
+        // CI release trains override these per channel (`-Ppulse.versionCode/-Name`); the values
+        // here are the published release line of record.
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 23
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.0"
         // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -139,9 +141,8 @@ implementation(project(":library"))
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Health & fitness integrations (Health Connect + Google Fit)
+    // Health integration (Health Connect)
     implementation(libs.androidx.health.connect.client)
-    implementation(libs.gms.play.services.fitness)
     implementation(libs.gms.play.services.auth)
 
     // Wear OS companion link (workout library/preferences sync, session mirroring and control)

@@ -24,7 +24,6 @@ import com.pulse.intervalcoach.session.MusicController
 import com.pulse.intervalcoach.session.Notifications
 import com.pulse.intervalcoach.session.SessionController
 import com.pulse.intervalcoach.wear.WearSyncManager
-import com.pulse.intervalcoach.work.BackupWorker
 import com.pulse.intervalcoach.work.ReminderWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -121,12 +120,9 @@ class PulseApp : Application() {
                 container.voiceProfiles.ensureDefault()
                 container.sessions.recoverInterruptedSessions()
             }
-            runCatching {
-                BackupWorker.schedule(this@PulseApp, container)
-                ReminderWorker.schedule(this@PulseApp)
-            }
-            // First look at the health platforms (Health Connect / Google Fit). All of this is
-            // read-only and cheap; without the Health Connect app it simply reports unavailable.
+            runCatching { ReminderWorker.schedule(this@PulseApp) }
+            // First look at Health Connect. All of this is read-only and cheap; without the
+            // Health Connect app it simply reports unavailable.
             runCatching { container.health.refresh() }
         }
     }

@@ -134,7 +134,7 @@ fun PlayerScreen(
             return@LaunchedEffect
         }
         while (true) {
-            liveHr = runCatching { container.health.latestHeartRate() }.getOrNull()
+            liveHr = runCatching { container.health.latestLiveHeartRate() }.getOrNull()
             delay(3_000)
         }
     }

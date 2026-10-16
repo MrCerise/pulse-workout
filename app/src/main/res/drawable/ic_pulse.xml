@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- CADENCE mark. Geometry from docs/brand/cadence.svg (256 × 256): three rhythm bars and a beat dot. -->
+<!-- PULSE mark. Geometry from the supplied 256 × 256 SVG. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp"
     android:viewportWidth="256" android:viewportHeight="256">
     <path android:fillColor="#111111"
-        android:pathData="M 50 148 a 16 16 0 0 1 16 -16 a 16 16 0 0 1 16 16 L 82 176 a 16 16 0 0 1 -16 16 a 16 16 0 0 1 -16 -16 Z M 112 60 a 16 16 0 0 1 16 -16 a 16 16 0 0 1 16 16 L 144 176 a 16 16 0 0 1 -16 16 a 16 16 0 0 1 -16 -16 Z M 174 108 a 16 16 0 0 1 16 -16 a 16 16 0 0 1 16 16 L 206 176 a 16 16 0 0 1 -16 16 a 16 16 0 0 1 -16 -16 Z M 50 80 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" />
+        android:pathData="M44 161.64L59.53 103.68A18 18 0 0 0 24.75 94.36L9.23 152.32A18 18 0 0 0 44 161.64Z M88.47 219.59L135.06 45.73A18 18 0 0 0 100.28 36.41L53.7 210.27A18 18 0 0 0 88.47 219.59Z M164 161.64L179.53 103.68A18 18 0 0 0 144.75 94.36L129.23 152.32A18 18 0 0 0 164 161.64Z M216.75 188.68L246.77 76.64A18 18 0 0 0 212 67.32L181.98 179.36A18 18 0 0 0 216.75 188.68Z" />
 </vector>

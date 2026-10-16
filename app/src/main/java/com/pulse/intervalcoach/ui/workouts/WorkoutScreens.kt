@@ -197,7 +197,6 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
 fun WorkoutLibraryScreen(
     container: AppContainer,
     onOpenWorkout: (String) -> Unit,
-    onOpenTemplates: () -> Unit,
     onQuickBuilder: () -> Unit,
     onAdvancedBuilder: () -> Unit,
     onStartWorkout: (WorkoutPlan) -> Unit,
@@ -268,11 +267,6 @@ fun WorkoutLibraryScreen(
                                 leadingIcon = Icons.Filled.ContentCopy,
                                 onClick = { showNewMenu = false; onJsonImport() },
                             )
-                            PulseDropdownItem(
-                                text = "Template gallery",
-                                leadingIcon = Icons.Filled.GridView,
-                                onClick = { showNewMenu = false; onOpenTemplates() },
-                            )
                         }
                     }
                 },
@@ -312,7 +306,6 @@ fun WorkoutLibraryScreen(
                     selected = state.favoritesOnly,
                     onClick = viewModel::toggleFavoritesOnly,
                 )
-                PulseChoiceChip(text = "Templates", selected = false, onClick = onOpenTemplates)
             }
 
             if (state.workouts.isEmpty()) {
@@ -338,8 +331,8 @@ fun WorkoutLibraryScreen(
                             "Try another category or search."
                         },
                         icon = Icons.Filled.FitnessCenter,
-                        actionLabel = "Open templates",
-                        onAction = onOpenTemplates,
+                        actionLabel = "Build a workout",
+                        onAction = onQuickBuilder,
                     )
                 }
             } else if (state.grid) {
@@ -816,101 +809,6 @@ fun WorkoutDetailsScreen(
             plan.equipment?.let { equipment ->
                 item { SectionHeader("Equipment") }
                 item { PulseCard { Text(equipment, color = colors.textPrimary) } }
-            }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------------------------
-// Template gallery
-// ---------------------------------------------------------------------------------------------
-
-/**
- * The bundled starting points, filtered by the same category rail the library uses.
- *
- * The templates carry no icon of their own any more: their category provides the icon, the hue and
- * the name, which is why a template card and a library card for the same category look like siblings.
- */
-@Composable
-fun TemplateGalleryScreen(
-    container: AppContainer,
-    onBack: () -> Unit,
-    onOpenWorkout: (String) -> Unit,
-) {
-    val colors = LocalPulseColors.current
-    val dimens = LocalPulseDimens.current
-    var selectedKey by remember { mutableStateOf<String?>(null) }
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val templates = remember { StarterWorkouts.templates }
-    val filtered = remember(selectedKey, templates) {
-        templates.filter { selectedKey == null || WorkoutCategories.byKey(it.plan.type.name).key == selectedKey }
-    }
-
-    PulseScaffold { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(
-                start = dimens.pagePadding,
-                end = dimens.pagePadding,
-                top = dimens.cardGap,
-                bottom = dimens.xxl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(dimens.cardGap),
-        ) {
-            item {
-                PulsePageHeader(
-                    title = stringResource(R.string.workouts_templates),
-                    onBack = onBack,
-                )
-            }
-
-            item {
-                CategoryFilterRail(
-                    categories = WorkoutCategories.all,
-                    selectedKey = selectedKey,
-                    onSelect = { selectedKey = it },
-                )
-            }
-            items(filtered.size) { index ->
-                val template = filtered[index]
-                val category = template.plan.category
-                val duration = remember(template) { StarterWorkouts.knownDuration(template.plan) }
-                PulseCard(tint = colors.categoryColor(category.hue)) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CategoryChip(category = category)
-                            Spacer(Modifier.width(dimens.s))
-                            Text(
-                                text = formatDuration(duration),
-                                style = PulseType.NumericSmall,
-                                color = colors.textSecondary,
-                            )
-                        }
-                        Spacer(Modifier.height(dimens.s))
-                        Text(
-                            text = template.plan.name,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colors.textPrimary,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        template.plan.equipment?.let {
-                            Spacer(Modifier.height(dimens.xs))
-                            Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textMuted)
-                        }
-                        Spacer(Modifier.height(dimens.m))
-                        SecondaryActionButton(
-                            text = stringResource(R.string.templates_use),
-                            onClick = {
-                                scope.launch {
-                                    container.workouts.save(template.plan, tags = template.tags)
-                                    onOpenWorkout(template.plan.id)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
             }
         }
     }

@@ -1,29 +1,23 @@
 package com.pulse.intervalcoach
 
 import com.pulse.engine.TimelineExpander
-import com.pulse.intervalcoach.data.BackupFile
 import com.pulse.intervalcoach.data.PlanCodec
-import com.pulse.intervalcoach.data.SessionRecord
 import com.pulse.intervalcoach.data.UserPreferences
 import com.pulse.intervalcoach.data.VoiceVerbosity
-import com.pulse.intervalcoach.data.WorkoutRecord
 import com.pulse.intervalcoach.data.QuickWorkoutFactory
 import com.pulse.intervalcoach.session.CueScript
 import com.pulse.library.StarterWorkouts
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Export/import round trips and the coaching copy (acceptance case 11 plus the wording guarantees).
- * These tests exercise the real serialization configuration — the same [PlanCodec] the app uses.
+ * Workout serialization round trips and the coaching copy. These tests exercise the real
+ * serialization configuration — the same [PlanCodec] the app saves and loads with — plus the cue
+ * wording guarantees (acceptance case 11).
  */
-class BackupAndCueTest {
-
-    private val json = Json { ignoreUnknownKeys = true }
+class PlansAndCueTest {
 
     @Test
     fun `a workout survives an export and import round trip exactly`() {
@@ -67,52 +61,6 @@ class BackupAndCueTest {
         assertEquals(ids.size, ids.toSet().size)
         assertEquals(names.size, names.toSet().size)
         assertTrue("template ids are derived from a fixed seed, not regenerated per run", ids.all { it.startsWith("builtin-") })
-    }
-
-    @Test
-    fun `an exported backup file lists what it contains`() {
-        val backup = BackupFile(
-            exportedAt = 1_700_000_000_000,
-            appVersion = "1.0.0",
-            workouts = listOf(
-                WorkoutRecord(
-                    id = "w1",
-                    name = "Tabata Classic",
-                    type = "TABATA",
-                    planJson = PlanCodec.encode(StarterWorkouts.templates.first { it.plan.name == "Tabata Classic" }.plan),
-                    tags = listOf("HIIT"),
-                    createdAt = 1,
-                    updatedAt = 2,
-                )
-            ),
-            sessions = listOf(
-                SessionRecord(
-                    id = "s1", workoutId = "w1", workoutName = "Tabata Classic", workoutSnapshotJson = "{}",
-                    startedAt = 1, endedAt = 2, activeMillis = 240_000, wallMillis = 250_000, sessionElapsedMillis = 240_000,
-                    completedIntervals = 16, totalIntervals = 16, skippedIntervals = 0, completionPercent = 100,
-                    status = "COMPLETED", roundsLogged = 0, notes = null,
-                )
-            ),
-        )
-        val text = json.encodeToString(BackupFile.serializer(), backup)
-        val parsed = json.decodeFromString(BackupFile.serializer(), text)
-        assertEquals("pulse.backup", parsed.format)
-        assertEquals(1, parsed.workouts.size)
-        assertEquals(1, parsed.sessions.size)
-        val plan = PlanCodec.decode(parsed.workouts.single().planJson)
-        assertEquals(16, TimelineExpander.expand(plan).steps.size)
-    }
-
-    @Test
-    fun `a foreign or corrupt file fails to parse instead of importing junk`() {
-        val notABackup = """{"hello":"world"}"""
-        val failure = runCatching { json.decodeFromString(BackupFile.serializer(), notABackup) }.exceptionOrNull()
-        assertTrue("expected a serialization failure", failure is SerializationException || failure is IllegalArgumentException)
-
-        assertTrue(runCatching { json.decodeFromString(BackupFile.serializer(), "this is not json at all") }.isFailure)
-
-        val brokenPlan = """{"id":"x","name":"Broken","nodes":[{"nodeType":"nope"}]}"""
-        assertTrue("an unknown node type must be rejected", runCatching { PlanCodec.decode(brokenPlan) }.isFailure)
     }
 
     @Test

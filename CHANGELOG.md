@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to CADENCE are documented in this file.
+All notable changes to INTERVALS are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *version name*
@@ -12,25 +12,57 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
-## [Unreleased]
+## [1.8.0] — 2026-10-16
 
-### Changed
+The product release: the interface settles on the **Momentum** look under its final name,
+**Intervals**, and the feature set is trimmed to what a phone-only, offline-first timer needs.
 
-- **A new name and a new look: Pulse Workout is now Cadence, on the "Momentum" design system.**
-  Every feature is unchanged; the interface around them is new:
-  - A brand mark redrawn as a cadence beat — three rhythm bars and a dot — across the launcher,
-    the notification icon, the splash, the sidebar and the share card, in both apps.
-  - A new palette: deep blue-tinted ink neutrals with a single volt lime accent, re-measured across
-    all 125 contrast pairs (WCAG 2.1 AA, `docs/CONTRAST.md`).
-  - A two-family voice: Space Grotesk (OFL) for display type and every tabular figure, Inter for
-    text; a larger headline scale with the player countdown at 64 sp.
-  - Rounder geometry (16 dp controls, 22 dp cards, 30 dp sheets), cards that lift on a whisper of
-    shadow, a floating phone navigation pill, an accent beat dot in the sidebar, uppercase section
-    labels, and a volt wash inside the ink hero panel.
-  - Motion re-timed to one beat: 180 ms feedback, 260 ms selection, 340 ms overlays — still zero
-    under reduced motion.
-  - Settings → Appearance previews, the widgets, the Wear OS app and the high-contrast and
-    true-black modes all follow the new system automatically.
+**Changed**
+
+- **The name is now Intervals** — it is a HIIT & Tabata interval timer and the onboarding says so.
+  The welcome subtitle reads "The HIIT & Tabata interval timer" in every packaged language.
+- **The supplied four-bar mark is back everywhere** — launcher, notification, splash, sidebar and
+  the share card, phone and watch. It loads instantly in every launcher; the brand source stays
+  `docs/brand/pulse.svg` with the original geometry gate.
+- **Light theme, refreshed.** The volt accent deepens to a clean lime (`#4D7C0F`) for links,
+  selection and focus, and its container tint is a true pale lime (`#ECFCCB`) instead of cream.
+  All 125 contrast pairs re-measured and passing.
+- **Today is one dashboard.** Progress and Goals are two proper nav tiles instead of orphan text
+  links; the quick builder's actions are a balanced Start/Customize pair instead of three stacked
+  full-width buttons.
+- **Starter templates work like favourites** — an inline rail on Today with a one-tap *Use* that
+  saves a copy and opens it. The separate templates page is gone, along with its route, its chip in
+  the library and its sidebar entry.
+- **The theme sun/moon switch is gone** from the shell breadcrumb and the tablet rail: appearance
+  changes in Settings → Appearance, where the previews show what will change. Nothing mid-session
+  can flip the palette any more.
+- **Settings is a settings page.** The Data section (SAF export/import, automatic backups and the
+  backup notification channel) is removed — data lives on the phone and is never transferred —
+  leaving a single Danger-zone action for deleting session history. The duplicate AI/import entry
+  is gone (the workouts page owns import), and **Help & about** no longer carries the version: the
+  version and build number now sit at the bottom-right of Settings in the quietest ink.
+
+**Removed**
+
+- **Google Fit.** Deprecated by Google and legacy here; Health Connect is the one backend. The
+  Play-services fitness dependency, its manifest query, its authorisation flow and its settings
+  copy are gone.
+- **Backups & restore.** See above; `BackupRepository`, the weekly `BackupWorker` and their tests
+  are removed with the UI.
+
+**Fixed**
+
+- **Heart rate loads.** The dashboard reads today's latest measurement (it used to find nothing
+  outside a five-minute window), the player reads a strict live window so a stale beat can never
+  pose as current, and the Today screen refreshes the health snapshot when it appears.
+
+**Added**
+
+- **Release train** (`.github/workflows/release-train.yml`): one dispatch for `internal`, `beta`
+  and `production` — tests, signed AAB + APK builds, Play tracks via a service-account secret,
+  staged rollout on production, and a GitHub Release with the APKs. `versionCode` now derives
+  monotonically from the semver (`major*10M + minor*100k + patch*1k + build`), shared by the
+  tagged-release workflow, so a store upload can never regress.
 
 ## [1.7.3] — 2026-10-15
 

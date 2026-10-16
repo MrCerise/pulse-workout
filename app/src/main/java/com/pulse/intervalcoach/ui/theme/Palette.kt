@@ -100,9 +100,9 @@ object PulsePalette {
      * A deeper orange than the brand fill: this one carries *text* (links, selected labels, the
      * focus ring) and has to clear 4.5:1 on white. The brand fill carries ink and stays #F38020.
      */
-    val LightAccent = Color(0xFF3F6212)
+    val LightAccent = Color(0xFF4D7C0F)
     val LightAccentAlt = Color(0xFF365314)
-    val LightAccentTint = Color(0xFFF1F5E1)
+    val LightAccentTint = Color(0xFFECFCCB)
     val LightBrand = Color(0xFFA3E635)
     val LightOnBrand = Color(0xFF101216)
 

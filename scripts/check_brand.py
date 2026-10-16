@@ -31,7 +31,7 @@ def parse_xml(path: Path) -> ET.Element:
 WEAR_DRAWABLE = ROOT / "wear/src/main/res/drawable"
 
 try:
-    source = parse_xml(ROOT / "docs/brand/cadence.svg")
+    source = parse_xml(ROOT / "docs/brand/pulse.svg")
     assert source.get("viewBox") == "0 0 256 256"
     expected = source.find(f"{SVG}path").get("d")
     assert source.find(f"{SVG}path").get("fill") == "#111111"
