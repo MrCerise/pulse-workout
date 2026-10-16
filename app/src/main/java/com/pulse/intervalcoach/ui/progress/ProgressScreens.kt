@@ -16,11 +16,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +58,7 @@ import com.pulse.intervalcoach.ui.components.EmptyState
 import com.pulse.intervalcoach.ui.components.InfoBanner
 import com.pulse.intervalcoach.ui.components.PrimaryActionButton
 import com.pulse.intervalcoach.ui.components.PulseCard
+import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulseListRow
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
@@ -132,6 +135,7 @@ fun ProgressScreen(
     onOpenSession: (String) -> Unit,
     onOpenWorkout: (String) -> Unit,
     onOpenHealth: () -> Unit,
+    onOpenSchedule: () -> Unit,
 ) {
     val viewModel: ProgressViewModel = viewModel(initializer = { ProgressViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -139,7 +143,6 @@ fun ProgressScreen(
     val dimens = LocalPulseDimens.current
     val summaries by container.workouts.summaries.collectAsStateWithLifecycle(initialValue = emptyList())
     val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
-    var scheduleFor by remember { mutableStateOf<String?>(null) }
     val weekMillis = remember(state.sessions) {
         val weekAgo = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
         state.sessions.filter { it.startedAt >= weekAgo }.sumOf { it.activeMillis }
@@ -290,49 +293,45 @@ fun ProgressScreen(
             item { SectionHeader("Planner") }
             item {
                 PulseCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(dimens.s)) {
+                    Column {
                         if (state.reminders.isEmpty()) {
                             Text(
-                                text = "No planned sessions",
+                                text = "No planned sessions yet.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.textMuted,
+                                modifier = Modifier.padding(vertical = dimens.s),
                             )
                         } else {
-                            state.reminders.forEach { reminder ->
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
-                                        Text(
-                                            text = state.planned.firstOrNull { it.first == reminder.id }?.second ?: "Workout",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = colors.textPrimary,
+                            state.reminders.forEachIndexed { index, reminder ->
+                                val workoutName = state.planned.firstOrNull { it.first == reminder.id }?.second ?: "Workout"
+                                PulseListRow(
+                                    title = workoutName,
+                                    subtitle = LocalDateTime.ofInstant(Instant.ofEpochMilli(reminder.scheduledAt), ZoneId.systemDefault())
+                                        .format(DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm")),
+                                    leadingIcon = Icons.Filled.Schedule,
+                                    leadingTint = colors.prepare,
+                                    leadingContainer = colors.warningTint,
+                                    onClick = onOpenSchedule,
+                                    trailing = {
+                                        PulseIconButton(
+                                            icon = Icons.Filled.Delete,
+                                            contentDescription = stringResource(R.string.planner_delete),
+                                            tooltip = stringResource(R.string.planner_delete),
+                                            onClick = { viewModel.deleteReminder(reminder.id) },
+                                            tint = colors.textMuted,
                                         )
-                                        Text(
-                                            text = LocalDateTime.ofInstant(Instant.ofEpochMilli(reminder.scheduledAt), ZoneId.systemDefault())
-                                                .format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm")),
-                                            style = PulseType.NumericSmall,
-                                            color = colors.textMuted,
-                                        )
-                                    }
-                                    TextButton(onClick = { viewModel.deleteReminder(reminder.id) }) {
-                                        Text(stringResource(R.string.planner_delete))
-                                    }
-                                }
+                                    },
+                                )
+                                if (index != state.reminders.lastIndex) PulseDivider()
                             }
                         }
-                        var expanded by remember { mutableStateOf(false) }
+                        Spacer(Modifier.height(dimens.s))
                         SecondaryActionButton(
                             text = stringResource(R.string.planner_add),
-                            onClick = { expanded = !expanded },
+                            onClick = onOpenSchedule,
+                            icon = Icons.Filled.Event,
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        if (expanded) {
-                            summaries.take(6).forEach { workout ->
-                                TextButton(onClick = {
-                                    scheduleFor = workout.id
-                                    expanded = false
-                                }) { Text("Tomorrow · ${workout.name}") }
-                            }
-                        }
                     }
                 }
             }
@@ -361,25 +360,6 @@ fun ProgressScreen(
         }
     }
 
-    scheduleFor?.let { workoutId ->
-        val whenTo = remember {
-            LocalDateTime.now().plusDays(1).withHour(18).withMinute(0).withSecond(0).withNano(0)
-        }
-        ConfirmDialog(
-            title = "Schedule this workout",
-            body = "Reminder for tomorrow at 18:00 (" +
-                whenTo.format(DateTimeFormatter.ofPattern("EEE d MMM")) +
-                "). You can delete it from the Planner any time.",
-            confirmLabel = "Schedule",
-            dismissLabel = stringResource(R.string.cancel),
-            onConfirm = {
-                val at = whenTo.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                viewModel.schedule(workoutId, at)
-                scheduleFor = null
-            },
-            onDismiss = { scheduleFor = null },
-        )
-    }
 }
 
 private fun formatLastSync(millis: Long): String {

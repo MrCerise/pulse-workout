@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -604,6 +605,7 @@ fun WorkoutDetailsScreen(
     onBack: () -> Unit,
     onEdit: (String) -> Unit,
     onStart: (WorkoutPlan) -> Unit,
+    onSchedule: (String) -> Unit,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
@@ -755,6 +757,14 @@ fun WorkoutDetailsScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
+            }
+            item {
+                SecondaryActionButton(
+                    text = stringResource(R.string.planner_add),
+                    onClick = { onSchedule(plan.id) },
+                    icon = Icons.Filled.Event,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
             preview?.let { state ->
                 item {
@@ -990,28 +1000,28 @@ fun CategoryScreen(
 
             if (inCategory.isNotEmpty()) {
                 item { SectionHeader(text = "Your ${category.title} workouts", trailing = "${inCategory.size}") }
-                items(inCategory, key = { it.id }) { workout ->
-                    PulseCard(onClick = { onOpenWorkout(workout.id) }) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(
-                                Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(dimens.microGap),
-                            ) {
-                                Text(
-                                    text = workout.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.textPrimary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    text = "${workout.intervalCount} intervals · " +
+                // One table surface with 56 dp rows, hairline-separated — the same shape the
+                // library and the Today page use for lists of workouts. Rows sit inside the
+                // card's inset, so titles never hug the phone edge, and each row keeps the
+                // category icon that identifies it everywhere else.
+                item {
+                    PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.xs)) {
+                        Column {
+                            inCategory.forEachIndexed { index, workout ->
+                                PulseListRow(
+                                    title = workout.name,
+                                    subtitle = "${workout.intervalCount} intervals · " +
                                         (if (workout.hasOpenEnded) "open-ended" else formatDuration(workout.knownDurationMillis)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
+                                    leadingIcon = workout.categoryOrCustom().icon,
+                                    leadingTint = hue,
+                                    leadingContainer = colors.categoryTint(category.hue),
+                                    onClick = { onOpenWorkout(workout.id) },
+                                    trailing = {
+                                        Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = hue)
+                                    },
                                 )
+                                if (index != inCategory.lastIndex) PulseDivider()
                             }
-                            Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = hue)
                         }
                     }
                 }

@@ -20,10 +20,8 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.icons.filled.Undo
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -801,34 +799,36 @@ fun AdvancedBuilderScreen(
         }
     }
 
+    // Both dialogs are the app's own ConfirmDialog, not platform AlertDialogs: one shape, one
+    // radius, one button system everywhere a decision is asked for.
     invalidMessage?.let { message ->
-        AlertDialog(
-            onDismissRequest = { invalidMessage = null },
-            title = { Text("Cannot save yet") },
-            text = { Text(message) },
-            confirmButton = { TextButton(onClick = { invalidMessage = null }) { Text(stringResource(R.string.ok)) } },
+        ConfirmDialog(
+            title = stringResource(R.string.builder_invalid_title),
+            body = message,
+            confirmLabel = stringResource(R.string.ok),
+            dismissLabel = stringResource(R.string.cancel),
+            onConfirm = { invalidMessage = null },
+            onDismiss = { invalidMessage = null },
         )
     }
 
     if (showDiscard) {
-        AlertDialog(
-            onDismissRequest = { showDiscard = false },
-            title = { Text(stringResource(R.string.discard_draft_title)) },
-            text = { Text("Discard unsaved edits to “${state.plan.name}”?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.discardDraft()
-                    showDiscard = false
-                    onBack()
-                }) { Text(stringResource(R.string.discard_draft)) }
+        ConfirmDialog(
+            title = stringResource(R.string.discard_draft_title),
+            body = "Discard unsaved edits to “${state.plan.name}”?",
+            confirmLabel = stringResource(R.string.discard_draft),
+            dismissLabel = stringResource(R.string.save_draft),
+            destructive = true,
+            onConfirm = {
+                viewModel.discardDraft()
+                showDiscard = false
+                onBack()
             },
-            dismissButton = {
-                TextButton(onClick = {
-                    scope.launch {
-                        viewModel.save().onSuccess { onSaved(it.id) }
-                        showDiscard = false
-                    }
-                }) { Text(stringResource(R.string.save_draft)) }
+            onDismiss = {
+                scope.launch {
+                    viewModel.save().onSuccess { onSaved(it.id) }
+                    showDiscard = false
+                }
             },
         )
     }

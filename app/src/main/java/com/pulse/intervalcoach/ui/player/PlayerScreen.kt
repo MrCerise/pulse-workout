@@ -177,17 +177,20 @@ fun PlayerScreen(
     // Wrapped in a Box so the instructor overlay and the end-session dialog always stack on top
     // of the player instead of relying on the order siblings happen to be emitted in.
     Box(Modifier.fillMaxSize().background(colors.background)) {
+        // One column, one padding: the old structure wrapped a full-size padded column inside the
+        // safe-drawing column, which made the horizontal insets two different numbers on one screen.
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .safeDrawingPadding(),
+                .safeDrawingPadding()
+                .padding(horizontal = dimens.pagePadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // --- Interval progress, readable from across the room -----------------------------
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = dimens.pagePadding, vertical = dimens.s)
+                    .padding(vertical = dimens.s)
                     .height(dimens.barHeightCompact)
                     .background(colors.track, LocalPulseShapes.current.chip),
             ) {
@@ -208,7 +211,7 @@ fun PlayerScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = dimens.l, vertical = dimens.m),
+                    .padding(top = dimens.m, bottom = dimens.s),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 // --- Top bar: session name, heart rate, mute, close ---
@@ -247,23 +250,45 @@ fun PlayerScreen(
 
                 Spacer(Modifier.height(dimens.s))
 
+                // --- Elapsed / remaining: two labelled micro-stats at the edges ---------------
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(
-                        text = "Elapsed ${formatClock(snapshot.sessionElapsedMillis)}",
-                        style = PulseType.NumericSmall,
-                        color = colors.textMuted,
-                    )
-                    Text(
-                        text = snapshot.sessionRemainingMillis?.let { "Remaining ${formatClock(it)}" } ?: "Open-ended",
-                        style = PulseType.NumericSmall,
-                        color = colors.textMuted,
-                    )
+                    Column {
+                        Text(
+                            text = stringResource(R.string.player_elapsed).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textMuted,
+                        )
+                        Text(
+                            text = formatClock(snapshot.sessionElapsedMillis),
+                            style = PulseType.NumericSmall,
+                            color = colors.textSecondary,
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = stringResource(R.string.player_remaining).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textMuted,
+                        )
+                        Text(
+                            text = snapshot.sessionRemainingMillis?.let { formatClock(it) }
+                                ?: stringResource(R.string.player_open_ended),
+                            style = PulseType.NumericSmall,
+                            color = colors.textSecondary,
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(dimens.l))
 
-                // --- Phase + round + side label ---
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                // --- Phase + round + side + music, as one centred band -------------------------
+                // Centre-aligned: the ring below is centred, so the band above it used to hang left
+                // while everything else floated — the "ragged left, empty right" look.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.s, Alignment.CenterHorizontally),
+                ) {
                     step?.let { PhaseChip(kind = it.kind, name = it.name) }
                     step?.roundInGroup?.let { round ->
                         val total = step.roundsInGroup
@@ -346,42 +371,37 @@ fun PlayerScreen(
                     )
                 }
 
-                // --- Next interval ---
+                // --- Next interval ---------------------------------------------------------------
+                // A flat centred line rather than a bordered panel: under a centred ring, a box
+                // hanging with a ragged right edge read as a stray container. "Up next" is a
+                // caption, not a card.
                 snapshot.nextStep?.let { next ->
-                    Surface(
-                        shape = LocalPulseShapes.current.panel,
-                        color = colors.surfaceRaised,
-                        border = BorderStroke(dimens.borderWidth, colors.border),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = dimens.s),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.s, Alignment.CenterHorizontally),
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.s),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.player_up_next).uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.textMuted,
-                                modifier = Modifier.padding(end = dimens.m),
-                            )
-                            Text(
-                                text = next.name,
-                                style = MaterialTheme.typography.titleSmall,
-                                color = colors.textPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Spacer(Modifier.width(dimens.m))
-                            Text(
-                                text = if (next.isIndefinite) "manual" else formatDuration(next.durationMillis),
-                                style = PulseType.NumericSmall,
-                                color = colors.phaseColor(next.kind),
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.player_up_next).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textMuted,
+                        )
+                        Text(
+                            text = next.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = colors.textPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = if (next.isIndefinite) "manual" else formatDuration(next.durationMillis),
+                            style = PulseType.NumericSmall,
+                            color = colors.phaseColor(next.kind),
+                        )
                     }
                 }
-
-                Spacer(Modifier.height(dimens.m))
 
                 TimelineBar(
                     kinds = timelineKinds,
@@ -447,7 +467,11 @@ fun PlayerScreen(
 
                 Spacer(Modifier.height(dimens.s))
 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.s, Alignment.CenterHorizontally),
+                ) {
                     if (snapshot.laps > 0) {
                         Text(
                             text = "Laps ${snapshot.laps}",

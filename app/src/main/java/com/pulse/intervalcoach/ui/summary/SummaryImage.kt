@@ -29,10 +29,21 @@ import java.util.UUID
 object SummaryImage {
     const val WIDTH = 1080
     const val HEIGHT = 1350
-    private const val INK = 0xFF17181B.toInt()
-    private const val WHITE = 0xFFF5F6F7.toInt()
-    private const val MUTED = 0xFFAEB4BB.toInt()
-    private const val ORANGE = 0xFFF38020.toInt()
+
+    // The card is drawn on the app's ink panel (PulseHeroCard's surface), so a shared session
+    // image is recognisably the same product as the app that produced it. Values mirror
+    // PulsePalette exactly; the renderer runs on a bitmap thread, so it reads constants.
+    private val INK: Int = 0xFF131519.toInt()      // heroSurface, both themes
+    private val WHITE: Int = 0xFFF4F6F8.toInt()    // textPrimary
+    private val MUTED: Int = 0xFFA8B0BA.toInt()    // heroMuted
+    private val VOLT: Int = 0xFFA3E635.toInt()     // brand / accent
+
+    /** The volt at the hero wash's 16 % alpha, pre-multiplied into the ARGB word. */
+    private val VOLT_WASH: Int = 0x28A3E635.toInt()
+    private val SURFACE: Int = 0xFF1E2126.toInt()  // surfaceRaised: stat tiles
+    private val BORDER: Int = 0xFF2E323A.toInt()   // hairlines
+    private val SUCCESS: Int = 0xFF4CC38A.toInt()  // work / success
+    private val WARNING: Int = 0xFFF5B544.toInt()  // prepare / warning
 
     fun render(context: Context, summary: SessionSummaryData): Bitmap {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
@@ -54,12 +65,14 @@ object SummaryImage {
             }
             fun label(id: Int) = context.getString(id)
             canvas.drawColor(INK)
-            val gradient = Paint().apply {
-                shader = LinearGradient(0f, 0f, WIDTH.toFloat(), 700f,
-                    intArrayOf(0xFF34271F.toInt(), INK), null, Shader.TileMode.CLAMP)
+            // The same volt wash the hero panel draws: brand colour as light rising from the
+            // bottom edge, not an orange gradient from a previous identity.
+            val wash = Paint().apply {
+                shader = LinearGradient(0f, HEIGHT.toFloat(), 0f, HEIGHT - 420f,
+                    intArrayOf(VOLT_WASH, Color.TRANSPARENT), null, Shader.TileMode.CLAMP)
             }
-            canvas.drawRect(0f, 0f, WIDTH.toFloat(), 700f, gradient)
-            canvas.drawRect(72f, 0f, 184f, 12f, paint(1f, ORANGE))
+            canvas.drawRect(0f, HEIGHT - 420f, WIDTH.toFloat(), HEIGHT.toFloat(), wash)
+            canvas.drawRect(72f, 0f, 184f, 12f, paint(1f, VOLT))
             text("Intervals", 72f, 118f, 44f, heavy = true)
             text("INTERVAL COACH", 248f, 117f, 23f, MUTED)
             ContextCompat.getDrawable(context, R.drawable.ic_pulse)?.mutate()?.apply {
@@ -74,7 +87,7 @@ object SummaryImage {
             canvas.translate(72f, 194f)
             title.draw(canvas)
             canvas.restore()
-            val statusColor = if (summary.stoppedEarly) 0xFFF5B544.toInt() else 0xFF4CC38A.toInt()
+            val statusColor = if (summary.stoppedEarly) WARNING else SUCCESS
             canvas.drawCircle(81f, 377f, 7f, paint(1f, statusColor))
             text(label(if (summary.stoppedEarly) R.string.share_ended_early else R.string.share_completed), 104f, 387f, 28f, statusColor)
 
@@ -83,11 +96,11 @@ object SummaryImage {
             val percentage = ShareMetrics.completion(summary.completedIntervals, summary.totalIntervals)
             text(label(R.string.share_completion), 72f, 757f, 28f, MUTED)
             text("$percentage%", 820f, 757f, 34f, heavy = true, width = 188f)
-            canvas.drawRoundRect(72f, 786f, 1008f, 800f, 7f, 7f, paint(1f, 0xFF34373D.toInt()))
-            if (percentage > 0) canvas.drawRoundRect(72f, 786f, 72f + 936f * percentage / 100f, 800f, 7f, 7f, paint(1f, ORANGE))
+            canvas.drawRoundRect(72f, 786f, 1008f, 800f, 7f, 7f, paint(1f, BORDER))
+            if (percentage > 0) canvas.drawRoundRect(72f, 786f, 72f + 936f * percentage / 100f, 800f, 7f, 7f, paint(1f, VOLT))
 
             fun stat(x: Float, y: Float, name: String, value: String) {
-                canvas.drawRoundRect(x, y, x + 456f, y + 144f, 24f, 24f, paint(1f, 0xFF222428.toInt()))
+                canvas.drawRoundRect(x, y, x + 456f, y + 144f, 28f, 28f, paint(1f, SURFACE))
                 text(name, x + 28f, y + 45f, 24f, MUTED, width = 400f)
                 text(value, x + 28f, y + 108f, 43f, heavy = true, width = 400f)
             }
@@ -95,7 +108,7 @@ object SummaryImage {
             stat(552f, 844f, label(R.string.share_total_time), ShareMetrics.clock(summary.wallMillis))
             stat(72f, 1012f, label(R.string.share_skipped), summary.skippedIntervals.toString())
             stat(552f, 1012f, label(R.string.share_rounds), summary.roundsLogged.toString())
-            canvas.drawLine(72f, 1210f, 1008f, 1210f, paint(1f, 0xFF34373D.toInt()).apply { strokeWidth = 2f })
+            canvas.drawLine(72f, 1210f, 1008f, 1210f, paint(1f, BORDER).apply { strokeWidth = 2f })
             text(label(R.string.share_recorded), 72f, 1269f, 23f, MUTED, width = 450f)
             if (summary.endedAt > 0) {
                 val locale = context.resources.configuration.locales[0]

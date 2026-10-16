@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,8 @@ import com.pulse.engine.formatDuration
 import com.pulse.intervalcoach.AppContainer
 import com.pulse.intervalcoach.R
 import com.pulse.intervalcoach.ui.components.GhostActionButton
+import com.pulse.intervalcoach.ui.components.PulseChoiceChip
+import com.pulse.intervalcoach.ui.components.PulseSliderRow
 import com.pulse.intervalcoach.ui.components.ThemePicker
 import com.pulse.intervalcoach.ui.components.LanguagePicker
 import com.pulse.intervalcoach.ui.components.PulseLogo
@@ -56,16 +59,18 @@ import com.pulse.intervalcoach.ui.theme.ThemeMode
 import com.pulse.intervalcoach.data.AppLanguage
 import com.pulse.intervalcoach.locale.AppLocale
 import com.pulse.library.StarterWorkouts
+import com.pulse.intervalcoach.ui.home.WHO_WEEKLY_MINUTES
 import kotlinx.coroutines.launch
 
 /**
  * Short, skippable welcome flow: theme choice, an optional voice sample, and a ready-to-start
  * example workout. Nothing here is mandatory — "Skip" finishes onboarding from any step.
  *
+ * Four steps: brand & appearance, the weekly goal, a voice sample, and a ready-to-start example.
+ *
  * The screen is deliberately quiet: one column on the canvas, no chrome, the accent spent on a single
- * brand block and the step indicator. The step indicator is three bars rather than dots, because a
- * bar can encode position and progress at a glance and matches the timeline language used in the
- * player.
+ * brand block and the step indicator. The step indicator is bars rather than dots, because a bar can
+ * encode position and progress at a glance and matches the timeline language used in the player.
  */
 @Composable
 fun WelcomeScreen(
@@ -136,6 +141,66 @@ fun WelcomeScreen(
                     )
                 }
                 1 -> {
+                    // The goal step: the one personal choice the tour can make for the user, so the
+                    // hero and the Goals page read "your target" from the first session onwards.
+                    var goal by remember(prefs?.weeklyGoalMinutes) {
+                        mutableIntStateOf(prefs?.weeklyGoalMinutes ?: WHO_WEEKLY_MINUTES)
+                    }
+                    Text(
+                        text = "How much per week?",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = colors.textPrimary,
+                    )
+                    Spacer(Modifier.height(dimens.s))
+                    Text(
+                        text = "Pick a weekly target in active minutes. You can change it any time in Goals.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textSecondary,
+                    )
+                    Spacer(Modifier.height(dimens.xl))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.chipGap)) {
+                        listOf(75, WHO_WEEKLY_MINUTES, 250).forEach { preset ->
+                            PulseChoiceChip(
+                                text = "$preset min",
+                                selected = goal == preset,
+                                onClick = { goal = preset },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(dimens.l))
+                    PulseSliderRow(
+                        label = "Weekly goal",
+                        value = goal.toFloat(),
+                        onValueChange = { goal = (Math.round(it / 15f) * 15).coerceIn(30, 600) },
+                        valueRange = 30f..600f,
+                        valueLabel = "$goal min",
+                    )
+                    Spacer(Modifier.height(dimens.l))
+                    PulsePanel {
+                        Column {
+                            Text(
+                                text = "Your week at a glance",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colors.textMuted,
+                            )
+                            Spacer(Modifier.height(dimens.xs))
+                            Text(
+                                text = "$goal active minutes across the week — about " +
+                                    (goal / 30) + " half-hour session${if (goal / 30 == 1) "" else "s"}.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.textSecondary,
+                            )
+                        }
+                    }
+                    // Written straight through: leaving the step (or the tour) persists it.
+                    LaunchedEffect(goal) {
+                        if (goal != prefs?.weeklyGoalMinutes) {
+                            container.preferences.setWeeklyGoalMinutes(goal)
+                        }
+                    }
+                }
+                2 -> {
                     Text(
                         text = stringResource(R.string.welcome_voice),
                         style = MaterialTheme.typography.headlineMedium,
@@ -236,9 +301,9 @@ fun WelcomeScreen(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.semantics { contentDescription = "Step ${step + 1} of 3" },
+                modifier = Modifier.semantics { contentDescription = "Step ${step + 1} of 4" },
             ) {
-                repeat(3) { index ->
+                repeat(4) { index ->
                     Box(
                         Modifier
                             .size(
@@ -255,6 +320,7 @@ fun WelcomeScreen(
                 text = when (step) {
                     0 -> "Continue"
                     1 -> "Continue"
+                    2 -> "Continue"
                     else -> stringResource(R.string.welcome_start)
                 },
                 onClick = {

@@ -12,6 +12,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.0] — 2026-10-16
+
+Interface polish pass, released as a pre-release for testing.
+
+**Changed**
+- One button system everywhere: the section-header text links on Today ("All workouts",
+  "History"), the settings "Voice & audio" text link and every remaining `TextButton` are now
+  full-width outlined buttons in the same style as the Help and Welcome-tour buttons.
+- Option groups ("When audio is interrupted", headphone behaviour, player density, units, the
+  builder pickers) are a single modern segmented control instead of a two-column chip grid.
+- Today: Quick start and the weekly chart are flat sections (no container inside a container),
+  the health snapshot is two tiles on the canvas, and the page gutter widens to 20 dp.
+- The category page lists its workouts as one 56 dp-row table with proper insets.
+- The session screen is rebuilt: labelled elapsed/remaining stats, a centred phase band, a flat
+  "next up" line instead of a stray bordered panel, and a single padding system.
+- The share image is redrawn on the app's own palette (ink panel, volt accent, raised tiles).
+- The welcome tour gains a fourth step — the weekly goal — with preset chips and a slider; the
+  goal is a real preference used by the hero, Today's ring and the Goals page, where it can be
+  changed any time.
+- Language moves out of Appearance into its own settings section.
+- Scheduling is a proper page: the app's own month calendar, hour/minute steppers, a searchable
+  workout list and one primary action (replaces the "Tomorrow · workout" links and the
+  confirm-dialog flow). Also reachable from any workout's details page.
+- Builder error and discard dialogs use the app dialog; release tags may now carry a pre-release
+  suffix (`v1.8.1-beta1.0`), which marks the GitHub release as a pre-release.
+
 ## [1.8.0] — 2026-10-16
 
 The product release: the interface settles on the **Momentum** look under its final name,

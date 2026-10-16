@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -402,12 +403,13 @@ fun PulseTextField(
 // -------------------------------------------------------------------------------------------------
 
 /**
- * A label with its options beneath it, two per row. Used in forms and in the settings screens.
+ * A labelled option group, drawn as one modern segmented control: a sunken track with a raised
+ * segment for the current choice. Replaces the old two-column chip grid — a set of options is a
+ * single decision, so it is drawn as a single control, and the selected segment visibly sits
+ * *in* the control rather than floating beside the label.
  *
- * Two columns rather than one stretched row because that is what the width allows: the builder's
- * phase list has seven entries, and seven equal columns on a phone ellipsize every one of them. An
- * option you cannot read is not an option. The grid also matches [CategoryPicker], which offers the
- * same kind of choice two cells at a time.
+ * Used for every enumerated preference (audio interruption, headphone behaviour, density, units)
+ * and the builder's pickers, so they all share one rhythm.
  */
 @Composable
 fun <T> OptionRow(
@@ -419,35 +421,22 @@ fun <T> OptionRow(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    val optionsPerRow = 2
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(dimens.chipGap),
+        verticalArrangement = Arrangement.spacedBy(dimens.xs),
     ) {
         Text(
             text = label,
             style = PulseType.SectionLabel,
             color = colors.textMuted,
-            modifier = Modifier.padding(start = dimens.xs),
+            modifier = Modifier.padding(start = dimens.xs, bottom = dimens.xs),
         )
-        options.chunked(optionsPerRow).forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
-            ) {
-                row.forEach { (value, text) ->
-                    PulseChoiceChip(
-                        text = text,
-                        selected = value == selected,
-                        onClick = { onSelect(value) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                // A short final row pads itself out to the same two columns, so the last option is
-                // never stretched across a width the others did not get.
-                repeat(optionsPerRow - row.size) { Spacer(Modifier.weight(1f)) }
-            }
-        }
+        PulseSegmented(
+            options = options,
+            selected = selected,
+            onSelect = onSelect,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -505,8 +494,12 @@ fun <T> PulseSegmented(
                             } else {
                                 MaterialTheme.typography.labelMedium
                             },
-                            maxLines = 1,
+                            // Two lines, so an honest label like "Keep timing, mute" is never
+                            // truncated into a lie ("Keep timing…"); short labels stay on one.
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(vertical = dimens.xs),
                         )
                     }
                 }

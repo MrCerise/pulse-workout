@@ -150,6 +150,9 @@
     <string name="player_end_session">Terminer la séance</string>
     <string name="player_countdown_resumed">Minuteur relancé</string>
     <string name="player_up_next">Ensuite</string>
+    <string name="player_elapsed">Écoulé</string>
+    <string name="player_remaining">Restant</string>
+    <string name="settings_weekly_goal">Objectif hebdomadaire</string>
     <string name="player_lap">Tour</string>
     <string name="player_laps">%1$d tours</string>
     <string name="player_instructor">Vue instructeur</string>
@@ -324,6 +327,7 @@
     <string name="help_accessibility_body">Les réglages proposent des animations réduites, un contraste élevé et des commandes pour gauchers. Utilisez Monter / Descendre pour réorganiser les intervalles.</string>
 
     <!-- Common -->
+    <string name="builder_invalid_title">Impossible d’enregistrer pour le moment</string>
     <string name="ok">OK</string>
     <string name="close">Fermer</string>
     <string name="back">Retour</string>

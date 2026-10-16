@@ -57,6 +57,7 @@ import com.pulse.intervalcoach.ui.components.PulseDivider
 import com.pulse.intervalcoach.ui.components.PulseIconButton
 import com.pulse.intervalcoach.ui.components.PulsePageHeader
 import com.pulse.intervalcoach.ui.components.PulseScaffold
+import com.pulse.intervalcoach.ui.components.GhostActionButton
 import com.pulse.intervalcoach.ui.components.PulseTextField
 import com.pulse.intervalcoach.ui.components.PulseTone
 import com.pulse.intervalcoach.ui.components.SecondaryActionButton
@@ -192,9 +193,12 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
             }
             item {
                 Column {
-                    TextButton(onClick = { showEditor = !showEditor }, enabled = !state.busy) {
-                        Text(stringResource(if (showEditor) R.string.json_hide_editor else R.string.json_edit))
-                    }
+                    GhostActionButton(
+                        text = stringResource(if (showEditor) R.string.json_hide_editor else R.string.json_edit),
+                        onClick = { showEditor = !showEditor },
+                        enabled = !state.busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                     AnimatedVisibility(
                         visible = showEditor,
                         enter = fadeIn(tween(motion.fast())) + expandVertically(tween(motion.standard())),

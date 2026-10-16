@@ -248,7 +248,7 @@ data class PulseDimens(
     val massive: Dp = 48.dp,
 
     /** Horizontal page gutter, shared by every scrolling screen. */
-    val pagePadding: Dp = 16.dp,
+    val pagePadding: Dp = 20.dp,
     /** Interior padding of a card or panel. */
     val cardPadding: Dp = 16.dp,
     /** Vertical gap between sibling cards. */

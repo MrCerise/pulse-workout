@@ -138,6 +138,9 @@
     <string name="player_end_session">End session</string>
     <string name="player_countdown_resumed">Timer running</string>
     <string name="player_up_next">Next up</string>
+    <string name="player_elapsed">Elapsed</string>
+    <string name="player_remaining">Remaining</string>
+    <string name="settings_weekly_goal">Weekly goal</string>
     <string name="player_lap">Lap</string>
     <string name="player_laps">%1$d laps</string>
     <string name="player_instructor">Instructor view</string>
@@ -303,6 +306,7 @@
     <string name="help_accessibility">Accessibility</string>
     <string name="help_accessibility_body">Reduced motion, high contrast and left-handed controls are in Settings. Use Move up / Move down to reorder intervals.</string>
     <!-- Common -->
+    <string name="builder_invalid_title">Cannot save yet</string>
     <string name="ok">OK</string>
     <string name="close">Close</string>
     <string name="back">Back</string>
