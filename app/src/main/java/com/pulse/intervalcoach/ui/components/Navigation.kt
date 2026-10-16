@@ -2,6 +2,7 @@ package com.pulse.intervalcoach.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
@@ -44,18 +46,18 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 /**
  * Navigation — the shell of the application.
  *
- * PULSE has one navigation model in two shapes, and the shape follows the window:
+ * CADENCE has one navigation model in three shapes, and the shape follows the window:
  *
  *  - **a sidebar** (>= 1000 dp) — the full dashboard chrome: a wordmark, sections, 36 dp rows with
- *    a glyph, a label, a tinted active row and a 2 dp accent edge. This is where the app stops
+ *    a glyph, a label, a tinted active row and an accent beat dot. This is where the app stops
  *    looking like a phone app and starts looking like a tool;
  *  - **an icon rail** (>= 600 dp) — the same destinations, glyph-only, with a tinted active pill;
- *  - **a bottom bar** (phone) — hairline-separated chrome with an indicator behind the active
- *    destination's glyph, the one place the accent is spent in the bar.
+ *  - **a floating bottom bar** (phone) — a detached pill that hovers above the system navigation
+ *    area on a soft shadow, with a tinted indicator behind the active destination's glyph. It is
+ *    the one piece of chrome allowed to cast a shadow, because it genuinely floats.
  *
  * All three read the same [PulseNavItem] list and the same selection treatment, so switching between
- * them changes the layout and nothing else. None of them casts a shadow: they are separated from the
- * content by a hairline, which is what keeps the whole frame flat and calm.
+ * them changes the layout and nothing else.
  */
 
 /** One destination. [selectedIcon] lets a destination swap to a filled glyph when it is active. */
@@ -76,11 +78,12 @@ data class PulseNavGroup(
 )
 
 /**
- * The bottom bar.
+ * The floating bottom bar.
  *
- * Chrome, not a floating pill: a `nav` fill, a hairline on top, 64 dp of height and an indicator
- * behind the active glyph. It is the one piece of chrome on a phone that is always on screen, so it
- * is quiet by construction.
+ * A `nav`-filled pill, detached from the screen edges and lifted above the system navigation area:
+ * a hairline keeps its edge crisp and one shadow sells the float. Nothing else in the app casts a
+ * shadow, which is why this one still means something. The active destination gets a tinted pill
+ * behind its glyph — the one place the accent is spent in the bar.
  */
 @Composable
 fun PulseFloatingNavBar(
@@ -92,29 +95,31 @@ fun PulseFloatingNavBar(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = dimens.navBarInset, vertical = dimens.navBarInset)
+            .shadow(dimens.level3, LocalPulseShapes.current.pill),
+        shape = LocalPulseShapes.current.pill,
         color = colors.nav,
         contentColor = colors.textPrimary,
+        border = BorderStroke(dimens.borderWidth, colors.border),
     ) {
-        Column {
-            PulseDivider()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(horizontal = dimens.xs, vertical = dimens.xs)
-                    .height(dimens.navBarHeight - dimens.s),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                items.forEach { item ->
-                    PulseNavBarButton(
-                        item = item,
-                        selected = item.route == currentRoute,
-                        onClick = { onSelect(item.route) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(dimens.navBarHeight)
+                .padding(horizontal = dimens.s),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            items.forEach { item ->
+                PulseNavBarButton(
+                    item = item,
+                    selected = item.route == currentRoute,
+                    onClick = { onSelect(item.route) },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
@@ -144,17 +149,18 @@ private fun PulseNavBarButton(
         onClick = onClick,
         interactionSource = interaction,
         modifier = modifier.semantics { contentDescription = item.label },
+        shape = LocalPulseShapes.current.control,
         color = Color.Transparent,
         contentColor = if (selected) colors.accent else colors.textMuted,
     ) {
         Column(
-            modifier = Modifier.padding(vertical = dimens.xs),
+            modifier = Modifier.padding(vertical = dimens.s),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Box(
                 modifier = Modifier
-                    .size(width = 52.dp, height = 26.dp)
+                    .size(width = 56.dp, height = 30.dp)
                     .clip(LocalPulseShapes.current.control)
                     .background(indicator),
                 contentAlignment = Alignment.Center,
@@ -163,7 +169,7 @@ private fun PulseNavBarButton(
                     imageVector = if (selected) item.selectedIcon ?: item.icon else item.icon,
                     contentDescription = null,
                     tint = if (selected) colors.accent else colors.textMuted,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(22.dp),
                 )
             }
             Text(
@@ -278,9 +284,9 @@ private fun PulseRailButton(
 /**
  * The sidebar: the full dashboard chrome at the largest breakpoint.
  *
- * A wordmark at the head, then sections of destinations — 36 dp rows, 18 dp glyphs, a 13 sp label, a
- * tinted fill and a 2 dp accent edge when active. Below the destinations, a footer slot carries the
- * account and appearance controls, which is where a dashboard keeps them.
+ * A wordmark at the head, then sections of destinations — 36 dp rows, 18 dp glyphs, a 13 sp label,
+ * a tinted fill and an accent beat dot when active. Below the destinations, a footer slot carries
+ * the account and appearance controls, which is where a dashboard keeps them.
  */
 @Composable
 fun PulseAppSidebar(
@@ -389,9 +395,11 @@ private fun PulseSidebarButton(
         ) {
             Box(
                 modifier = Modifier
-                    .size(width = 3.dp, height = 16.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(if (selected) colors.accent else Color.Transparent),
+                    .size(6.dp)
+                    .background(
+                        if (selected) colors.accent else Color.Transparent,
+                        RoundedCornerShape(3.dp),
+                    ),
             )
             Spacer(Modifier.width(dimens.m))
             Icon(

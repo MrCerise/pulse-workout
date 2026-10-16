@@ -9,29 +9,30 @@ import androidx.compose.ui.unit.sp
 import com.pulse.intervalcoach.R
 
 /**
- * PULSE type system — "Signal".
+ * CADENCE type system — "Momentum".
  *
- * One family, [Inter], in four static weights. Inter is the face the Cloudflare dashboard is built
- * on (via their Inter-derived display face), and it earns its place here for three reasons that
- * matter in this app specifically: it is a *grotesque with tall x-height*, so 12–14 sp dashboard
- * text stays legible at a glance mid-workout; its digits exist in a **tabular** variant, so a
- * countdown ticking from `1:00` to `0:59` never shifts a pixel; and it is metrically close to the
- * platform faces, so a fallback — if the font resource ever fails to load — does not reflow a
- * screen.
+ * Two families, two jobs:
  *
- * The four weights are static instances of the upstream variable face, subset to the Latin ranges
- * the app can render, so the whole family costs ~240 KB rather than 900 KB. The font ships with its
- * SIL Open Font License in `res/raw/inter_ofl.txt`, as the licence requires.
+ *  - [SpaceGrotesk] is the **display** face. Its slightly squared, engineered letterforms give the
+ *    page titles, the hero figures and the countdown a voice of their own — the thing that makes a
+ *    screen read as Cadence rather than as a settings page. It carries every number the user is
+ *    meant to *feel* (the timer, the session totals) and every heading the user is meant to *see*.
+ *  - [Inter] is the **text** face. A grotesque with a tall x-height, it keeps 12–14 sp labels
+ *    legible at a glance mid-workout, and its tabular digits stop any inline count from reflowing.
+ *
+ * Both ship as static instances subset to the Latin ranges the app renders, so the pair costs
+ * ~500 KB rather than the ~2 MB the full variable faces would. Each family carries its SIL Open
+ * Font License in `res/raw/`, as the licence requires.
  *
  * ## The scale
  *
- * Dashboard, not marketing: a 15 sp body, 14 sp labels, an 11 sp uppercase section label, and a
- * heading range that stops at 22 sp for page titles. The two hero figures (the Today greeting and
- * the session summary headline) are the only places that go bigger, and the player's countdown is
- * the only place that goes to 60 sp.
+ * Confident, not shouty: a 15 sp body, a 26 sp page title, an 11 sp section label — and the
+ * player's countdown as the single 64 sp moment on the whole interface. Display sizes step in
+ * larger jumps than the text sizes, because contrast in *scale* is what builds hierarchy when the
+ * palette stays quiet.
  */
 object PulseFonts {
-    /** Inter, the one text family. */
+    /** Inter, the text family: prose, labels, captions. */
     val Inter: FontFamily = FontFamily(
         Font(R.font.inter_regular, FontWeight.Normal),
         Font(R.font.inter_medium, FontWeight.Medium),
@@ -43,10 +44,21 @@ object PulseFonts {
     val Sans: FontFamily = Inter
 
     /**
-     * Numeric text: Inter with tabular figures switched on. Not a monospace face — a *tabular* one,
-     * which is what actually stops a changing number from reflowing its neighbours.
+     * Space Grotesk, the display family: page titles, hero figures, the countdown. Three static
+     * weights — the display voice never needs the extremes.
      */
-    val Numeric: FontFamily = Inter
+    val Display: FontFamily = FontFamily(
+        Font(R.font.space_grotesk_medium, FontWeight.Medium),
+        Font(R.font.space_grotesk_semibold, FontWeight.SemiBold),
+        Font(R.font.space_grotesk_bold, FontWeight.Bold),
+    )
+
+    /**
+     * Numeric text: the display face with tabular figures switched on. Space Grotesk ships a
+     * `tnum` feature, so a countdown ticking from `1:00` to `0:59` never shifts a pixel — the
+     * display face can carry the timer without reflowing it.
+     */
+    val Numeric: FontFamily = Display
 
     /**
      * The platform monospace, kept for the one place a stopwatch readout genuinely wants fixed
@@ -67,9 +79,9 @@ object PulseType {
     val NumericDisplay = TextStyle(
         fontFamily = PulseFonts.Numeric,
         fontWeight = FontWeight.Bold,
-        fontSize = 60.sp,
-        lineHeight = 64.sp,
-        letterSpacing = (-1.5).sp,
+        fontSize = 64.sp,
+        lineHeight = 68.sp,
+        letterSpacing = (-2).sp,
         fontFeatureSettings = TABULAR_FIGURES,
     )
 
@@ -77,9 +89,9 @@ object PulseType {
     val NumericLarge = TextStyle(
         fontFamily = PulseFonts.Numeric,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 30.sp,
-        lineHeight = 36.sp,
-        letterSpacing = (-0.5).sp,
+        fontSize = 32.sp,
+        lineHeight = 38.sp,
+        letterSpacing = (-0.75).sp,
         fontFeatureSettings = TABULAR_FIGURES,
     )
 
@@ -89,13 +101,13 @@ object PulseType {
         fontWeight = FontWeight.SemiBold,
         fontSize = 17.sp,
         lineHeight = 24.sp,
-        letterSpacing = (-0.1).sp,
+        letterSpacing = (-0.2).sp,
         fontFeatureSettings = TABULAR_FIGURES,
     )
 
-    /** Inline numbers: counts, BPM, timestamps in a list row. */
+    /** Inline numbers: counts, BPM, timestamps in a list row. Small enough to stay in Inter. */
     val NumericSmall = TextStyle(
-        fontFamily = PulseFonts.Numeric,
+        fontFamily = PulseFonts.Sans,
         fontWeight = FontWeight.Medium,
         fontSize = 13.sp,
         lineHeight = 18.sp,
@@ -129,71 +141,72 @@ val TimerTextStyle = TextStyle(
 )
 
 /**
- * Material3's role scale, bound to the Signal type scale. Components that read
+ * Material3's role scale, bound to the Momentum type scale: the display and headline roles speak
+ * Space Grotesk, every supporting role stays in Inter. Components that read
  * `MaterialTheme.typography.<role>` therefore inherit the same rhythm as hand-styled text.
  */
 fun pulseTypography(): Typography {
     val base = Typography()
     return base.copy(
         displayLarge = base.displayLarge.copy(
-            fontFamily = PulseFonts.Sans,
+            fontFamily = PulseFonts.Display,
             fontWeight = FontWeight.Bold,
-            fontSize = 40.sp,
-            lineHeight = 46.sp,
-            letterSpacing = (-0.8).sp,
+            fontSize = 44.sp,
+            lineHeight = 48.sp,
+            letterSpacing = (-1).sp,
         ),
         displayMedium = base.displayMedium.copy(
-            fontFamily = PulseFonts.Sans,
+            fontFamily = PulseFonts.Display,
             fontWeight = FontWeight.Bold,
-            fontSize = 32.sp,
-            lineHeight = 38.sp,
-            letterSpacing = (-0.5).sp,
+            fontSize = 34.sp,
+            lineHeight = 40.sp,
+            letterSpacing = (-0.75).sp,
         ),
         displaySmall = base.displaySmall.copy(
-            fontFamily = PulseFonts.Sans,
-            fontWeight = FontWeight.Bold,
-            fontSize = 26.sp,
-            lineHeight = 32.sp,
-            letterSpacing = (-0.3).sp,
+            fontFamily = PulseFonts.Display,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 28.sp,
+            lineHeight = 34.sp,
+            letterSpacing = (-0.5).sp,
         ),
         headlineLarge = base.headlineLarge.copy(
-            fontFamily = PulseFonts.Sans,
+            fontFamily = PulseFonts.Display,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 22.sp,
-            lineHeight = 28.sp,
-            letterSpacing = (-0.2).sp,
+            fontSize = 26.sp,
+            lineHeight = 32.sp,
+            letterSpacing = (-0.4).sp,
         ),
         headlineMedium = base.headlineMedium.copy(
-            fontFamily = PulseFonts.Sans,
+            fontFamily = PulseFonts.Display,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 19.sp,
-            lineHeight = 26.sp,
-            letterSpacing = (-0.2).sp,
+            fontSize = 21.sp,
+            lineHeight = 27.sp,
+            letterSpacing = (-0.25).sp,
         ),
         headlineSmall = base.headlineSmall.copy(
-            fontFamily = PulseFonts.Sans,
+            fontFamily = PulseFonts.Display,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 18.sp,
+            lineHeight = 24.sp,
+            letterSpacing = (-0.15).sp,
+        ),
+        titleLarge = base.titleLarge.copy(
+            fontFamily = PulseFonts.Display,
             fontWeight = FontWeight.SemiBold,
             fontSize = 17.sp,
             lineHeight = 24.sp,
             letterSpacing = (-0.1).sp,
         ),
-        titleLarge = base.titleLarge.copy(
-            fontFamily = PulseFonts.Sans,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
-            lineHeight = 24.sp,
-            letterSpacing = 0.sp,
-        ),
         titleMedium = base.titleMedium.copy(
             fontFamily = PulseFonts.Sans,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp,
             lineHeight = 20.sp,
             letterSpacing = 0.sp,
         ),
         titleSmall = base.titleSmall.copy(
             fontFamily = PulseFonts.Sans,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 13.sp,
             lineHeight = 18.sp,
             letterSpacing = 0.sp,
@@ -202,7 +215,7 @@ fun pulseTypography(): Typography {
             fontFamily = PulseFonts.Sans,
             fontWeight = FontWeight.Normal,
             fontSize = 15.sp,
-            lineHeight = 22.sp,
+            lineHeight = 23.sp,
             letterSpacing = 0.sp,
         ),
         bodyMedium = base.bodyMedium.copy(
@@ -224,7 +237,7 @@ fun pulseTypography(): Typography {
             fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp,
             lineHeight = 20.sp,
-            letterSpacing = 0.sp,
+            letterSpacing = 0.1.sp,
         ),
         labelMedium = base.labelMedium.copy(
             fontFamily = PulseFonts.Sans,

@@ -39,6 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,18 +51,18 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseDimens
 import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 
 /**
- * Surfaces, headers and rows — the structural half of the Signal design system.
+ * Surfaces, headers and rows — the structural half of the Momentum design system.
  *
  * The rules these components encode:
  *
- *  - A surface is separated from the canvas by its **fill and a hairline**. Nothing in a page
- *    scroll casts a shadow; only menus, dialogs, snackbars and the phone navigation bar float, which
- *    is why the few shadows on screen still mean something.
- *  - Radii are restrained: 6 dp panels and controls, 8 dp cards, 12 dp overlays. The silhouette is a
- *    crisp rectangle, which is what reads as a tool rather than a toy.
+ *  - A surface is separated from the canvas by its **fill, a hairline and a whisper of shadow**.
+ *    Cards float just enough to feel touchable; only cards, menus, dialogs, snackbars, the phone
+ *    navigation pill and the hero panel are allowed any elevation at all.
+ *  - Radii are generous: 16 dp panels and controls, 22 dp cards, 30 dp sheets. The silhouette is a
+ *    soft rectangle, which is what keeps a dense tool friendly.
  *  - A list row is 56 dp tall and its tap target is the whole row.
- *  - Interactive surfaces answer the pointer: a pressed or hovered card lifts to `surfaceHover`, so
- *    the affordance is visible before the tap lands.
+ *  - Interactive surfaces answer the pointer: a pressed or hovered card lifts — a brighter fill,
+ *    a longer shadow — so the affordance is visible before the tap lands.
  */
 
 /**
@@ -92,15 +94,19 @@ fun PulseCard(
         val interaction = remember { MutableInteractionSource() }
         val pressed by interaction.collectIsPressedAsState()
         val hovered by interaction.collectIsHoveredAsState()
+        val lift = pressed || hovered
         val fill by animateColorAsState(
             animationSpec = tween(LocalPulseMotion.current.fast()),
-            targetValue = if (pressed || hovered) wash(background, colors.textPrimary, 0.05f) else background,
+            targetValue = if (lift) wash(background, colors.textPrimary, 0.05f) else background,
             label = "cardFill",
         )
         Surface(
             onClick = onClick,
             interactionSource = interaction,
-            modifier = modifier.fillMaxWidth(),
+            // A clickable card lifts: one elevation step of shadow, answered by the brighter fill.
+            modifier = modifier
+                .fillMaxWidth()
+                .shadow(if (lift) dimens.level2 else dimens.level1, shape),
             shape = shape,
             color = fill,
             contentColor = colors.textPrimary,
@@ -108,7 +114,9 @@ fun PulseCard(
         ) { body() }
     } else {
         Surface(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .shadow(dimens.level1, shape),
             shape = shape,
             color = background,
             contentColor = colors.textPrimary,
@@ -121,8 +129,8 @@ fun PulseCard(
  * The ink panel: a deliberately dark surface that stays dark in **both** themes.
  *
  * It is the one place a screen raises its voice, which is why it is used twice in the whole app —
- * the Today hero and the session summary banner. It is a feature panel, not a card: no gradient, no
- * glow, just ink, a hairline and the accent used once inside it.
+ * the Today hero and the session summary banner. It is a feature panel, not a card: ink, a hairline,
+ * and a single volt wash rising from the bottom edge — the brand colour as light, not as a block.
  */
 @Composable
 fun PulseHeroCard(
@@ -135,7 +143,21 @@ fun PulseHeroCard(
     val dimens = LocalPulseDimens.current
     val shape = LocalPulseShapes.current.card
     val body: @Composable () -> Unit = {
-        Box(Modifier.padding(contentPadding)) { content() }
+        Box {
+            // The volt wash: a soft accent glow rising from the lower edge, at a fixed alpha so the
+            // panel reads identically in every theme. Text is never drawn over its brightest band.
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            1f to colors.brand.copy(alpha = 0.16f),
+                        ),
+                    ),
+            )
+            Box(Modifier.padding(contentPadding)) { content() }
+        }
     }
     if (onClick != null) {
         val interaction = remember { MutableInteractionSource() }
@@ -143,7 +165,9 @@ fun PulseHeroCard(
         Surface(
             onClick = onClick,
             interactionSource = interaction,
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .shadow(dimens.level2, shape),
             shape = shape,
             color = colors.heroSurface,
             contentColor = colors.heroText,
@@ -151,7 +175,9 @@ fun PulseHeroCard(
         ) { body() }
     } else {
         Surface(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .shadow(dimens.level2, shape),
             shape = shape,
             color = colors.heroSurface,
             contentColor = colors.heroText,
@@ -184,9 +210,10 @@ fun PulsePanel(
 }
 
 /**
- * Section label. A quiet, tight header for a group of content: 13 sp semibold in primary text, with
- * an optional count on the trailing edge and an optional quiet action ("See all") in the accent, so
- * a section header is never followed by a lonely button on its own line.
+ * Section label. A quiet, tight header for a group of content: the 11 sp section face set in
+ * uppercase with a touch of tracking — a caption that behaves like a tab in a notebook — with an
+ * optional count on the trailing edge and an optional quiet action ("See all") in the accent, so a
+ * section header is never followed by a lonely button on its own line.
  */
 @Composable
 fun SectionHeader(
@@ -205,9 +232,9 @@ fun SectionHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall,
-            color = colors.textPrimary,
+            text = text.uppercase(),
+            style = com.pulse.intervalcoach.ui.theme.PulseType.SectionLabel,
+            color = colors.textMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),

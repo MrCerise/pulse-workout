@@ -3,7 +3,7 @@ package com.pulse.intervalcoach.wear.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * The "Signal" palette on the watch — a mirror of the phone app's `PulsePalette`.
+ * The "Momentum" palette on the watch — a mirror of the phone app's `PulsePalette`.
  *
  * A Wear APK cannot share Gradle modules with an application module, so the values are mirrored
  * here instead of referenced. `scripts/contrast_check.py` asserts that every constant below is
@@ -19,19 +19,19 @@ object PulseWearPalette {
 
     // ---------------------------------------------------------------- Ink (dark, default)
 
-    val Canvas = Color(0xFF17181B)
-    val Nav = Color(0xFF1C1D21)
-    val Surface = Color(0xFF202226)
-    val SurfaceRaised = Color(0xFF26282D)
-    val SurfaceOverlay = Color(0xFF2A2D33)
-    val SurfaceHover = Color(0xFF313439)
-    val SurfaceSunken = Color(0xFF1B1C20)
+    val Canvas = Color(0xFF101216)
+    val Nav = Color(0xFF14161B)
+    val Surface = Color(0xFF181B20)
+    val SurfaceRaised = Color(0xFF1E2126)
+    val SurfaceOverlay = Color(0xFF23262C)
+    val SurfaceHover = Color(0xFF2A2E34)
+    val SurfaceSunken = Color(0xFF121418)
 
-    val Border = Color(0xFF34373D)
-    val BorderStrong = Color(0xFF42464D)
+    val Border = Color(0xFF2E323A)
+    val BorderStrong = Color(0xFF3B4048)
     val Outline = Color(0xFF8A9099)
 
-    val TextPrimary = Color(0xFFF5F6F7)
+    val TextPrimary = Color(0xFFF4F6F8)
     val TextSecondary = Color(0xFFC3C7CC)
     val TextMuted = Color(0xFF9CA2A9)
     val TextDisabled = Color(0xFF6E747C)
@@ -40,13 +40,13 @@ object PulseWearPalette {
     val Track = Color(0xFF3A3E45)
 
     /** The accent (Cloudflare orange) and its lighter partner. */
-    val Accent = Color(0xFFF38020)
-    val AccentAlt = Color(0xFFFFC078)
-    val AccentTint = Color(0xFF3A291C)
+    val Accent = Color(0xFFA3E635)
+    val AccentAlt = Color(0xFFD9F99D)
+    val AccentTint = Color(0xFF232B10)
 
     /** The brand fill and the ink measured against it. */
-    val Brand = Color(0xFFF38020)
-    val OnBrand = Color(0xFF17181B)
+    val Brand = Color(0xFFA3E635)
+    val OnBrand = Color(0xFF101216)
 
     val Work = Color(0xFF4CC38A)
     val WorkTint = Color(0xFF1D2D28)
@@ -60,9 +60,9 @@ object PulseWearPalette {
     val DestructiveTint = Color(0xFF322325)
     val NeutralFill = Color(0xFF2E3138)
 
-    val ActionFill = Color(0xFFF38020)
-    val ActionText = Color(0xFF17181B)
-    val OnAccent = Color(0xFF17181B)
+    val ActionFill = Color(0xFFA3E635)
+    val ActionText = Color(0xFF101216)
+    val OnAccent = Color(0xFF101216)
 
     // ---------------------------------------------------------------- Void (OLED)
 
@@ -84,5 +84,5 @@ object PulseWearPalette {
     val HighContrastRest = Color(0xFF9CC8FF)
     val HighContrastPrepare = Color(0xFFFBD37E)
     val HighContrastCooldown = Color(0xFFCDB4FF)
-    val HighContrastAccent = Color(0xFFFFB066)
+    val HighContrastAccent = Color(0xFFD9F99D)
 }

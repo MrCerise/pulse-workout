@@ -55,7 +55,7 @@ import com.pulse.intervalcoach.ui.theme.LocalPulseShapes
 import com.pulse.intervalcoach.ui.theme.PulseType
 
 /**
- * Buttons, fields, chips and pickers — the interactive half of the Signal design system.
+ * Buttons, fields, chips and pickers — the interactive half of the Momentum design system.
  *
  * Three rules are baked into the components themselves, so a screen cannot get them wrong:
  *

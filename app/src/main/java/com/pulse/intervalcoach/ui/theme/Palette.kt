@@ -3,7 +3,7 @@ package com.pulse.intervalcoach.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Raw material for the "Signal" design system — the Compose mirror of `res/values/colors.xml`.
+ * Raw material for the "Momentum" design system — the Compose mirror of `res/values/colors.xml`.
  *
  * Nothing outside this package should read [PulsePalette] directly: screens and components consume
  * the semantic tokens on [PulseColors] instead, so a hex value can only ever change in one place.
@@ -17,19 +17,19 @@ object PulsePalette {
     // hairline, never from a brightness jump. Not pure black, which is what keeps long sessions
     // comfortable and lets the one shadow on screen mean something.
 
-    val Canvas = Color(0xFF17181B)
-    val Nav = Color(0xFF1C1D21)
-    val Surface = Color(0xFF202226)
-    val SurfaceRaised = Color(0xFF26282D)
-    val SurfaceOverlay = Color(0xFF2A2D33)
-    val SurfaceHover = Color(0xFF313439)
-    val SurfaceSunken = Color(0xFF1B1C20)
+    val Canvas = Color(0xFF101216)
+    val Nav = Color(0xFF14161B)
+    val Surface = Color(0xFF181B20)
+    val SurfaceRaised = Color(0xFF1E2126)
+    val SurfaceOverlay = Color(0xFF23262C)
+    val SurfaceHover = Color(0xFF2A2E34)
+    val SurfaceSunken = Color(0xFF121418)
 
-    val Border = Color(0xFF34373D)
-    val BorderStrong = Color(0xFF42464D)
+    val Border = Color(0xFF2E323A)
+    val BorderStrong = Color(0xFF3B4048)
     val Outline = Color(0xFF8A9099)
 
-    val TextPrimary = Color(0xFFF5F6F7)
+    val TextPrimary = Color(0xFFF4F6F8)
     val TextSecondary = Color(0xFFC3C7CC)
     val TextMuted = Color(0xFF9CA2A9)
     val TextDisabled = Color(0xFF6E747C)
@@ -38,22 +38,22 @@ object PulsePalette {
     val Track = Color(0xFF3A3E45)
 
     /**
-     * The accent. [Accent] (Cloudflare orange) carries text, selection and focus; [AccentAlt] is its
+     * The accent. [Accent] (volt lime) carries text, selection and focus; [AccentAlt] is its
      * lighter partner and is only drawn as a graphic — a bar, a sweep, a rank badge — never as a
      * label on its own, which is why it is measured at 3:1 rather than 4.5:1.
      */
-    val Accent = Color(0xFFF38020)
-    val AccentAlt = Color(0xFFFFC078)
-    val AccentTint = Color(0xFF3A291C)
+    val Accent = Color(0xFFA3E635)
+    val AccentAlt = Color(0xFFD9F99D)
+    val AccentTint = Color(0xFF232B10)
 
     /** The brand fill and the ink measured against it — one pair, one place. */
-    val Brand = Color(0xFFF38020)
-    val OnBrand = Color(0xFF17181B)
+    val Brand = Color(0xFFA3E635)
+    val OnBrand = Color(0xFF101216)
 
     /** The ink panel: dark in **both** themes, so a hero card is a feature panel, not a card. */
-    val HeroSurface = Color(0xFF1B1C20)
-    val HeroText = Color(0xFFF5F6F7)
-    val HeroMuted = Color(0xFFAEB4BB)
+    val HeroSurface = Color(0xFF131519)
+    val HeroText = Color(0xFFF4F6F8)
+    val HeroMuted = Color(0xFFA8B0BA)
 
     val Work = Color(0xFF4CC38A)
     val WorkTint = Color(0xFF1D2D28)
@@ -71,23 +71,23 @@ object PulsePalette {
     val Info = Color(0xFF7CB7FF)
     val InfoTint = Color(0xFF232B36)
 
-    val ActionFill = Color(0xFFF38020)
-    val ActionText = Color(0xFF17181B)
-    val OnAccent = Color(0xFF17181B)
+    val ActionFill = Color(0xFFA3E635)
+    val ActionText = Color(0xFF101216)
+    val OnAccent = Color(0xFF101216)
 
     // ---------------------------------------------------------------- Paper (light)
     // The same roles with inverted polarity. Chrome is white; the canvas is one step off it, so a
     // card edge is legible without a shadow.
 
-    val LightCanvas = Color(0xFFF5F6F7)
+    val LightCanvas = Color(0xFFF4F6F8)
     val LightNav = Color(0xFFFFFFFF)
     val LightSurface = Color(0xFFFFFFFF)
-    val LightSurfaceRaised = Color(0xFFF7F8F9)
+    val LightSurfaceRaised = Color(0xFFF7F8FA)
     val LightSurfaceOverlay = Color(0xFFFFFFFF)
-    val LightSurfaceHover = Color(0xFFEDEEF0)
-    val LightSurfaceSunken = Color(0xFFF1F2F4)
-    val LightBorder = Color(0xFFE4E6E8)
-    val LightBorderStrong = Color(0xFFCED2D7)
+    val LightSurfaceHover = Color(0xFFEBEEF1)
+    val LightSurfaceSunken = Color(0xFFEFF2F5)
+    val LightBorder = Color(0xFFE3E7EB)
+    val LightBorderStrong = Color(0xFFCBD2D9)
     val LightOutline = Color(0xFF6B7280)
 
     val LightTextPrimary = Color(0xFF1B1E21)
@@ -100,15 +100,15 @@ object PulsePalette {
      * A deeper orange than the brand fill: this one carries *text* (links, selected labels, the
      * focus ring) and has to clear 4.5:1 on white. The brand fill carries ink and stays #F38020.
      */
-    val LightAccent = Color(0xFFB23A0B)
-    val LightAccentAlt = Color(0xFF9A3412)
-    val LightAccentTint = Color(0xFFF8ECE7)
-    val LightBrand = Color(0xFFF38020)
-    val LightOnBrand = Color(0xFF1B1E21)
+    val LightAccent = Color(0xFF3F6212)
+    val LightAccentAlt = Color(0xFF365314)
+    val LightAccentTint = Color(0xFFF1F5E1)
+    val LightBrand = Color(0xFFA3E635)
+    val LightOnBrand = Color(0xFF101216)
 
-    val LightHeroSurface = Color(0xFF1B1E21)
-    val LightHeroText = Color(0xFFF5F6F7)
-    val LightHeroMuted = Color(0xFFAEB4BB)
+    val LightHeroSurface = Color(0xFF131519)
+    val LightHeroText = Color(0xFFF4F6F8)
+    val LightHeroMuted = Color(0xFFA8B0BA)
 
     val LightWork = Color(0xFF12603C)
     val LightWorkTint = Color(0xFFE7EFEC)
@@ -124,9 +124,9 @@ object PulsePalette {
     val LightInfo = Color(0xFF0B57C2)
     val LightInfoTint = Color(0xFFE7EEF9)
 
-    val LightActionFill = Color(0xFFF38020)
-    val LightActionText = Color(0xFF1B1E21)
-    val LightOnAccent = Color(0xFFFFFFFF)
+    val LightActionFill = Color(0xFFA3E635)
+    val LightActionText = Color(0xFF101216)
+    val LightOnAccent = Color(0xFF101216)
 
     // ---------------------------------------------------------------- Void (OLED)
 
@@ -152,7 +152,7 @@ object PulsePalette {
     val HighContrastRest = Color(0xFF9CC8FF)
     val HighContrastPrepare = Color(0xFFFBD37E)
     val HighContrastCooldown = Color(0xFFCDB4FF)
-    val HighContrastAccent = Color(0xFFFFB066)
+    val HighContrastAccent = Color(0xFFD9F99D)
 
     // ---------------------------------------------------------------- Category hues
     // One hue per workout family, used by the category registry so a HIIT card and a mobility card
