@@ -17,7 +17,7 @@ available.
 | --- | --- |
 | Any machine with Python 3 | Resources, vectors, EN/FR parity, brand assets, contrast, Kotlin syntax and cross-reference gates |
 | Any machine with JDK 17 | `:engine:test`, `:sync:test` and `:library:test` — the timing engine, the phone↔watch protocol and the bundled catalogue, no Android SDK needed |
-| CI (GitHub Actions) | `:engine:test`, `:sync:test`, `:library:test`, `:app:testDebugUnitTest`, `:wear:testDebugUnitTest` — the tests as three parallel jobs — lint, and signed debug/release APK builds against the newest platform the runner offers |
+| CI (GitHub Actions) | `:engine:test`, `:sync:test`, `:library:test`, `:app:testDebugUnitTest`, `:wear:testDebugUnitTest` — the tests as three parallel jobs — lint, and signed debug/release APK builds against the newest platform the runner offers. The `v1.8.1-beta1.5` tag build compiled `:app` and `:wear` and published the four signed APKs |
 | A device or emulator | Everything platform-dependent: notifications, audio focus, TTS, vibration, widgets, TalkBack, Health Connect |
 
 The development environment this project has been built in has **no Android SDK, no JDK and no

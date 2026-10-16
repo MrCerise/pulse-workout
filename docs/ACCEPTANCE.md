@@ -62,7 +62,7 @@ The visual refactor has its own pass/fail criteria, all of which are machine-che
 | Functionality preserved | No engine, data, session, health or parser file was touched by the refactor; only `ui/`, resources and documentation changed | **verified by diff** — `engine/` and the non-UI app packages are untouched |
 | Every route refactored | All eleven destinations plus the four settings sub-screens use `PulseTopBar` and the shared component set | **verified** — `scripts/kotlin_xref_gate.py` reports 0 problems across every screen |
 | Component call sites valid | Every named argument passed to a `ui/components` composable exists on its declaration | **verified** — 43 components, 0 unknown arguments |
-| Resources and locale parity | `scripts/check_ui.py` | **verified** — 612 resource names resolve, 397 EN / 397 FR app strings and 63 / 63 on the watch, vectors parse |
+| Resources and locale parity | `scripts/check_ui.py` | **verified** — 611 resource names resolve, 392 EN / 392 FR app strings and 63 / 63 on the watch, vectors parse |
 
 Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
 environment); the local gates above are the ones that can run before it.
@@ -105,9 +105,12 @@ device, because both are statements about the code and the tokens rather than ab
 | The title and the page actions cannot overlap | `PulsePageHeader` measures the action cluster and insets the title by its width on both sides, and stacks the cluster above the title when it is too wide | **verified by construction** |
 | The design document describes the code | `docs/DESIGN.md` §4 (the responsive layer), §6 (the component inventory) and §8 (adding a screen) | **verified** — the inventory lists `Layout.kt`, the responsive metrics and the one-measure rule |
 | Contrast is unchanged by the rework | `scripts/contrast_check.py` | **verified** — 125 measured pairings, all pass, see `docs/CONTRAST.md` |
+| The code at the tag compiles | the `v1.8.1-beta1.5` tag build | **verified** — the release build compiled `:app` and `:wear` and published the four signed APKs |
 
-Compilation, lint and the APK builds remain the CI workflow's job (no Android SDK or JDK in this
-environment); the gates above are the ones that can run before it.
+Compilation, lint and the APK builds are the CI workflow's job (no Android SDK or JDK in this
+environment); the gates above are the ones that can run before it. The gates earned their keep
+here: they found the missing imports and the composable call in a callback that the tag build
+would otherwise have failed on, and the import gate that came out of it now runs in CI too.
 
 ## v1.4.4 audio-ducking checks
 
