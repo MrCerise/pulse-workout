@@ -241,7 +241,7 @@ fun SettingsScreen(
 
             item { SectionHeader("During workouts") }
             item {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     ToggleRow(
                         label = "Keep the screen on",
                         checked = current.keepScreenOn,
@@ -258,14 +258,13 @@ fun SettingsScreen(
                         selected = current.audioInterruptionBehavior,
                         onSelect = { value -> scope.launch { container.preferences.setAudioInterruption(value) } },
                     )
-                    Spacer(Modifier.height(LocalPulseDimens.current.l))
                     OptionRow(
                         label = stringResource(R.string.settings_headphone_unplug),
                         options = HeadphoneBehavior.entries.map { it to it.label() },
                         selected = current.headphoneBehavior,
                         onSelect = { value -> scope.launch { container.preferences.setHeadphoneBehavior(value) } },
                     )
-                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    Spacer(Modifier.height(LocalPulseDimens.current.xxl))
                     SecondaryActionButton(
                         text = "Voice & audio",
                         onClick = onOpenVoiceStudio,

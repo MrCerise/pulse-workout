@@ -12,6 +12,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.7] — 2026-10-17
+
+**Changed**
+- Library layout: the title band is clear; sort (labelled) and the list/grid toggle live in a
+  toolbar under the search field with Favourites, and creating a workout is the floating + button.
+- Duration entry is a number scroll: tap the value to open hour / minute / second wheels and
+  scroll to the time — the ± buttons and type-in fields are gone.
+- Player controls are one centred, modern transport cluster: round previous/next buttons around
+  an 88 dp play/pause disc, with +15 s and Lap as centred pill buttons underneath.
+- Uniform spacing in Settings → During workouts, with a larger gap before Voice & audio.
+
+**Fixed**
+- Bottom sheets respect the navigation-bar inset, so the last option (AI workout in the
+  New workout sheet) is always visible.
+- Image sharing grants read access to chooser targets explicitly and falls back to a text
+  share if the image cannot be rendered, so sharing always works.
+
 ## [1.8.1-beta1.6] — 2026-10-16
 
 **Changed**

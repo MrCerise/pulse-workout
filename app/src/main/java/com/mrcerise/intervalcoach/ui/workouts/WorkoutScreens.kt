@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
@@ -90,6 +91,7 @@ import com.mrcerise.intervalcoach.ui.components.StatTile
 import com.mrcerise.intervalcoach.ui.components.TimelineBar
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseColors
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseDimens
+import com.mrcerise.intervalcoach.ui.theme.LocalPulseElevation
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseShapes
 import com.mrcerise.intervalcoach.ui.theme.PulseType
 import com.pulse.library.StarterWorkouts
@@ -216,33 +218,24 @@ fun WorkoutLibraryScreen(
     var showNewMenu by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
 
-    PulseScaffold { padding ->
+    PulseScaffold(
+        floatingActionButton = {
+            Surface(
+                onClick = { showNewMenu = true },
+                modifier = Modifier.size(56.dp),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = colors.actionFill,
+                contentColor = colors.actionText,
+                shadowElevation = LocalPulseElevation.current.level3,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.Add, contentDescription = "New workout", modifier = Modifier.size(26.dp))
+                }
+            }
+        },
+    ) { padding ->
         Column(Modifier.padding(padding)) {
-            PulsePageHeader(
-                title = "Workouts",
-                trailing = {
-                    PulseIconButton(
-                        icon = Icons.Filled.Sort,
-                        contentDescription = stringResource(R.string.workouts_sort),
-                        tooltip = "Sort",
-                        onClick = { showSortMenu = true },
-                        tint = if (state.sort != LibrarySort.RECENT) colors.accent else colors.textSecondary,
-                    )
-                    PulseIconButton(
-                        icon = if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
-                        contentDescription = if (state.grid) "List view" else "Grid view",
-                        tooltip = if (state.grid) "List view" else "Grid view",
-                        onClick = viewModel::toggleGrid,
-                    )
-                    PulseIconButton(
-                        icon = Icons.Filled.Add,
-                        contentDescription = "New workout",
-                        tooltip = "New workout",
-                        onClick = { showNewMenu = true },
-                        tint = colors.textPrimary,
-                    )
-                },
-            )
+            PulsePageHeader(title = "Workouts")
 
             PulseTextField(
                 value = state.query,
@@ -262,23 +255,42 @@ fun WorkoutLibraryScreen(
                 },
             )
 
+            // --- Toolbar: sort (labelled, left), favourites, layout toggle (right) ----------------
+            Row(
+                modifier = Modifier.padding(horizontal = dimens.pagePadding, vertical = dimens.xs),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
+            ) {
+                Surface(
+                    onClick = { showSortMenu = true },
+                    shape = LocalPulseShapes.current.control,
+                    color = colors.surfaceRaised,
+                    contentColor = colors.textPrimary,
+                    border = androidx.compose.foundation.BorderStroke(dimens.borderWidth, colors.borderStrong),
+                ) {
+                    Row(Modifier.padding(horizontal = dimens.m, vertical = dimens.s), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.Sort, contentDescription = stringResource(R.string.workouts_sort),
+                            tint = if (state.sort != LibrarySort.RECENT) colors.accent else colors.textSecondary, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(dimens.xs))
+                        Text(state.sort.label(), style = MaterialTheme.typography.labelLarge, color = colors.textPrimary)
+                    }
+                }
+                PulseChoiceChip(text = "Favorites", selected = state.favoritesOnly, onClick = viewModel::toggleFavoritesOnly)
+                Spacer(Modifier.weight(1f))
+                PulseIconButton(
+                    icon = if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
+                    contentDescription = if (state.grid) "List view" else "Grid view",
+                    tooltip = if (state.grid) "List view" else "Grid view",
+                    onClick = viewModel::toggleGrid,
+                )
+            }
+
             // --- Category rail -------------------------------------------------------------------
             CategoryFilterRail(
                 categories = WorkoutCategories.picker,
                 selectedKey = state.categoryKey,
                 onSelect = viewModel::setCategory,
             )
-
-            Row(
-                modifier = Modifier.padding(horizontal = dimens.pagePadding, vertical = dimens.s),
-                horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
-            ) {
-                PulseChoiceChip(
-                    text = "Favorites",
-                    selected = state.favoritesOnly,
-                    onClick = viewModel::toggleFavoritesOnly,
-                )
-            }
 
             if (state.workouts.isEmpty()) {
                 Box(
@@ -387,8 +399,8 @@ fun WorkoutLibraryScreen(
                 onClick = { showNewMenu = false; onAdvancedBuilder() },
             )
             PulseSheetRow(
-                text = stringResource(R.string.json_title),
-                leadingIcon = Icons.Filled.ContentCopy,
+                text = "AI workout",
+                leadingIcon = Icons.Filled.AutoAwesome,
                 onClick = { showNewMenu = false; onJsonImport() },
             )
         }
