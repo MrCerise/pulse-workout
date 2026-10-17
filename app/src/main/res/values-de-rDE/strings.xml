@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Intervals</string>
+    <string name="app_name">Interval Coach</string>
     <string name="app_tagline">Interval Coach</string>
     <!-- Navigation -->
     <string name="nav_home">Home</string>
@@ -297,7 +297,7 @@
     <string name="settings_permissions">Permissions used</string>
     <!-- Import / export -->
     <!-- Onboarding -->
-    <string name="welcome_title">Intervals</string>
+    <string name="welcome_title">Interval Coach</string>
     <string name="welcome_subtitle">The HIIT &amp; Tabata interval timer.</string>
     <string name="welcome_theme">Choose a look</string>
     <string name="welcome_language">Choose a language</string>
@@ -306,14 +306,14 @@
     <string name="welcome_sample_workout">Try a 4-minute starter</string>
     <string name="welcome_skip">Skip</string>
     <string name="welcome_next">Next</string>
-    <string name="welcome_start">Start using Intervals</string>
+    <string name="welcome_start">Start using Interval Coach</string>
     <string name="welcome_notifications">Notifications add timer controls to your lock screen.</string>
     <string name="welcome_notifications_allow">Allow notifications</string>
     <string name="welcome_permission_denied">Notifications are off. The workout still runs, but without live controls.</string>
     <!-- Help -->
     <string name="help_title">Help</string>
     <string name="help_voice">Voice setup</string>
-    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Intervals uses sound cues.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Interval Coach uses sound cues.</string>
     <string name="help_background">Background operation</string>
     <string name="help_background_body">Timing continues with the screen off. Enable screen-off cues in Settings to keep announcements playing.</string>
     <string name="help_audio">Audio troubleshooting</string>
@@ -335,11 +335,11 @@
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Intervals favorites</string>
-    <string name="widget_quick_start_name">Intervals quick start</string>
+    <string name="widget_favorites_name">Interval Coach favorites</string>
+    <string name="widget_quick_start_name">Interval Coach quick start</string>
     <string name="widget_quick_start_label">Quick start</string>
     <string name="widget_quick_start_sub">Work / rest</string>
-    <string name="widget_empty">Open Intervals to star a workout</string>
+    <string name="widget_empty">Open Interval Coach to star a workout</string>
     <string name="shortcut_recent">Recent workouts</string>
     <string name="shortcut_quick">Quick builder</string>
     <!-- Notifications -->
