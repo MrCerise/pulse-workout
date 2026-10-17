@@ -1,0 +1,23 @@
+Préparez vos séances, lancez le minuteur et laissez-vous guider par la voix. Interval Coach organise vos temps d’effort, de récupération et vos répétitions pour le HIIT, le Tabata, les circuits de renforcement et la course à pied.
+
+Des séances à votre rythme
+Créez un entraînement rapide avec vos durées d’effort et de repos, ou composez des séances plus détaillées : échauffement, blocs répétés, circuits et retour au calme. Partez d’un modèle, adaptez-le à votre pratique et retrouvez vos programmes dans une bibliothèque avec dossiers, étiquettes et favoris.
+
+Des repères pendant l’effort
+Suivez l’intervalle en cours, le suivant et le temps restant sur un écran lisible. Les annonces vocales, sons et vibrations vous accompagnent sans avoir à regarder le téléphone. Réglez le volume, le débit de la voix et les comptes à rebours, ou enregistrez vos propres annonces. Le chronomètre continue lorsque l’écran est éteint ; activez les annonces écran éteint dans les réglages pour les conserver.
+
+Votre progression au fil des séances
+Consultez votre historique, la durée de vos entraînements et vos statistiques d’activité. Ajoutez des notes, fixez un objectif de pratique et planifiez vos prochaines séances avec des rappels.
+
+La course à pied sur téléphone
+Pendant une séance de course, le GPS peut mesurer votre allure et votre distance et enregistrer votre parcours, avec votre autorisation. Sans GPS, les estimations sont calculées à partir de votre programme.
+
+Sur votre montre Wear OS
+Lancez un entraînement directement sur la montre, avec ou sans téléphone à proximité. Lorsqu’elle est associée au téléphone, synchronisez vos programmes et contrôlez votre séance depuis l’un ou l’autre appareil.
+
+Vos entraînements, à votre façon
+Importez et exportez vos programmes, partagez un bilan de séance et choisissez votre thème. Sur les téléphones compatibles, exportez vos séances terminées vers Health Connect après avoir autorisé cet accès.
+
+Interval Coach fonctionne sans compte et sans publicité. Le minuteur et la bibliothèque restent utilisables sans connexion. Les annonces vocales hors ligne nécessitent une voix installée sur l’appareil.
+
+Interval Coach est une application de coaching sportif et de chronométrage par intervalles. Ce n’est pas un dispositif médical ; elle ne diagnostique, ne traite, ne guérit et ne prévient aucune maladie. Consultez un professionnel de santé pour tout conseil médical, diagnostic ou traitement. L’allure et la distance peuvent être approximatives.

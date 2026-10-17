@@ -1,0 +1,18 @@
+[
+  {
+    "file": "builder.png",
+    "sha256": "db457a3d10c5965689fc1bb55b5247b6ef4a4d6f66956334dfb7f846532fa995"
+  },
+  {
+    "file": "player.png",
+    "sha256": "475c9b70d6004d9002dfa9e8ed63021c3267c4b390fd787d3a22261186551eab"
+  },
+  {
+    "file": "today.png",
+    "sha256": "39fbb4545474c5a373c82cec41515eb13838506135d241af57579012cd316b36"
+  },
+  {
+    "file": "workouts.png",
+    "sha256": "095cf0218cc7fc4407ae32bd92d500a15056d642b6a8a050e1b5879d654e9d5f"
+  }
+]
