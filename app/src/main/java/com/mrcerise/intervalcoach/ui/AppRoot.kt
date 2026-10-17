@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -58,6 +60,7 @@ import com.mrcerise.intervalcoach.DeepLinks
 import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.data.AppLanguage
 import com.mrcerise.intervalcoach.data.category
+import com.mrcerise.intervalcoach.session.RunTracker
 import com.mrcerise.intervalcoach.locale.Localized
 import com.mrcerise.intervalcoach.ui.builders.AdvancedBuilderScreen
 import com.mrcerise.intervalcoach.ui.builders.QuickBuilderScreen
@@ -248,7 +251,7 @@ fun PulseAppRoot(
     deeplinks: StateFlow<String?>,
     onDeeplinkConsumed: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
-    onRequestLocationPermission: () -> Unit,
+    onRequestLocationPermission: (() -> Unit) -> Unit,
 ) {
     val language by container.preferences.flow
         .map { it.appLanguage }
@@ -271,7 +274,7 @@ private fun PulseAppRootContent(
     deeplinks: StateFlow<String?>,
     onDeeplinkConsumed: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
-    onRequestLocationPermission: () -> Unit,
+    onRequestLocationPermission: (() -> Unit) -> Unit,
 ) {
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val navController = rememberNavController()
@@ -308,21 +311,32 @@ private fun PulseAppRootContent(
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         val pendingStartPlan = remember { mutableStateOf<WorkoutPlan?>(null) }
+        val pendingLocationStart = remember { mutableStateOf<Pair<WorkoutPlan, Boolean>?>(null) }
 
         // Starting over an active session is always an explicit user decision. The controller also
         // refuses silent replacement, so alternate callers cannot bypass this UI check.
-        val launchStart: (WorkoutPlan, Boolean) -> Unit = { plan, replaceActive ->
+        val performStart: (WorkoutPlan, Boolean) -> Unit = { plan, replaceActive ->
             scope.launch {
                 val result = sessionController.startWorkout(plan, replaceActiveSession = replaceActive)
                 if (result.isSuccess) {
                     onRequestNotificationPermission()
-                    // Running workouts measure with GPS when the user allows it; without the
-                    // permission the race info falls back to the plan's target pace.
-                    if (plan.category.capabilities.supportsRaceInfo) onRequestLocationPermission()
-                    navController.navigate(Routes.PLAYER)
+                    sessionController.clearSummary()
+                    val repeating = navController.currentDestination?.route == Routes.SUMMARY
+                    navController.navigate(Routes.PLAYER) {
+                        if (repeating) popUpTo(Routes.SUMMARY) { inclusive = true }
+                    }
                 } else {
                     snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "Could not start this workout")
                 }
+            }
+        }
+        // Explain screen-off tracking before permission and start only after the result, so
+        // RunTracker and the foreground service see the grant on the very first run.
+        val launchStart: (WorkoutPlan, Boolean) -> Unit = { plan, replaceActive ->
+            if (plan.category.capabilities.supportsRaceInfo && !RunTracker.hasLocationPermission(context)) {
+                pendingLocationStart.value = plan to replaceActive
+            } else {
+                performStart(plan, replaceActive)
             }
         }
         val startSession: (WorkoutPlan) -> Unit = { plan ->
@@ -565,16 +579,7 @@ private fun PulseAppRootContent(
                                     sessionController.clearSummary()
                                     navController.navigate(Routes.HOME) { popUpTo(Routes.HOME) { inclusive = true } }
                                 },
-                                onRepeat = { plan ->
-                                    scope.launch {
-                                        val result = sessionController.startWorkout(plan)
-                                        if (result.isSuccess) {
-                                            if (plan.category.capabilities.supportsRaceInfo) onRequestLocationPermission()
-                                            sessionController.clearSummary()
-                                            navController.navigate(Routes.PLAYER) { popUpTo(Routes.SUMMARY) { inclusive = true } }
-                                        }
-                                    }
-                                },
+                                onRepeat = startSession,
                             )
                         }
                         composable(Routes.GOALS) {
@@ -668,6 +673,25 @@ private fun PulseAppRootContent(
             }
         }
 
+        pendingLocationStart.value?.let { (plan, replaceActive) ->
+            AlertDialog(
+                onDismissRequest = { pendingLocationStart.value = null },
+                title = { Text(stringResource(R.string.privacy_location_title)) },
+                text = { Text(stringResource(R.string.privacy_location_notice)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        pendingLocationStart.value = null
+                        onRequestLocationPermission { performStart(plan, replaceActive) }
+                    }) { Text(stringResource(R.string.privacy_location_enable)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        pendingLocationStart.value = null
+                        performStart(plan, replaceActive)
+                    }) { Text(stringResource(R.string.privacy_location_skip)) }
+                },
+            )
+        }
         pendingStartPlan.value?.let { plan ->
             val activeName = activeSession?.plan?.name
             ConfirmDialog(

@@ -34,7 +34,7 @@ import java.util.Locale
  * Foreground service that keeps a workout alive with the screen off.
  *
  * It deliberately owns no timing logic: [SessionController] runs the engine and publishes state,
- * this service only (a) keeps the process alive with a media-playback foreground type, (b) mirrors
+ * this service only (a) keeps the process alive for an explicitly started workout timer, (b) mirrors
  * player state into a notification with controls, and (c) reacts to the system events that matter
  * mid-workout (headphones unplugged, audio focus, task removal).
  */
@@ -65,13 +65,16 @@ class WorkoutService : Service() {
         }
         startForegroundCompat(buildNotification(controller.snapshot.value))
         observeSession()
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun startForegroundCompat(notification: Notification) {
         var type = 0
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // A timer also runs silently. Declare its actual purpose instead of claiming playback.
+            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
             // The running system measures with GPS while the screen is off. Android 14+ requires
             // the location type to be declared *and* held at startForeground time, so it joins the
             // type only when a run is actually tracked and the user granted location.

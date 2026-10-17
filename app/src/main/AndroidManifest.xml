@@ -4,7 +4,7 @@
 
     <!-- Timer + coaching audio run in a foreground service while the screen is off. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- The running system measures speed and distance with GPS during a running workout.
          Location is requested only when a running workout starts, and the app works without it
          (the race info falls back to the plan's target pace). -->
@@ -71,25 +71,42 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="pulse" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
 
-        <!-- `location` joins `mediaPlayback` so a running workout keeps measuring with the screen
+        <activity
+            android:name=".PrivacyPolicyActivity"
+            android:exported="true"
+            android:label="@string/privacy_policy_title"
+            android:theme="@style/Theme.Pulse">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <activity-alias
+            android:name=".ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".PrivacyPolicyActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- `location` joins `specialUse` so a running workout keeps measuring with the screen
              off; the service only starts with the location type when a run is tracked and the
              permission is granted (see WorkoutService). -->
         <service
             android:name=".session.WorkoutService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback|location" />
+            android:foregroundServiceType="specialUse|location">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-initiated interval workout timer: keeps precise interval transitions and optional spoken, sound or vibration cues active with the screen off, including silent workouts. A persistent notification shows progress and pause/stop controls. Stops when the workout ends. Optional GPS tracking uses the location type only with location permission." />
+        </service>
 
         <provider
             android:name="androidx.core.content.FileProvider"

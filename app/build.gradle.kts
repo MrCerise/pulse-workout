@@ -28,6 +28,12 @@ val releaseSigningConfigured = !releaseStoreFile.isNullOrBlank() &&
 val pulseCompileSdk: Int = rootProject.extra.takeIf { it.has("pulseCompileSdk") }
     ?.get("pulseCompileSdk") as? Int ?: 37
 
+// Keep the Play target independent of a machine's installed compile SDK fallback.
+val pulsePhoneTargetSdk = 36
+if (providers.gradleProperty("pulse.playRelease").orNull == "true" && pulseCompileSdk < pulsePhoneTargetSdk) {
+    throw GradleException("Play phone releases require compileSdk >= $pulsePhoneTargetSdk; install that SDK before publishing.")
+}
+
 android {
     signingConfigs {
         if (releaseSigningConfigured) {
@@ -46,7 +52,7 @@ android {
     defaultConfig {
         applicationId = "com.mrcerise.intervalcoach"
         minSdk = 26
-        targetSdk = pulseCompileSdk
+        targetSdk = pulsePhoneTargetSdk
         // CI release trains override these per channel (`-Ppulse.versionCode/-Name`); the values
         // here are the published release line of record.
         versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 32

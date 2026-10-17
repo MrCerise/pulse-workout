@@ -49,6 +49,7 @@ import java.time.format.DateTimeFormatter
 fun WearSettingsScreen(
     container: WearAppContainer,
     onBack: () -> Unit,
+    onOpenPrivacy: () -> Unit,
 ) {
     val colors = LocalWearColors.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle()
@@ -142,6 +143,12 @@ fun WearSettingsScreen(
                     ),
                     label = { Text(stringResource(R.string.settings_theme)) },
                     secondaryLabel = { Text(themeLabel(prefs.themeMode)) },
+                )
+            }
+            item(key = "privacy") {
+                Chip(
+                    onClick = onOpenPrivacy,
+                    label = { Text(stringResource(R.string.privacy_policy_title)) },
                 )
             }
             item(key = "about") {

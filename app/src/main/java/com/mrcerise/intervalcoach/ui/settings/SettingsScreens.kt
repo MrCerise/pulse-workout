@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pulse.engine.SoundCue
 import com.mrcerise.intervalcoach.AppContainer
 import com.mrcerise.intervalcoach.BuildConfig
+import com.mrcerise.intervalcoach.PrivacyPolicyActivity
 import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.audio.DuckPhase
 import com.mrcerise.intervalcoach.audio.SpeechAvailability
@@ -281,6 +282,12 @@ fun SettingsScreen(
                     SecondaryActionButton("Help", onOpenHelp, Modifier.fillMaxWidth())
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(LocalPulseDimens.current.s))
+                    SecondaryActionButton(
+                        stringResource(R.string.privacy_policy_title),
+                        { context.startActivity(Intent(context, PrivacyPolicyActivity::class.java)) },
+                        Modifier.fillMaxWidth(),
+                    )
 
                 }
             }
@@ -290,8 +297,14 @@ fun SettingsScreen(
                 DangerActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
             }
 
-            // The build identity, always available and never more than a glance away: version and
-            // the build number that produced it, bottom-right in the quietest ink on the page.
+            item {
+                Text(
+                    text = stringResource(R.string.privacy_medical_disclaimer),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textSecondary,
+                )
+            }
+            // Build identity remains available at the foot of Settings.
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -647,6 +660,13 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
 
             item { SectionHeader("Your own cue recordings") }
             item {
+                Text(
+                    stringResource(R.string.privacy_microphone_notice),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textSecondary,
+                )
+            }
+            item {
                 Column {
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     if (recording == null) {
@@ -685,7 +705,15 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                                     icon = Icons.Filled.Delete,
                                     contentDescription = stringResource(R.string.action_delete),
                                     tooltip = stringResource(R.string.action_delete),
-                                    onClick = { scope.launch { container.audioAssets.remove(asset.id) } },
+                                    onClick = {
+                                        scope.launch {
+                                            if (!container.audioAssets.remove(asset.id)) {
+                                                android.widget.Toast.makeText(
+                                                    context, R.string.recording_delete_failed, android.widget.Toast.LENGTH_LONG,
+                                                ).show()
+                                            }
+                                        }
+                                    },
                                     tint = colors.destructive,
                                 )
                             }

@@ -32,6 +32,9 @@ import com.mrcerise.intervalcoach.data.db.WorkoutDao
 import com.mrcerise.intervalcoach.data.db.WorkoutEntity
 import com.mrcerise.intervalcoach.data.db.WorkoutTagCrossRef
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
@@ -39,6 +42,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
+import java.io.File
 
 /** Single JSON configuration for workouts, backups and import/export. */
 object PlanCodec {
@@ -556,10 +560,17 @@ class VoiceProfileRepository(private val db: PulseDatabase) {
 
 const val DEFAULT_VOICE_PROFILE_ID = "voice-default"
 
-class AudioAssetRepository(private val db: PulseDatabase) {
+class AudioAssetRepository(private val db: PulseDatabase, private val recordingsDir: File) {
     val assets: Flow<List<AudioAssetEntity>> = db.audioAssetDao().observeAll()
     suspend fun add(asset: AudioAssetEntity) = db.audioAssetDao().upsert(asset)
-    suspend fun remove(id: String) = db.audioAssetDao().delete(id)
+    suspend fun remove(id: String): Boolean = withContext(Dispatchers.IO) {
+        val asset = assets.first().firstOrNull { it.id == id } ?: return@withContext true
+        val recording = ownedRecordingFile(asset.uri, asset.source, recordingsDir)
+        // Remove the private audio bytes as well as the row. Never delete a user's imported file.
+        if (recording != null && recording.exists() && !recording.delete()) return@withContext false
+        db.audioAssetDao().delete(id)
+        true
+    }
     suspend fun markMissing(id: String, at: Long) = db.audioAssetDao().markMissing(id, at)
     suspend fun clearMissing(id: String) = db.audioAssetDao().clearMissing(id)
 }

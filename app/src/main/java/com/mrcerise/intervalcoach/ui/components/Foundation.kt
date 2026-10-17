@@ -455,10 +455,10 @@ fun PulseBreadcrumbBar(
  * The page header: the way back, the H1, the one-line description and the actions of a page.
  *
  * The title is **centred** on the page — every destination's headline sits in the same optical
- * place, from Progress and Settings to a workout named "5K Race Run", with the page actions
- * floating at the end of the same band. The back link is deliberately *in the page* rather than in
- * the shell: a page knows whether leaving it needs a confirmation (an unsaved builder does), and
- * the shell does not.
+ * place, from Progress and Settings to a workout named "5K Race Run". Compact navigation actions
+ * sit opposite Back, while other page actions appear below the title. The back link is deliberately
+ * *in the page* rather than in the shell: a page knows whether leaving it needs a confirmation
+ * (an unsaved builder does), and the shell does not.
  */
 @Composable
 fun PulsePageHeader(
@@ -467,28 +467,35 @@ fun PulsePageHeader(
     description: String? = null,
     onBack: (() -> Unit)? = null,
     backLabel: String = "Back",
+    navigationActions: @Composable (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(modifier.fillMaxWidth().padding(top = dimens.m, bottom = dimens.l)) {
-        if (onBack != null) {
+        if (onBack != null || navigationActions != null) {
             // Back sits on its own left-aligned row, never beside (or on top of) the centred title.
-            Row(Modifier.fillMaxWidth()) {
-                Surface(
-                    onClick = onBack,
-                    shape = LocalPulseShapes.current.control,
-                    color = Color.Transparent,
-                    contentColor = colors.textSecondary,
-                ) {
-                    Row(
-                        modifier = Modifier.height(dimens.iconButtonSize).padding(end = dimens.s),
-                        verticalAlignment = Alignment.CenterVertically,
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (onBack != null) {
+                    Surface(
+                        onClick = onBack,
+                        shape = LocalPulseShapes.current.control,
+                        color = Color.Transparent,
+                        contentColor = colors.textSecondary,
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(dimens.xs))
-                        Text(backLabel, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(
+                            modifier = Modifier.height(dimens.iconButtonSize).padding(end = dimens.s),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(15.dp))
+                            Spacer(Modifier.width(dimens.xs))
+                            Text(backLabel, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
+                }
+                if (navigationActions != null) {
+                    Spacer(Modifier.weight(1f))
+                    Row(verticalAlignment = Alignment.CenterVertically) { navigationActions() }
                 }
             }
             Spacer(Modifier.height(dimens.s))

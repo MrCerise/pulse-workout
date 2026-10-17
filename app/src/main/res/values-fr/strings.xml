@@ -457,4 +457,5 @@
     <string name="watch_session_stop_confirm">Arrêter la séance sur la montre ?</string>
     <string name="watch_session_stop_message">L’entraînement sur votre montre se terminera et sera enregistré comme arrêté avant la fin.</string>
     <string name="watch_session_keep_going">Continuer</string>
+    <string name="recording_delete_failed">Impossible de supprimer l’enregistrement. Réessayez.</string>
 </resources>

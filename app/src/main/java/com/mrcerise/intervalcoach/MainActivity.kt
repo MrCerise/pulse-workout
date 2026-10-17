@@ -29,8 +29,13 @@ class MainActivity : ComponentActivity() {
     // property level — calling registerForActivityResult from a runtime callback would throw.
     private val notificationPermissionLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { }
+    private var afterLocationPermission: (() -> Unit)? = null
     private val locationPermissionLauncher =
-        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { }
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) {
+            val action = afterLocationPermission
+            afterLocationPermission = null
+            action?.invoke()
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,12 +80,16 @@ class MainActivity : ComponentActivity() {
      * speed and distance with GPS. Denial is handled by the app: race info falls back to the
      * plan's target pace and is labelled "Estimated".
      */
-    private fun requestLocationPermissionIfNeeded() {
+    private fun requestLocationPermissionIfNeeded(onResult: () -> Unit) {
         val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
-        if (granted) return
+        if (granted) {
+            onResult()
+            return
+        }
+        afterLocationPermission = onResult
         locationPermissionLauncher.launch(
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
         )

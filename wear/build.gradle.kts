@@ -44,7 +44,8 @@ android {
     defaultConfig {
         applicationId = "com.mrcerise.intervalcoach"
         minSdk = 26
-        targetSdk = pulseCompileSdk
+        // Wear has a separate Play requirement; compile SDK availability must not change this.
+        targetSdk = 35
         versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 32
         versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.1"
         vectorDrawables.useSupportLibrary = true

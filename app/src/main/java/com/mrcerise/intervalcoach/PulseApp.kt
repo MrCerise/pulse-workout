@@ -52,7 +52,7 @@ class AppContainer(private val app: Application) {
     val workouts: WorkoutRepository by lazy { WorkoutRepository(database) }
     val sessions: SessionRepository by lazy { SessionRepository(database) }
     val voiceProfiles: VoiceProfileRepository by lazy { VoiceProfileRepository(database) }
-    val audioAssets: AudioAssetRepository by lazy { AudioAssetRepository(database) }
+    val audioAssets: AudioAssetRepository by lazy { AudioAssetRepository(database, java.io.File(app.filesDir, "recordings")) }
     val reminders: ReminderRepository by lazy { ReminderRepository(database) }
     val programs: ProgramRepository by lazy { ProgramRepository(database) }
 

@@ -2,24 +2,16 @@ name: Release train
 
 # One dispatchable pipeline for every kind of release:
 #
-#   production — the app-store release: full tests, signed AAB + APKs, the Play "production"
-#                track (opt-in staged rollout) and a GitHub Release carrying the APKs. This is a
-#                *big* release; users on the store receive it.
+#   production — full tests, signed AAB + APKs, the Play "production" track (draft or
+#                opt-in staged rollout) and, for completed releases, a GitHub Release.
 #   beta       — a test release: signed AAB to the Play "beta" track (closed testing) and QA
 #                artifacts on the workflow run. The production track is untouched.
 #   internal   — a small/hotfix build for testing: signed AAB to the Play "internal" track
 #                (up to 100 testers, ships within minutes) and QA artifacts. Nothing on the
 #                store changes for regular users.
 #
-# Version scheme (shared with `build-release.yml` so every upload to Play is monotonic):
-#
-#   versionCode = major*10_000_000 + minor*100_000 + patch*1_000 + build   (build = run no. mod 1000)
-#   versionName = <input or the repository default>, suffixed -beta.N / -internal.N off production
-#
-# Play upload requires the `ANDROID_SERVICE_ACCOUNT_JSON` repository secret (a Google Play
-# service-account key with the API access enabled). Without it the pipeline still builds, signs,
-# publishes QA artifacts, and (on production) cuts the GitHub Release — it only skips the store
-# step, with a notice saying so.
+# Version codes are explicit: select a code above every previous upload across Play tracks.
+# See docs/RELEASING.md for credentials, first-upload setup and artifact-only runs.
 
 on:
   workflow_dispatch:
@@ -37,23 +29,40 @@ on:
         description: 'Version name, e.g. 1.8.1 (semver, no "v"). Defaults to the current repository version.'
         required: false
         type: string
+      version_code:
+        description: 'Unique integer higher than ALL previous Play uploads (including testing tracks). Use a new code for every upload.'
+        required: true
+        type: string
+      publish_to_play:
+        description: Upload to Google Play (disable to build signed artifacts only)
+        required: true
+        default: true
+        type: boolean
+      release_status:
+        description: Draft for Play Console review, or completed to release to the selected track
+        required: true
+        default: draft
+        type: choice
+        options:
+          - draft
+          - completed
       staged_rollout_percent:
-        description: Production only — roll the store release out to this percent of users
+        description: 'Production + completed only: rollout percent (integer 1–100); otherwise leave at 100'
         required: false
         default: "100"
         type: string
       run_tests:
-        description: Run the unit tests before building
+        description: Run unit tests before building (always enabled for production)
         required: false
         default: true
         type: boolean
 
 permissions:
-  contents: write # production attaches the GitHub Release
+  contents: read
 
 concurrency:
-  # Two trains on the same channel must not race for the store track; different channels can.
-  group: release-train-${{ inputs.channel }}
+  # Every track edits the same Play application; serialize trains across channels.
+  group: release-train-play
   cancel-in-progress: false
 
 jobs:
@@ -62,7 +71,7 @@ jobs:
   # --------------------------------------------------------------------------------------------
   unit-tests:
     name: Unit tests
-    if: ${{ inputs.run_tests }}
+    if: ${{ inputs.run_tests || inputs.channel == 'production' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -77,6 +86,7 @@ jobs:
         run: |
           set -euo pipefail
           bash ./gradlew --console=plain --stacktrace \
+            -I .github/ci/no-cached-tests.init.gradle \
             -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
             :engine:test :sync:test :library:test \
             :app:testDebugUnitTest :wear:testDebugUnitTest
@@ -94,41 +104,25 @@ jobs:
     name: Resolve version
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      CHANNEL: ${{ inputs.channel }}
     outputs:
       version_name: ${{ steps.version.outputs.name }}
       version_code: ${{ steps.version.outputs.code }}
       full_version_name: ${{ steps.version.outputs.full_name }}
+      release_status: ${{ steps.version.outputs.status }}
+      user_fraction: ${{ steps.version.outputs.fraction }}
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1
 
       - name: Resolve version
         id: version
-        shell: bash
         env:
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        run: |
-          set -euo pipefail
-          # The repository's own release line is the default version name.
-          base="$(grep -oP 'pulse\\.versionName"\\) as String\\?\\s*\\?:\\s*"\K[0-9.]+' app/build.gradle.kts)"
-          if [[ -z "$base" ]]; then
-            echo "::error::Could not read the default versionName from app/build.gradle.kts."
-            exit 1
-          fi
-          name="${{ inputs.version_name }}"
-          name="${name:-$base}"
-          IFS='.' read -r major minor patch <<< "$name"
-          build=$(( GITHUB_RUN_NUMBER % 1000 ))
-          code=$(( major * 10000000 + minor * 100000 + patch * 1000 + build ))
-          full="$name"
-          if [ "$CHANNEL" = "beta" ]; then full="$name-beta.${{ github.run_number }}"; fi
-          if [ "$CHANNEL" = "internal" ]; then full="$name-internal.${{ github.run_number }}"; fi
-          echo "name=$name" >> "$GITHUB_OUTPUT"
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "full_name=$full" >> "$GITHUB_OUTPUT"
-          echo "::notice title=Release train::$CHANNEL build $full (versionCode $code)"
+          RELEASE_CHANNEL: ${{ inputs.channel }}
+          RELEASE_VERSION_NAME: ${{ inputs.version_name }}
+          RELEASE_VERSION_CODE: ${{ inputs.version_code }}
+          RELEASE_STATUS: ${{ inputs.release_status }}
+          RELEASE_ROLLOUT_PERCENT: ${{ inputs.staged_rollout_percent }}
+        run: python3 scripts/resolve_play_release.py
 
   # --------------------------------------------------------------------------------------------
   # Android (phone) build — runs on its own runner, in parallel with the Wear OS build.
@@ -150,6 +144,8 @@ jobs:
 
       - name: Set up build environment
         uses: ./.github/actions/setup-pulse-build
+        with:
+          minimum-api: '36'
 
       - name: Decode release signing key
         shell: bash
@@ -172,6 +168,7 @@ jobs:
           set -euo pipefail
           bash ./gradlew --console=plain --stacktrace \
             -Ppulse.compileSdk="${PULSE_COMPILE_SDK}" \
+            -Ppulse.playRelease=true \
             -Ppulse.versionCode="${{ needs.version.outputs.version_code }}" \
             -Ppulse.versionName="${{ needs.version.outputs.full_version_name }}" \
             :app:bundleRelease :app:assembleRelease 2>&1 | tee gradle-build.log
@@ -183,6 +180,7 @@ jobs:
           mkdir -p android-staging
           cp app/build/outputs/bundle/release/app-release.aab android-staging/app-release.aab
           cp app/build/outputs/apk/release/app-release.apk android-staging/app-release.apk
+          cp app/build/outputs/mapping/release/mapping.txt android-staging/app-mapping.txt
           ls -la android-staging/
 
       - name: Upload Android artifacts
@@ -198,6 +196,11 @@ jobs:
         uses: ./.github/actions/summarize-gradle-failure
         with:
           artifact-name: build-logs-android-${{ github.run_id }}
+
+      - name: Remove signing key
+        if: always()
+        shell: bash
+        run: rm -f -- "${RUNNER_TEMP}/pulse-release.jks"
 
   # --------------------------------------------------------------------------------------------
   # Wear OS build — runs on its own runner, in parallel with the Android build.
@@ -252,6 +255,7 @@ jobs:
           mkdir -p wear-staging
           cp wear/build/outputs/bundle/release/wear-release.aab wear-staging/wear-release.aab
           cp wear/build/outputs/apk/release/wear-release.apk wear-staging/wear-release.apk
+          cp wear/build/outputs/mapping/release/mapping.txt wear-staging/wear-mapping.txt
           ls -la wear-staging/
 
       - name: Upload Wear artifacts
@@ -267,6 +271,11 @@ jobs:
         uses: ./.github/actions/summarize-gradle-failure
         with:
           artifact-name: build-logs-wear-${{ github.run_id }}
+
+      - name: Remove signing key
+        if: always()
+        shell: bash
+        run: rm -f -- "${RUNNER_TEMP}/pulse-release.jks"
 
   # --------------------------------------------------------------------------------------------
   # Stage release artifacts — wait for both builds, restore filenames, publish combined artifact.
@@ -304,6 +313,8 @@ jobs:
           cp wear-staging/wear-release.aab "release-assets/intervals-${tag}-wear-release.aab"
           cp android-staging/app-release.apk "release-assets/intervals-${tag}-release.apk"
           cp wear-staging/wear-release.apk "release-assets/intervals-${tag}-wear-release.apk"
+          cp android-staging/app-mapping.txt release-assets/app-mapping.txt
+          cp wear-staging/wear-mapping.txt release-assets/wear-mapping.txt
           ls -la release-assets/
 
       - name: Upload QA artifacts
@@ -315,13 +326,14 @@ jobs:
           if-no-files-found: error
 
   # --------------------------------------------------------------------------------------------
-  # Play Store upload — the channel's track. Needs ANDROID_SERVICE_ACCOUNT_JSON; when the
-  # secret is absent the train still completes and says so. The Wear bundle is distributed
-  # through the GitHub Release, not the store listing.
+  # Play Store upload — phone only. Missing credentials fail an explicitly requested upload.
+  # Wear artifacts remain on the run / GitHub Release; Play Wear publishing needs unique codes
+  # and separate form-factor tracks, so do not upload both same-code bundles here.
   # --------------------------------------------------------------------------------------------
   play:
     name: Play Store (${{ inputs.channel }})
-    needs: publish
+    needs: [version, publish]
+    if: ${{ !cancelled() && needs.version.result == 'success' && needs.publish.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: ${{ inputs.channel == 'production' && 'play-production' || 'play-testing' }}
@@ -330,42 +342,56 @@ jobs:
       # materialised here once and the steps branch on this job-level variable.
       HAS_PLAY_ACCESS: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON != '' }}
     steps:
+      - name: Check Play credentials
+        if: inputs.publish_to_play
+        shell: bash
+        run: |
+          if [[ "$HAS_PLAY_ACCESS" != 'true' ]]; then
+            echo "::error::Set ANDROID_SERVICE_ACCOUNT_JSON in the selected Play environment or repository, or disable publish_to_play for an artifact-only run."
+            exit 1
+          fi
+
       - name: Download signed bundles
+        if: inputs.publish_to_play
         uses: actions/download-artifact@v6.0.0
         with:
           name: release-${{ inputs.channel }}-${{ github.run_number }}
           path: release-assets
 
-      - name: Compute rollout fraction
-        id: rollout
-        if: env.HAS_PLAY_ACCESS == 'true'
-        run: |
-          set -euo pipefail
-          # GitHub expressions have no arithmetic, so the staged-rollout percent
-          # is divided down to a fraction here, in bash.
-          pct="${{ inputs.staged_rollout_percent }}"
-          case "${{ inputs.channel }}" in
-            production) frac="$(awk -v p="$pct" 'BEGIN { printf "%.2f", p / 100 }')" ;;
-            *)          frac="1.0" ;;
-          esac
-          echo "fraction=$frac" >> "$GITHUB_OUTPUT"
-
       - name: Upload to the ${{ inputs.channel }} track
-        if: env.HAS_PLAY_ACCESS == 'true'
+        if: inputs.publish_to_play
         uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ vars.PLAY_PACKAGE_NAME || 'com.mrcerise.intervalcoach' }}
+          packageName: com.mrcerise.intervalcoach
           releaseFiles: release-assets/intervals-${{ needs.publish.outputs.full_version_name }}-release.aab
+          releaseName: ${{ needs.publish.outputs.full_version_name }}
+          mappingFile: release-assets/app-mapping.txt
           track: ${{ inputs.channel }}
-          status: completed
+          status: ${{ needs.version.outputs.release_status }}
           inAppUpdatePriority: ${{ inputs.channel == 'production' && 3 || 0 }}
-          userFraction: ${{ steps.rollout.outputs.fraction }}
+          userFraction: ${{ needs.version.outputs.user_fraction }}
 
       - name: Store upload skipped
-        if: env.HAS_PLAY_ACCESS != 'true'
+        if: ${{ !inputs.publish_to_play }}
         run: |
-          echo "::notice title=Play upload skipped::Set the ANDROID_SERVICE_ACCOUNT_JSON secret (and optionally the PLAY_PACKAGE_NAME repository variable) to let the train reach the ${{ inputs.channel }} track. Signed artifacts are on this run."
+          echo "::notice title=Artifact-only release::Play upload was disabled. Signed artifacts are on this run."
+
+      - name: Summarize release
+        env:
+          VERSION_NAME: ${{ needs.publish.outputs.full_version_name }}
+          VERSION_CODE: ${{ needs.publish.outputs.version_code }}
+          CHANNEL: ${{ inputs.channel }}
+          PUBLISH_TO_PLAY: ${{ inputs.publish_to_play }}
+          RELEASE_STATUS: ${{ needs.version.outputs.release_status }}
+          USER_FRACTION: ${{ needs.version.outputs.user_fraction }}
+        run: |
+          {
+            echo "Version: ${VERSION_NAME} (versionCode ${VERSION_CODE})"
+            echo "Play upload: ${PUBLISH_TO_PLAY}; track: ${CHANNEL}; status: ${RELEASE_STATUS}"
+            if [[ -n "$USER_FRACTION" ]]; then echo "Rollout fraction: ${USER_FRACTION}"; fi
+            echo "Phone and Wear OS signed artifacts and R8 mappings are attached to this run."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # --------------------------------------------------------------------------------------------
   # GitHub Release — production only. Creates `v<version>` (via the API, so it does not re-trigger
@@ -373,10 +399,14 @@ jobs:
   # --------------------------------------------------------------------------------------------
   github-release:
     name: GitHub Release (v${{ needs.publish.outputs.version_name }})
-    if: ${{ inputs.channel == 'production' }}
-    needs: publish
+    if: >-
+      ${{ !cancelled() && needs.publish.result == 'success' && needs.play.result == 'success'
+          && inputs.channel == 'production' && (!inputs.publish_to_play || inputs.release_status == 'completed') }}
+    needs: [publish, play]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1

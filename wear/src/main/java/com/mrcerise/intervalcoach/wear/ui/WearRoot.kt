@@ -20,6 +20,7 @@ sealed interface WearScreen {
     data object Home : WearScreen
     data object History : WearScreen
     data object Settings : WearScreen
+    data object Privacy : WearScreen
     data class Player(val workoutId: String) : WearScreen
     data object RemotePlayer : WearScreen
     data object Summary : WearScreen
@@ -85,7 +86,9 @@ fun PulseWearRoot(container: WearAppContainer) {
             WearScreen.Settings -> WearSettingsScreen(
                 container = container,
                 onBack = { backStack.removeAt(backStack.lastIndex) },
+                onOpenPrivacy = { backStack.add(WearScreen.Privacy) },
             )
+            WearScreen.Privacy -> WearPrivacyScreen(onBack = { backStack.removeAt(backStack.lastIndex) })
         }
     }
 }

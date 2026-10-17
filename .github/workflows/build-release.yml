@@ -7,9 +7,9 @@ on:
     # Edits to prose, the licence or the templates cannot change what compiles or what the tests
     # assert, so they skip CI instead of waiting behind a Gradle build. Note that a skipped
     # workflow leaves its checks unreported, which is why `main` carries no required checks.
+    # Keep generated public policy HTML in scope so editing only that copy still checks parity.
     paths-ignore:
       - '**.md'
-      - 'docs/**'
       - 'LICENSE'
       - '.gitignore'
       - 'crowdin.yml'
@@ -24,7 +24,6 @@ on:
     # Path filters are not evaluated for tag pushes, so a release is never skipped by this list.
     paths-ignore:
       - '**.md'
-      - 'docs/**'
       - 'LICENSE'
       - '.gitignore'
       - 'crowdin.yml'
@@ -60,10 +59,13 @@ jobs:
       - name: Validate resources, branding and references
         run: |
           python3 scripts/check_ui.py
+          python3 scripts/generate_privacy_policy.py --check
           python3 scripts/check_brand.py
           python3 scripts/kotlin_xref_gate.py
           python3 scripts/contrast_check.py
           git diff --exit-code -- docs/CONTRAST.md
+      - name: Check Play release inputs and privacy policy generation
+        run: python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 
   # The unit tests run as one job per module group, side by side: GitHub gives a public repository
   # as many runners as it has jobs, so the wall-clock cost of a pull request is the slowest job
@@ -158,8 +160,8 @@ jobs:
           else
             ref="${GITHUB_REF_NAME}"
           fi
-          # The shared scheme (see release-train.yml): versionCode grows monotonically with the
-          # semver, so a store upload from a tag can never regress below an earlier build.
+          # GitHub APK version scheme. The Play release train takes an explicit version code
+          # above every previous store upload; workflow run numbers cannot ensure that ordering.
           #   versionCode = major*10_000_000 + minor*100_000 + patch*1_000
           # A pre-release tag carries a suffix after the first `-` (v1.8.1-beta1.0): the suffix
           # rides along in the versionName, and the versionCode adds the run number (mod 1000)

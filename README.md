@@ -35,8 +35,8 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 **Releases** — [latest APKs](https://github.com/MrCerise/pulse-workout/releases/latest) ·
 [CHANGELOG.md](CHANGELOG.md) · store releases run through the **release train**
 (`.github/workflows/release-train.yml`): a tagged `v*` push builds the production APKs, and a
-workflow dispatch ships `internal` / `beta` / `production` builds — Play tracks when the
-`ANDROID_SERVICE_ACCOUNT_JSON` secret is set, signed artifacts on the run either way.
+workflow dispatch builds `internal` / `beta` / `production` releases, with signed artifacts on the
+run and optional Google Play upload (draft by default). See [the Play release setup and inputs](docs/RELEASING.md#google-play-releases).
 
 ## Highlights
 

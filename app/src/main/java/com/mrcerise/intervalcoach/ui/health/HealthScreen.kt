@@ -1,5 +1,6 @@
 package com.mrcerise.intervalcoach.ui.health
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,10 +25,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mrcerise.intervalcoach.AppContainer
+import com.mrcerise.intervalcoach.PrivacyPolicyActivity
 import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.health.HC_REQUESTED_PERMISSIONS
 import com.mrcerise.intervalcoach.health.HcAvailability
@@ -64,6 +67,7 @@ fun HealthScreen(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract(),
     ) {
@@ -123,6 +127,16 @@ fun HealthScreen(
                 }
             }
 
+            item {
+                Text(stringResource(R.string.privacy_health_notice), color = colors.textSecondary)
+            }
+            item {
+                PrimaryActionButton(
+                    text = stringResource(R.string.privacy_policy_title),
+                    onClick = { context.startActivity(Intent(context, PrivacyPolicyActivity::class.java)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             // --- Health Connect ---
             item { SectionHeader("Health Connect") }
             item {

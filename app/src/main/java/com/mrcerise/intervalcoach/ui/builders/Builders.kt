@@ -756,7 +756,7 @@ fun AdvancedBuilderScreen(
                 PulsePageHeader(
                     title = if (workoutId == null) "New workout" else "Edit workout",
                     onBack = { if (state.dirty) showDiscard = true else onBack() },
-                    trailing = {
+                    navigationActions = {
                         PulseIconButton(
                             icon = Icons.Filled.Undo,
                             contentDescription = stringResource(R.string.builder_undo),
