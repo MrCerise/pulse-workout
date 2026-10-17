@@ -244,12 +244,12 @@
     <string name="voice_vibration">Vibration</string>
     <string name="voice_duck_music">Diminuer la musique pendant les annonces</string>
     <string name="voice_duck_title">Atténuation audio</string>
-    <string name="voice_duck_hint">D\'autres applications de musique utilisent leur propre niveau de canard.</string>
+    <string name="voice_duck_hint">D\'autres applications musicales utilisent leur propre niveau d’atténuation du volume.</string>
     <string name="voice_duck_level">Volume de la musique pendant les annonces</string>
-    <string name="voice_duck_active">Canard demandé</string>
-    <string name="voice_duck_idle">Pas de canard demandé</string>
-    <string name="voice_duck_phase">Canard : %1$s</string>
-    <string name="voice_duck_test">Essai de canard</string>
+    <string name="voice_duck_active">Atténuation du volume demandée</string>
+    <string name="voice_duck_idle">Aucune atténuation du volume demandée</string>
+    <string name="voice_duck_phase">Atténuation du volume : %1$s</string>
+    <string name="voice_duck_test">Essai de l\'atténuation du volume</string>
     <string name="voice_music_title">Audio de l\'arrière-plan</string>
     <string name="voice_music_pick">Choisir le fichier audio…</string>
     <string name="voice_music_none">Aucun son d\'arrière-plan sélectionné</string>
@@ -323,7 +323,7 @@
     <string name="welcome_sample_workout">Essayez un démarrage de 4 minutes</string>
     <string name="welcome_skip">Ignorer</string>
     <string name="welcome_next">Suivant</string>
-    <string name="welcome_start">Commencer à utiliser Intervalle d\'entraînement</string>
+    <string name="welcome_start">Commencer à utiliser Interval Coach</string>
     <string name="welcome_notifications">Les notifications ajoutent des contrôles de minuterie à votre écran de verrouillage.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. L\'entraînement fonctionne toujours, mais sans contrôle en direct.</string>
@@ -331,11 +331,11 @@
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
     <string name="help_voice_body">Pour un coaching hors ligne, installez une voix dans Paramètres Android → Synthèse vocale. Sans voix, Intervalle d\'entraînement utilise des signaux sonores.</string>
-    <string name="help_background">Opération d\'arrière-plan</string>
-    <string name="help_background_body">Le chronométrage continue avec la désactivation de l\'écran. Activez les indices d\'extinction de l\'écran dans les paramètres pour continuer à jouer les annonces.</string>
+    <string name="help_background">Tâches en arrière-plan</string>
+    <string name="help_background_body">Le chronomètre continue de fonctionner lorsque l’écran est éteint. Activez les annonces écran éteint dans les paramètres pour continuer à les entendre.</string>
     <string name="help_audio">Dépannage audio</string>
-    <string name="help_audio_body">Vérifiez le volume multimédia, le mode Ne pas déranger et le volume des annonces dans \"Voix &amp; audio\". L’atténuation du volume des autres applications musicales dépend du lecteur utilisé.</string>
-    <string name="help_gestures">Contrôles du lecteur</string>
+    <string name="help_audio_body">Vérifiez le volume multimédia, le mode Ne pas déranger et le volume des annonces dans \"Voix &amp; audio\". L’atténuation du volume des autres applications musicales dépend du player utilisé.</string>
+    <string name="help_gestures">Contrôles du player</string>
     <string name="help_gestures_body">Les boutons de volume ajustent le volume des médias. Utilisez le lecteur ou la notification pour mettre en pause, passer ou terminer une session.</string>
     <string name="help_accessibility">Accessibilité</string>
     <string name="help_accessibility_body">Les mouvements réduits, les commandes à haut contraste et à gauche sont dans les paramètres. Utilisez Déplacer vers le haut / Déplacer vers le bas pour réorganiser les intervalles.</string>
@@ -345,18 +345,18 @@
     <string name="close">Fermer</string>
     <string name="back">Précédent</string>
     <string name="retry">Réessayer</string>
-    <string name="loading">Chargement de…</string>
-    <string name="error_generic">Quelque chose s\'est mal passé : %1$s</string>
-    <string name="unavailable_feature">Non disponible sur cet appareil</string>
+    <string name="loading">Chargement…</string>
+    <string name="error_generic">Une erreur s\'est produite : %1$s</string>
+    <string name="unavailable_feature">Indisponible sur cet appareil</string>
     <string name="seconds_short">%1$ds</string>
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Entraînements favoris d’Intervalle d\'entraînement</string>
-    <string name="widget_quick_start_name">Début rapide avec Intervalle d\'entraînement</string>
+    <string name="widget_favorites_name">Entraînements favoris d’Interval Coach</string>
+    <string name="widget_quick_start_name">Début rapide avec Interval Coach</string>
     <string name="widget_quick_start_label">Démarrage rapide</string>
     <string name="widget_quick_start_sub">Travail / repos</string>
-    <string name="widget_empty">Ouvrez Intervalle d\'entraînement pour commencer un entraînement</string>
+    <string name="widget_empty">Ouvrez Interval Coach pour commencer un entraînement</string>
     <string name="shortcut_recent">Entraînements récents</string>
     <string name="shortcut_quick">Constructeur rapide</string>
     <!-- Notifications -->
@@ -370,7 +370,7 @@
     <string name="notif_action_stop">Arrêter</string>
     <!-- Portable workout import -->
     <string name="json_title">Entraînements IA</string>
-    <string name="json_ai_help">Envoyez à votre application IA, puis collez sa réponse. Seule l\'invite est partagée.</string>
+    <string name="json_ai_help">Envoyez à votre application IA, puis collez sa réponse. Seule le prompt est partagée.</string>
     <string name="json_request">Que souhaitez-vous entrainer ?</string>
     <string name="json_request_hint">10 minutes, débutant, aucun équipement</string>
     <string name="json_copied">Prompt copiée</string>
