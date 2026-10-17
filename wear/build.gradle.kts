@@ -37,16 +37,17 @@ android {
         }
     }
 
-    namespace = "com.pulse.intervalcoach.wear"
+    namespace = "com.mrcerise.intervalcoach.wear"
 
     // Same application id as the phone app: the Wear data layer links apps by package name, so
     // this is what makes the two halves of PULSE find each other.
     defaultConfig {
-        applicationId = "com.pulse.intervalcoach"
+        applicationId = "com.mrcerise.intervalcoach"
         minSdk = 26
-        targetSdk = pulseCompileSdk
-        versionCode = 22
-        versionName = "1.7.6"
+        // Wear has a separate Play requirement; compile SDK availability must not change this.
+        targetSdk = 35
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 32
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.1"
         vectorDrawables.useSupportLibrary = true
     }
 

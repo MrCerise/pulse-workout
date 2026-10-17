@@ -32,20 +32,20 @@ seed — can be tested exhaustively on the JVM, without an emulator and without 
 | `wear/` | The Wear OS app: the same engine running on the watch, the same design tokens mirrored for a round screen, the watch half of the Wear link (`sync/WearSyncLink.kt`), and the watch's own store, history and solo mode. Session-lifecycle, history and recorder tests in `wear/src/test`. |
 | `scripts/` | `contrast_check.py` (regenerates [`CONTRAST.md`](CONTRAST.md) and asserts the watch palette mirror), `check_ui.py` (resources, vectors, EN/FR parity per module), `check_brand.py` (phone and watch brand marks), `kotlin_parse_gate.py` and `kotlin_xref_gate.py` (dependency-free Kotlin syntax and cross-reference gates), `capture-screenshots.sh`. |
 
-Inside `app/src/main/java/com/pulse/intervalcoach/`:
+Inside `app/src/main/java/com/mrcerise/intervalcoach/`:
 
 | Package | Responsibility |
 | --- | --- |
 | `audio/` | Cue tones, haptics, speech through the device TTS engine, and `CueGate` — the anti-backlog filter every announcement passes through. `Ducking.kt` is the music-ducking curve. |
-| `data/` | Room database and migrations, DataStore preferences, repositories, the starter templates, the `pulse.workouts` JSON parser, backup/export, and `Categories.kt` — the category registry. |
-| `health/` | `HealthHub` fronting Health Connect (primary) and Google Fit (best-effort secondary): reads live HR and steps, writes finished sessions. |
+| `data/` | Room database and migrations, DataStore preferences, repositories, the starter templates, the `pulse.workouts` JSON parser, and `Categories.kt` — the category registry. |
+| `health/` | `HealthHub` fronting Health Connect: reads live HR and steps, writes finished sessions. |
 | `locale/` | The in-app language override: `AppLocale` wraps a context in the chosen `Locale` and applies it to the app configuration. `AppLanguage` (in `data/`) is the stored choice.
 | `session/` | `CueScript` (what gets said, when), `SessionController` (the live session state), `WorkoutService` (the foreground service) and background music. |
 | `ui/theme/` | The design system: `Palette.kt` (raw tokens), `Tokens.kt` (colour/space/radius/elevation/motion locals), `Typography.kt`, `Theme.kt`. |
 | `ui/components/` | The shared component library — `Foundation` (including `PulseScaffold`), `Controls`, `Indicators`, `DataDisplay`, `Feedback`, `Navigation`. |
 | `ui/` | Screens: Today, Workouts, the builders, player, summary, Progress, Settings, Health, Welcome and JSON/AI import. |
 | `widget/` | Home-screen widgets and dynamic shortcuts. |
-| `work/` | WorkManager jobs: the weekly backup and session reminders. |
+| `work/` | WorkManager jobs: session reminders. |
 
 Full design-system documentation lives in [`DESIGN.md`](DESIGN.md); the module map above is also
 summarized in the [README](../README.md#repository-layout).
@@ -209,7 +209,7 @@ change in review (see [CONTRIBUTING.md](../CONTRIBUTING.md)):
    is one whose BCP-47 tag names a packaged `values-…` folder, which `AppLanguageTest` enforces so the
    picker can never select a language with no strings behind it.
 5. **Untrusted input is bounded and validated before anything is written** — JSON imports,
-   backups, deep links, clipboard content.
+   deep links and clipboard content.
 6. **The watch app must be usable with no phone.** Anything it needs to run — the catalogue, the
    session state, the record of what happened — lives on the watch first; the phone link is an
    upgrade that mirrors and extends it, and must degrade to a no-op rather than an error when there

@@ -23,7 +23,7 @@ except ImportError:  # Executed as `python3 scripts/kotlin_xref_gate.py`.
     from safe_repo_io import BoundedSourceReader, RepositoryIOError
 
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent).resolve()
-APP = ROOT / "app/src/main/java/com/pulse/intervalcoach"
+APP = ROOT / "app/src/main/java/com/mrcerise/intervalcoach"
 # All Kotlin modules are scanned for import resolution; the app-specific rules below (container
 # members, HealthHub members, preference fields) only ever apply to files inside APP.
 OTHER_MODULES = [

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pulse Workout</string>
+    <string name="app_name">Interval Coach</string>
     <string name="app_tagline">Interval Coach</string>
 
     <!-- Navigation -->
@@ -17,7 +17,6 @@
     <string name="title_builder">Builder</string>
     <string name="title_details">Workout</string>
     <string name="title_session">Session</string>
-    <string name="title_backup">Backup</string>
 
     <!-- Home -->
     <string name="home_greeting">Today</string>
@@ -35,7 +34,6 @@
     <!-- Workouts -->
     <string name="workouts_title">Workouts</string>
     <string name="workouts_search_hint">Search workouts, tags, equipment</string>
-    <string name="workouts_templates">Templates</string>
     <string name="workouts_new">New workout</string>
     <string name="workouts_empty_title">No workouts yet</string>
     <string name="workouts_empty_body">Create a workout or choose a template.</string>
@@ -48,9 +46,13 @@
     <string name="view_list">List</string>
     <string name="view_grid">Grid</string>
     <string name="filter_favorites">Favorites</string>
+    <string name="filter_all">All</string>
+    <string name="filter_title">Filter workouts</string>
+    <string name="filter_clear">Clear filters</string>
+    <string name="workouts_filter_empty_body">Try another filter or search.</string>
     <string name="filter_all_folders">All folders</string>
+    <string name="workouts_no_favorites_title">No favorites yet</string>
     <string name="action_duplicate">Duplicate</string>
-    <string name="action_export">Export</string>
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
     <string name="action_share">Share</string>
@@ -60,7 +62,6 @@
     <string name="duplicated_toast">Duplicated “%1$s”</string>
 
     <!-- Templates -->
-    <string name="templates_title">Templates</string>
     <string name="templates_use">Use template</string>
     <string name="templates_added">Added “%1$s” to your workouts</string>
 
@@ -106,6 +107,18 @@
     <string name="builder_repeats">Repeats</string>
     <string name="builder_rest_after_group">Rest after block</string>
     <string name="builder_manual">Manual (tap to finish)</string>
+    <string name="builder_phase">Phase</string>
+    <string name="builder_interval_name">Interval name</string>
+    <string name="builder_editor_basics">Basics</string>
+    <string name="builder_editor_timing">Timing</string>
+    <string name="builder_editor_cues">Cues</string>
+    <string name="builder_editor_voice_notes">Voice &amp; notes</string>
+    <string name="builder_interval_actions">Interval actions</string>
+    <string name="builder_editor_block_settings">Block settings</string>
+    <string name="builder_block_name">Block name</string>
+    <string name="builder_editor_intervals">Intervals</string>
+    <string name="builder_block_intervals">Intervals inside this block</string>
+    <string name="builder_add_interval_to_block">Add interval to block</string>
     <string name="builder_speech">Spoken cue</string>
     <string name="builder_sound">Sound</string>
     <string name="builder_haptic">Vibration</string>
@@ -149,9 +162,30 @@
     <string name="player_end_session">End session</string>
     <string name="player_countdown_resumed">Timer running</string>
     <string name="player_up_next">Next up</string>
+    <string name="player_elapsed">Elapsed</string>
+    <string name="player_remaining">Remaining</string>
+    <string name="settings_weekly_goal">Weekly goal</string>
     <string name="player_lap">Lap</string>
     <string name="player_laps">%1$d laps</string>
     <string name="player_instructor">Instructor view</string>
+
+    <!-- Running system — race info in the player -->
+    <string name="player_race_speed">Speed</string>
+    <string name="player_race_distance">Distance</string>
+    <string name="player_race_left">Left</string>
+    <string name="player_race_pace">Pace</string>
+    <string name="player_race_starting">Starting race tracking…</string>
+    <string name="player_race_gps_live">GPS live</string>
+    <string name="player_race_waiting_gps">Waiting for GPS · estimating from plan pace</string>
+    <string name="player_race_estimated">Estimated · %1$s /km plan</string>
+    <string name="builder_race_section">Race</string>
+    <string name="builder_race_pace">Target pace (per km)</string>
+    <string name="builder_race_distance">Race distance (km)</string>
+    <string name="builder_race_distance_hint">0 = open-ended run · race info shows speed and distance</string>
+    <string name="summary_race_distance">Distance</string>
+    <string name="summary_race_avg_speed">Average speed</string>
+    <string name="summary_race_source_gps">GPS</string>
+    <string name="summary_race_source_estimated">Estimated</string>
 
     <!-- Summary -->
     <string name="summary_title">Session summary</string>
@@ -255,7 +289,7 @@
     <string name="theme_black">True black</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System default</string>
-    <string name="settings_language_note">Applied immediately. Widgets and notifications follow the same choice on Android 13 and newer.</string>
+    <string name="settings_health_title">Health Connect</string>
     <string name="settings_dynamic_color">Wallpaper accent</string>
     <string name="settings_reduced_motion">Reduced motion</string>
     <string name="settings_high_contrast">High contrast</string>
@@ -282,10 +316,6 @@
     <string name="headphone_pause">Pause the workout</string>
     <string name="headphone_continue">Keep going, speaker cues</string>
     <string name="settings_data">Data</string>
-    <string name="settings_export_all">Export all data…</string>
-    <string name="settings_import">Import from file…</string>
-    <string name="settings_backup_auto">Weekly backups</string>
-    <string name="settings_backup_location">Backup folder</string>
     <string name="settings_delete_all">Delete all sessions…</string>
     <string name="settings_delete_all_confirm">Session history will be permanently deleted. Workouts are kept.</string>
     <string name="settings_help">Help &amp; shortcuts</string>
@@ -296,22 +326,10 @@
     <string name="settings_permissions">Permissions used</string>
 
     <!-- Import / export -->
-    <string name="export_title">Export Pulse Workout data</string>
-    <string name="export_success">Exported to the selected file</string>
-    <string name="export_failed">Export failed: %1$s</string>
-    <string name="import_title">Import Pulse Workout data</string>
-    <string name="import_success">Imported %1$d workouts and %2$d sessions</string>
-    <string name="import_failed">Import failed: %1$s</string>
-    <string name="import_preview_title">Review before importing</string>
-    <string name="import_preview_body">%1$d workouts · %2$d sessions · %3$d tags</string>
-    <string name="import_confirm">Import</string>
-    <string name="import_corrupt">Invalid Pulse Workout backup. Nothing was changed.</string>
-    <string name="backup_created">Backup written to %1$s</string>
-    <string name="backup_too_large">Backups larger than %1$d MiB cannot be imported.</string>
 
     <!-- Onboarding -->
-    <string name="welcome_title">Pulse Workout</string>
-    <string name="welcome_subtitle">Your interval timer.</string>
+    <string name="welcome_title">Interval Coach</string>
+    <string name="welcome_subtitle">The HIIT &amp; Tabata interval timer.</string>
     <string name="welcome_theme">Choose a look</string>
     <string name="welcome_language">Choose a language</string>
     <string name="welcome_voice">Hear a cue</string>
@@ -319,7 +337,7 @@
     <string name="welcome_sample_workout">Try a 4-minute starter</string>
     <string name="welcome_skip">Skip</string>
     <string name="welcome_next">Next</string>
-    <string name="welcome_start">Start using Pulse Workout</string>
+    <string name="welcome_start">Start using Interval Coach</string>
     <string name="welcome_notifications">Notifications add timer controls to your lock screen.</string>
     <string name="welcome_notifications_allow">Allow notifications</string>
     <string name="welcome_permission_denied">Notifications are off. The workout still runs, but without live controls.</string>
@@ -327,19 +345,18 @@
     <!-- Help -->
     <string name="help_title">Help</string>
     <string name="help_voice">Voice setup</string>
-    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Pulse Workout uses sound cues.</string>
+    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Interval Coach uses sound cues.</string>
     <string name="help_background">Background operation</string>
     <string name="help_background_body">Timing continues with the screen off. Enable screen-off cues in Settings to keep announcements playing.</string>
     <string name="help_audio">Audio troubleshooting</string>
     <string name="help_audio_body">Check media volume, Do Not Disturb and cue volume in Voice &amp; audio. Ducking in other music apps depends on the player.</string>
-    <string name="help_import">Imported files</string>
-    <string name="help_import_body">Backups include workouts, sessions and settings, but not media files. Import adds copies without replacing your workouts.</string>
     <string name="help_gestures">Player controls</string>
     <string name="help_gestures_body">Volume buttons adjust media volume. Use the player or notification to pause, skip or end a session.</string>
     <string name="help_accessibility">Accessibility</string>
     <string name="help_accessibility_body">Reduced motion, high contrast and left-handed controls are in Settings. Use Move up / Move down to reorder intervals.</string>
 
     <!-- Common -->
+    <string name="builder_invalid_title">Cannot save yet</string>
     <string name="ok">OK</string>
     <string name="close">Close</string>
     <string name="back">Back</string>
@@ -352,11 +369,11 @@
     <string name="hours_minutes">%1$sh %2$sm</string>
 
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Pulse Workout favorites</string>
-    <string name="widget_quick_start_name">Pulse Workout quick start</string>
+    <string name="widget_favorites_name">Interval Coach favorites</string>
+    <string name="widget_quick_start_name">Interval Coach quick start</string>
     <string name="widget_quick_start_label">Quick start</string>
     <string name="widget_quick_start_sub">Work / rest</string>
-    <string name="widget_empty">Open Pulse Workout to star a workout</string>
+    <string name="widget_empty">Open Interval Coach to star a workout</string>
     <string name="shortcut_recent">Recent workouts</string>
     <string name="shortcut_quick">Quick builder</string>
 
@@ -369,8 +386,6 @@
     <string name="notif_action_resume">Resume</string>
     <string name="notif_action_next">Next</string>
     <string name="notif_action_stop">Stop</string>
-    <string name="notif_backup_channel">Backups</string>
-    <string name="notif_backup_channel_desc">Weekly local backup results</string>
 
     <!-- Portable workout import -->
     <string name="json_title">AI workouts</string>
@@ -404,11 +419,9 @@
     <string name="share_total_time">Total time · incl. pauses</string>
     <string name="share_skipped">Intervals skipped</string>
     <string name="share_rounds">Rounds logged</string>
-    <string name="share_recorded">Recorded with Pulse Workout</string>
+    <string name="share_recorded">Recorded with Intervals</string>
 
     <!-- Theme & streamlined AI flow -->
-    <string name="theme_switch_light">Switch to light theme</string>
-    <string name="theme_switch_dark">Switch to dark theme</string>
     <string name="json_send_prompt">Send to AI app</string>
     <string name="json_paste">Paste response</string>
     <string name="json_edit">Edit JSON</string>
@@ -439,4 +452,5 @@
     <string name="watch_session_stop_confirm">Stop the watch workout?</string>
     <string name="watch_session_stop_message">The workout on your watch will end and be saved as stopped early.</string>
     <string name="watch_session_keep_going">Keep going</string>
+    <string name="recording_delete_failed">Could not delete the recording. Please try again.</string>
 </resources>

@@ -70,6 +70,8 @@ object StarterWorkouts {
         includeFinalRest: Boolean = true,
         equipment: String? = null,
         shuffle: Boolean = false,
+        raceDistanceMeters: Double? = null,
+        racePaceSecondsPerKm: Int? = null,
     ) = WorkoutPlan(
         id = id(seed),
         name = name,
@@ -78,6 +80,8 @@ object StarterWorkouts {
         includeFinalRest = includeFinalRest,
         equipment = equipment,
         shuffleEager = shuffle,
+        raceDistanceMeters = raceDistanceMeters,
+        racePaceSecondsPerKm = racePaceSecondsPerKm,
     )
 
     val templates: List<Template> by lazy {
@@ -254,8 +258,8 @@ object StarterWorkouts {
             Template(
                 plan = plan(
                     seed = "run-walk",
-                    name = "Run / Walk Intervals",
-                    type = WorkoutType.RUN_WALK,
+                    name = "Running Intervals",
+                    type = WorkoutType.RUN,
                     nodes = listOf(
                         node("Walk warm-up", PhaseKind.WARM_UP, 300_000, SoundCue.CHIME),
                         RepeatGroup(
@@ -269,6 +273,28 @@ object StarterWorkouts {
                     includeFinalRest = false,
                 ),
                 tags = listOf("running", "walking", "28 minutes"),
+            ),
+            Template(
+                // The running system's showcase: a paced 5K with race distance and a target pace,
+                // so the player shows live speed, distance and what is left of the race.
+                plan = plan(
+                    seed = "race-5k",
+                    name = "5K Race Run",
+                    type = WorkoutType.RUN,
+                    nodes = listOf(
+                        node("Warm-up jog", PhaseKind.WARM_UP, 300_000, SoundCue.CHIME),
+                        work(
+                            "Race the 5K",
+                            1_650_000,
+                            notes = "Even effort — the race band shows speed, distance and what is left",
+                        ),
+                        cooldown(300_000),
+                    ),
+                    includeFinalRest = false,
+                    raceDistanceMeters = 5_000.0,
+                    racePaceSecondsPerKm = 330,
+                ),
+                tags = listOf("race", "5k", "road", "GPS"),
             ),
             Template(
                 plan = plan(

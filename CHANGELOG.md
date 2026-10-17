@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to PULSE are documented in this file.
+All notable changes to INTERVALS are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *version name*
@@ -12,10 +12,235 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
-## [Unreleased]
+## [1.8.1-beta1.8] — 2026-10-17
 
-Nothing yet. See the [open issues](https://github.com/MrCerise/pulse-workout/issues) for what is
-being worked on.
+**Fixed**
+- Drop-down sheets are now real modal bottom sheets (platform window and insets), so the last
+  option is always fully visible — including **AI workout** in the New workout sheet — with
+  clear space under it above the gesture bar.
+
+**Changed**
+- Drop-downs/selectors and sliders (Voice verbosity, Cue volume, Speaking rate, Pitch and the
+  Settings pickers) get a little more spacing between stacked controls, matching the
+  background-audio section's volume + drop-down rhythm.
+
+## [1.8.1-beta1.7] — 2026-10-17
+
+**Changed**
+- Library layout: the title band is clear; sort (labelled) and the list/grid toggle live in a
+  toolbar under the search field with Favourites, and creating a workout is the floating + button.
+- Duration entry is a number scroll: tap the value to open hour / minute / second wheels and
+  scroll to the time — the ± buttons and type-in fields are gone.
+- Player controls are one centred, modern transport cluster: round previous/next buttons around
+  an 88 dp play/pause disc, with +15 s and Lap as centred pill buttons underneath.
+- Uniform spacing in Settings → During workouts, with a larger gap before Voice & audio.
+
+**Fixed**
+- Bottom sheets respect the navigation-bar inset, so the last option (AI workout in the
+  New workout sheet) is always visible.
+- Image sharing grants read access to chooser targets explicitly and falls back to a text
+  share if the image cannot be rendered, so sharing always works.
+
+## [1.8.1-beta1.6] — 2026-10-16
+
+**Changed**
+- Page headers can no longer collide with their actions: the centred title gets the band to
+  itself, back sits on its own left-aligned row, and header actions sit on a row under the title.
+- Language and workout Category now use the same drop-down (bottom-sheet) style as every other picker.
+- The app package is now `com.mrcerise.intervalcoach` and the installed app name is **Interval Coach**.
+- Duration steppers move in ±5 s and ±1 min steps, and tapping the value types an exact min:sec.
+- Workout, interval and block names are all big inline-editable boxes — no rename popup.
+- Run / Walk is folded into **Running** (existing Run / Walk workouts show as Running).
+- Distinct Today stats (active today, sessions today, next planned) instead of repeating Progress.
+
+**Added**
+- Running workouts record their GPS route; it is stored with the session and drawn on the
+  session summary, the history session detail and the share image.
+- History filtering by search, status and period.
+- QR-code sharing for a workout, with the app logo in the centre of the code.
+
+**Fixed**
+- Spacing between the "When audio is interrupted" and headphone rows in Settings.
+- Sessions under one minute are no longer stored or counted.
+
+## [1.8.1-beta1.4] — 2026-10-16
+
+The sheet-and-hero pass: pickers become modern bottom sheets, page titles are centred, and the
+session screen is rebuilt around the countdown.
+
+**Changed**
+- **Drop-downs are gone; pickers are modern bottom sheets.** Every option choice (Phase, Sound,
+  Vibration in the builders; audio interruption, headphone behaviour, density, units, verbosity in
+  Settings) now opens a `PulseBottomSheet`: a rounded sheet that slides up from the bottom with
+  large option rows and a check on the selected one. The pickers' rows are modern settings rows —
+  label on the left, current value and a chevron on the right — and action menus (**Add to
+  workout**, **Adjust all durations**, **Interval actions**, **More actions**, the Voice & audio
+  tools, the library's sort / new-workout / row actions) open the same sheet, so the app has one
+  modal surface instead of a web-form menu.
+- **Page titles are centred.** `PulsePageHeader` centres its H1 on the page — the workout title at
+  the top now sits in the same optical place as Progress and Settings — with the page actions
+  floating at the end of the same band.
+- **The session screen is rebuilt timer-first.** The countdown is the page: one dominant ring with
+  the interval's own colour as a soft wash rising behind it, the timer scaled up (~74 sp on standard
+  density), and the phase, round and side read inside the ring under the digits. The workout's name
+  is centred at the top between the exit and mute controls. Everything else is micro or anchored:
+  one centred line of session facts (elapsed · remaining · heart rate · music), the race band for
+  running workouts, and the next interval, timeline and transport controls stacked at the bottom.
+
+## [1.8.1-beta1.3] — 2026-10-16
+
+The interface pass: imposing buttons, drop-downs where a menu is the honest control, and a share
+image that can no longer draw text on top of text.
+
+**Changed**
+- **Buttons are modern and imposing.** Action buttons grow to 56 dp and speak in the display face
+  (Space Grotesk semibold) instead of 14 sp body text; secondary buttons sit on the raised surface
+  so they read as controls rather than as outlines. The stretched rows of half-width side-by-side
+  buttons are gone.
+- **Drop-downs replace button rows where a menu is the honest control.** Every enumerated choice —
+  Phase, Sound and Vibration in the interval editor, and audio interruption, headphone behaviour,
+  player density, units and verbosity in Settings — is now a labelled drop-down (`PulseSelect`)
+  whose trigger shows the current value. Clusters of secondary actions collapse into one
+  `PulseActionMenu`: **Add to workout** (interval / block), **Adjust all durations** (±5 / ±10 s),
+  **Interval actions** (left+right pair, delete), **More actions** on the workout page (preview
+  cues, edit, schedule), and the Voice & audio tools (voice actions, sound-cue preview, music).
+- **The quick builder's workout name is an imposing name plate**, not a small stretched field: one
+  64 dp button-styled plate with the name in 21 sp display type, centred, opening a rename dialog
+  on tap. The advanced builder uses the same plate.
+- **The advanced builder's interval editor drops open from the whole bar.** Clicking anywhere on an
+  interval or block row — not just its name — expands the editor; the row is the tap target.
+- The language note under Settings → Language ("Applied immediately. Widgets and notifications
+  follow the same choice on Android 13 and newer.") is removed.
+
+**Fixed**
+- The share image no longer draws text over text: the wordmark and its tagline are measured and
+  spaced from each other, the status line sits under the *rendered* title (so a two-line name
+  pushes it down instead of overrunning it), and the completion percentage and date are pinned to
+  the right margin instead of to guessed x-coordinates.
+
+## [1.8.1-beta1.2] — 2026-10-16
+
+The running system, released as a pre-release for testing.
+
+**Added**
+- **Race info for running workouts.** New **Running** category (and Run / Walk) runs the running
+  system: during the session the player shows live **speed**, **distance**, and — when the workout
+  has a race distance — **what is left of the race**, plus the projected finish.
+- **GPS when you grant it, honest numbers when you don't.** Location is requested only when a
+  running workout starts. With permission, speed and distance are measured from real fixes (glitchy
+  fixes and jumps are filtered); without it, or indoors, numbers are projected from the plan's
+  target pace and labelled *Estimated* — never presented as measurements. Pauses stop both the
+  distance and the moving clock.
+- **Race setup in the builder** (Race section): target pace per kilometre and race distance in
+  kilometres (0 = open-ended run). The session summary reports distance, average speed and the
+  source (GPS / Estimated).
+- **5K Race Run** starter template, wired for race info out of the box.
+- The exchange format's `type` accepts `RUN` (schema and docs updated).
+
+**Changed**
+- Every option picker — Phase, Sound and Vibration in the interval editor, and audio interruption,
+  headphone behaviour, player density, units and appearance in Settings — is now a wrapping row of
+  **standalone chips** (`PulseChipGroup`): each option is its own control with its own surface and
+  touch target, spaced apart. The segmented bar of welded-together buttons inside a track
+  (`PulseSegmented`) is gone; its cramped, truncated labels were the bug.
+- Rows of icon buttons (builder interval rows, the player top bar, library rows) now carry explicit
+  spacing, so no two touch targets touch.
+
+## [1.8.1-beta1.1] — 2026-10-16
+
+The container-within-container pass, released as a pre-release for testing.
+
+**Changed**
+- Settings and Voice & audio: every section now sits directly on the canvas — the segmented
+  controls, pickers, steppers and buttons keep their own surfaces, and the cards that wrapped
+  them are gone.
+- The workout details and category heroes are flat: icon tile, hue-tinted title, duration and
+  stat tiles on the canvas, with no card around them.
+- Favorites and templates in the Today rails: the Start/Use action is a control in the card's
+  own row (the template card itself is tappable) instead of a button block inside the card.
+- The builder pages are flat forms with section headers; the interval list is a hairline-
+  separated table rather than a stack of node cards.
+- Health, JSON import and Goals pages: same treatment — controls on the canvas, one surface
+  where one is needed. The Planner's schedule button sits under its list.
+- Design principle codified in `docs/DESIGN.md` (§1.5 "One surface, not two").
+
+## [1.8.1-beta1.0] — 2026-10-16
+
+Interface polish pass, released as a pre-release for testing.
+
+**Changed**
+- One button system everywhere: the section-header text links on Today ("All workouts",
+  "History"), the settings "Voice & audio" text link and every remaining `TextButton` are now
+  full-width outlined buttons in the same style as the Help and Welcome-tour buttons.
+- Option groups ("When audio is interrupted", headphone behaviour, player density, units, the
+  builder pickers) are a single modern segmented control instead of a two-column chip grid.
+- Today: Quick start and the weekly chart are flat sections (no container inside a container),
+  the health snapshot is two tiles on the canvas, and the page gutter widens to 20 dp.
+- The category page lists its workouts as one 56 dp-row table with proper insets.
+- The session screen is rebuilt: labelled elapsed/remaining stats, a centred phase band, a flat
+  "next up" line instead of a stray bordered panel, and a single padding system.
+- The share image is redrawn on the app's own palette (ink panel, volt accent, raised tiles).
+- The welcome tour gains a fourth step — the weekly goal — with preset chips and a slider; the
+  goal is a real preference used by the hero, Today's ring and the Goals page, where it can be
+  changed any time.
+- Language moves out of Appearance into its own settings section.
+- Scheduling is a proper page: the app's own month calendar, hour/minute steppers, a searchable
+  workout list and one primary action (replaces the "Tomorrow · workout" links and the
+  confirm-dialog flow). Also reachable from any workout's details page.
+- Builder error and discard dialogs use the app dialog; release tags may now carry a pre-release
+  suffix (`v1.8.1-beta1.0`), which marks the GitHub release as a pre-release.
+
+## [1.8.0] — 2026-10-16
+
+The product release: the interface settles on the **Momentum** look under its final name,
+**Intervals**, and the feature set is trimmed to what a phone-only, offline-first timer needs.
+
+**Changed**
+
+- **The name is now Intervals** — it is a HIIT & Tabata interval timer and the onboarding says so.
+  The welcome subtitle reads "The HIIT & Tabata interval timer" in every packaged language.
+- **The supplied four-bar mark is back everywhere** — launcher, notification, splash, sidebar and
+  the share card, phone and watch. It loads instantly in every launcher; the brand source stays
+  `docs/brand/pulse.svg` with the original geometry gate.
+- **Light theme, refreshed.** The volt accent deepens to a clean lime (`#4D7C0F`) for links,
+  selection and focus, and its container tint is a true pale lime (`#ECFCCB`) instead of cream.
+  All 125 contrast pairs re-measured and passing.
+- **Today is one dashboard.** Progress and Goals are two proper nav tiles instead of orphan text
+  links; the quick builder's actions are a balanced Start/Customize pair instead of three stacked
+  full-width buttons.
+- **Starter templates work like favourites** — an inline rail on Today with a one-tap *Use* that
+  saves a copy and opens it. The separate templates page is gone, along with its route, its chip in
+  the library and its sidebar entry.
+- **The theme sun/moon switch is gone** from the shell breadcrumb and the tablet rail: appearance
+  changes in Settings → Appearance, where the previews show what will change. Nothing mid-session
+  can flip the palette any more.
+- **Settings is a settings page.** The Data section (SAF export/import, automatic backups and the
+  backup notification channel) is removed — data lives on the phone and is never transferred —
+  leaving a single Danger-zone action for deleting session history. The duplicate AI/import entry
+  is gone (the workouts page owns import), and **Help & about** no longer carries the version: the
+  version and build number now sit at the bottom-right of Settings in the quietest ink.
+
+**Removed**
+
+- **Google Fit.** Deprecated by Google and legacy here; Health Connect is the one backend. The
+  Play-services fitness dependency, its manifest query, its authorisation flow and its settings
+  copy are gone.
+- **Backups & restore.** See above; `BackupRepository`, the weekly `BackupWorker` and their tests
+  are removed with the UI.
+
+**Fixed**
+
+- **Heart rate loads.** The dashboard reads today's latest measurement (it used to find nothing
+  outside a five-minute window), the player reads a strict live window so a stale beat can never
+  pose as current, and the Today screen refreshes the health snapshot when it appears.
+
+**Added**
+
+- **Release train** (`.github/workflows/release-train.yml`): one dispatch for `internal`, `beta`
+  and `production` — tests, signed AAB + APK builds, Play tracks via a service-account secret,
+  staged rollout on production, and a GitHub Release with the APKs. `versionCode` now derives
+  monotonically from the semver (`major*10M + minor*100k + patch*1k + build`), shared by the
+  tagged-release workflow, so a store upload can never regress.
 
 ## [1.7.3] — 2026-10-15
 

@@ -315,7 +315,7 @@
     <!-- Import / export -->
     <!-- Onboarding -->
     <string name="welcome_title">Interval Coach</string>
-    <string name="welcome_subtitle">The HIIT &amp; Tabata interval timer.</string>
+    <string name="welcome_subtitle">Il timer a intervalli HIIT e Tabata.</string>
     <string name="welcome_theme">Choose a look</string>
     <string name="welcome_language">Choose a language</string>
     <string name="welcome_voice">Hear a cue</string>

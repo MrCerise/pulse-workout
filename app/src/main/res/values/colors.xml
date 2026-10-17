@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  PULSE design tokens — the "Signal" system.
+  CADENCE design tokens — the "Momentum" system.
 
   Signal is a dashboard palette, not a decoration palette. Chrome is neutral: a
   rich charcoal ramp for the dark theme, a clean paper ramp for the light one, and hairlines
-  instead of shadows. The accent is the Cloudflare-inspired orange (#F38020) and it is spent
+  instead of shadows. The accent is volt lime (#A3E635) — one loud hue against quiet ink — and it is spent
   deliberately: the brand mark, the one primary action per screen, the selected navigation item
   and the focus ring. Everything else that carries colour is a *meaning* — an interval phase, a
   workout category, a state — never decoration.
@@ -25,24 +25,24 @@
       because hierarchy comes from a fill step plus a hairline rather than from brightness jumps.
       `surface_sunken` is the one step *below* the canvas, for wells and inset tables.
     -->
-    <color name="pulse_canvas">#17181B</color>
-    <color name="pulse_nav">#1C1D21</color>
-    <color name="pulse_surface">#202226</color>
-    <color name="pulse_surface_raised">#26282D</color>
-    <color name="pulse_surface_overlay">#2A2D33</color>
-    <color name="pulse_surface_hover">#313439</color>
-    <color name="pulse_surface_sunken">#1B1C20</color>
+    <color name="pulse_canvas">#101216</color>
+    <color name="pulse_nav">#14161B</color>
+    <color name="pulse_surface">#181B20</color>
+    <color name="pulse_surface_raised">#1E2126</color>
+    <color name="pulse_surface_overlay">#23262C</color>
+    <color name="pulse_surface_hover">#2A2E34</color>
+    <color name="pulse_surface_sunken">#121418</color>
 
     <!-- Borders. `pulse_border` is a hairline separator and is intentionally low-contrast (it is
          decorative); `pulse_outline` marks a meaningful control boundary and clears 3:1;
          `pulse_border_strong` is the edge of a filled input, one step louder than a hairline. -->
-    <color name="pulse_border">#34373D</color>
-    <color name="pulse_border_strong">#42464D</color>
+    <color name="pulse_border">#2E323A</color>
+    <color name="pulse_border_strong">#3B4048</color>
     <color name="pulse_outline">#8A9099</color>
 
     <!-- Text. Four levels, three of which clear 4.5:1; `disabled` is exempt by WCAG and exists so
          that "unavailable" is visually distinct from "quiet" rather than merely dimmer. -->
-    <color name="pulse_text_primary">#F5F6F7</color>
+    <color name="pulse_text_primary">#F4F6F8</color>
     <color name="pulse_text_secondary">#C3C7CC</color>
     <color name="pulse_text_muted">#9CA2A9</color>
     <color name="pulse_text_disabled">#6E747C</color>
@@ -53,20 +53,20 @@
          live data. `pulse_accent_alt` is its lighter partner, drawn only as a graphic (a bar, a
          sweep, a rank badge), never as a label. `pulse_accent_tint` is the pre-composited container
          accent text is measured against. -->
-    <color name="pulse_accent">#F38020</color>
-    <color name="pulse_accent_alt">#FFC078</color>
-    <color name="pulse_accent_tint">#3A291C</color>
+    <color name="pulse_accent">#A3E635</color>
+    <color name="pulse_accent_alt">#D9F99D</color>
+    <color name="pulse_accent_tint">#232B10</color>
 
     <!-- The brand fill and the ink that sits on it. One pair, used by the primary action and the
          wordmark — the only place in the interface where a solid block of brand colour appears. -->
-    <color name="pulse_brand">#F38020</color>
-    <color name="pulse_on_brand">#17181B</color>
+    <color name="pulse_brand">#A3E635</color>
+    <color name="pulse_on_brand">#101216</color>
 
     <!-- The ink panel. A deliberately dark surface that stays dark in both themes, so a hero card
          reads as a feature panel rather than as another card in the stack. -->
-    <color name="pulse_hero_surface">#1B1C20</color>
-    <color name="pulse_hero_text">#F5F6F7</color>
-    <color name="pulse_hero_muted">#AEB4BB</color>
+    <color name="pulse_hero_surface">#131519</color>
+    <color name="pulse_hero_text">#F4F6F8</color>
+    <color name="pulse_hero_muted">#A8B0BA</color>
 
     <!-- Interval phases. One hue per phase, each shipped with the pre-composited container tint it
          is drawn on. -->
@@ -103,9 +103,9 @@
     <color name="pulse_cat_tools_tint">#26292D</color>
 
     <!-- Solid action surfaces: the brand fill with the ink label measured against it. -->
-    <color name="pulse_action_fill">#F38020</color>
-    <color name="pulse_action_text">#17181B</color>
-    <color name="pulse_on_accent">#17181B</color>
+    <color name="pulse_action_fill">#A3E635</color>
+    <color name="pulse_action_text">#101216</color>
+    <color name="pulse_on_accent">#101216</color>
 
     <!-- ============================ Paper — the light theme ============================ -->
     <!--
@@ -114,29 +114,29 @@
       (links, selected labels, the focus ring) and must clear 4.5:1 on white, while the brand fill
       carries ink and can stay the true #F38020.
     -->
-    <color name="pulse_light_canvas">#F5F6F7</color>
+    <color name="pulse_light_canvas">#F4F6F8</color>
     <color name="pulse_light_nav">#FFFFFF</color>
     <color name="pulse_light_surface">#FFFFFF</color>
-    <color name="pulse_light_surface_raised">#F7F8F9</color>
+    <color name="pulse_light_surface_raised">#F7F8FA</color>
     <color name="pulse_light_surface_overlay">#FFFFFF</color>
-    <color name="pulse_light_surface_hover">#EDEEF0</color>
-    <color name="pulse_light_surface_sunken">#F1F2F4</color>
-    <color name="pulse_light_border">#E4E6E8</color>
-    <color name="pulse_light_border_strong">#CED2D7</color>
+    <color name="pulse_light_surface_hover">#EBEEF1</color>
+    <color name="pulse_light_surface_sunken">#EFF2F5</color>
+    <color name="pulse_light_border">#E3E7EB</color>
+    <color name="pulse_light_border_strong">#CBD2D9</color>
     <color name="pulse_light_outline">#6B7280</color>
     <color name="pulse_light_text_primary">#1B1E21</color>
     <color name="pulse_light_text_secondary">#4B5157</color>
     <color name="pulse_light_text_muted">#666C74</color>
     <color name="pulse_light_text_disabled">#A6ACB3</color>
     <color name="pulse_light_track">#E3E5E8</color>
-    <color name="pulse_light_accent">#B23A0B</color>
-    <color name="pulse_light_accent_alt">#9A3412</color>
-    <color name="pulse_light_accent_tint">#F8ECE7</color>
-    <color name="pulse_light_brand">#F38020</color>
-    <color name="pulse_light_on_brand">#1B1E21</color>
-    <color name="pulse_light_hero_surface">#1B1E21</color>
-    <color name="pulse_light_hero_text">#F5F6F7</color>
-    <color name="pulse_light_hero_muted">#AEB4BB</color>
+    <color name="pulse_light_accent">#4D7C0F</color>
+    <color name="pulse_light_accent_alt">#365314</color>
+    <color name="pulse_light_accent_tint">#ECFCCB</color>
+    <color name="pulse_light_brand">#A3E635</color>
+    <color name="pulse_light_on_brand">#101216</color>
+    <color name="pulse_light_hero_surface">#131519</color>
+    <color name="pulse_light_hero_text">#F4F6F8</color>
+    <color name="pulse_light_hero_muted">#A8B0BA</color>
     <color name="pulse_light_work">#12603C</color>
     <color name="pulse_light_work_tint">#E7EFEC</color>
     <color name="pulse_light_rest">#0A56A8</color>
@@ -162,9 +162,9 @@
     <color name="pulse_light_cat_mind_tint">#E7F0EC</color>
     <color name="pulse_light_cat_tools">#3F4753</color>
     <color name="pulse_light_cat_tools_tint">#ECEDEE</color>
-    <color name="pulse_light_action_fill">#F38020</color>
-    <color name="pulse_light_action_text">#1B1E21</color>
-    <color name="pulse_light_on_accent">#FFFFFF</color>
+    <color name="pulse_light_action_fill">#A3E635</color>
+    <color name="pulse_light_action_text">#101216</color>
+    <color name="pulse_light_on_accent">#101216</color>
 
     <!-- ============================ Void — the OLED theme ============================ -->
     <!-- Only the surfaces change: pure black saves power on OLED panels, and the ramp above already

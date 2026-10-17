@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pulse Workout</string>
+    <string name="app_name">Intervals</string>
 
     <!-- Library -->
     <string name="library_resume">Resume workout</string>
     <string name="library_empty">No workouts yet</string>
-    <string name="library_empty_hint">Open Pulse Workout on your phone — your workouts sync here</string>
+    <string name="library_empty_hint">Open Intervals on your phone — your workouts sync here</string>
     <string name="library_empty_solo">No workouts on this watch</string>
     <string name="library_restore_starters">Tap to load the starter workouts</string>
     <string name="library_row_summary">%1$s · %2$d intervals</string>
@@ -68,8 +68,8 @@
     <string name="settings_theme_system">Follow watch</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_true_black">Pure black</string>
-    <string name="settings_theme_note">Appearance follows your phone\'s Pulse Workout settings</string>
-    <string name="settings_about">Pulse Workout Watch %1$s · last sync %2$s</string>
+    <string name="settings_theme_note">Appearance follows your phone\'s Intervals settings</string>
+    <string name="settings_about">Intervals Watch %1$s · last sync %2$s</string>
     <string name="settings_back">Back</string>
 
     <!-- Where this watch's data comes from and goes -->

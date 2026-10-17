@@ -28,6 +28,12 @@ val releaseSigningConfigured = !releaseStoreFile.isNullOrBlank() &&
 val pulseCompileSdk: Int = rootProject.extra.takeIf { it.has("pulseCompileSdk") }
     ?.get("pulseCompileSdk") as? Int ?: 37
 
+// Keep the Play target independent of a machine's installed compile SDK fallback.
+val pulsePhoneTargetSdk = 36
+if (providers.gradleProperty("pulse.playRelease").orNull == "true" && pulseCompileSdk < pulsePhoneTargetSdk) {
+    throw GradleException("Play phone releases require compileSdk >= $pulsePhoneTargetSdk; install that SDK before publishing.")
+}
+
 android {
     signingConfigs {
         if (releaseSigningConfigured) {
@@ -40,15 +46,17 @@ android {
         }
     }
 
-    namespace = "com.pulse.intervalcoach"
+    namespace = "com.mrcerise.intervalcoach"
     compileSdk = pulseCompileSdk
 
     defaultConfig {
-        applicationId = "com.pulse.intervalcoach"
+        applicationId = "com.mrcerise.intervalcoach"
         minSdk = 26
-        targetSdk = pulseCompileSdk
-        versionCode = 22
-        versionName = "1.7.6"
+        targetSdk = pulsePhoneTargetSdk
+        // CI release trains override these per channel (`-Ppulse.versionCode/-Name`); the values
+        // here are the published release line of record.
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 32
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.1"
         // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -122,6 +130,7 @@ implementation(project(":library"))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.zxing.core)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -139,9 +148,8 @@ implementation(project(":library"))
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Health & fitness integrations (Health Connect + Google Fit)
+    // Health integration (Health Connect)
     implementation(libs.androidx.health.connect.client)
-    implementation(libs.gms.play.services.fitness)
     implementation(libs.gms.play.services.auth)
 
     // Wear OS companion link (workout library/preferences sync, session mirroring and control)

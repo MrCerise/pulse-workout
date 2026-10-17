@@ -23,8 +23,8 @@
 -keep class com.pulse.engine.** { *; }
 
 # Foreground service and widget providers are instantiated by the framework.
--keep class com.pulse.intervalcoach.session.WorkoutService { *; }
--keep class com.pulse.intervalcoach.widget.** { *; }
+-keep class com.mrcerise.intervalcoach.session.WorkoutService { *; }
+-keep class com.mrcerise.intervalcoach.widget.** { *; }
 
 # TTS callbacks are invoked through the framework.
 -keep class * implements android.speech.tts.TextToSpeech$OnInitListener { *; }

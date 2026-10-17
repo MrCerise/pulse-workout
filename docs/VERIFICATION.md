@@ -104,11 +104,18 @@ Anything that needs hardware or a running Android system has **not** been observ
 7. **Lint** runs clean of errors and fatal issues, but reports warnings (unused resources from the
    string table, newer dependency versions available, plurals suggestions). They are visible in
    `app/build/reports/lint-results-debug.html` and are deliberately not suppressed.
-8. **Google Fit is best-effort by design.** The on-device Fit API was deprecated by Google and no
-   longer accepts new developer signups, so PULSE ships without a Fit `OAUTH_CLIENT_ID` metadata
-   entry. If you already hold client credentials, add
-   `com.google.android.gms.fitness.OAUTH_CLIENT_ID` to the manifest and Fit authorisation works out
-   of the box; without it, the Health setup screen explains the state and everything keeps working
-   through Health Connect.
-9. **Health Connect API surface.** PULSE targets the stable `connect-client:1.1.0` API. The 1.2.x
+8. **Health Connect is the one backend.** Google Fit support was removed in 1.8.0: Google
+   deprecated the on-device Fit API and no longer accepts new developer signups, so the fallback
+   could not be exercised by new users anyway. The Health setup screen explains the Health Connect
+   state and everything keeps working through it.
+9. **Health Connect API surface.** The app targets the stable `connect-client:1.1.0` API. The 1.2.x
    line renames several record types and is alpha; the code deliberately does not chase it.
+10. **Pre-release tags** (`v1.8.1-beta1.0`) resolve their `versionCode` from the numeric core and add
+   the workflow run number (mod 1000), so two pre-releases of the same core never collide; the suffix
+   rides in the `versionName` and marks the GitHub release as a pre-release. Plain tags keep build 0.
+11. **The schedule page** writes through the same `ReminderRepository.schedule` the old dialog used,
+   so notification plumbing is unchanged; what changed is only the surface (calendar page instead of
+   preset links). Reminder deletion stays on the Planner rows.
+12. **The weekly goal** is a real preference (`weekly_goal_minutes`, 30–2000, written in 15-minute
+   steps) used by the Today hero, the Goals page and the welcome tour's goal step. Old installs get
+   the WHO 150 default, which the copy labels as such.

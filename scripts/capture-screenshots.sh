@@ -21,8 +21,8 @@ set -euo pipefail
 
 SERIAL="${1:-}"
 OUT_DIR="$(cd "$(dirname "$0")/.." && pwd)/docs/screenshots"
-PKG="com.pulse.intervalcoach.debug"
-ACTIVITY="$PKG/com.pulse.intervalcoach.MainActivity"
+PKG="com.mrcerise.intervalcoach.debug"
+ACTIVITY="$PKG/com.mrcerise.intervalcoach.MainActivity"
 SETTLE="${SETTLE:-3}"
 
 if [[ -n "$SERIAL" ]]; then

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Data extraction rules for API 31+. Cloud backups and device-to-device transfers carry the same
-  content: the database, preferences and user media, minus the regenerable cache and the local
-  backup folder.
+  database and preferences, but only device-to-device transfer includes recordings. Both exclude
+  the regenerable share and backup folders. See docs/DATA.md and the user-facing privacy policy.
 -->
 <data-extraction-rules>
     <cloud-backup>

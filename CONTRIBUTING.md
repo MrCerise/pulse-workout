@@ -62,7 +62,7 @@ echo "sdk.dir=/absolute/path/to/Android/sdk" > local.properties
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The debug build uses the package id `com.pulse.intervalcoach.debug`, so it installs alongside a
+The debug build uses the package id `com.mrcerise.intervalcoach.debug`, so it installs alongside a
 release build without touching your real data.
 
 If Gradle runs out of memory on a smaller machine, see
@@ -130,7 +130,7 @@ must survive an update.
 [docs/WORKOUT_JSON.md](docs/WORKOUT_JSON.md), `docs/workout-import.schema.json` and, where it makes
 sense, the example files. Files that import today should keep importing.
 
-**Untrusted input.** Imports, backups, deep links and clipboard content are all attacker-controlled.
+**Untrusted input.** Imports, deep links and clipboard content are all attacker-controlled.
 Keep reads bounded, validate before writing, and never resolve a caller-supplied path into app
 storage.
 
@@ -167,7 +167,7 @@ most useful things are the PULSE version, your Android version and device, and e
 reproduce. Timer and audio bugs often depend on the device (battery optimisation, TTS engine,
 Bluetooth headphones), so those details matter.
 
-Please leave personal health data out of public issues. If you attach a workout file or a backup,
+Please leave personal health data out of public issues. If you attach a workout file,
 make sure it contains nothing you wouldn't want public.
 
 ## License
