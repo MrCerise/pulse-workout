@@ -28,7 +28,10 @@ Manual testing trains without an existing tag get a distinct tag, such as
 ## Version names and codes
 
 Both `app/build.gradle.kts` and `wear/build.gradle.kts` keep matching local defaults. A tagged
-build uses the **tag's version and exact commit**, even if the workflow was dispatched from `main`.
+build uses the **tag's version and exact commit**. For a manual tagged build, select that tag under
+**Run workflow → Use workflow from** as well as supplying `release_tag` (or use
+`gh workflow run release-train.yml --ref v1.8.4 -f release_tag=v1.8.4`). The requested tag must match
+the workflow event's commit, and that commit must already be in `main`'s history.
 The train validates its inputs before starting a Gradle runner or decoding a signing key.
 
 For tag builds, an empty `version_code` derives a code using the existing numeric tag scheme:
@@ -123,7 +126,9 @@ Finish draft releases and send them for review in Play Console when ready.
 **Actions → Build and release** remains a shortcut: set `release_tag` to rebuild an existing tag,
 optionally override `version_code`, and toggle `publish_to_play`. An empty tag runs ordinary CI.
 If a release tag already points to another commit, the train fails rather than attaching binaries
-built from the wrong source. Select that tag explicitly or choose a new version.
+built from the wrong source. Select that tag in **Use workflow from** too, or choose a new version.
+Source-validation and build jobs always check out the immutable workflow event SHA. A text input
+cannot switch the runner to another revision while retaining the default branch's cache scope.
 
 Wear OS bundles are supplied on GitHub for manual distribution. Only the phone AAB and its mapping
 are uploaded to Play automatically. Phone and watch currently share a version code; automated Wear

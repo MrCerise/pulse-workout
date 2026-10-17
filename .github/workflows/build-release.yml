@@ -45,7 +45,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing tag to build for GitHub Releases and a Play internal draft. Empty runs CI only.
+        description: Existing tag (also select it under Use workflow from). Empty runs CI only.
         required: false
         type: string
       version_code:

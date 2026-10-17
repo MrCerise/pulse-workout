@@ -16,7 +16,7 @@ on:
         required: false
         type: string
       release_tag:
-        description: 'Optional existing vMAJOR.MINOR.PATCH tag; builds that exact commit'
+        description: 'Optional existing tag; select that tag under Run workflow > Use workflow from'
         required: false
         type: string
       version_name:
@@ -98,11 +98,12 @@ jobs:
       track: ${{ steps.version.outputs.track }}
       release_tag: ${{ steps.version.outputs.release_tag }}
       prerelease: ${{ steps.version.outputs.prerelease }}
-      source_sha: ${{ steps.source.outputs.sha }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
+          persist-credentials: false
       - name: Validate release inputs
         id: version
         env:
@@ -114,30 +115,12 @@ jobs:
           RELEASE_STATUS: ${{ inputs.release_status }}
           RELEASE_ROLLOUT_PERCENT: ${{ inputs.staged_rollout_percent }}
         run: python3 scripts/resolve_play_release.py
-      - name: Resolve immutable source commit
-        id: source
-        shell: bash
+      - name: Validate the selected workflow commit
         env:
+          WORKFLOW_SHA: ${{ github.sha }}
           SOURCE_TAG: ${{ inputs.release_tag }}
           RELEASE_TAG: ${{ steps.version.outputs.release_tag }}
-        run: |
-          set -euo pipefail
-          source_sha="$(git rev-parse HEAD)"
-          if [[ -n "$SOURCE_TAG" ]]; then
-            source_sha="$(git rev-parse --verify "refs/tags/${SOURCE_TAG}^{commit}")"
-          fi
-          if git show-ref --verify --quiet "refs/tags/${RELEASE_TAG}"; then
-            tagged_sha="$(git rev-parse --verify "refs/tags/${RELEASE_TAG}^{commit}")"
-            if [[ "$tagged_sha" != "$source_sha" ]]; then
-              echo "::error::The release tag already points to a different commit. Select that release_tag to rebuild it, or use a new version."
-              exit 1
-            fi
-          fi
-          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
-      - name: Check out the source that will actually be built
-        uses: actions/checkout@v7.0.1
-        with:
-          ref: ${{ steps.source.outputs.sha }}
+        run: python3 scripts/validate_release_source.py
       - name: Static checks and release helper tests
         shell: bash
         run: |
@@ -174,7 +157,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
         with:
-          ref: ${{ needs.version.outputs.source_sha }}
+          ref: ${{ github.sha }}
+          persist-credentials: false
       - name: Set up build environment
         uses: ./.github/actions/setup-pulse-build
         with:
@@ -270,7 +254,7 @@ jobs:
         uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ needs.version.outputs.release_tag }}
-          target_commitish: ${{ needs.version.outputs.source_sha }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
           overwrite_files: true
           prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
