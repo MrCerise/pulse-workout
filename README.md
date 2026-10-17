@@ -8,7 +8,7 @@
 
 Precise timing that survives a locked screen, spoken coaching from your device's own
 text-to-speech engine, a builder that expresses everything from a 4-minute Tabata to nested
-circuits and ladders, history built from your real sessions — and live heart rate through
+circuits and ladders, history built from your real sessions — and workout export to
 Health Connect.
 
 [![CI](https://github.com/MrCerise/pulse-workout/actions/workflows/build-release.yml/badge.svg?branch=main)](https://github.com/MrCerise/pulse-workout/actions/workflows/build-release.yml)
@@ -55,7 +55,7 @@ run and optional Google Play upload (draft by default). See [the Play release se
   live timeline — in one screen.
 - **Bring your own AI.** Copy a schema-aware prompt, paste the response back, preview the expanded
   timeline and save. No API keys, no network calls, nothing sent on your behalf.
-- **Health Connect.** Live heart rate in the player, finished sessions written as workout
+- **Health Connect.** Finished sessions written as workout
   sessions with per-interval segments.
 - **On your wrist, on its own or paired.** The Wear OS app runs the same engine on the watch —
   same drift-free timing, haptic cues, the same theme. With no phone it is a complete app: the
@@ -74,7 +74,7 @@ run and optional Google Play upload (draft by default). See [the Play release se
 | **Player** | Full-screen tabular timer, current/next interval, round and position, elapsed and remaining totals, left-handed layout, tablet instructor view |
 | **History & progress** | Per-session details with the workout as it was run, weekly chart, daily minutes, streaks, all-time totals, a monthly goal and a local planner with reminders; starter templates live right on Today |
 | **Today** | One-tap category starts, quick work/rest/rounds builder, favourites, templates, weekly progress and goals — everything one tap from the dashboard |
-| **Health** | Health Connect: live HR with zones, steps, session writes, 7-day backfill, an honest setup screen |
+| **Health** | Health Connect: session writes, 7-day backfill, an honest setup screen |
 | **Voice studio** | Engine and offline-voice status, rate, pitch, verbosity, profiles, cue volume, vibration, ducking switch and depth, your own recordings |
 | **Look & feel** | Light, dark, true black and system themes, high contrast, reduced motion, dynamic colour, adjustable density; 125 contrast pairs measured in CI |
 | **System** | Home-screen widgets, dynamic shortcuts, drafts that survive process death |

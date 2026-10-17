@@ -435,8 +435,8 @@
     <string name="json_clipboard_empty">Copiez d’abord la réponse JSON de votre IA.</string>
     <string name="json_paste_error">Collage impossible. Modifiez le JSON ou ouvrez un fichier.</string>
     <string name="help_health">Synchronisation santé</string>
-    <string name="help_health_body">Connectez Health Connect dans Réglages → Santé pour lire la fréquence cardiaque, les pas ou synchroniser les séances. Gérez les autorisations dans Health Connect.</string>
-    <string name="help_permissions_body">Notifications : commandes du minuteur. Microphone : enregistrement d’annonces. Santé : fréquence cardiaque, pas et synchronisation. Ces autorisations sont facultatives.</string>
+    <string name="help_health_body">Connectez Health Connect dans Réglages → Santé pour exporter les séances terminées. Gérez les autorisations dans Health Connect.</string>
+    <string name="help_permissions_body">Notifications : commandes du minuteur. Microphone : enregistrement d’annonces. Santé : export des séances uniquement. Ces autorisations sont facultatives.</string>
 
     <!-- Compagnon Wear OS -->
     <string name="watch_banner_title">Entraînement en cours sur votre montre</string>

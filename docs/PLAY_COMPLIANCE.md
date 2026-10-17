@@ -31,9 +31,7 @@ Complete these against the **actual release artifact**, SDKs and distribution se
 | Declaration | PULSE evidence / information to provide |
 | --- | --- |
 | Health apps | Fitness coaching / exercise tracking and Health Connect. PULSE is not a medical device. |
-| Health Connect: `READ_HEART_RATE` | Live heart rate in the player/dashboard and session summary statistics; optional. |
-| Health Connect: `READ_STEPS` | Today's steps on the dashboard; optional. |
-| Health Connect: `WRITE_EXERCISE` | Completed exercise sessions with interval segments; optional and controlled by Settings → Health. No heart-rate write permission. |
+| Health Connect: `WRITE_EXERCISE` | Completed exercise sessions with interval segments; optional and controlled by Settings → Health. This is the only Health Connect permission requested; heart-rate and step reading features have been removed. |
 | Data safety | Review health/fitness, precise/approximate location, recordings and app content against Google's definitions and exceptions. Account for Android backup, Wearable Data Layer relay, user-initiated sharing and bundled SDKs. Local access is not automatically off-device collection; do not simply mark every permission as collection or assume “no collection” from offline-first architecture. |
 | Foreground services | `specialUse` for the explicitly started interval timer; `location` for permission-granted runs. Remove obsolete `mediaPlayback` declarations once no active bundle on any track uses that permission. |
 | Audience / rating / ads / app access | Declare the intended audience, complete IARC, declare no ads if still true, and explain there is no login. Health Connect must not be used by an app solely targeting children. |
@@ -49,12 +47,12 @@ Describe Health Connect/device requirements accurately.
 
 **English:** PULSE is a fitness coaching and interval timer app. It is not a medical device and does
 not diagnose, treat, cure or prevent any medical condition. Consult a healthcare professional for
-medical advice, diagnosis or treatment. Heart-rate, pace and distance readings may be approximate.
+medical advice, diagnosis or treatment. Pace and distance readings may be approximate.
 
 **Français :** PULSE est une application de coaching sportif et de chronométrage par intervalles.
 Ce n’est pas un dispositif médical ; elle ne diagnostique, ne traite, ne guérit et ne prévient aucune
 maladie. Consultez un professionnel de santé pour tout conseil médical, diagnostic ou traitement.
-La fréquence cardiaque, l’allure et la distance peuvent être approximatives.
+L’allure et la distance peuvent être approximatives.
 
 ## Foreground service explanation and video
 

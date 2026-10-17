@@ -269,7 +269,6 @@ fun HomeScreen(
     val snapshot by container.sessionController.snapshot.collectAsStateWithLifecycle()
     val watchSession by container.wearSync.remoteWatchSession.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    val healthSnapshot by container.health.snapshot.collectAsStateWithLifecycle()
     val goalMillis = state.goalMinutes.coerceAtLeast(1).toLong() * 60L * 1000L
     val presets = remember { buildCategoryPresets() }
     val categories = remember { homeStartableCategories }
@@ -569,27 +568,6 @@ fun HomeScreen(
                             }
                             Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
                         }
-                    }
-                }
-            }
-
-            // --- Health snapshot (only when something is actually connected) ----------------------
-            // Flat tiles on the canvas: the tiles are already surfaces, so a card around them was
-            // a container inside a container with nothing to say.
-            if (healthSnapshot.source != null) {
-                item { SectionHeader(text = "Today's health", trailing = healthSnapshot.source.orEmpty()) }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
-                        StatTile(
-                            label = "Steps",
-                            value = healthSnapshot.stepsToday?.toString() ?: "—",
-                            modifier = Modifier.weight(1f),
-                        )
-                        StatTile(
-                            label = "Heart rate",
-                            value = healthSnapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
-                            modifier = Modifier.weight(1f),
-                        )
                     }
                 }
             }

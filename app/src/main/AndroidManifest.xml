@@ -20,8 +20,6 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Health Connect permissions are optional and are requested through its permission UI. -->
-    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
-    <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
 
     <uses-feature android:name="android.hardware.vibrator" android:required="false" />
