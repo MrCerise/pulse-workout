@@ -13,8 +13,8 @@ def resolve_release(environ, build_file):
 
     track = environ.get("RELEASE_PLAY_TRACK", "").strip()
     if channel == "closed":
-        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,99}", track) or track in {"internal", "beta", "production"}:
-            raise ValueError("Closed testing requires its Play track ID, for example alpha or closed-testing.")
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._ -]{0,99}", track) or track in {"internal", "beta", "production"}:
+            raise ValueError("Closed testing requires its exact API track name, for example PreRelease Beta.")
     elif track and track != channel:
         raise ValueError("A custom Play track is only supported with the closed channel.")
     else:

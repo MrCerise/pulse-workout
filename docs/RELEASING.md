@@ -14,7 +14,7 @@ git push origin v1.8.5
 
 **Build and release** calls the reusable **Release train**. It checks the tagged source, runs tests,
 then builds signed phone and watch artifacts in parallel. A tag upload goes to **Play closed
-testing track `4701389324980022660` as a draft**; it does not publish to testers or production automatically.
+testing track `PreRelease Beta` as a draft**; it does not publish to testers or production automatically.
 
 GitHub Release publishing and Play uploading are independent after the build. A Play credential,
 permission or API failure does not prevent the GitHub assets from being published. The overall
@@ -110,7 +110,7 @@ Use **Actions → Release train → Run workflow**:
 | Input | Behavior |
 | --- | --- |
 | `channel` | `closed` (default), `internal`, `beta` (open testing), or `production` |
-| `play_track` | Closed testing only: defaults to `4701389324980022660`; override for another track |
+| `play_track` | Closed testing only: defaults to the exact API name `PreRelease Beta`; override for another track |
 | `release_tag` | Optional existing tag; builds that tag's commit and uses its version |
 | `version_name` | Plain `MAJOR.MINOR.PATCH`; empty reads the tag or repository default |
 | `version_code` | Explicit increasing Play code; may be empty only for a tag with an automatic slot |
@@ -122,6 +122,17 @@ Use **Actions → Release train → Run workflow**:
 `beta` is not the closed-testing channel. Select `closed` and supply the actual Play track ID for
 closed testing. Production staged rollouts below 100% become `inProgress` with `userFraction`.
 Finish draft releases and send them for review in Play Console when ready.
+
+Use the track name returned by the Android Publisher API, including its spaces and capitalization.
+The numeric ID from a Play Console URL is not the API track name. `PreRelease Beta` is a custom
+closed-testing track; the reserved API track `beta` means open testing.
+
+If only the Play upload failed before accepting the bundle, use **Actions → Retry Play upload →
+Run workflow** from `main`, and supply the existing GitHub Release version (for example `1.8.5`).
+It checks that the tag's commit is in main's history, downloads the published phone bundle/mapping,
+verifies their exact SHA-256 checksums, and uploads them to `PreRelease Beta` as a draft with the
+localized notes. It does not rebuild or change the GitHub Release. If Play already accepted a
+version code, manage that version in Play Console instead of uploading it again.
 
 ## Release notes
 

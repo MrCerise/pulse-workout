@@ -1,0 +1,68 @@
+name: Retry Play upload
+
+# Publish an existing, checksummed phone bundle after a Play-only configuration failure.
+# No tag source code is checked out or executed and no signed binary is rebuilt.
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: Existing GitHub Release version, without v
+        required: true
+        default: '1.8.5'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-train-play
+  cancel-in-progress: false
+
+jobs:
+  play:
+    name: Upload existing release to PreRelease Beta (draft)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: play-testing
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate versioned release notes
+        env:
+          RELEASE_NOTES_VERSION: ${{ inputs.version_name }}
+          RELEASE_NOTES_OUTPUT: ${{ runner.temp }}/release-notes
+        run: python3 scripts/prepare_release_notes.py
+      - name: Download the reviewed release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_NAME: ${{ inputs.version_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_tag="v${VERSION_NAME}"
+          source_sha="$(git rev-parse --verify "refs/tags/${release_tag}^{commit}")"
+          git merge-base --is-ancestor "$source_sha" refs/remotes/origin/main
+          prefix="interval-coach-${VERSION_NAME}-phone"
+          gh release download "$release_tag" --repo "$GITHUB_REPOSITORY" \
+            --pattern "${prefix}-release.aab" --pattern "${prefix}-mapping.txt" \
+            --pattern SHA256SUMS --dir release-assets
+      - name: Verify the exact bundle and mapping checksums
+        env:
+          VERSION_NAME: ${{ inputs.version_name }}
+        run: python3 scripts/verify_play_assets.py
+      - name: Upload the existing phone bundle and localized notes
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+          packageName: com.mrcerise.intervalcoach
+          releaseFiles: release-assets/interval-coach-${{ inputs.version_name }}-phone-release.aab
+          mappingFile: release-assets/interval-coach-${{ inputs.version_name }}-phone-mapping.txt
+          whatsNewDirectory: ${{ runner.temp }}/release-notes/whatsnew
+          releaseName: ${{ inputs.version_name }}
+          track: PreRelease Beta
+          status: draft
+          inAppUpdatePriority: 0

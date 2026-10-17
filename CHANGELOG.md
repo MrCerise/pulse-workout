@@ -15,7 +15,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 ## [1.8.5] — 2026-10-17
 
 **Changed**
-- Version-tag uploads now target closed testing track `4701389324980022660` as a draft for review.
+- Version-tag uploads now target closed testing track `PreRelease Beta` as a draft for review.
 - Both phone and Wear OS report version 1.8.5; tag builds use an increasing Play version code.
 
 **Added**

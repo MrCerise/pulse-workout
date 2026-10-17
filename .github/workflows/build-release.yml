@@ -164,7 +164,7 @@ jobs:
       release_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
       version_code: ${{ inputs.version_code || '' }}
       channel: closed
-      play_track: '4701389324980022660'
+      play_track: 'PreRelease Beta'
       release_status: draft
       publish_to_play: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_to_play }}
       run_tests: true

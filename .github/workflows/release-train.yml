@@ -12,9 +12,9 @@ on:
         type: choice
         options: [internal, closed, beta, production]
       play_track:
-        description: 'Closed testing only: exact track ID from Play Console, e.g. alpha'
+        description: 'Closed testing only: exact API track name, e.g. PreRelease Beta'
         required: false
-        default: '4701389324980022660'
+        default: 'PreRelease Beta'
         type: string
       release_tag:
         description: 'Optional existing tag; select that tag under Run workflow > Use workflow from'
@@ -54,7 +54,7 @@ on:
         default: closed
       play_track:
         type: string
-        default: '4701389324980022660'
+        default: 'PreRelease Beta'
       release_tag:
         type: string
         default: ''
