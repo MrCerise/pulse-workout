@@ -88,12 +88,11 @@ Anything that needs hardware or a running Android system has **not** been observ
    is verified by compilation, lint and unit tests in CI; it has never been launched there, so there
    are no screenshots of the running app in the repository. Run `scripts/capture-screenshots.sh` on
    your own machine to produce them.
-2. **Some UI copy is still English literals.** Primary screens are wired to string resources and
-   translate (French covers the whole string table), but secondary strings inside Compose code remain
-   literals. `./gradlew :app:lintDebug` reports the strings that are not wired up yet. The in-app
-   language choice covers exactly what comes from resources — which since 1.7.3 includes the shell:
-   the bar, the sidebar groups and the breadcrumb — and nothing that is a literal in a screen. Sweeping
-   the rest is its own change, and it is bigger than the selector.
+2. **Workout content keeps its author's language.** Interface labels, category names, dates,
+   accessibility descriptions and generated builder labels use the selected app language. Saved
+   workout names, notes and bundled editable examples remain content in their original language.
+   `python scripts/check_ui.py` checks every packaged translation table for missing strings and
+   plurals, mismatched format arguments and copied English sentences.
 3. **Hardware-dependent behaviour is untested here:** vibration, headphone-unplug detection, audio
    focus negotiation, notification actions and TTS playback all require a device to confirm.
 4. **Wall-clock changes are immune by construction** (monotonic clock), but the "changed timezone

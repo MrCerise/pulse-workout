@@ -276,6 +276,7 @@ private fun PulseAppRootContent(
     onRequestNotificationPermission: () -> Unit,
     onRequestLocationPermission: (() -> Unit) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val navController = rememberNavController()
     val current = prefs
@@ -326,7 +327,7 @@ private fun PulseAppRootContent(
                         if (repeating) popUpTo(Routes.SUMMARY) { inclusive = true }
                     }
                 } else {
-                    snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "Could not start this workout")
+                    snackbarHostState.showSnackbar(strings.getString(R.string.workout_start_failed))
                 }
             }
         }
@@ -771,6 +772,7 @@ private fun ShellBreadcrumb(
     showMark: Boolean,
     onOpenSettings: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     PulseBreadcrumbBar(
         title = title,
         parent = parent,
@@ -782,7 +784,7 @@ private fun ShellBreadcrumb(
         actions = {
             PulseIconButton(
                 icon = Icons.Filled.Settings,
-                contentDescription = "Settings",
+                contentDescription = strings.getString(R.string.nav_settings),
                 onClick = onOpenSettings,
             )
         },
@@ -820,6 +822,7 @@ private fun SidebarHeader() {
  */
 @Composable
 private fun AppearanceControl(mode: ThemeMode, onSelect: (ThemeMode) -> Unit) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(
@@ -840,7 +843,7 @@ private fun AppearanceControl(mode: ThemeMode, onSelect: (ThemeMode) -> Unit) {
             )
             Spacer(Modifier.width(dimens.s))
             Text(
-                text = "Appearance",
+                text = strings.getString(R.string.settings_appearance),
                 style = MaterialTheme.typography.labelMedium,
                 color = colors.textMuted,
                 modifier = Modifier.weight(1f),
@@ -848,9 +851,9 @@ private fun AppearanceControl(mode: ThemeMode, onSelect: (ThemeMode) -> Unit) {
         }
         PulseChipGroup(
             options = listOf(
-                ThemeMode.SYSTEM to "Auto",
-                ThemeMode.LIGHT to "Light",
-                ThemeMode.DARK to "Dark",
+                ThemeMode.SYSTEM to strings.getString(R.string.theme_system),
+                ThemeMode.LIGHT to strings.getString(R.string.theme_light),
+                ThemeMode.DARK to strings.getString(R.string.theme_dark),
             ),
             selected = if (mode == ThemeMode.TRUE_BLACK) ThemeMode.DARK else mode,
             onSelect = onSelect,

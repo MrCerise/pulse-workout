@@ -68,6 +68,7 @@ fun SessionSummaryScreen(
     onDone: () -> Unit,
     onRepeat: (WorkoutPlan) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val summary by container.sessionController.summary.collectAsStateWithLifecycle()
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val colors = LocalPulseColors.current
@@ -86,10 +87,10 @@ fun SessionSummaryScreen(
                     .padding(padding)
                     .padding(dimens.pagePadding),
             ) {
-                InfoBanner("No session to summarise")
+                InfoBanner(strings.getString(R.string.summary_none))
                 Spacer(Modifier.height(dimens.m))
                 PrimaryActionButton(
-                    text = "Back to Home",
+                    text = strings.getString(R.string.summary_home),
                     onClick = onDone,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -125,7 +126,7 @@ fun SessionSummaryScreen(
             PulsePageHeader(
                 title = current.planName,
                 onBack = onDone,
-                backLabel = "Close",
+                backLabel = strings.getString(R.string.close),
             )
             // --- Hero --------------------------------------------------------------------------
             // The one ink panel on the page, exactly as on Today: a finished session is a headline,
@@ -134,7 +135,7 @@ fun SessionSummaryScreen(
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         StatusBadge(
-                            text = if (current.stoppedEarly) "Ended early" else "Completed",
+                            text = if (current.stoppedEarly) strings.getString(R.string.share_ended_early) else strings.getString(R.string.status_completed),
                             tone = if (current.stoppedEarly) PulseTone.WARNING else PulseTone.SUCCESS,
                         )
                         Spacer(Modifier.weight(1f))
@@ -151,7 +152,7 @@ fun SessionSummaryScreen(
                         color = colors.heroText,
                     )
                     Text(
-                        text = "active time",
+                        text = strings.getString(R.string.summary_actual_time),
                         style = MaterialTheme.typography.labelSmall,
                         color = colors.heroMuted,
                     )
@@ -160,21 +161,21 @@ fun SessionSummaryScreen(
             PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.s)) {
                 Column(Modifier.fillMaxWidth()) {
                     MetricRow(
-                        label = "Completion",
+                        label = strings.getString(R.string.summary_completion),
                         value = "${if (current.totalIntervals == 0) 0 else (current.completedIntervals * 100 / current.totalIntervals)}%",
                     )
                     PulseDivider()
                     MetricRow(
-                        label = "Intervals completed",
+                        label = strings.getString(R.string.summary_completed_intervals),
                         value = "${current.completedIntervals} / ${current.totalIntervals}",
                     )
                     PulseDivider()
-                    MetricRow(label = "Skipped", value = current.skippedIntervals.toString())
+                    MetricRow(label = strings.getString(R.string.summary_skipped), value = current.skippedIntervals.toString())
                     PulseDivider()
-                    MetricRow(label = "Total time (incl. pauses)", value = formatDuration(current.wallMillis))
+                    MetricRow(label = strings.getString(R.string.summary_total_pauses), value = formatDuration(current.wallMillis))
                     if (current.roundsLogged > 0) {
                         PulseDivider()
-                        MetricRow(label = "Rounds", value = current.roundsLogged.toString())
+                        MetricRow(label = strings.getString(R.string.builder_rounds), value = current.roundsLogged.toString())
                     }
                 }
             }
@@ -202,7 +203,7 @@ fun SessionSummaryScreen(
                         if (target != null) {
                             PulseDivider()
                             MetricRow(
-                                label = if (current.raceFinished) "Race distance" else "Race distance (ended early)",
+                                label = if (current.raceFinished) strings.getString(R.string.summary_race_label) else strings.getString(R.string.summary_race_early),
                                 value = "${RaceMath.formatDistanceKm(target)} km",
                             )
                         }
@@ -211,7 +212,7 @@ fun SessionSummaryScreen(
             }
 
             if (current.raceRoute.size >= 2) {
-                SectionHeader("Route")
+                SectionHeader(strings.getString(R.string.session_route))
                 PulseCard { RouteMap(current.raceRoute) }
             }
 
@@ -220,15 +221,15 @@ fun SessionSummaryScreen(
             if (shared != null) {
                 InfoBanner(
                     text = if (shared) {
-                        "Synced to health apps"
+                        strings.getString(R.string.summary_synced)
                     } else {
-                        "Health sync failed. Session saved on this device."
+                        strings.getString(R.string.summary_sync_failed)
                     },
                     tone = if (shared) PulseTone.SUCCESS else PulseTone.NEUTRAL,
                 )
             }
 
-            SectionHeader("Notes")
+            SectionHeader(strings.getString(R.string.details_notes))
             PulseTextField(
                 value = notes,
                 onValueChange = { notes = it },
@@ -280,8 +281,7 @@ fun SessionSummaryScreen(
                                 }
                                 context.startActivity(chooser)
                             } else {
-                                val text = "${current.planName} — ${formatDuration(current.activeMillis)} active, " +
-                                    "${current.completedIntervals}/${current.totalIntervals} intervals"
+                                val text = strings.getString(R.string.summary_share_text, current.planName, formatDuration(current.activeMillis), current.completedIntervals, current.totalIntervals)
                                 val send = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_SUBJECT, current.planName)
@@ -301,7 +301,7 @@ fun SessionSummaryScreen(
 
             Spacer(Modifier.height(dimens.s))
             PrimaryActionButton(
-                text = "Repeat workout",
+                text = strings.getString(R.string.summary_repeat_workout),
                 onClick = { scope.launch { container.workouts.plan(current.workoutId)?.let(onRepeat) } },
                 modifier = Modifier.fillMaxWidth(),
             )

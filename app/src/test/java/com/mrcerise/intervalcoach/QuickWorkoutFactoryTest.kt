@@ -10,6 +10,30 @@ import org.junit.Test
 class QuickWorkoutFactoryTest {
 
     @Test
+    fun `translated generated labels keep the same interval schedule`() {
+        val original = QuickWorkoutFactory.build(
+            workMillis = 20_000, restMillis = 10_000, rounds = 2,
+            preparationMillis = 5_000, cooldownMillis = 15_000,
+        )
+        val translated = QuickWorkoutFactory.build(
+            workMillis = 20_000, restMillis = 10_000, rounds = 2,
+            preparationMillis = 5_000, cooldownMillis = 15_000,
+            name = "Séance rapide", workName = "Effort", restName = "Repos",
+            preparationName = "Préparez-vous", cooldownName = "Retour au calme",
+            roundName = "Bloc répété",
+        )
+        val timeline = TimelineExpander.expand(translated)
+        assertEquals(
+            TimelineExpander.expand(original).steps.map { it.kind to it.durationMillis },
+            timeline.steps.map { it.kind to it.durationMillis },
+        )
+        assertEquals(
+            listOf("Préparez-vous", "Effort", "Repos", "Effort", "Retour au calme"),
+            timeline.steps.map { it.name },
+        )
+    }
+
+    @Test
     fun `quick workout factory totals match what the player will show`() {
         val plan = QuickWorkoutFactory.build(
             workMillis = 20_000,

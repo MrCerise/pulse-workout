@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+ANDROID_RESOURCE_FOLDERS = {"en": "values", "fr": "values-fr-rFR"}
 
 
 def android_text(value):
@@ -38,7 +39,7 @@ def outputs():
             rows += [f'        <item>{android_text(section[index])}</item>' for section in policy["sections"]]
             rows.append('    </string-array>')
         xml = "\n".join(rows + ['</resources>', ''])
-        folder = "values" if language == "en" else f"values-{language}"
+        folder = ANDROID_RESOURCE_FOLDERS[language]
         for module in ("app", "wear"):
             yield ROOT / module / "src/main/res" / folder / "privacy.xml", xml
 

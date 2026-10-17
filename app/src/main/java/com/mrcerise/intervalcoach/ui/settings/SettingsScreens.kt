@@ -1,5 +1,6 @@
 package com.mrcerise.intervalcoach.ui.settings
 
+import com.mrcerise.intervalcoach.locale.soundLabel
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -97,6 +98,7 @@ fun SettingsScreen(
     onOpenWelcome: () -> Unit,
     onOpenHealth: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val colors = LocalPulseColors.current
     val scope = rememberCoroutineScope()
@@ -125,7 +127,7 @@ fun SettingsScreen(
             if (current == null) return@LazyColumn
 
             // --- Health sync (the real thing now) ---
-            item { SectionHeader("Health") }
+            item { SectionHeader(strings.getString(R.string.nav_health)) }
             item {
                 PulseCard(onClick = onOpenHealth) {
                     Column {
@@ -144,15 +146,15 @@ fun SettingsScreen(
                         Spacer(Modifier.height(LocalPulseDimens.current.s))
                         Text(
                             when {
-                                healthSnapshot.source == null -> "Not connected"
-                                else -> if (healthSnapshot.lastSyncAt > 0) "Last sync " + formatSync(healthSnapshot.lastSyncAt) else "Not synced yet"
+                                healthSnapshot.source == null -> strings.getString(R.string.health_disconnected)
+                                else -> if (healthSnapshot.lastSyncAt > 0) strings.getString(R.string.health_last_sync, formatSync(healthSnapshot.lastSyncAt)) else strings.getString(R.string.health_not_synced)
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
                         ToggleRow(
-                            label = "Sync workouts",
+                            label = strings.getString(R.string.settings_sync_workouts),
                             checked = current.healthSyncSessions,
                             onCheckedChange = { scope.launch { container.preferences.setHealthSyncSessions(it) } },
                         )
@@ -160,7 +162,7 @@ fun SettingsScreen(
                 }
             }
 
-            item { SectionHeader("Appearance") }
+            item { SectionHeader(strings.getString(R.string.settings_appearance)) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     ThemePicker(
@@ -199,7 +201,7 @@ fun SettingsScreen(
 
             // Language gets its own section: it is about content, not chrome, so it sat oddly
             // inside Appearance — and its picker deserves to be findable in one glance.
-            item { SectionHeader("Language") }
+            item { SectionHeader(strings.getString(R.string.settings_language)) }
             item {
                 Column {
                     LanguagePicker(
@@ -218,15 +220,15 @@ fun SettingsScreen(
                 }
             }
 
-            item { SectionHeader("Workout defaults") }
+            item { SectionHeader(strings.getString(R.string.settings_defaults)) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
-                    DurationStepper("Default work", current.defaultWorkMillis) { scope.launch { container.preferences.setDefaultWork(it) } }
-                    DurationStepper("Default rest", current.defaultRestMillis) { scope.launch { container.preferences.setDefaultRest(it) } }
-                    NumberStepper("Default rounds", current.defaultRounds, onChange = { scope.launch { container.preferences.setDefaultRounds(it) } })
-                    DurationStepper("Default preparation", current.defaultPreparationMillis) { scope.launch { container.preferences.setDefaultPreparation(it) } }
+                    DurationStepper(strings.getString(R.string.settings_default_work), current.defaultWorkMillis) { scope.launch { container.preferences.setDefaultWork(it) } }
+                    DurationStepper(strings.getString(R.string.settings_default_rest), current.defaultRestMillis) { scope.launch { container.preferences.setDefaultRest(it) } }
+                    NumberStepper(strings.getString(R.string.settings_default_rounds), current.defaultRounds, onChange = { scope.launch { container.preferences.setDefaultRounds(it) } })
+                    DurationStepper(strings.getString(R.string.settings_default_preparation), current.defaultPreparationMillis) { scope.launch { container.preferences.setDefaultPreparation(it) } }
                     ToggleRow(
-                        label = "Include final rest by default",
+                        label = strings.getString(R.string.settings_final_rest),
                         checked = current.defaultIncludeFinalRest,
                         onCheckedChange = { scope.launch { container.preferences.setDefaultIncludeFinalRest(it) } },
                     )
@@ -240,11 +242,11 @@ fun SettingsScreen(
                 }
             }
 
-            item { SectionHeader("During workouts") }
+            item { SectionHeader(strings.getString(R.string.settings_behaviour)) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     ToggleRow(
-                        label = "Keep the screen on",
+                        label = strings.getString(R.string.settings_keep_screen_on),
                         checked = current.keepScreenOn,
                         onCheckedChange = { scope.launch { container.preferences.setKeepScreenOn(it) } },
                     )
@@ -254,7 +256,7 @@ fun SettingsScreen(
                         onCheckedChange = { scope.launch { container.preferences.setContinueCuesScreenOff(it) } },
                     )
                     OptionRow(
-                        label = "When audio is interrupted",
+                        label = strings.getString(R.string.settings_audio_interruption),
                         options = AudioInterruptionBehavior.entries.map { it to it.label() },
                         selected = current.audioInterruptionBehavior,
                         onSelect = { value -> scope.launch { container.preferences.setAudioInterruption(value) } },
@@ -267,7 +269,7 @@ fun SettingsScreen(
                     )
                     Spacer(Modifier.height(LocalPulseDimens.current.xxl))
                     SecondaryActionButton(
-                        text = "Voice & audio",
+                        text = strings.getString(R.string.voice_title),
                         onClick = onOpenVoiceStudio,
                         icon = Icons.Filled.VolumeDown,
                         modifier = Modifier.fillMaxWidth(),
@@ -276,12 +278,12 @@ fun SettingsScreen(
                 }
             }
 
-            item { SectionHeader("Help & about") }
+            item { SectionHeader(strings.getString(R.string.settings_help_about)) }
             item {
                 Column {
-                    SecondaryActionButton("Help", onOpenHelp, Modifier.fillMaxWidth())
+                    SecondaryActionButton(strings.getString(R.string.help_title), onOpenHelp, Modifier.fillMaxWidth())
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
-                    SecondaryActionButton("Welcome tour", onOpenWelcome, Modifier.fillMaxWidth())
+                    SecondaryActionButton(strings.getString(R.string.settings_welcome_tour), onOpenWelcome, Modifier.fillMaxWidth())
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     SecondaryActionButton(
                         stringResource(R.string.privacy_policy_title),
@@ -292,9 +294,9 @@ fun SettingsScreen(
                 }
             }
 
-            item { SectionHeader("Danger zone") }
+            item { SectionHeader(strings.getString(R.string.settings_danger)) }
             item {
-                DangerActionButton("Delete all sessions…", { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
+                DangerActionButton(strings.getString(R.string.settings_delete_all), { confirmDeleteSessions = true }, Modifier.fillMaxWidth())
             }
 
             item {
@@ -322,9 +324,9 @@ fun SettingsScreen(
 
     if (confirmDeleteSessions) {
         ConfirmDialog(
-            title = "Delete all sessions?",
-            body = "Session history will be permanently deleted. Workouts are kept.",
-            confirmLabel = "Delete sessions",
+            title = strings.getString(R.string.settings_delete_title),
+            body = strings.getString(R.string.settings_delete_all_confirm),
+            confirmLabel = strings.getString(R.string.settings_delete_confirm),
             dismissLabel = stringResource(R.string.cancel),
             destructive = true,
             onConfirm = {
@@ -336,12 +338,14 @@ fun SettingsScreen(
     }
 }
 
+@Composable
 private fun formatSync(millis: Long): String {
+    val strings = LocalContext.current.resources
     val then = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
     return if (then.toLocalDate() == LocalDateTime.now(ZoneId.systemDefault()).toLocalDate()) {
-        "today " + then.format(DateTimeFormatter.ofPattern("HH:mm"))
+        strings.getString(R.string.date_today_time, then.format(DateTimeFormatter.ofPattern("HH:mm", strings.configuration.locales[0])))
     } else {
-        then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
+        then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm", strings.configuration.locales[0]))
     }
 }
 
@@ -361,10 +365,11 @@ private fun languageLabel(language: AppLanguage): String = when (language) {
     else -> language.nativeName
 }
 
+@Composable
 private fun PlayerDensity.label(): String = when (this) {
-    PlayerDensity.COMPACT -> "Compact"
-    PlayerDensity.STANDARD -> "Standard"
-    PlayerDensity.LARGE -> "Large"
+    PlayerDensity.COMPACT -> stringResource(R.string.density_compact)
+    PlayerDensity.STANDARD -> stringResource(R.string.density_standard)
+    PlayerDensity.LARGE -> stringResource(R.string.density_large)
 }
 
 private fun WeightUnit.label(): String = when (this) {
@@ -372,15 +377,17 @@ private fun WeightUnit.label(): String = when (this) {
     WeightUnit.LB -> "lb"
 }
 
+@Composable
 private fun AudioInterruptionBehavior.label(): String = when (this) {
-    AudioInterruptionBehavior.PAUSE -> "Pause"
-    AudioInterruptionBehavior.KEEP_TIMING_MUTE_CUES -> "Keep timing, mute"
-    AudioInterruptionBehavior.KEEP_TIMING_DUCK -> "Keep timing, duck"
+    AudioInterruptionBehavior.PAUSE -> stringResource(R.string.notif_action_pause)
+    AudioInterruptionBehavior.KEEP_TIMING_MUTE_CUES -> stringResource(R.string.audio_interrupt_continue)
+    AudioInterruptionBehavior.KEEP_TIMING_DUCK -> stringResource(R.string.audio_interrupt_duck)
 }
 
+@Composable
 private fun HeadphoneBehavior.label(): String = when (this) {
-    HeadphoneBehavior.PAUSE -> "Pause"
-    HeadphoneBehavior.KEEP_GOING -> "Keep going"
+    HeadphoneBehavior.PAUSE -> stringResource(R.string.notif_action_pause)
+    HeadphoneBehavior.KEEP_GOING -> stringResource(R.string.headphone_continue)
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -389,6 +396,7 @@ private fun HeadphoneBehavior.label(): String = when (this) {
 
 @Composable
 fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
+    val strings = LocalContext.current.resources
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val speechInfo by container.speech.info.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
@@ -436,57 +444,57 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
         ) {
             item {
                 PulsePageHeader(
-                    title = "Voice & audio",
+                    title = strings.getString(R.string.voice_title),
                     onBack = onBack,
                 )
             }
 
             if (current == null) return@LazyColumn
 
-            item { SectionHeader("Speech engine") }
+            item { SectionHeader(strings.getString(R.string.voice_engine)) }
             item {
                 Column {
                     val availability = speechInfo.availability
                     Text(
                         when (availability) {
-                            is SpeechAvailability.Ready -> "Speech engine ready"
-                            is SpeechAvailability.Initialising -> "Checking speech engine…"
-                            is SpeechAvailability.NoEngine -> "No speech engine available"
-                            is SpeechAvailability.MissingLanguageData -> "No voice data for ${availability.languageTag}"
+                            is SpeechAvailability.Ready -> strings.getString(R.string.voice_ready)
+                            is SpeechAvailability.Initialising -> strings.getString(R.string.voice_checking)
+                            is SpeechAvailability.NoEngine -> strings.getString(R.string.voice_engine_missing)
+                            is SpeechAvailability.MissingLanguageData -> strings.getString(R.string.voice_missing_data, availability.languageTag)
                         },
                         style = MaterialTheme.typography.titleMedium,
                         color = if (availability is SpeechAvailability.Ready) colors.work else colors.prepare,
                     )
                     Spacer(Modifier.height(LocalPulseDimens.current.xs))
                     speechInfo.engineLabel?.let {
-                        Text("Engine: $it", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text(strings.getString(R.string.voice_engine_name, it), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
                     Text(
                         when {
-                            speechInfo.offlineVoiceInstalled -> "Offline voice installed"
-                            availability is SpeechAvailability.NoEngine -> "No voice installed. Sound cues will be used."
-                            else -> "Install an offline voice for coaching without a connection."
+                            speechInfo.offlineVoiceInstalled -> strings.getString(R.string.voice_offline_installed)
+                            availability is SpeechAvailability.NoEngine -> strings.getString(R.string.voice_none_installed)
+                            else -> strings.getString(R.string.voice_install_offline)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.textSecondary,
                     )
                     Spacer(Modifier.height(LocalPulseDimens.current.m))
                     PulseActionMenu(
-                        text = "Voice actions",
+                        text = strings.getString(R.string.voice_actions),
                         items = listOf(
-                            PulseMenuAction("Text-to-speech settings") { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) },
-                            PulseMenuAction("Preview voice") { container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.") },
+                            PulseMenuAction(strings.getString(R.string.voice_settings)) { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) },
+                            PulseMenuAction(strings.getString(R.string.voice_preview_label)) { container.speech.speakPreview(strings.getString(R.string.voice_test_line)) },
                         ),
                     )
 
                 }
             }
 
-            item { SectionHeader("Coaching style") }
+            item { SectionHeader(strings.getString(R.string.voice_coaching_style)) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     PulseSliderRow(
-                        label = "Speaking rate",
+                        label = strings.getString(R.string.voice_rate),
                         value = current.voiceRate,
                         valueRange = 0.5f..2.0f,
                         valueLabel = "${"%.2f".format(current.voiceRate)}×",
@@ -494,7 +502,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         onValueChangeFinished = { container.speech.rate = current.voiceRate },
                     )
                     PulseSliderRow(
-                        label = "Pitch",
+                        label = strings.getString(R.string.voice_pitch),
                         value = current.voicePitch,
                         valueRange = 0.5f..2.0f,
                         valueLabel = "${"%.2f".format(current.voicePitch)}×",
@@ -512,19 +520,19 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                             }
                         },
                     )
-                    ToggleRow("Spoken 3-2-1 countdown", current.spokenCountdown) { scope.launch { container.preferences.setSpokenCountdown(it) } }
-                    ToggleRow("Halfway announcements (1 min+)", current.halfwayAnnouncements) { scope.launch { container.preferences.setHalfway(it) } }
-                    ToggleRow("Announce the next interval", current.announceNext) { scope.launch { container.preferences.setAnnounceNext(it) } }
-                    ToggleRow("Vibration", current.vibrationEnabled) { scope.launch { container.preferences.setVibration(it) } }
+                    ToggleRow(strings.getString(R.string.voice_countdown), current.spokenCountdown) { scope.launch { container.preferences.setSpokenCountdown(it) } }
+                    ToggleRow(strings.getString(R.string.voice_halfway), current.halfwayAnnouncements) { scope.launch { container.preferences.setHalfway(it) } }
+                    ToggleRow(strings.getString(R.string.voice_announce_next), current.announceNext) { scope.launch { container.preferences.setAnnounceNext(it) } }
+                    ToggleRow(strings.getString(R.string.builder_haptic), current.vibrationEnabled) { scope.launch { container.preferences.setVibration(it) } }
 
                 }
             }
 
-            item { SectionHeader("Sound cues") }
+            item { SectionHeader(strings.getString(R.string.voice_sounds)) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     PulseSliderRow(
-                        label = "Cue volume",
+                        label = strings.getString(R.string.voice_sound_volume),
                         value = current.cueVolume,
                         valueRange = 0f..1f,
                         valueLabel = "${(current.cueVolume * 100).toInt()}%",
@@ -532,9 +540,9 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         onValueChangeFinished = { container.cueSoundPlayer.volume = current.cueVolume },
                     )
                     PulseActionMenu(
-                        text = "Preview a sound cue",
+                        text = strings.getString(R.string.voice_sound_preview),
                         items = listOf(SoundCue.BEEP, SoundCue.BELL, SoundCue.CHIME).map { cue ->
-                            PulseMenuAction(cue.name.lowercase().replaceFirstChar { it.uppercase() }) {
+                            PulseMenuAction(strings.soundLabel(cue)) {
                                 container.cueSoundPlayer.volume = current.cueVolume
                                 container.cueSoundPlayer.play(cue)
                             }
@@ -542,7 +550,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                     )
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     if (!container.haptics.isAvailable) {
-                        Text("Vibration unavailable", style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                        Text(strings.getString(R.string.voice_no_vibration), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
                     }
 
                 }
@@ -552,7 +560,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
             item {
                 Column {
                     Text(
-                        current.musicUri?.let { "Selected: " + it.substringAfterLast('/') }
+                        current.musicUri?.let { strings.getString(R.string.voice_selected, it.substringAfterLast('/')) }
                             ?: stringResource(R.string.voice_music_none),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textPrimary,
@@ -658,7 +666,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                 }
             }
 
-            item { SectionHeader("Your own cue recordings") }
+            item { SectionHeader(strings.getString(R.string.voice_recording_title)) }
             item {
                 Text(
                     stringResource(R.string.privacy_microphone_notice),
@@ -671,7 +679,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     if (recording == null) {
                         SecondaryActionButton(
-                            text = "Record a cue",
+                            text = strings.getString(R.string.voice_record_cue),
                             onClick = {
                                 val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
                                     PackageManager.PERMISSION_GRANTED
@@ -696,7 +704,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                                 Column(Modifier.weight(1f)) {
                                     Text(asset.name, style = MaterialTheme.typography.bodyMedium, color = colors.textPrimary)
                                     Text(
-                                        if (asset.missingDetectedAt != null) "File unavailable — re-record or re-import" else asset.source.lowercase(),
+                                        if (asset.missingDetectedAt != null) strings.getString(R.string.voice_file_missing) else strings.getString(if (asset.source == "RECORDING") R.string.voice_source_recording else R.string.voice_source_import),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = if (asset.missingDetectedAt != null) colors.destructive else colors.textSecondary,
                                     )
@@ -763,25 +771,28 @@ private fun stopRecording(recorder: MediaRecorder?, context: Context, container:
 }
 
 /** Plain words for the duck multiplier: 30 % means the music sits at 30 % of its own volume. */
+@Composable
 private fun duckLevelLabel(level: Float): String = when {
-    level <= 0.001f -> "Muted"
-    level < 0.2f -> (level * 100).toInt().toString() + "% · strong"
-    level < 0.45f -> (level * 100).toInt().toString() + "% · balanced"
-    level < 0.8f -> (level * 100).toInt().toString() + "% · subtle"
-    else -> (level * 100).toInt().toString() + "% · barely"
+    level <= 0.001f -> stringResource(R.string.voice_muted)
+    level < 0.2f -> stringResource(R.string.duck_strong, (level * 100).toInt())
+    level < 0.45f -> stringResource(R.string.duck_balanced, (level * 100).toInt())
+    level < 0.8f -> stringResource(R.string.duck_subtle, (level * 100).toInt())
+    else -> stringResource(R.string.duck_barely, (level * 100).toInt())
 }
 
+@Composable
 private fun DuckPhase.label(): String = when (this) {
-    DuckPhase.NONE -> "full volume"
-    DuckPhase.FADING_DOWN -> "lowering"
-    DuckPhase.HELD -> "lowered"
-    DuckPhase.FADING_UP -> "restoring"
+    DuckPhase.NONE -> stringResource(R.string.duck_full)
+    DuckPhase.FADING_DOWN -> stringResource(R.string.duck_lowering)
+    DuckPhase.HELD -> stringResource(R.string.duck_lowered)
+    DuckPhase.FADING_UP -> stringResource(R.string.duck_restoring)
 }
 
+@Composable
 private fun VoiceVerbosity.label(): String = when (this) {
-    VoiceVerbosity.MINIMAL -> "Minimal"
-    VoiceVerbosity.STANDARD -> "Standard"
-    VoiceVerbosity.CHATTY -> "Chatty"
+    VoiceVerbosity.MINIMAL -> stringResource(R.string.voice_verbosity_minimal)
+    VoiceVerbosity.STANDARD -> stringResource(R.string.voice_verbosity_standard)
+    VoiceVerbosity.CHATTY -> stringResource(R.string.voice_verbosity_chatty)
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -790,6 +801,7 @@ private fun VoiceVerbosity.label(): String = when (this) {
 
 @Composable
 fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
 
     PulseScaffold { padding ->
@@ -830,7 +842,7 @@ fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
             item {
                 val helpContext = LocalContext.current
                 SecondaryActionButton(
-                    text = "Open Android app settings",
+                    text = strings.getString(R.string.settings_open_android),
                     onClick = {
                         val intent = Intent(
                             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

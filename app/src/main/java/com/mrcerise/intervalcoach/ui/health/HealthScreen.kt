@@ -57,6 +57,7 @@ fun HealthScreen(
     container: AppContainer,
     onBack: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()
@@ -86,13 +87,13 @@ fun HealthScreen(
         ) {
             item {
                 PulsePageHeader(
-                    title = "Health",
+                    title = strings.getString(R.string.nav_health),
                     onBack = onBack,
                     trailing = {
                         PulseIconButton(
                             icon = Icons.Filled.Refresh,
-                            contentDescription = "Refresh health status",
-                            tooltip = "Refresh health status",
+                            contentDescription = strings.getString(R.string.health_refresh),
+                            tooltip = strings.getString(R.string.health_refresh),
                             onClick = { container.health.refresh() },
                         )
                     },
@@ -102,11 +103,11 @@ fun HealthScreen(
             // --- What is connected right now ---
             item {
                 Column {
-                    Text("Current connection", style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
+                    Text(strings.getString(R.string.health_current), style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
                     Spacer(Modifier.height(LocalPulseDimens.current.s))
                     if (snapshot.source == null) {
                         Text(
-                            "Not connected",
+                            strings.getString(R.string.health_disconnected),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.textPrimary,
                         )
@@ -131,7 +132,7 @@ fun HealthScreen(
                 )
             }
             // --- Health Connect ---
-            item { SectionHeader("Health Connect") }
+            item { SectionHeader(strings.getString(R.string.settings_health_title)) }
             item {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -142,42 +143,42 @@ fun HealthScreen(
                             modifier = Modifier.weight(1f),
                         )
                         when (availability) {
-                            HcAvailability.AVAILABLE -> StatusBadge("ready", PulseTone.SUCCESS)
-                            else -> StatusBadge("unavailable", PulseTone.NEUTRAL)
+                            HcAvailability.AVAILABLE -> StatusBadge(strings.getString(R.string.health_ready), PulseTone.SUCCESS)
+                            else -> StatusBadge(strings.getString(R.string.health_unavailable), PulseTone.NEUTRAL)
                         }
                     }
                     when (availability) {
                         HcAvailability.NOT_INSTALLED -> {
                             Spacer(Modifier.height(LocalPulseDimens.current.s))
                             InfoBanner(
-                                "Install Health Connect from Google Play.",
+                                strings.getString(R.string.health_install),
                             )
                         }
                         HcAvailability.NOT_ENABLED -> {
                             Spacer(Modifier.height(LocalPulseDimens.current.s))
-                            InfoBanner("Enable Health Connect in Android Settings.")
+                            InfoBanner(strings.getString(R.string.health_enable))
                         }
                         HcAvailability.NO_PROVIDER -> {
                             Spacer(Modifier.height(LocalPulseDimens.current.s))
-                            InfoBanner("No Health Connect provider found.")
+                            InfoBanner(strings.getString(R.string.health_no_provider))
                         }
                         HcAvailability.NOT_SUPPORTED -> {
                             Spacer(Modifier.height(LocalPulseDimens.current.s))
-                            InfoBanner("Health Connect is not supported on this device.")
+                            InfoBanner(strings.getString(R.string.health_unsupported))
                         }
                         HcAvailability.AVAILABLE -> Unit
                         HcAvailability.UNKNOWN -> {
                             Spacer(Modifier.height(LocalPulseDimens.current.s))
-                            InfoBanner("Checking availability…")
+                            InfoBanner(strings.getString(R.string.health_checking))
                         }
                     }
                     if (availability == HcAvailability.AVAILABLE) {
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        permissionRow("Workouts (write)", permissions.workoutWrite)
+                        permissionRow(strings.getString(R.string.health_write), permissions.workoutWrite)
                         if (!permissions.workoutWrite) {
                             Spacer(Modifier.height(LocalPulseDimens.current.m))
                             PrimaryActionButton(
-                                text = "Grant Health Connect access",
+                                text = strings.getString(R.string.health_grant),
                                 onClick = {
                                     // The Health Connect system screen returns the new grants;
                                     // refresh these rows whenever it returns.
@@ -194,17 +195,16 @@ fun HealthScreen(
             item {
                 Column {
                     Text(
-                        "Last sync: " +
-                            (if (snapshot.lastSyncAt > 0) {
+                        strings.getString(R.string.health_last_sync, if (snapshot.lastSyncAt > 0) {
                                 LocalDateTime.ofInstant(Instant.ofEpochMilli(snapshot.lastSyncAt), ZoneId.systemDefault())
-                                    .format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm"))
-                            } else "never"),
+                                    .format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", strings.configuration.locales[0]))
+                            } else strings.getString(R.string.health_never)),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.textSecondary,
                     )
                     Spacer(Modifier.height(LocalPulseDimens.current.m))
                     PrimaryActionButton(
-                        text = "Sync last 7 days",
+                        text = strings.getString(R.string.health_sync_week),
                         onClick = {
                             scope.launch {
                                 val sessions = container.sessions.history.first()
@@ -213,7 +213,7 @@ fun HealthScreen(
                                     .sortedByDescending { it.endedAt }
                                     .take(20)
                                 if (candidates.isEmpty()) {
-                                    backfill = "No sessions in the last 7 days."
+                                    backfill = strings.getString(R.string.health_week_empty)
                                 } else {
                                     var ok = 0
                                     var failed = 0
@@ -221,8 +221,7 @@ fun HealthScreen(
                                         val events = container.sessions.observeEvents(session.id).first()
                                         if (container.health.writeSession(session, events)) ok++ else failed++
                                     }
-                                    backfill = "Synced $ok of ${candidates.size} sessions" +
-                                        (if (failed > 0) " · $failed failed" else "")
+                                    backfill = strings.getString(R.string.health_sync_result, ok, candidates.size, failed)
                                     container.health.refresh()
                                 }
                             }
@@ -233,7 +232,7 @@ fun HealthScreen(
                     if (snapshot.source == null) {
                         Spacer(Modifier.height(LocalPulseDimens.current.xs))
                         Text(
-                            "Connect a health app to sync.",
+                            strings.getString(R.string.health_connect_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                         )
@@ -248,7 +247,7 @@ fun HealthScreen(
 
             item {
                 Text(
-                    "Only connected health apps receive the records you allow.",
+                    strings.getString(R.string.health_access_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.textSecondary,
                 )
@@ -257,17 +256,19 @@ fun HealthScreen(
     }
 }
 
+@Composable
 private fun hcStatusText(availability: HcAvailability): String = when (availability) {
-    HcAvailability.AVAILABLE -> "available"
-    HcAvailability.NOT_INSTALLED -> "not installed"
-    HcAvailability.NOT_ENABLED -> "installed, switched off"
-    HcAvailability.NO_PROVIDER -> "no provider app"
-    HcAvailability.NOT_SUPPORTED -> "not supported"
-    HcAvailability.UNKNOWN -> "checking…"
+    HcAvailability.AVAILABLE -> stringResource(R.string.health_available)
+    HcAvailability.NOT_INSTALLED -> stringResource(R.string.health_not_installed)
+    HcAvailability.NOT_ENABLED -> stringResource(R.string.health_disabled)
+    HcAvailability.NO_PROVIDER -> stringResource(R.string.health_no_app)
+    HcAvailability.NOT_SUPPORTED -> stringResource(R.string.health_not_supported)
+    HcAvailability.UNKNOWN -> stringResource(R.string.health_checking_short)
 }
 
 @Composable
 private fun permissionRow(label: String, granted: Boolean) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -279,7 +280,7 @@ private fun permissionRow(label: String, granted: Boolean) {
         // Status is the shared badge, like every other state on this screen: same shape, same
         // measured tone pairings, no ad-hoc colour.
         StatusBadge(
-            text = if (granted) "granted" else "not granted",
+            text = if (granted) strings.getString(R.string.health_granted) else strings.getString(R.string.health_not_granted),
             tone = if (granted) PulseTone.SUCCESS else PulseTone.NEUTRAL,
         )
     }

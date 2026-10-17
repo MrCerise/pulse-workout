@@ -101,6 +101,7 @@ fun PlayerScreen(
     onFinished: () -> Unit,
     onClose: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val controller = container.sessionController
     val snapshot by controller.snapshot.collectAsStateWithLifecycle()
     val active by controller.active.collectAsStateWithLifecycle()
@@ -133,9 +134,9 @@ fun PlayerScreen(
     if (active == null) {
         Box(Modifier.fillMaxSize().background(colors.background), contentAlignment = Alignment.Center) {
             EmptyState(
-                title = "No active workout",
-                body = "Choose a workout from your library.",
-                actionLabel = "Close",
+                title = strings.getString(R.string.player_empty_title),
+                body = strings.getString(R.string.player_empty_body),
+                actionLabel = strings.getString(R.string.close),
                 onAction = onClose,
             )
         }
@@ -196,7 +197,7 @@ fun PlayerScreen(
                         .height(dimens.barHeightCompact)
                         .background(accent, LocalPulseShapes.current.chip)
                         .semantics {
-                            contentDescription = "Interval progress ${(snapshot.intervalProgress * 100).toInt()} percent"
+                            contentDescription = strings.getString(R.string.player_interval_progress, (snapshot.intervalProgress * 100).toInt())
                         },
                 )
             }
@@ -231,8 +232,8 @@ fun PlayerScreen(
                     )
                     PulseIconButton(
                         icon = if (cuesMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
-                        contentDescription = if (cuesMuted) "Unmute cues" else "Mute cues",
-                        tooltip = if (cuesMuted) "Unmute cues" else "Mute cues",
+                        contentDescription = if (cuesMuted) strings.getString(R.string.player_unmute) else strings.getString(R.string.player_mute),
+                        tooltip = if (cuesMuted) strings.getString(R.string.player_unmute) else strings.getString(R.string.player_mute),
                         onClick = { controller.toggleCuesMuted() },
                         tint = colors.textSecondary,
                     )
@@ -290,9 +291,9 @@ fun PlayerScreen(
                                 )
                                 Text(
                                     text = when (snapshot.status) {
-                                        TimerStatus.PAUSED -> "PAUSED"
-                                        TimerStatus.AWAITING_MANUAL -> "Tap when done"
-                                        else -> "of ${formatClock(snapshot.stepDurationMillis)}"
+                                        TimerStatus.PAUSED -> strings.getString(R.string.player_paused)
+                                        TimerStatus.AWAITING_MANUAL -> strings.getString(R.string.player_awaiting_manual)
+                                        else -> strings.getString(R.string.player_of_duration, formatClock(snapshot.stepDurationMillis))
                                     },
                                     style = MaterialTheme.typography.labelLarge,
                                     color = if (snapshot.status == TimerStatus.PAUSED) colors.prepare else colors.textMuted,
@@ -304,7 +305,7 @@ fun PlayerScreen(
                                             append(current.name)
                                             current.roundInGroup?.let { round ->
                                                 val total = current.roundsInGroup
-                                                append(if (total != null && total > 0) " · Round $round of $total" else " · Round $round")
+                                                append(if (total != null && total > 0) " · " + strings.getString(R.string.player_round, round, total) else " · " + strings.getString(R.string.round_number, round))
                                             }
                                             current.sideLabel?.let { append(" · $it") }
                                         },
@@ -341,13 +342,13 @@ fun PlayerScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "${formatClock(snapshot.sessionElapsedMillis)} elapsed",
+                        text = strings.getString(R.string.player_session_elapsed, formatClock(snapshot.sessionElapsedMillis)),
                         style = PulseType.NumericSmall,
                         color = colors.textMuted,
                     )
                     Text(text = "·", style = MaterialTheme.typography.bodySmall, color = colors.textDisabled)
                     Text(
-                        text = snapshot.sessionRemainingMillis?.let { "${formatClock(it)} left" }
+                        text = snapshot.sessionRemainingMillis?.let { strings.getString(R.string.time_left, formatClock(it)) }
                             ?: stringResource(R.string.player_open_ended),
                         style = PulseType.NumericSmall,
                         color = colors.textMuted,
@@ -408,7 +409,7 @@ fun PlayerScreen(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = if (next.isIndefinite) "manual" else formatDuration(next.durationMillis),
+                            text = if (next.isIndefinite) strings.getString(R.string.manual) else formatDuration(next.durationMillis),
                             style = PulseType.NumericSmall,
                             color = colors.phaseColor(next.kind),
                         )
@@ -438,7 +439,7 @@ fun PlayerScreen(
                     ) {
                         PlayerRoundButton(
                             icon = Icons.Filled.SkipPrevious,
-                            description = "Previous interval",
+                            description = strings.getString(R.string.player_previous),
                             onClick = { controller.previous() },
                         )
                         TransportButton(
@@ -470,13 +471,13 @@ fun PlayerScreen(
                 ) {
                     if (snapshot.laps > 0) {
                         Text(
-                            text = "Laps ${snapshot.laps}",
+                            text = strings.getQuantityString(R.plurals.lap_count, snapshot.laps, snapshot.laps),
                             style = PulseType.NumericSmall,
                             color = colors.textMuted,
                         )
                     }
                     GhostActionButton(
-                        text = if (instructor) "Standard view" else "Instructor view",
+                        text = if (instructor) strings.getString(R.string.player_standard_view) else strings.getString(R.string.player_instructor),
                         onClick = { instructor = !instructor },
                     )
                 }
@@ -501,7 +502,7 @@ fun PlayerScreen(
     if (confirmEnd) {
         ConfirmDialog(
             title = stringResource(R.string.player_exit_title),
-            body = "Your progress will be saved.",
+            body = strings.getString(R.string.player_exit_body),
             confirmLabel = stringResource(R.string.player_end_session),
             dismissLabel = stringResource(R.string.player_keep_going),
             destructive = true,
@@ -525,11 +526,12 @@ private fun TransportButton(
     accent: Color,
     onClick: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val description = when {
-        manual -> "Complete this interval"
-        paused -> "Resume"
-        else -> "Pause"
+        manual -> strings.getString(R.string.player_complete_interval)
+        paused -> strings.getString(R.string.notif_action_resume)
+        else -> strings.getString(R.string.notif_action_pause)
     }
     Surface(
         onClick = onClick,
@@ -675,6 +677,7 @@ private fun RaceStat(
 
 @Composable
 private fun SecondaryControls(onAddTime: () -> Unit, onLap: () -> Unit) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Row(
@@ -683,8 +686,8 @@ private fun SecondaryControls(onAddTime: () -> Unit, onLap: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         listOf(
-            Triple(Icons.Filled.Add, "Add 15 seconds", onAddTime),
-            Triple(Icons.Filled.Flag, "Record a lap", onLap),
+            Triple(Icons.Filled.Add, strings.getString(R.string.player_add_seconds), onAddTime),
+            Triple(Icons.Filled.Flag, strings.getString(R.string.player_record_lap), onLap),
         ).forEach { (icon, label, action) ->
             Surface(
                 onClick = action,
@@ -716,6 +719,7 @@ private fun InstructorOverlay(
     accent: Color,
     onClose: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Box(
@@ -741,7 +745,7 @@ private fun InstructorOverlay(
             Text(
                 text = buildString {
                     append(currentStep)
-                    round?.let { append("   ·   round $it of ${rounds ?: 0}") }
+                    round?.let { append("   ·   " + strings.getString(R.string.player_round, it, rounds ?: 0)) }
                 },
                 style = MaterialTheme.typography.headlineMedium,
                 color = colors.textPrimary,
@@ -749,15 +753,15 @@ private fun InstructorOverlay(
             )
             Spacer(Modifier.height(dimens.xl))
             Text(
-                text = "Next: $nextStep" + (nextDuration?.let { " · ${formatDuration(it)}" } ?: ""),
+                text = strings.getString(R.string.player_next_named, nextStep) + (nextDuration?.let { " · ${formatDuration(it)}" } ?: ""),
                 style = MaterialTheme.typography.titleLarge,
                 color = colors.textMuted,
             )
         }
         PulseIconButton(
             icon = Icons.Filled.Close,
-            contentDescription = "Exit instructor view",
-            tooltip = "Exit instructor view",
+            contentDescription = strings.getString(R.string.player_exit_instructor),
+            tooltip = strings.getString(R.string.player_exit_instructor),
             onClick = onClose,
             tint = colors.textSecondary,
             modifier = Modifier

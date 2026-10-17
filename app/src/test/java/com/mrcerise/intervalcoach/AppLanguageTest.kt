@@ -88,7 +88,7 @@ class AppLanguageTest {
     private fun stringNames(table: File): Set<String> =
         Regex("name=\"([A-Za-z0-9_]+)\"").findAll(table.readText()).map { it.groupValues[1] }.toSet()
 
-    /** `de-DE` → `values-de-rDE`, `fr` → `values-fr`: the qualifier Android matches a locale against. */
+    /** `de-DE` → `values-de-rDE`, `fr-FR` → `values-fr-rFR`: the locale's resource qualifier. */
     private fun String.toValuesFolder(): String {
         val parts = split("-")
         val region = parts.getOrNull(1)?.uppercase()

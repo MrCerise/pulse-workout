@@ -1,5 +1,8 @@
 package com.mrcerise.intervalcoach.ui.builders
 
+import com.mrcerise.intervalcoach.locale.hapticLabel
+import com.mrcerise.intervalcoach.locale.soundLabel
+import com.mrcerise.intervalcoach.locale.phaseLabel
 import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -62,6 +65,7 @@ import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.WorkoutType
 import com.pulse.engine.formatDuration
 import com.mrcerise.intervalcoach.AppContainer
+import com.mrcerise.intervalcoach.locale.AppLocale
 import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.data.PlanCodec
 import com.mrcerise.intervalcoach.data.QuickWorkoutFactory
@@ -168,12 +172,13 @@ class QuickBuilderViewModel(
 ) : ViewModel() {
 
     private val drafts = DraftStore(context)
+    private var labelResources = context.resources
 
     private val _state = MutableStateFlow(QuickBuilderState())
     val state: StateFlow<QuickBuilderState> = _state.asStateFlow()
 
     data class QuickBuilderState(
-        val name: String = "Quick workout",
+        val name: String = "",
         val work: Long = 40_000,
         val rest: Long = 20_000,
         val rounds: Int = 8,
@@ -182,14 +187,19 @@ class QuickBuilderViewModel(
         val includeFinalRest: Boolean = false,
         val dirty: Boolean = false,
     ) {
-        fun toPlan(id: String, createdAt: Long): WorkoutPlan = QuickWorkoutFactory.build(
+        fun toPlan(id: String, createdAt: Long, resources: android.content.res.Resources): WorkoutPlan = QuickWorkoutFactory.build(
             workMillis = work,
             restMillis = rest,
             rounds = rounds,
             preparationMillis = preparation,
             cooldownMillis = cooldown,
             includeFinalRest = includeFinalRest,
-            name = name.ifBlank { "Quick workout" },
+            name = name.ifBlank { resources.getString(R.string.quick_workout_name) },
+            workName = resources.getString(R.string.builder_work),
+            restName = resources.getString(R.string.builder_rest),
+            preparationName = resources.getString(R.string.phase_prepare),
+            cooldownName = resources.getString(R.string.builder_cooldown),
+            roundName = resources.getString(R.string.builder_group),
             id = id,
             createdAt = createdAt,
         )
@@ -198,6 +208,7 @@ class QuickBuilderViewModel(
     init {
         viewModelScope.launch {
             val prefs = container.preferences.current()
+            labelResources = AppLocale.localizedContext(context, prefs.appLanguage).resources
             val restored = withContext(Dispatchers.IO) { drafts.load(draftId) }
             _state.value = if (restored != null) {
                 QuickBuilderState(
@@ -212,6 +223,7 @@ class QuickBuilderViewModel(
                 )
             } else {
                 QuickBuilderState(
+                    name = labelResources.getString(R.string.quick_workout_name),
                     work = prefs.defaultWorkMillis,
                     rest = prefs.defaultRestMillis,
                     rounds = prefs.defaultRounds,
@@ -225,14 +237,14 @@ class QuickBuilderViewModel(
     fun update(transform: (QuickBuilderState) -> QuickBuilderState) {
         _state.value = transform(_state.value).copy(dirty = true)
         viewModelScope.launch(Dispatchers.IO) {
-            drafts.save(draftId, _state.value.toPlan(planId, createdAt))
+            drafts.save(draftId, _state.value.toPlan(planId, createdAt, labelResources))
         }
     }
 
     val planId = "draft-quick"
     private val createdAt = System.currentTimeMillis()
 
-    fun buildPlan(id: String = UUID.randomUUID().toString()): WorkoutPlan = _state.value.toPlan(id, System.currentTimeMillis())
+    fun buildPlan(id: String = UUID.randomUUID().toString()): WorkoutPlan = _state.value.toPlan(id, System.currentTimeMillis(), labelResources)
 
     suspend fun save(plan: WorkoutPlan) {
         container.workouts.save(plan)
@@ -250,7 +262,7 @@ fun WorkoutNamePlate(
     name: String,
     onRename: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Name your workout",
+    placeholder: String = stringResource(R.string.builder_name_hint),
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
@@ -319,6 +331,7 @@ fun QuickBuilderScreen(
     onSaved: (String) -> Unit,
     onSavedAndStart: (WorkoutPlan) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val context = LocalContext.current
     val viewModel: QuickBuilderViewModel = viewModel(
         initializer = { QuickBuilderViewModel(container, "quick", context.applicationContext) },
@@ -355,14 +368,14 @@ fun QuickBuilderScreen(
                     onRename = { value -> viewModel.update { it.copy(name = value) } },
                 )
             }
-            item { SectionHeader("Timing") }
+            item { SectionHeader(strings.getString(R.string.builder_editor_timing)) }
             item {
                 Column {
-                    DurationStepper("Work", state.work, onChange = { value -> viewModel.update { it.copy(work = value) } })
-                    DurationStepper("Rest", state.rest, onChange = { value -> viewModel.update { it.copy(rest = value) } })
-                    NumberStepper("Rounds", state.rounds, max = 100, onChange = { value -> viewModel.update { it.copy(rounds = value) } })
-                    DurationStepper("Preparation", state.preparation, onChange = { value -> viewModel.update { it.copy(preparation = value) } })
-                    DurationStepper("Cool-down", state.cooldown, onChange = { value -> viewModel.update { it.copy(cooldown = value) } })
+                    DurationStepper(strings.getString(R.string.builder_work), state.work, onChange = { value -> viewModel.update { it.copy(work = value) } })
+                    DurationStepper(strings.getString(R.string.builder_rest), state.rest, onChange = { value -> viewModel.update { it.copy(rest = value) } })
+                    NumberStepper(strings.getString(R.string.builder_rounds), state.rounds, max = 100, onChange = { value -> viewModel.update { it.copy(rounds = value) } })
+                    DurationStepper(strings.getString(R.string.builder_preparation), state.preparation, onChange = { value -> viewModel.update { it.copy(preparation = value) } })
+                    DurationStepper(strings.getString(R.string.builder_cooldown), state.cooldown, onChange = { value -> viewModel.update { it.copy(cooldown = value) } })
                     ToggleRow(
                         label = stringResource(R.string.builder_include_final_rest),
                         checked = state.includeFinalRest,
@@ -371,11 +384,11 @@ fun QuickBuilderScreen(
 
                 }
             }
-            item { SectionHeader("Preview", trailing = formatDuration(duration)) }
+            item { SectionHeader(strings.getString(R.string.voice_preview), trailing = formatDuration(duration)) }
             item {
                 Column {
                     Text(formatDuration(duration), style = PulseType.NumericLarge, color = colors.textPrimary)
-                    Text("total time", style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
+                    Text(strings.getString(R.string.total_time_label), style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
                     Spacer(Modifier.height(LocalPulseDimens.current.m))
                     val expanded = remember(plan) { runCatching { TimelineExpander.expand(plan) }.getOrNull() }
                     TimelineBar(
@@ -412,8 +425,8 @@ fun QuickBuilderScreen(
 
     if (showDiscard) {
         ConfirmDialog(
-            title = "Save your progress?",
-            body = "You have an unfinished quick workout.",
+            title = strings.getString(R.string.builder_save_progress),
+            body = strings.getString(R.string.builder_unfinished),
             confirmLabel = stringResource(R.string.save_draft),
             dismissLabel = stringResource(R.string.cancel),
             onConfirm = {
@@ -444,6 +457,7 @@ class AdvancedBuilderViewModel(
 ) : ViewModel() {
 
     private val drafts = DraftStore(context)
+    private var labelResources = context.resources
     private val undoStack = ArrayDeque<BuilderSnapshot>()
     private val redoStack = ArrayDeque<BuilderSnapshot>()
 
@@ -451,7 +465,7 @@ class AdvancedBuilderViewModel(
     val state: StateFlow<AdvancedState> = _state.asStateFlow()
 
     data class AdvancedState(
-        val plan: WorkoutPlan = WorkoutPlan(id = UUID.randomUUID().toString(), name = "New workout"),
+        val plan: WorkoutPlan = WorkoutPlan(id = UUID.randomUUID().toString(), name = ""),
         val canUndo: Boolean = false,
         val canRedo: Boolean = false,
         val problems: List<String> = emptyList(),
@@ -462,6 +476,8 @@ class AdvancedBuilderViewModel(
 
     init {
         viewModelScope.launch {
+            val prefs = container.preferences.current()
+            labelResources = AppLocale.localizedContext(context, prefs.appLanguage).resources
             val existing = withContext(Dispatchers.IO) { drafts.load(draftId) }
             // A draft id that is not the "new-…" sentinel *is* the workout being edited, so the id is
             // re-stamped on whichever source wins: a draft written by an earlier session (or a row a
@@ -471,7 +487,7 @@ class AdvancedBuilderViewModel(
                 ?: editingId?.let { container.workouts.plan(it) }
                 ?: WorkoutPlan(
                     id = editingId ?: UUID.randomUUID().toString(),
-                    name = if (editingId == null) "New workout" else "Restored workout",
+                    name = labelResources.getString(if (editingId == null) R.string.new_workout_name else R.string.restored_workout_name),
                     nodes = listOf(defaultInterval()),
                     createdAt = System.currentTimeMillis(),
                     updatedAt = System.currentTimeMillis(),
@@ -483,7 +499,7 @@ class AdvancedBuilderViewModel(
 
     private fun defaultInterval() = IntervalNode(
         UUID.randomUUID().toString(),
-        IntervalSpec(id = UUID.randomUUID().toString(), name = "Work", kind = PhaseKind.WORK, durationMillis = 30_000),
+        IntervalSpec(id = UUID.randomUUID().toString(), name = labelResources.getString(R.string.builder_work), kind = PhaseKind.WORK, durationMillis = 30_000),
     )
 
     private fun mutate(block: (WorkoutPlan) -> WorkoutPlan) {
@@ -550,7 +566,7 @@ class AdvancedBuilderViewModel(
     fun addInterval(kind: PhaseKind = PhaseKind.WORK, millis: Long = 30_000) = mutate { plan ->
         val node = IntervalNode(
             UUID.randomUUID().toString(),
-            IntervalSpec(id = UUID.randomUUID().toString(), name = PhaseKind.defaultLabel(kind), kind = kind, durationMillis = millis),
+            IntervalSpec(id = UUID.randomUUID().toString(), name = labelResources.phaseLabel(kind), kind = kind, durationMillis = millis),
         )
         plan.copy(nodes = plan.nodes + node)
     }
@@ -558,11 +574,11 @@ class AdvancedBuilderViewModel(
     fun addGroup(repeat: Int = 3, restAfterMillis: Long = 30_000) = mutate { plan ->
         val group = RepeatGroup(
             nodeId = UUID.randomUUID().toString(),
-            name = "Block",
+            name = labelResources.getString(R.string.builder_group),
             repeat = repeat,
             children = listOf(
-                IntervalNode(UUID.randomUUID().toString(), IntervalSpec(UUID.randomUUID().toString(), "Work", PhaseKind.WORK, 30_000)),
-                IntervalNode(UUID.randomUUID().toString(), IntervalSpec(UUID.randomUUID().toString(), "Rest", PhaseKind.REST, 15_000)),
+                IntervalNode(UUID.randomUUID().toString(), IntervalSpec(UUID.randomUUID().toString(), labelResources.getString(R.string.builder_work), PhaseKind.WORK, 30_000)),
+                IntervalNode(UUID.randomUUID().toString(), IntervalSpec(UUID.randomUUID().toString(), labelResources.getString(R.string.builder_rest), PhaseKind.REST, 15_000)),
             ),
             restAfterGroupMillis = restAfterMillis,
         )
@@ -651,16 +667,16 @@ class AdvancedBuilderViewModel(
 
     private fun injectLeftRight(node: Node, intervalId: String, groupId: String?): Node = when (node) {
         is IntervalNode -> if (node.nodeId == intervalId) {
-            node.copy(interval = node.interval.copy(name = node.interval.name.ifBlank { "Hold" }, sideLabel = "Left"))
+            node.copy(interval = node.interval.copy(name = node.interval.name.ifBlank { labelResources.getString(R.string.phase_hold) }, sideLabel = labelResources.getString(R.string.phase_left)))
         } else node
         is RepeatGroup -> {
             if (node.nodeId == groupId) {
                 val expanded = node.children.flatMap { child ->
                     if (child is IntervalNode && child.nodeId == intervalId) {
-                        val left = child.copy(interval = child.interval.copy(id = UUID.randomUUID().toString(), sideLabel = "Left"))
+                        val left = child.copy(interval = child.interval.copy(id = UUID.randomUUID().toString(), sideLabel = labelResources.getString(R.string.phase_left)))
                         val right = child.copy(
                             nodeId = UUID.randomUUID().toString(),
-                            interval = child.interval.copy(id = UUID.randomUUID().toString(), sideLabel = "Right"),
+                            interval = child.interval.copy(id = UUID.randomUUID().toString(), sideLabel = labelResources.getString(R.string.phase_right)),
                         )
                         listOf(left, right)
                     } else {
@@ -726,6 +742,7 @@ fun AdvancedBuilderScreen(
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val context = LocalContext.current
     val draftId = workoutId ?: "new-${remember { UUID.randomUUID().toString() }}"
     val viewModel: AdvancedBuilderViewModel = viewModel(
@@ -754,7 +771,7 @@ fun AdvancedBuilderScreen(
         ) {
             item {
                 PulsePageHeader(
-                    title = if (workoutId == null) "New workout" else "Edit workout",
+                    title = if (workoutId == null) strings.getString(R.string.workouts_new) else strings.getString(R.string.workout_edit),
                     onBack = { if (state.dirty) showDiscard = true else onBack() },
                     navigationActions = {
                         PulseIconButton(
@@ -842,8 +859,8 @@ fun AdvancedBuilderScreen(
                         color = colors.work,
                     )
                     Text(
-                        "${expanded?.steps?.size ?: 0} intervals" +
-                            (if (expanded?.hasOpenEnded == true) " · total is a minimum (some intervals wait for you)" else ""),
+                        strings.getString(R.string.interval_count, expanded?.steps?.size ?: 0) +
+                            (if (expanded?.hasOpenEnded == true) strings.getString(R.string.builder_minimum) else ""),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.textMuted,
                     )
@@ -860,11 +877,11 @@ fun AdvancedBuilderScreen(
 
             if (state.problems.isNotEmpty()) {
                 item {
-                    InfoBanner(state.problems.joinToString(" "), tone = PulseTone.WARNING)
+                    InfoBanner(strings.getString(R.string.builder_validation), tone = PulseTone.WARNING)
                 }
             }
 
-            item { SectionHeader("Intervals") }
+            item { SectionHeader(strings.getString(R.string.builder_editor_intervals)) }
 
             items(state.plan.nodes.size) { index ->
                 val node = state.plan.nodes[index]
@@ -890,22 +907,22 @@ fun AdvancedBuilderScreen(
 
             item {
                 PulseActionMenu(
-                    text = "Add to workout",
+                    text = strings.getString(R.string.builder_add_to_workout),
                     icon = Icons.Filled.Add,
                     items = listOf(
-                        PulseMenuAction("Add interval") { viewModel.addInterval() },
-                        PulseMenuAction("Add block") { viewModel.addGroup() },
+                        PulseMenuAction(strings.getString(R.string.builder_add_interval)) { viewModel.addInterval() },
+                        PulseMenuAction(strings.getString(R.string.builder_add_block)) { viewModel.addGroup() },
                     ),
                 )
             }
             item {
                 PulseActionMenu(
-                    text = "Adjust all durations",
+                    text = strings.getString(R.string.builder_adjust_durations),
                     items = listOf(
-                        PulseMenuAction("−10 s every interval") { viewModel.bulkDuration(-10_000, null) },
-                        PulseMenuAction("−5 s every interval") { viewModel.bulkDuration(-5_000, null) },
-                        PulseMenuAction("+5 s every interval") { viewModel.bulkDuration(5_000, null) },
-                        PulseMenuAction("+10 s every interval") { viewModel.bulkDuration(10_000, null) },
+                        PulseMenuAction(strings.getString(R.string.builder_duration_change, "−10")) { viewModel.bulkDuration(-10_000, null) },
+                        PulseMenuAction(strings.getString(R.string.builder_duration_change, "−5")) { viewModel.bulkDuration(-5_000, null) },
+                        PulseMenuAction(strings.getString(R.string.builder_duration_change, "+5")) { viewModel.bulkDuration(5_000, null) },
+                        PulseMenuAction(strings.getString(R.string.builder_duration_change, "+10")) { viewModel.bulkDuration(10_000, null) },
                     ),
                 )
             }
@@ -916,7 +933,7 @@ fun AdvancedBuilderScreen(
                         scope.launch {
                             viewModel.save()
                                 .onSuccess { plan -> onSaved(plan.id) }
-                                .onFailure { error -> invalidMessage = error.message }
+                                .onFailure { invalidMessage = strings.getString(R.string.workout_save_failed) }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -942,7 +959,7 @@ fun AdvancedBuilderScreen(
     if (showDiscard) {
         ConfirmDialog(
             title = stringResource(R.string.discard_draft_title),
-            body = "Discard unsaved edits to “${state.plan.name}”?",
+            body = strings.getString(R.string.builder_discard_edits, state.plan.name),
             confirmLabel = stringResource(R.string.discard_draft),
             dismissLabel = stringResource(R.string.save_draft),
             destructive = true,
@@ -972,6 +989,7 @@ private fun BuilderNodeCard(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     Column {
         // The whole row is the tap target: clicking anywhere on the bar — not just the name —
@@ -988,7 +1006,7 @@ private fun BuilderNodeCard(
                     is IntervalNode -> {
                         Text(node.interval.displayName(), style = MaterialTheme.typography.titleSmall, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(
-                            if (node.interval.isIndefinite) "Manual" else formatDuration(node.interval.durationMillis),
+                            if (node.interval.isIndefinite) strings.getString(R.string.manual) else formatDuration(node.interval.durationMillis),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textMuted,
                         )
@@ -1002,7 +1020,7 @@ private fun BuilderNodeCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            "${node.children.size} intervals" + if (node.restAfterGroupMillis > 0) " · rest ${formatDuration(node.restAfterGroupMillis)}" else "",
+                            strings.getString(R.string.interval_count, node.children.size) + if (node.restAfterGroupMillis > 0) strings.getString(R.string.builder_block_rest, formatDuration(node.restAfterGroupMillis)) else "",
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textMuted,
                         )
@@ -1066,6 +1084,7 @@ private fun BuilderEditorSectionLabel(text: String) {
 
 @Composable
 private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: AdvancedBuilderViewModel) {
+    val strings = LocalContext.current.resources
     val spec = node.interval
     val dimens = LocalPulseDimens.current
     Column(verticalArrangement = Arrangement.spacedBy(dimens.m)) {
@@ -1080,7 +1099,7 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
             options = listOf(
                 PhaseKind.PREPARE, PhaseKind.WARM_UP, PhaseKind.WORK, PhaseKind.REST,
                 PhaseKind.TRANSITION, PhaseKind.COOLDOWN, PhaseKind.CUSTOM,
-            ).map { it to PhaseKind.defaultLabel(it) },
+            ).map { it to strings.phaseLabel(it) },
             selected = spec.kind,
             onSelect = { kind -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(kind = kind) } },
         )
@@ -1106,14 +1125,14 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
         OptionRow(
             label = stringResource(R.string.builder_sound),
             options = listOf(SoundCue.TICK, SoundCue.BEEP, SoundCue.DOUBLE_BEEP, SoundCue.BELL, SoundCue.WHISTLE, SoundCue.CHIME, SoundCue.BUZZ, SoundCue.NONE)
-                .map { it to it.name.lowercase().replace('_', ' ').replaceFirstChar { c -> c.uppercase() } },
+                .map { it to strings.soundLabel(it) },
             selected = spec.sound,
             onSelect = { cue -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(sound = cue) } },
         )
         OptionRow(
             label = stringResource(R.string.builder_haptic),
             options = listOf(HapticCue.LIGHT, HapticCue.DOUBLE, HapticCue.STRONG, HapticCue.PATTERN_321, HapticCue.NONE)
-                .map { it to it.name.lowercase().replace('_', ' ').replaceFirstChar { c -> c.uppercase() } },
+                .map { it to strings.hapticLabel(it) },
             selected = spec.haptic,
             onSelect = { cue -> viewModel.updateInterval(groupId, node.nodeId) { it.copy(haptic = cue) } },
         )
@@ -1148,6 +1167,7 @@ private fun IntervalEditor(node: IntervalNode, groupId: String?, viewModel: Adva
 
 @Composable
 private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewModel) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(verticalArrangement = Arrangement.spacedBy(dimens.s)) {
@@ -1170,7 +1190,7 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
         )
         ToggleRow(
             label = stringResource(R.string.builder_ladder),
-            hint = "+10 s per round · 10–90 s",
+            hint = strings.getString(R.string.builder_ladder_preset),
             checked = node.ladder != null,
             onCheckedChange = { enabled ->
                 viewModel.setLadder(
@@ -1206,7 +1226,7 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
                         )
                         Text(
                             when (child) {
-                                is IntervalNode -> if (child.interval.isIndefinite) "Manual" else formatDuration(child.interval.durationMillis)
+                                is IntervalNode -> if (child.interval.isIndefinite) strings.getString(R.string.manual) else formatDuration(child.interval.durationMillis)
                                 is RepeatGroup -> "× ${child.repeat}"
                             },
                             style = MaterialTheme.typography.bodySmall,
@@ -1253,7 +1273,7 @@ private fun RepeatGroupEditor(node: RepeatGroup, viewModel: AdvancedBuilderViewM
                     (group as RepeatGroup).copy(
                         children = group.children + IntervalNode(
                             UUID.randomUUID().toString(),
-                            IntervalSpec(UUID.randomUUID().toString(), "Work", PhaseKind.WORK, 30_000),
+                            IntervalSpec(UUID.randomUUID().toString(), strings.getString(R.string.builder_work), PhaseKind.WORK, 30_000),
                         ),
                     )
                 }

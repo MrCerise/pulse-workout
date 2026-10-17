@@ -39,19 +39,27 @@ folders using Crowdin's `%android_code%` placeholder, which covers region and sc
 files:
   - source: /app/src/main/res/values/strings.xml
     translation: /app/src/main/res/values-%android_code%/strings.xml
+    languages_mapping:
+      android_code:
+        fr: fr-rFR
     type: android
     skip_untranslated_strings: false
     export_only_approved: true
 ```
 
+- Translations use region-qualified folders: `values-fr-rFR`, `values-de-rDE`, `values-es-rES`
+  and `values-it-rIT`, on both phone and watch. Keep one table per locale. The language mapping
+  exports French to `values-fr-rFR`. Set the same `android_code` mapping for French to `fr-rFR`
+  in Crowdin's **Project Settings → Languages** for the GitHub integration. See
+  [Crowdin language mapping](https://support.crowdin.com/project-settings/languages/).
 - Crowdin's native GitHub integration reads that configuration, uploads sources from `main` and opens
   pull requests with approved translations. Authentication is managed by the integration — no project
   id, API token or GitHub token belongs in this file or in Actions secrets.
-- Unapproved and missing translations are exported as English, which keeps the existing complete
-  French table compatible with `scripts/check_ui.py`. Android itself falls back to English for any
-  missing string.
+- Crowdin exports unapproved and missing translations as English. Review these exports before
+  merging: `scripts/check_ui.py` requires complete packaged translation tables and rejects copied
+  English sentences. Android itself falls back to English for missing resources.
 - **Every locale folder is packaged**, not only English and French.
-- The app offers a language of its own in Settings → Appearance, defaulting to *Follow system*. An offered language is an `AppLanguage` entry whose tag names a packaged folder (`fr` → `values-fr`, `de-DE` → `values-de-rDE`; a bare `de` would match nothing and fall back to English), and `app/src/test/java/com/mrcerise/intervalcoach/AppLanguageTest.kt` fails the build when a tag and a folder stop agreeing — so enabling a language in the Crowdin project is not by itself enough to get it into that picker. A packaged-but-unoffered locale is still used when the *device* asks for it.
+- The app offers a language of its own in Settings → Appearance, defaulting to *Follow system*. An offered language is an `AppLanguage` entry whose tag names a packaged folder (`fr-FR` → `values-fr-rFR`, `de-DE` → `values-de-rDE`), and `app/src/test/java/com/mrcerise/intervalcoach/AppLanguageTest.kt` fails the build when a tag and a folder stop agreeing — so enabling a language in the Crowdin project is not by itself enough to get it into that picker. A packaged-but-unoffered locale is still used when the *device* asks for it.
 - Translation updates open a PR against `main`, never merge automatically, and go through the same
   unit tests as code changes. Keep automatic merging disabled.
 - Avoid renaming existing resource keys: doing so loses translation history.
@@ -67,7 +75,7 @@ Required once, before the first synchronization:
 3. Configure the integration to push translations to **l10n/crowdin** and open PRs against **main**
    rather than pushing directly. Enable automatic source synchronization and choose a translation
    synchronization schedule in Crowdin. Keep automatic merging disabled.
-4. Import the existing French `app/src/main/res/values-fr/strings.xml` translations through Crowdin's
+4. Import the existing French `app/src/main/res/values-fr-rFR/strings.xml` translations through Crowdin's
    translation upload **before** the first export. Do not automatically approve imported suggestions —
    review and approve them in Crowdin first, and inspect the first PR for unintended replacement of
    existing French wording with English.
@@ -84,11 +92,15 @@ offline-first.
 
 ## Adding a string as a developer
 
-- Add every new user-visible string to `app/src/main/res/values/strings.xml` **and**
-  `values-fr/strings.xml`. If you don't speak French, copy the English text and say so in the PR —
-  the translation will follow on Crowdin.
+- Add every new user-visible string to `app/src/main/res/values/strings.xml` and translate it in
+  every packaged locale. Use region-qualified folders, such as `values-fr-rFR`. Do not fill entries with English
+  placeholders. Obtain the missing translations before merging.
 - Never hardcode user-visible text in Compose code.
-- `python3 scripts/check_ui.py` fails when an English string has no French counterpart.
+- Use plurals for counts and indexed format arguments for dynamic text. Use the localized context's
+  resource configuration for date formatting so the in-app language also controls month/day names.
+- `python3 scripts/check_ui.py` checks all packaged string and plural tables for coverage, format
+  arguments and copied English sentences. Run `python -m unittest scripts.tests.test_translations`
+  to exercise those checks.
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for the rest of the workflow, and
 [RELEASING.md](RELEASING.md) if you are cutting the release that ships the new locale.

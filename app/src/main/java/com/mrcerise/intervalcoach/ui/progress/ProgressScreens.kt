@@ -1,5 +1,7 @@
 package com.mrcerise.intervalcoach.ui.progress
 
+import com.mrcerise.intervalcoach.locale.categoryTitle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -108,7 +110,7 @@ class ProgressViewModel(private val container: AppContainer) : ViewModel() {
         val totals = sessions.sumOf { it.activeMillis }
         val streak = container.sessions.currentStreak()
         val planned = reminders.map { reminder ->
-            reminder.id to (container.workouts.plan(reminder.workoutId)?.name ?: "Deleted workout")
+            reminder.id to (container.workouts.plan(reminder.workoutId)?.name ?: "")
         }
         ProgressUiState(sessions.take(30), activities, totals, streak, reminders, planned)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProgressUiState())
@@ -140,6 +142,7 @@ fun ProgressScreen(
     onOpenHealth: () -> Unit,
     onOpenSchedule: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val viewModel: ProgressViewModel = viewModel(initializer = { ProgressViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
@@ -177,22 +180,22 @@ fun ProgressScreen(
         ) {
             item {
                 PulsePageHeader(
-                    title = "Progress",
+                    title = strings.getString(R.string.nav_progress),
                 )
             }
 
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    StatTile("Streak", "${state.streak}d", accent = colors.success, modifier = Modifier.weight(1f))
-                    StatTile("This week", "${(weekMillis / 60000L).toInt()}m", modifier = Modifier.weight(1f))
-                    StatTile("All time", formatDuration(state.totals), modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.progress_streak), strings.getQuantityString(R.plurals.day_count, state.streak, state.streak), accent = colors.success, modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.home_week_summary), "${(weekMillis / 60000L).toInt()}m", modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.progress_totals), formatDuration(state.totals), modifier = Modifier.weight(1f))
                 }
             }
             item {
                 PulseCard {
                     Column {
                         Text(
-                            text = "Active minutes — last 14 days",
+                            text = strings.getString(R.string.progress_minutes_chart),
                             style = MaterialTheme.typography.titleMedium,
                             color = colors.textPrimary,
                         )
@@ -200,13 +203,13 @@ fun ProgressScreen(
                         ActivityChart(
                             bars = state.activities.map {
                                 ActivityBar(
-                                    label = it.date.format(DateTimeFormatter.ofPattern("d/M", Locale.getDefault())),
+                                    label = it.date.format(DateTimeFormatter.ofPattern("d/M", strings.configuration.locales[0])),
                                     value = it.activeMillis,
                                 )
                             },
                             height = LocalPulseDimens.current.chartHeight,
                             labelEvery = 2,
-                            emptyLabel = "No sessions yet",
+                            emptyLabel = strings.getString(R.string.progress_empty_title),
                         )
                     }
                 }
@@ -214,7 +217,7 @@ fun ProgressScreen(
 
             // --- Where the time went, by category ---------------------------------------------
             if (categoryTotals.isNotEmpty()) {
-                item { SectionHeader(text = "By category") }
+                item { SectionHeader(text = strings.getString(R.string.progress_by_category)) }
                 item {
                     PulseCard {
                         Column(verticalArrangement = Arrangement.spacedBy(dimens.m)) {
@@ -233,7 +236,7 @@ fun ProgressScreen(
                                     )
                                     Spacer(Modifier.width(dimens.s))
                                     Text(
-                                        text = category.title,
+                                        text = strings.categoryTitle(category),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = colors.textPrimary,
                                         maxLines = 1,
@@ -271,46 +274,46 @@ fun ProgressScreen(
             item {
                 PulseCard(onClick = onOpenHealth) {
                     PulseListRow(
-                        title = "Health sync",
+                        title = strings.getString(R.string.help_health),
                         subtitle = when {
                             healthSnapshot.source == null ->
-                                "Not connected"
+                                strings.getString(R.string.health_disconnected)
                             healthSnapshot.lastSyncAt > 0 ->
-                                "Connected via ${healthSnapshot.source} · last sync ${formatLastSync(healthSnapshot.lastSyncAt)}"
-                            else -> "Connected via ${healthSnapshot.source} · not synced yet"
+                                strings.getString(R.string.health_connected_sync, healthSnapshot.source, formatLastSync(healthSnapshot.lastSyncAt))
+                            else -> strings.getString(R.string.health_connected_pending, healthSnapshot.source)
                         },
                         leadingIcon = Icons.Filled.Healing,
                         leadingTint = if (healthSnapshot.source != null) colors.success else colors.textMuted,
                         leadingContainer = if (healthSnapshot.source != null) colors.successTint else colors.neutralFill,
                         trailing = {
                             if (healthSnapshot.source != null) {
-                                StatusBadge(text = "connected", tone = PulseTone.SUCCESS)
+                                StatusBadge(text = strings.getString(R.string.health_connected), tone = PulseTone.SUCCESS)
                             } else {
-                                StatusBadge(text = "not connected", tone = PulseTone.NEUTRAL)
+                                StatusBadge(text = strings.getString(R.string.health_disconnected), tone = PulseTone.NEUTRAL)
                             }
                         },
                     )
                 }
             }
 
-            item { SectionHeader("Planner") }
+            item { SectionHeader(strings.getString(R.string.progress_planner)) }
             item {
                 PulseCard {
                     Column {
                         if (state.reminders.isEmpty()) {
                             Text(
-                                text = "No planned sessions yet.",
+                                text = strings.getString(R.string.planner_empty),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.textMuted,
                                 modifier = Modifier.padding(vertical = dimens.s),
                             )
                         } else {
                             state.reminders.forEachIndexed { index, reminder ->
-                                val workoutName = state.planned.firstOrNull { it.first == reminder.id }?.second ?: "Workout"
+                                val workoutName = state.planned.firstOrNull { it.first == reminder.id }?.second?.ifBlank { strings.getString(R.string.deleted_workout) } ?: strings.getString(R.string.title_details)
                                 PulseListRow(
                                     title = workoutName,
                                     subtitle = LocalDateTime.ofInstant(Instant.ofEpochMilli(reminder.scheduledAt), ZoneId.systemDefault())
-                                        .format(DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm")),
+                                        .format(DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm", strings.configuration.locales[0])),
                                     leadingIcon = Icons.Filled.Schedule,
                                     leadingTint = colors.prepare,
                                     leadingContainer = colors.warningTint,
@@ -340,7 +343,7 @@ fun ProgressScreen(
                 )
             }
 
-            item { SectionHeader("Recent sessions") }
+            item { SectionHeader(strings.getString(R.string.progress_recent)) }
             if (state.sessions.isEmpty()) {
                 item {
                     EmptyState(
@@ -355,7 +358,7 @@ fun ProgressScreen(
                 }
                 item {
                     SecondaryActionButton(
-                        text = "Open full history",
+                        text = strings.getString(R.string.progress_full_history),
                         onClick = onOpenHistory,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -366,18 +369,21 @@ fun ProgressScreen(
 
 }
 
+@Composable
 private fun formatLastSync(millis: Long): String {
+    val strings = LocalContext.current.resources
     val then = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
     val now = LocalDateTime.now(ZoneId.systemDefault())
     return if (then.toLocalDate() == now.toLocalDate()) {
-        "today " + then.format(DateTimeFormatter.ofPattern("HH:mm"))
+        strings.getString(R.string.date_today_time, then.format(DateTimeFormatter.ofPattern("HH:mm", strings.configuration.locales[0])))
     } else {
-        then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
+        then.format(DateTimeFormatter.ofPattern("d MMM, HH:mm", strings.configuration.locales[0]))
     }
 }
 
 @Composable
 private fun SessionRow(session: SessionEntity, onClick: () -> Unit) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     PulseCard(onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -393,14 +399,14 @@ private fun SessionRow(session: SessionEntity, onClick: () -> Unit) {
                     text = buildString {
                         append(formatDuration(session.activeMillis))
                         append(" · ")
-                        append("${session.completedIntervals}/${session.totalIntervals} intervals")
+                        append(strings.getString(R.string.interval_completion, session.completedIntervals, session.totalIntervals))
                     },
                     style = PulseType.NumericSmall,
                     color = colors.textSecondary,
                 )
                 Text(
                     text = LocalDateTime.ofInstant(Instant.ofEpochMilli(session.startedAt), ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ofPattern("EEE d MMM yyyy, HH:mm")),
+                        .format(DateTimeFormatter.ofPattern("EEE d MMM yyyy, HH:mm", strings.configuration.locales[0])),
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.textMuted,
                 )
@@ -416,10 +422,11 @@ private fun SessionRow(session: SessionEntity, onClick: () -> Unit) {
     }
 }
 
+@Composable
 private fun String.humanStatus(): String = when (this) {
-    STATUS_COMPLETED -> "completed"
-    STATUS_STOPPED -> "ended early"
-    STATUS_INTERRUPTED -> "interrupted"
+    STATUS_COMPLETED -> stringResource(R.string.status_completed)
+    STATUS_STOPPED -> stringResource(R.string.status_stopped)
+    STATUS_INTERRUPTED -> stringResource(R.string.status_interrupted)
     else -> lowercase()
 }
 
@@ -436,6 +443,7 @@ private fun String.tone(): PulseTone = when (this) {
 
 @Composable
 fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (String) -> Unit) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val allSessions by container.sessions.history.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -461,23 +469,23 @@ fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (S
             verticalArrangement = Arrangement.spacedBy(dimens.s),
         ) {
             item {
-                PulsePageHeader(title = stringResource(R.string.progress_history), description = "${sessions.size} recorded sessions", onBack = onBack)
+                PulsePageHeader(title = stringResource(R.string.progress_history), description = strings.getString(R.string.history_recorded, sessions.size), onBack = onBack)
             }
             item {
                 com.mrcerise.intervalcoach.ui.components.PulseTextField(
-                    value = query, onValueChange = { query = it }, placeholder = "Search workouts", singleLine = true,
+                    value = query, onValueChange = { query = it }, placeholder = strings.getString(R.string.history_search), singleLine = true,
                 )
             }
             item {
-                OptionRow(label = "Status", options = listOf("ALL" to "All", STATUS_COMPLETED to "Completed", STATUS_STOPPED to "Ended early", STATUS_INTERRUPTED to "Interrupted"),
+                OptionRow(label = strings.getString(R.string.history_status), options = listOf("ALL" to strings.getString(R.string.filter_all), STATUS_COMPLETED to strings.getString(R.string.status_completed), STATUS_STOPPED to strings.getString(R.string.share_ended_early), STATUS_INTERRUPTED to strings.getString(R.string.status_interrupted)),
                     selected = status, onSelect = { status = it })
             }
             item {
-                OptionRow(label = "Period", options = listOf("ALL" to "All time", "7" to "Last 7 days", "30" to "Last 30 days"),
+                OptionRow(label = strings.getString(R.string.history_period), options = listOf("ALL" to strings.getString(R.string.progress_totals), "7" to strings.getString(R.string.history_week), "30" to strings.getString(R.string.history_month)),
                     selected = period, onSelect = { period = it })
             }
             if (sessions.isEmpty()) {
-                item { EmptyState(title = "No sessions", body = stringResource(R.string.history_empty)) }
+                item { EmptyState(title = strings.getString(R.string.history_empty), body = stringResource(R.string.history_empty)) }
             }
             items(sessions, key = { it.id }) { session ->
                 SessionRow(session, onClick = { onOpenSession(session.id) })
@@ -497,6 +505,7 @@ fun SessionDetailScreen(
     onBack: () -> Unit,
     onRepeat: (WorkoutPlan) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val session by container.sessions.observeSession(sessionId).collectAsStateWithLifecycle(initialValue = null)
@@ -508,7 +517,7 @@ fun SessionDetailScreen(
         val current = session
         if (current == null) {
             Column(Modifier.padding(padding)) {
-                EmptyState(title = "Session not found", body = "It may have been deleted.")
+                EmptyState(title = strings.getString(R.string.session_missing), body = strings.getString(R.string.session_missing_body))
             }
             return@PulseScaffold
         }
@@ -535,7 +544,7 @@ fun SessionDetailScreen(
                     Text(current.workoutName, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
                     Text(
                         text = LocalDateTime.ofInstant(Instant.ofEpochMilli(current.startedAt), ZoneId.systemDefault())
-                            .format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy, HH:mm")),
+                            .format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy, HH:mm", strings.configuration.locales[0])),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.textMuted,
                     )
@@ -543,35 +552,35 @@ fun SessionDetailScreen(
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    StatTile("Active", formatDuration(current.activeMillis), accent = colors.success, modifier = Modifier.weight(1f))
-                    StatTile("Total", formatDuration(current.wallMillis), modifier = Modifier.weight(1f))
-                    StatTile("Skipped", current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.session_active), formatDuration(current.activeMillis), accent = colors.success, modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.session_total), formatDuration(current.wallMillis), modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.summary_skipped), current.skippedIntervals.toString(), modifier = Modifier.weight(1f))
                 }
             }
             if (current.status == STATUS_INTERRUPTED) {
                 item {
                     InfoBanner(
-                        text = "Session interrupted. Progress saved up to the interruption.",
+                        text = strings.getString(R.string.session_interrupted),
                         tone = PulseTone.WARNING,
                     )
                 }
             }
             com.mrcerise.intervalcoach.data.RouteCodec.decode(current.routeJson).takeIf { it.size >= 2 }?.let { route ->
-                item { SectionHeader("Route") }
+                item { SectionHeader(strings.getString(R.string.session_route)) }
                 item { PulseCard { RouteMap(route) } }
             }
             current.notes?.takeIf { it.isNotBlank() }?.let { note ->
-                item { SectionHeader("Notes") }
+                item { SectionHeader(strings.getString(R.string.details_notes)) }
                 item { PulseCard { Text(note, color = colors.textPrimary) } }
             }
 
-            item { SectionHeader("Timeline of events") }
+            item { SectionHeader(strings.getString(R.string.session_detail_events)) }
             items(events) { event ->
                 EventRow(event)
             }
             item {
                 PrimaryActionButton(
-                    text = "Repeat this workout",
+                    text = strings.getString(R.string.session_repeat),
                     onClick = {
                         scope.launch { container.workouts.plan(current.workoutId)?.let(onRepeat) }
                     },
@@ -580,12 +589,12 @@ fun SessionDetailScreen(
             }
             item {
                 SecondaryActionButton(
-                    text = "Delete session",
+                    text = strings.getString(R.string.session_delete),
                     onClick = { confirmDelete = true },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            item { SectionHeader("Workout as it was run") }
+            item { SectionHeader(strings.getString(R.string.session_detail_workout_snapshot)) }
             item {
                 val snapshotPlan = remember(current.id) {
                     runCatching { com.mrcerise.intervalcoach.data.PlanCodec.decode(current.workoutSnapshotJson) }.getOrNull()
@@ -593,18 +602,18 @@ fun SessionDetailScreen(
                 PulseCard {
                     Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.microGap)) {
                         Text(
-                            text = "Saved snapshot (revision ${snapshotPlan?.revision ?: 1})",
+                            text = strings.getString(R.string.session_snapshot, snapshotPlan?.revision ?: 1),
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.textMuted,
                         )
                         Spacer(Modifier.height(dimens.xs))
                         Text(
-                            text = snapshotPlan?.let { "${it.name} · ${it.category.title}" } ?: "Snapshot unavailable",
+                            text = snapshotPlan?.let { "${it.name} · ${strings.categoryTitle(it.category)}" } ?: strings.getString(R.string.session_snapshot_missing),
                             style = MaterialTheme.typography.bodyLarge,
                             color = colors.textPrimary,
                         )
                         Text(
-                            text = "Editing the workout later never changes these historical numbers.",
+                            text = strings.getString(R.string.session_snapshot_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textMuted,
                         )
@@ -617,7 +626,7 @@ fun SessionDetailScreen(
     if (confirmDelete) {
         ConfirmDialog(
             title = stringResource(R.string.session_delete),
-            body = "Delete this session from your history? This cannot be undone.",
+            body = strings.getString(R.string.session_delete_body),
             confirmLabel = stringResource(R.string.action_delete),
             dismissLabel = stringResource(R.string.cancel),
             destructive = true,
@@ -660,19 +669,20 @@ private fun EventRow(event: SessionEventEntity) {
     }
 }
 
+@Composable
 private fun String.humanEvent(): String = when (this) {
-    "INTERVAL_STARTED" -> "Interval started"
-    "INTERVAL_COMPLETED" -> "Interval completed"
-    "INTERVAL_SKIPPED" -> "Interval skipped"
-    "PAUSED" -> "Paused"
-    "RESUMED" -> "Resumed"
-    "TIME_ADDED" -> "Time added"
-    "LAP" -> "Lap recorded"
-    "ROUND_STARTED" -> "Round started"
-    "PERIODIC_CUE" -> "Cue sounded"
-    "COUNTDOWN" -> "Countdown cue"
-    "HALFWAY" -> "Halfway cue"
-    "FINISHED" -> "Session finished"
+    "INTERVAL_STARTED" -> stringResource(R.string.event_started)
+    "INTERVAL_COMPLETED" -> stringResource(R.string.event_completed)
+    "INTERVAL_SKIPPED" -> stringResource(R.string.event_skipped)
+    "PAUSED" -> stringResource(R.string.watch_session_paused)
+    "RESUMED" -> stringResource(R.string.event_resumed)
+    "TIME_ADDED" -> stringResource(R.string.event_time_added)
+    "LAP" -> stringResource(R.string.event_lap)
+    "ROUND_STARTED" -> stringResource(R.string.event_round)
+    "PERIODIC_CUE" -> stringResource(R.string.event_cue)
+    "COUNTDOWN" -> stringResource(R.string.event_countdown)
+    "HALFWAY" -> stringResource(R.string.event_halfway)
+    "FINISHED" -> stringResource(R.string.event_finished)
     else -> this.replace('_', ' ').lowercase()
 }
 

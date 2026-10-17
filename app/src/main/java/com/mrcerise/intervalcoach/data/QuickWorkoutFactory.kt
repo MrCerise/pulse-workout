@@ -30,12 +30,15 @@ object QuickWorkoutFactory {
         restName: String = "Rest",
         id: String = UUID.randomUUID().toString(),
         createdAt: Long = System.currentTimeMillis(),
+        preparationName: String = "Get ready",
+        cooldownName: String = "Cool-down",
+        roundName: String = "$rounds rounds",
     ): WorkoutPlan {
         val nodes = mutableListOf<Node>()
         if (preparationMillis > 0) {
             nodes += IntervalNode(
                 "prep",
-                IntervalSpec("prep", "Get ready", PhaseKind.PREPARE, preparationMillis, sound = SoundCue.DOUBLE_BEEP),
+                IntervalSpec("prep", preparationName, PhaseKind.PREPARE, preparationMillis, sound = SoundCue.DOUBLE_BEEP),
             )
         }
         val children = buildList {
@@ -46,13 +49,13 @@ object QuickWorkoutFactory {
         }
         if (children.isNotEmpty()) {
             nodes += if (rounds <= 1) children else listOf(
-                RepeatGroup(nodeId = "rounds", name = "$rounds rounds", repeat = rounds, children = children),
+                RepeatGroup(nodeId = "rounds", name = roundName, repeat = rounds, children = children),
             )
         }
         if (cooldownMillis > 0) {
             nodes += IntervalNode(
                 "cooldown",
-                IntervalSpec("cooldown", "Cool-down", PhaseKind.COOLDOWN, cooldownMillis, sound = SoundCue.CHIME),
+                IntervalSpec("cooldown", cooldownName, PhaseKind.COOLDOWN, cooldownMillis, sound = SoundCue.CHIME),
             )
         }
         return WorkoutPlan(

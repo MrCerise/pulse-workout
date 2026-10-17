@@ -72,6 +72,12 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
     val model: JsonImportViewModel = viewModel(initializer = { JsonImportViewModel(container.workouts::importJson) })
     val state by model.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val modelError = when (state.errorKind) {
+        JsonImportViewModel.ErrorKind.TOO_LARGE -> stringResource(R.string.json_too_large)
+        JsonImportViewModel.ErrorKind.INVALID_JSON -> stringResource(R.string.json_invalid)
+        JsonImportViewModel.ErrorKind.IMPORT_FAILED -> stringResource(R.string.json_import_failed)
+        null -> null
+    }
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val motion = LocalPulseMotion.current
@@ -177,7 +183,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
                                 require(!text.isNullOrBlank()) { context.getString(R.string.json_clipboard_empty) }
                                 model.paste(text.take(WorkoutImport.MAX_BYTES + 1).toString())
                                 showEditor = false
-                            }.onFailure { inputError = it.message ?: context.getString(R.string.json_paste_error) }
+                            }.onFailure { inputError = context.getString(R.string.json_paste_error) }
                         },
                         modifier = Modifier.weight(1f), enabled = !state.busy,
                     )
@@ -211,7 +217,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
                     }
                 }
             }
-            (inputError ?: state.error)?.let { error -> item { InfoBanner(error, tone = PulseTone.WARNING) } }
+            (inputError ?: modelError)?.let { error -> item { InfoBanner(error, tone = PulseTone.WARNING) } }
             if (state.validating || (state.busy && state.preview == null)) item { LoadingBox(label = stringResource(R.string.json_working)) }
             state.preview?.let { preview ->
                 item { SectionHeader(stringResource(R.string.json_preview_title, preview.plans.size)) }

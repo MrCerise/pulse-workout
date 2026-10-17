@@ -111,8 +111,8 @@ through the constructor. Please keep it that way. Any change to timing behaviour
 
 **Strings and translations.** Translate on [Crowdin](https://crowdin.com/project/pulse-workout); see
 [docs/TRANSLATING.md](docs/TRANSLATING.md). Never hardcode user-visible text. Add every new string to
-both `app/src/main/res/values/strings.xml` and `values-fr/strings.xml`. If you don't speak French,
-copy the English text into the French file and say so in your PR — someone will translate it.
+`app/src/main/res/values/strings.xml` and translate it in each packaged locale. Use region-qualified
+folders such as `values-fr-rFR` and `values-de-rDE`, and obtain translations before merging.
 
 **Colours and design.** Take colours, spacing and shapes from the theme tokens in `ui/theme/`, never
 from hardcoded values. [docs/DESIGN.md](docs/DESIGN.md) describes the design system. If you add a new
