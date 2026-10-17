@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  French translation — the complete table, kept key-for-key in step with values/strings.xml by
-  scripts/check_ui.py. Keys missing from a locale fall back to English, and because no
-  resourceConfigurations filter is declared every approved locale folder is packaged, which is what
-  lets Settings → Appearance offer German, Spanish and Italian alongside French.
--->
 <resources>
     <string name="app_name">Interval Coach</string>
     <string name="app_tagline">Coach d\'intervalles</string>
-
     <!-- Navigation -->
     <string name="nav_home">Accueil</string>
     <string name="nav_workouts">Séances</string>
@@ -18,11 +11,11 @@
     <string name="nav_health">Santé</string>
     <string name="nav_group_library">Bibliothèque</string>
     <string name="nav_group_system">Système</string>
+    <!-- Breadcrumb titles for the routes whose own header string cannot be reused. -->
     <string name="title_category">Catégorie</string>
     <string name="title_builder">Éditeur</string>
     <string name="title_details">Séance</string>
     <string name="title_session">Séance</string>
-
     <!-- Home -->
     <string name="home_greeting">Aujourd’hui</string>
     <string name="home_quick_start">Départ rapide</string>
@@ -35,7 +28,6 @@
     <string name="home_no_recent">Aucune session récente</string>
     <string name="home_no_planned">Aucune session planifiée</string>
     <string name="home_this_week_value">%1$d séances · %2$s</string>
-
     <!-- Workouts -->
     <string name="workouts_title">Séances</string>
     <string name="workouts_search_hint">Rechercher une séance, un tag, du matériel</string>
@@ -65,11 +57,9 @@
     <string name="delete_workout_title">Supprimer cette séance ?</string>
     <string name="delete_workout_body">Supprimer « %1$s » ? L’historique est conservé.</string>
     <string name="duplicated_toast">« %1$s » dupliquée</string>
-
     <!-- Templates -->
     <string name="templates_use">Utiliser ce modèle</string>
     <string name="templates_added">« %1$s » ajoutée à vos séances</string>
-
     <!-- Details -->
     <string name="details_timeline">Chronologie des intervalles</string>
     <string name="details_total_duration">Durée totale</string>
@@ -85,7 +75,6 @@
     <string name="external_start_unavailable">Cet entraînement n’est plus disponible.</string>
     <string name="details_preview">Écouter un aperçu</string>
     <string name="details_intervals">%1$d intervalles</string>
-
     <!-- Builder -->
     <string name="builder_quick_title">Création rapide</string>
     <string name="builder_advanced_title">Création avancée</string>
@@ -145,7 +134,6 @@
     <string name="discard_draft">Abandonner</string>
     <string name="cancel">Annuler</string>
     <string name="saved_toast">« %1$s » enregistrée</string>
-
     <!-- Player -->
     <string name="player_next">Intervalle suivant</string>
     <string name="player_round">Tour %1$d sur %2$d</string>
@@ -173,7 +161,6 @@
     <string name="player_lap">Tour</string>
     <string name="player_laps">%1$d tours</string>
     <string name="player_instructor">Vue instructeur</string>
-
     <!-- Running system — race info in the player -->
     <string name="player_race_speed">Vitesse</string>
     <string name="player_race_distance">Distance</string>
@@ -191,7 +178,6 @@
     <string name="summary_race_avg_speed">Vitesse moyenne</string>
     <string name="summary_race_source_gps">GPS</string>
     <string name="summary_race_source_estimated">Estimé</string>
-
     <!-- Summary -->
     <string name="summary_title">Résumé de la séance</string>
     <string name="summary_completed_at">Terminée %1$s</string>
@@ -207,7 +193,6 @@
     <string name="summary_save_note">Enregistrer la note</string>
     <string name="summary_share_image">Partager l\'image</string>
     <string name="summary_rounds_logged">Tours comptés</string>
-
     <!-- History / progress -->
     <string name="progress_title">Progrès</string>
     <string name="progress_history">Historique</string>
@@ -237,7 +222,6 @@
     <string name="planner_delete">Retirer</string>
     <string name="planner_due_today">Prévue aujourd\'hui</string>
     <string name="planner_due_tomorrow">Prévue demain</string>
-
     <!-- Voice studio -->
     <string name="voice_title">Studio voix et audio</string>
     <string name="voice_engine">Moteur de synthèse vocale</string>
@@ -283,7 +267,6 @@
     <string name="voice_countdown">Décompte parlé 3-2-1</string>
     <string name="voice_halfway">Annonce de mi-parcours (1 min et plus)</string>
     <string name="voice_announce_next">Annoncer l\'intervalle suivant</string>
-
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="settings_appearance">Apparence</string>
@@ -329,9 +312,7 @@
     <string name="settings_integrations">Intégrations</string>
     <string name="settings_reset_tips">Revoir l\'accueil</string>
     <string name="settings_permissions">Autorisations utilisées</string>
-
     <!-- Import / export -->
-
     <!-- Onboarding -->
     <string name="welcome_title">Interval Coach</string>
     <string name="welcome_subtitle">Le minuteur d’intervalles HIIT &amp; Tabata.</string>
@@ -346,7 +327,6 @@
     <string name="welcome_notifications">Les notifications ajoutent les commandes du minuteur à l’écran verrouillé.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. La séance fonctionne toujours, mais sans commandes en direct.</string>
-
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
@@ -359,7 +339,6 @@
     <string name="help_gestures_body">Les touches de volume règlent le volume multimédia. Utilisez le lecteur ou la notification pour mettre en pause, avancer ou terminer.</string>
     <string name="help_accessibility">Accessibilité</string>
     <string name="help_accessibility_body">Les réglages proposent des animations réduites, un contraste élevé et des commandes pour gauchers. Utilisez Monter / Descendre pour réorganiser les intervalles.</string>
-
     <!-- Common -->
     <string name="builder_invalid_title">Impossible d’enregistrer pour le moment</string>
     <string name="ok">OK</string>
@@ -372,7 +351,6 @@
     <string name="seconds_short">%1$ds</string>
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
-
     <!-- Widgets & shortcuts -->
     <string name="widget_favorites_name">Favoris Intervals</string>
     <string name="widget_quick_start_name">Départ rapide Intervals</string>
@@ -381,7 +359,6 @@
     <string name="widget_empty">Ouvrez Intervals pour mettre une séance en favori</string>
     <string name="shortcut_recent">Séances récentes</string>
     <string name="shortcut_quick">Création rapide</string>
-
     <!-- Notifications -->
     <string name="notif_channel_workout_name">Séance en cours</string>
     <string name="notif_channel_workout_desc">Commandes du minuteur et progression des intervalles</string>
@@ -391,7 +368,6 @@
     <string name="notif_action_resume">Reprendre</string>
     <string name="notif_action_next">Suivant</string>
     <string name="notif_action_stop">Arrêter</string>
-
     <!-- Portable workout import -->
     <string name="json_title">Séances IA</string>
     <string name="json_ai_help">Envoyez à votre app IA, puis collez sa réponse. Seul le prompt est partagé.</string>
@@ -425,7 +401,6 @@
     <string name="share_skipped">Intervalles passés</string>
     <string name="share_rounds">Tours enregistrés</string>
     <string name="share_recorded">Enregistré avec Intervals</string>
-
     <!-- Theme & streamlined AI flow -->
     <string name="json_send_prompt">Envoyer à une app IA</string>
     <string name="json_paste">Coller la réponse</string>
@@ -437,8 +412,7 @@
     <string name="help_health">Synchronisation santé</string>
     <string name="help_health_body">Connectez Health Connect dans Réglages → Santé pour exporter les séances terminées. Gérez les autorisations dans Health Connect.</string>
     <string name="help_permissions_body">Notifications : commandes du minuteur. Microphone : enregistrement d’annonces. Santé : export des séances uniquement. Ces autorisations sont facultatives.</string>
-
-    <!-- Compagnon Wear OS -->
+    <!-- Wear OS companion -->
     <string name="watch_banner_title">Entraînement en cours sur votre montre</string>
     <string name="watch_session_title">Séance sur la montre</string>
     <string name="watch_session_subtitle">Vue en direct de l’entraînement en cours sur votre montre</string>
@@ -465,7 +439,6 @@
     <string name="player_race_signal_lost">Aucun signal GPS exploitable · essayez à l’extérieur</string>
     <string name="player_race_location_permissions">Autorisations de localisation</string>
     <string name="player_race_enable_location">Activer la localisation</string>
-
     <!-- Screen labels and accessibility descriptions -->
     <string name="action_more">Autres actions</string>
     <string name="action_clear_search">Effacer la recherche</string>
@@ -731,7 +704,6 @@
     <string name="json_too_large">Le JSON ne doit pas dépasser 256 Kio.</string>
     <string name="json_invalid">JSON de séance invalide.</string>
     <string name="json_import_failed">Échec de l’importation. Réessayez.</string>
-
     <plurals name="session_count">
         <item quantity="one">%1$d séance</item>
         <item quantity="other">%1$d séances</item>

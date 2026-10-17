@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Interval Coach</string>
     <string name="app_tagline">Interval Coach</string>
+    <!-- Navigation -->
     <string name="nav_home">Inicio</string>
     <string name="nav_workouts">Entrenamientos</string>
     <string name="nav_progress">Progreso</string>
@@ -10,10 +11,12 @@
     <string name="nav_health">Salud</string>
     <string name="nav_group_library">Biblioteca</string>
     <string name="nav_group_system">Sistema</string>
+    <!-- Breadcrumb titles for the routes whose own header string cannot be reused. -->
     <string name="title_category">Categoría</string>
     <string name="title_builder">Editor</string>
     <string name="title_details">Entrenamiento</string>
     <string name="title_session">Sesión</string>
+    <!-- Home -->
     <string name="home_greeting">Hoy</string>
     <string name="home_quick_start">Inicio rápido</string>
     <string name="home_favorites">Favoritos</string>
@@ -25,6 +28,7 @@
     <string name="home_no_recent">No hay sesiones recientes</string>
     <string name="home_no_planned">No hay sesiones programadas</string>
     <string name="home_this_week_value">%1$d sesiones · %2$s</string>
+    <!-- Workouts -->
     <string name="workouts_title">Entrenamientos</string>
     <string name="workouts_search_hint">Buscar entrenamientos, etiquetas, material</string>
     <string name="workouts_new">Nuevo entrenamiento</string>
@@ -53,8 +57,10 @@
     <string name="delete_workout_title">¿Eliminar este entrenamiento?</string>
     <string name="delete_workout_body">¿Eliminar «%1$s»? Se conserva el historial de sesiones.</string>
     <string name="duplicated_toast">«%1$s» duplicado</string>
+    <!-- Templates -->
     <string name="templates_use">Usar plantilla</string>
     <string name="templates_added">«%1$s» añadido a tus entrenamientos</string>
+    <!-- Details -->
     <string name="details_timeline">Cronología de intervalos</string>
     <string name="details_total_duration">Duración total</string>
     <string name="details_rounds">Rondas</string>
@@ -69,6 +75,7 @@
     <string name="external_start_unavailable">Este entrenamiento ya no está disponible.</string>
     <string name="details_preview">Escuchar señales</string>
     <string name="details_intervals">%1$d intervalos</string>
+    <!-- Builder -->
     <string name="builder_quick_title">Editor rápido</string>
     <string name="builder_advanced_title">Editor avanzado</string>
     <string name="builder_name">Nombre</string>
@@ -127,6 +134,7 @@
     <string name="discard_draft">Descartar</string>
     <string name="cancel">Cancelar</string>
     <string name="saved_toast">«%1$s» guardado</string>
+    <!-- Player -->
     <string name="player_next">Siguiente intervalo</string>
     <string name="player_round">Ronda %1$d de %2$d</string>
     <string name="player_paused">EN PAUSA</string>
@@ -153,6 +161,7 @@
     <string name="player_lap">Vuelta</string>
     <string name="player_laps">%1$d vueltas</string>
     <string name="player_instructor">Vista de instructor</string>
+    <!-- Running system — race info in the player -->
     <string name="player_race_speed">Velocidad</string>
     <string name="player_race_distance">Distancia</string>
     <string name="player_race_left">Restante</string>
@@ -169,6 +178,7 @@
     <string name="summary_race_avg_speed">Velocidad media</string>
     <string name="summary_race_source_gps">GPS</string>
     <string name="summary_race_source_estimated">Estimado</string>
+    <!-- Summary -->
     <string name="summary_title">Resumen de la sesión</string>
     <string name="summary_completed_at">Completada %1$s</string>
     <string name="summary_actual_time">Tiempo activo</string>
@@ -183,6 +193,7 @@
     <string name="summary_save_note">Guardar nota</string>
     <string name="summary_share_image">Compartir imagen</string>
     <string name="summary_rounds_logged">Rondas registradas</string>
+    <!-- History / progress -->
     <string name="progress_title">Progreso</string>
     <string name="progress_history">Historial</string>
     <string name="progress_week">Actividad semanal</string>
@@ -211,6 +222,7 @@
     <string name="planner_delete">Quitar</string>
     <string name="planner_due_today">Programada para hoy</string>
     <string name="planner_due_tomorrow">Programada para mañana</string>
+    <!-- Voice studio -->
     <string name="voice_title">Estudio de voz y audio</string>
     <string name="voice_engine">Motor de voz</string>
     <string name="voice_engine_missing">No hay motor de voz disponible</string>
@@ -255,6 +267,7 @@
     <string name="voice_countdown">Cuenta atrás hablada 3-2-1</string>
     <string name="voice_halfway">Avisos a mitad (1 min o más)</string>
     <string name="voice_announce_next">Anunciar siguiente intervalo</string>
+    <!-- Settings -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_appearance">Apariencia</string>
     <string name="settings_theme">Tema</string>
@@ -299,6 +312,8 @@
     <string name="settings_integrations">Integraciones</string>
     <string name="settings_reset_tips">Mostrar bienvenida de nuevo</string>
     <string name="settings_permissions">Permisos utilizados</string>
+    <!-- Import / export -->
+    <!-- Onboarding -->
     <string name="welcome_title">Interval Coach</string>
     <string name="welcome_subtitle">El temporizador de intervalos HIIT y Tabata.</string>
     <string name="welcome_theme">Elige un estilo</string>
@@ -312,6 +327,7 @@
     <string name="welcome_notifications">Las notificaciones añaden controles a la pantalla de bloqueo.</string>
     <string name="welcome_notifications_allow">Permitir notificaciones</string>
     <string name="welcome_permission_denied">Las notificaciones están desactivadas. El entrenamiento continúa sin controles en directo.</string>
+    <!-- Help -->
     <string name="help_title">Ayuda</string>
     <string name="help_voice">Configurar voz</string>
     <string name="help_voice_body">Para indicaciones sin conexión, instala una voz en Ajustes de Android → Texto a voz. Sin voz, Interval Coach usa señales sonoras.</string>
@@ -323,6 +339,7 @@
     <string name="help_gestures_body">Los botones de volumen ajustan el audio multimedia. Usa el temporizador o la notificación para pausar, omitir o terminar una sesión.</string>
     <string name="help_accessibility">Accesibilidad</string>
     <string name="help_accessibility_body">Movimiento reducido, alto contraste y controles para zurdos están en Ajustes. Usa Subir / Bajar para reordenar intervalos.</string>
+    <!-- Common -->
     <string name="builder_invalid_title">Aún no se puede guardar</string>
     <string name="ok">Aceptar</string>
     <string name="close">Cerrar</string>
@@ -334,6 +351,7 @@
     <string name="seconds_short">%1$ds</string>
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
+    <!-- Widgets & shortcuts -->
     <string name="widget_favorites_name">Favoritos de Interval Coach</string>
     <string name="widget_quick_start_name">Inicio rápido de Interval Coach</string>
     <string name="widget_quick_start_label">Inicio rápido</string>
@@ -341,6 +359,7 @@
     <string name="widget_empty">Abre Interval Coach para marcar un favorito</string>
     <string name="shortcut_recent">Entrenamientos recientes</string>
     <string name="shortcut_quick">Editor rápido</string>
+    <!-- Notifications -->
     <string name="notif_channel_workout_name">Entrenamiento activo</string>
     <string name="notif_channel_workout_desc">Controles del temporizador y progreso de intervalos</string>
     <string name="notif_channel_reminders_name">Entrenamientos programados</string>
@@ -349,6 +368,7 @@
     <string name="notif_action_resume">Reanudar</string>
     <string name="notif_action_next">Siguiente</string>
     <string name="notif_action_stop">Detener</string>
+    <!-- Portable workout import -->
     <string name="json_title">Entrenamientos con IA</string>
     <string name="json_ai_help">Envía la petición a tu app de IA y pega su respuesta. Solo se comparte la petición.</string>
     <string name="json_request">¿Qué quieres entrenar?</string>
@@ -381,6 +401,7 @@
     <string name="share_skipped">Intervalos omitidos</string>
     <string name="share_rounds">Rondas registradas</string>
     <string name="share_recorded">Registrado con Intervals</string>
+    <!-- Theme & streamlined AI flow -->
     <string name="json_send_prompt">Enviar a app de IA</string>
     <string name="json_paste">Pegar respuesta</string>
     <string name="json_edit">Editar JSON</string>
@@ -389,6 +410,9 @@
     <string name="json_clipboard_empty">Copia primero la respuesta JSON de tu IA.</string>
     <string name="json_paste_error">No se pudo pegar. Usa Editar JSON o abre un archivo.</string>
     <string name="help_health">Sincronización de salud</string>
+    <string name="help_health_body">Conecta Health Connect en Ajustes → Salud para exportar entrenamientos completados. Gestiona el acceso en los ajustes de Health Connect de Android.</string>
+    <string name="help_permissions_body">Notificaciones: controles del temporizador. Micrófono: solo grabación de señales. Salud: solo exportación de entrenamientos. Todo es opcional.</string>
+    <!-- Wear OS companion -->
     <string name="watch_banner_title">Entrenamiento en curso en tu reloj</string>
     <string name="watch_session_title">Sesión del reloj</string>
     <string name="watch_session_subtitle">Vista en directo del entrenamiento en tu reloj</string>
@@ -408,6 +432,14 @@
     <string name="watch_session_stop_message">El entrenamiento del reloj terminará y se guardará como finalizado antes de tiempo.</string>
     <string name="watch_session_keep_going">Continuar</string>
     <string name="recording_delete_failed">No se pudo eliminar la grabación. Inténtalo de nuevo.</string>
+    <string name="player_race_permission_required">Acceso a ubicación desactivado</string>
+    <string name="player_race_precise_required">Activa la ubicación precisa para medir tu carrera</string>
+    <string name="player_race_location_disabled">Ubicación del dispositivo desactivada</string>
+    <string name="player_race_location_unavailable">Ubicación no disponible en este dispositivo</string>
+    <string name="player_race_signal_lost">Sin señal GPS válida · busca una zona abierta</string>
+    <string name="player_race_location_permissions">Permisos de ubicación</string>
+    <string name="player_race_enable_location">Activar ubicación del dispositivo</string>
+    <!-- Screen labels and accessibility descriptions -->
     <string name="action_more">Más acciones</string>
     <string name="action_clear_search">Borrar búsqueda</string>
     <string name="action_build">Crear entrenamiento</string>
@@ -622,15 +654,6 @@
     <string name="phase_left">Izquierda</string>
     <string name="phase_right">Derecha</string>
     <string name="phase_hold">Mantener</string>
-    <string name="help_health_body">Conecta Health Connect en Ajustes → Salud para exportar entrenamientos completados. Gestiona el acceso en los ajustes de Health Connect de Android.</string>
-    <string name="help_permissions_body">Notificaciones: controles del temporizador. Micrófono: solo grabación de señales. Salud: solo exportación de entrenamientos. Todo es opcional.</string>
-    <string name="player_race_permission_required">Acceso a ubicación desactivado</string>
-    <string name="player_race_precise_required">Activa la ubicación precisa para medir tu carrera</string>
-    <string name="player_race_location_disabled">Ubicación del dispositivo desactivada</string>
-    <string name="player_race_location_unavailable">Ubicación no disponible en este dispositivo</string>
-    <string name="player_race_signal_lost">Sin señal GPS válida · busca una zona abierta</string>
-    <string name="player_race_location_permissions">Permisos de ubicación</string>
-    <string name="player_race_enable_location">Activar ubicación del dispositivo</string>
     <string name="home_who">\u0020· recomendación OMS</string>
     <string name="home_trained_week">\u0020· %1$s de entrenamiento esta semana</string>
     <string name="stepper_count">Cantidad de %1$s</string>
@@ -681,7 +704,6 @@
     <string name="json_too_large">El JSON no debe superar 256 KiB.</string>
     <string name="json_invalid">JSON de entrenamiento no válido.</string>
     <string name="json_import_failed">Error al importar. Inténtalo de nuevo.</string>
-
     <plurals name="session_count">
         <item quantity="one">%1$d sesión</item>
         <item quantity="other">%1$d sesiones</item>

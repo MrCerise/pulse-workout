@@ -27,10 +27,12 @@ class QuickWorkoutFactoryTest {
             TimelineExpander.expand(original).steps.map { it.kind to it.durationMillis },
             timeline.steps.map { it.kind to it.durationMillis },
         )
+        // Only recovery at the end of the timeline is trimmed. The rest before a cooldown stays.
         assertEquals(
-            listOf("Préparez-vous", "Effort", "Repos", "Effort", "Retour au calme"),
+            listOf("Préparez-vous", "Effort", "Repos", "Effort", "Repos", "Retour au calme"),
             timeline.steps.map { it.name },
         )
+        assertEquals(80_000L, timeline.knownMillis)
     }
 
     @Test
