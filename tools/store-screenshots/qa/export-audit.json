@@ -1,0 +1,62 @@
+[
+  {
+    "file": "01-live-timer.png",
+    "size": [
+      1080,
+      1920
+    ],
+    "mode": "RGB",
+    "bytes": 1198674,
+    "sha256": "28cf7e093601966f2c6ca4e126186477507b63fb76caff72b70cb0232becf17a"
+  },
+  {
+    "file": "02-workout-builder.png",
+    "size": [
+      1080,
+      1920
+    ],
+    "mode": "RGB",
+    "bytes": 1155042,
+    "sha256": "d72f4d1725a404ca0ca02e35f1ea1115518828251ce92a9b744fd52a52fa8c37"
+  },
+  {
+    "file": "03-workout-library.png",
+    "size": [
+      1080,
+      1920
+    ],
+    "mode": "RGB",
+    "bytes": 1326717,
+    "sha256": "249888b513f4ee705e1a4715d8221945a08838098568ec68446ba5cac62bb3d0"
+  },
+  {
+    "file": "04-run-your-5k.png",
+    "size": [
+      1080,
+      1920
+    ],
+    "mode": "RGB",
+    "bytes": 1052876,
+    "sha256": "17b838cef2c6975cec597b20e3c5964a2179bfdbad0655f02d69e7e7b768fdf6"
+  },
+  {
+    "file": "05-weekly-goals.png",
+    "size": [
+      1080,
+      1920
+    ],
+    "mode": "RGB",
+    "bytes": 1216934,
+    "sha256": "4f2494a9d5fb8e5034e13948bc64f13193534c3156f99068aff89adeb786f492"
+  },
+  {
+    "file": "06-your-plan-your-pace.png",
+    "size": [
+      1080,
+      1920
+    ],
+    "mode": "RGB",
+    "bytes": 1124375,
+    "sha256": "283f5c10cead9f5deb162c8ce9d9bfd863e9b3533361c0b48afb33571c61bfbf"
+  }
+]

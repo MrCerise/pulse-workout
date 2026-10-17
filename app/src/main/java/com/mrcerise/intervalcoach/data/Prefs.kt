@@ -45,7 +45,7 @@ enum class VoiceVerbosity { MINIMAL, STANDARD, CHATTY }
 enum class AppLanguage(val tag: String?) {
     SYSTEM(null),
     ENGLISH("en"),
-    FRENCH("fr"),
+    FRENCH("fr-FR"),
     GERMAN("de-DE"),
     SPANISH("es-ES"),
     ITALIAN("it-IT");

@@ -1,5 +1,7 @@
 package com.mrcerise.intervalcoach.ui.workouts
 
+import com.mrcerise.intervalcoach.locale.categoryTitle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -109,11 +111,12 @@ import kotlinx.coroutines.withContext
 
 enum class LibrarySort { RECENT, NAME, DURATION, CREATED }
 
+@Composable
 private fun LibrarySort.label(): String = when (this) {
-    LibrarySort.RECENT -> "Recently used"
-    LibrarySort.NAME -> "Name"
-    LibrarySort.DURATION -> "Duration"
-    LibrarySort.CREATED -> "Recently created"
+    LibrarySort.RECENT -> stringResource(R.string.sort_recent)
+    LibrarySort.NAME -> stringResource(R.string.sort_name)
+    LibrarySort.DURATION -> stringResource(R.string.sort_duration)
+    LibrarySort.CREATED -> stringResource(R.string.sort_created)
 }
 
 data class LibraryUiState(
@@ -212,6 +215,7 @@ fun WorkoutLibraryScreen(
     onEdit: (String) -> Unit,
     onJsonImport: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val viewModel: LibraryViewModel = viewModel(initializer = { LibraryViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
@@ -235,13 +239,13 @@ fun WorkoutLibraryScreen(
                 shadowElevation = LocalPulseElevation.current.level3,
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.Add, contentDescription = "New workout", modifier = Modifier.size(26.dp))
+                    Icon(Icons.Filled.Add, contentDescription = strings.getString(R.string.workouts_new), modifier = Modifier.size(26.dp))
                 }
             }
         },
     ) { padding ->
         Column(Modifier.padding(padding)) {
-            PulsePageHeader(title = "Workouts")
+            PulsePageHeader(title = strings.getString(R.string.nav_workouts))
 
             PulseTextField(
                 value = state.query,
@@ -254,7 +258,7 @@ fun WorkoutLibraryScreen(
                     if (state.query.isNotBlank()) {
                         PulseIconButton(
                             icon = Icons.Filled.Close,
-                            contentDescription = "Clear search",
+                            contentDescription = strings.getString(R.string.action_clear_search),
                             onClick = { viewModel.setQuery("") },
                         )
                     }
@@ -284,8 +288,8 @@ fun WorkoutLibraryScreen(
                 Spacer(Modifier.weight(1f))
                 PulseIconButton(
                     icon = if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
-                    contentDescription = if (state.grid) "List view" else "Grid view",
-                    tooltip = if (state.grid) "List view" else "Grid view",
+                    contentDescription = if (state.grid) strings.getString(R.string.view_list_label) else strings.getString(R.string.view_grid_label),
+                    tooltip = if (state.grid) strings.getString(R.string.view_list_label) else strings.getString(R.string.view_grid_label),
                     onClick = viewModel::toggleGrid,
                 )
             }
@@ -318,8 +322,8 @@ fun WorkoutLibraryScreen(
                             state.query.isBlank() && state.categoryKey == null && state.favoritesOnly ->
                                 stringResource(R.string.workouts_no_favorites_title)
                             else -> buildString {
-                                append("Nothing matches ")
-                                state.categoryKey?.let { append("${WorkoutCategories.byKey(it).title} ") }
+                                append(strings.getString(R.string.schedule_no_matches)); append(" ")
+                                state.categoryKey?.let { append("${strings.categoryTitle(WorkoutCategories.byKey(it))} ") }
                                 if (state.favoritesOnly) append("$favoritesFilterLabel ")
                                 if (state.query.isNotBlank()) append("“${state.query}”")
                             }.trim()
@@ -332,7 +336,7 @@ fun WorkoutLibraryScreen(
                             else -> stringResource(R.string.workouts_filter_empty_body)
                         },
                         icon = Icons.Filled.FitnessCenter,
-                        actionLabel = "Build a workout",
+                        actionLabel = strings.getString(R.string.action_build),
                         onAction = onQuickBuilder,
                     )
                 }
@@ -404,19 +408,19 @@ fun WorkoutLibraryScreen(
         }
     }
     if (showNewMenu) {
-        PulseBottomSheet(title = "New workout", onDismiss = { showNewMenu = false }) {
+        PulseBottomSheet(title = strings.getString(R.string.workouts_new), onDismiss = { showNewMenu = false }) {
             PulseSheetRow(
-                text = "Quick builder",
+                text = strings.getString(R.string.builder_quick_title),
                 leadingIcon = Icons.Filled.FitnessCenter,
                 onClick = { showNewMenu = false; onQuickBuilder() },
             )
             PulseSheetRow(
-                text = "Advanced builder",
+                text = strings.getString(R.string.builder_advanced_title),
                 leadingIcon = Icons.Filled.Tune,
                 onClick = { showNewMenu = false; onAdvancedBuilder() },
             )
             PulseSheetRow(
-                text = "AI workout",
+                text = strings.getString(R.string.json_title),
                 leadingIcon = Icons.Filled.AutoAwesome,
                 onClick = { showNewMenu = false; onJsonImport() },
             )
@@ -426,7 +430,7 @@ fun WorkoutLibraryScreen(
     pendingDelete?.let { workout ->
         ConfirmDialog(
             title = stringResource(R.string.delete_workout_title),
-            body = "Delete “${workout.name}”? Session history is kept.",
+            body = strings.getString(R.string.delete_workout_body, workout.name),
             confirmLabel = stringResource(R.string.action_delete),
             dismissLabel = stringResource(R.string.cancel),
             destructive = true,
@@ -451,6 +455,7 @@ fun CategoryFilterRail(
     onToggleFavorites: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = LocalContext.current.resources
     val dimens = LocalPulseDimens.current
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -474,7 +479,7 @@ fun CategoryFilterRail(
         }
         items(categories, key = { it.key }) { category ->
             PulseChoiceChip(
-                text = category.title,
+                text = strings.categoryTitle(category),
                 selected = selectedKey == category.key,
                 leadingIcon = category.icon,
                 accent = LocalPulseColors.current.categoryColor(category.hue),
@@ -491,6 +496,7 @@ private fun WorkoutGridCard(
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val category = workout.categoryOrCustom()
@@ -524,12 +530,12 @@ private fun WorkoutGridCard(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis),
+                text = if (workout.hasOpenEnded) strings.getString(R.string.player_open_ended) else formatDuration(workout.knownDurationMillis),
                 style = PulseType.NumericSmall,
                 color = colors.textSecondary,
             )
             Text(
-                text = category.title,
+                text = strings.categoryTitle(category),
                 style = MaterialTheme.typography.labelSmall,
                 color = hue,
                 maxLines = 1,
@@ -557,6 +563,7 @@ private fun WorkoutRow(
     onDelete: () -> Unit,
     onShare: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val category = workout.categoryOrCustom()
@@ -564,12 +571,11 @@ private fun WorkoutRow(
     PulseListRow(
         title = workout.name,
         subtitle = buildString {
-            append(if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis))
+            append(if (workout.hasOpenEnded) strings.getString(R.string.player_open_ended) else formatDuration(workout.knownDurationMillis))
             append(" · ")
-            append(workout.intervalCount)
-            append(" intervals")
+            append(strings.getString(R.string.interval_count, workout.intervalCount))
             workout.equipment?.let { append(" · $it") }
-            if (workout.builtIn) append(" · starter")
+            if (workout.builtIn) append(strings.getString(R.string.starter_label))
             if (workout.tags.isNotEmpty()) append(" · ").append(workout.tags.joinToString(" · "))
         },
         leadingIcon = category.icon,
@@ -583,28 +589,28 @@ private fun WorkoutRow(
             ) {
                 PulseIconButton(
                     icon = if (workout.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = if (workout.isFavorite) "Remove from favorites" else "Add to favorites",
-                    tooltip = if (workout.isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (workout.isFavorite) strings.getString(R.string.action_favorite_remove) else strings.getString(R.string.action_favorite_add),
+                    tooltip = if (workout.isFavorite) strings.getString(R.string.action_favorite_remove) else strings.getString(R.string.action_favorite_add),
                     onClick = onFavorite,
                     tint = if (workout.isFavorite) colors.accent else colors.textMuted,
                     modifier = Modifier.size(dimens.iconButtonSize),
                 )
                 PulseIconButton(
                     icon = Icons.Filled.PlayArrow,
-                    contentDescription = "Start ${workout.name}",
-                    tooltip = "Start now",
+                    contentDescription = strings.getString(R.string.action_start_named, workout.name),
+                    tooltip = strings.getString(R.string.action_start_now),
                     onClick = onStart,
                     tint = colors.textPrimary,
                     modifier = Modifier.size(dimens.iconButtonSize),
                 )
                 PulseIconButton(
                     icon = Icons.Filled.MoreVert,
-                    contentDescription = "More actions",
+                    contentDescription = strings.getString(R.string.action_more),
                     onClick = { menu = true },
                     modifier = Modifier.size(dimens.iconButtonSize),
                 )
                 if (menu) {
-                    PulseBottomSheet(title = "More actions", onDismiss = { menu = false }) {
+                    PulseBottomSheet(title = strings.getString(R.string.action_more), onDismiss = { menu = false }) {
                         PulseSheetRow(
                             text = stringResource(R.string.action_edit),
                             leadingIcon = Icons.Filled.Edit,
@@ -616,7 +622,7 @@ private fun WorkoutRow(
                             onClick = { menu = false; onDuplicate() },
                         )
                         PulseSheetRow(
-                            text = "Share summary",
+                            text = strings.getString(R.string.workout_share_summary),
                             leadingIcon = Icons.Filled.Share,
                             onClick = { menu = false; onShare() },
                         )
@@ -652,6 +658,7 @@ fun WorkoutDetailsScreen(
     onStart: (WorkoutPlan) -> Unit,
     onSchedule: (String) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val planFlow = remember(workoutId) { container.workouts.observeEntity(workoutId) }
@@ -669,15 +676,15 @@ fun WorkoutDetailsScreen(
         if (entity != null && (plan == null || expanded == null)) {
             Column(Modifier.padding(padding)) {
                 ErrorState(
-                    title = "This workout could not be opened",
-                    body = "Workout data is unreadable. Export a backup before deleting it.",
+                    title = strings.getString(R.string.workout_unreadable_title),
+                    body = strings.getString(R.string.workout_unreadable_body),
                 )
             }
             return@PulseScaffold
         }
         if (plan == null || expanded == null) {
             Column(Modifier.padding(padding)) {
-                LoadingBox(label = "Loading workout…")
+                LoadingBox(label = strings.getString(R.string.workout_loading))
             }
             return@PulseScaffold
         }
@@ -695,13 +702,13 @@ fun WorkoutDetailsScreen(
         ) {
             item {
                 PulsePageHeader(
-                    title = plan?.name ?: "Workout",
+                    title = plan?.name ?: strings.getString(R.string.title_details),
                     onBack = onBack,
                     trailing = {
                         PulseIconButton(
                             icon = Icons.Filled.Edit,
-                            contentDescription = "Edit workout",
-                            tooltip = "Edit workout",
+                            contentDescription = strings.getString(R.string.workout_edit),
+                            tooltip = strings.getString(R.string.workout_edit),
                             onClick = { plan?.let { onEdit(it.id) } },
                         )
                     },
@@ -731,7 +738,7 @@ fun WorkoutDetailsScreen(
                             Spacer(Modifier.width(dimens.m))
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    text = category.title,
+                                    text = strings.categoryTitle(category),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = hue,
                                     maxLines = 1,
@@ -741,8 +748,8 @@ fun WorkoutDetailsScreen(
                             entity?.let { e ->
                                 PulseIconButton(
                                     icon = if (e.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                                    contentDescription = if (e.isFavorite) "Remove from favorites" else "Add to favorites",
-                                    tooltip = if (e.isFavorite) "Remove from favorites" else "Add to favorites",
+                                    contentDescription = if (e.isFavorite) strings.getString(R.string.action_favorite_remove) else strings.getString(R.string.action_favorite_add),
+                                    tooltip = if (e.isFavorite) strings.getString(R.string.action_favorite_remove) else strings.getString(R.string.action_favorite_add),
                                     onClick = { scope.launch { container.workouts.setFavorite(workoutId, !e.isFavorite) } },
                                     tint = if (e.isFavorite) colors.work else colors.textMuted,
                                     modifier = Modifier.size(dimens.iconButtonSize),
@@ -760,18 +767,18 @@ fun WorkoutDetailsScreen(
                             color = colors.textPrimary,
                         )
                         Text(
-                            text = "total time",
+                            text = strings.getString(R.string.total_time_label),
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.textMuted,
                         )
                         Spacer(Modifier.height(dimens.l))
                         Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                            StatTile("Intervals", expanded.steps.size.toString(), modifier = Modifier.weight(1f))
+                            StatTile(strings.getString(R.string.builder_editor_intervals), expanded.steps.size.toString(), modifier = Modifier.weight(1f))
                             expanded.steps.firstNotNullOfOrNull { it.roundsInGroup }?.let { rounds ->
-                                StatTile("Rounds", rounds.toString(), modifier = Modifier.weight(1f))
+                                StatTile(strings.getString(R.string.builder_rounds), rounds.toString(), modifier = Modifier.weight(1f))
                             }
                             plan.equipment?.let {
-                                StatTile("Equipment", it.take(12), modifier = Modifier.weight(1f))
+                                StatTile(strings.getString(R.string.details_equipment), it.take(12), modifier = Modifier.weight(1f))
                             }
                         }
                         if (expanded.hasOpenEnded) {
@@ -783,7 +790,7 @@ fun WorkoutDetailsScreen(
 
             item {
                 PrimaryActionButton(
-                    text = "Start workout",
+                    text = strings.getString(R.string.details_start),
                     onClick = { onStart(plan) },
                     modifier = Modifier.fillMaxWidth(),
                     icon = Icons.Filled.PlayArrow,
@@ -791,28 +798,28 @@ fun WorkoutDetailsScreen(
             }
             item {
                 PulseActionMenu(
-                    text = "More actions",
+                    text = strings.getString(R.string.action_more),
                     icon = Icons.Filled.MoreVert,
                     items = listOf(
-                        PulseMenuAction(if (preview == null) "Preview cues" else "Stop preview", icon = Icons.Filled.PlayArrow) {
+                        PulseMenuAction(if (preview == null) strings.getString(R.string.details_preview) else strings.getString(R.string.workout_stop_preview), icon = Icons.Filled.PlayArrow) {
                             if (preview == null) container.sessionController.startPreview(plan) else container.sessionController.stopPreview()
                         },
                         PulseMenuAction(stringResource(R.string.action_edit), icon = Icons.Filled.Edit) { onEdit(plan.id) },
                         PulseMenuAction(stringResource(R.string.planner_add), icon = Icons.Filled.Event) { onSchedule(plan.id) },
-                        PulseMenuAction("Share as QR code", icon = Icons.Filled.QrCode) { showQr = true },
+                        PulseMenuAction(strings.getString(R.string.workout_share_qr), icon = Icons.Filled.QrCode) { showQr = true },
                     ),
                 )
             }
             preview?.let { state ->
                 item {
                     InfoBanner(
-                        text = "Previewing ${state.stepIndex + 1}/${state.totalSteps}: ${state.stepName}",
+                        text = strings.getString(R.string.workout_previewing, state.stepIndex + 1, state.totalSteps, state.stepName),
                         tone = com.mrcerise.intervalcoach.ui.components.PulseTone.INFO,
                     )
                 }
             }
 
-            item { SectionHeader(text = "Interval timeline", trailing = "${expanded.steps.size} intervals") }
+            item { SectionHeader(text = strings.getString(R.string.details_timeline), trailing = strings.getString(R.string.interval_count, expanded.steps.size)) }
             item {
                 TimelineBar(
                     kinds = expanded.steps.map { it.kind },
@@ -836,8 +843,8 @@ fun WorkoutDetailsScreen(
                             )
                             Text(
                                 text = buildString {
-                                    append(if (step.isIndefinite) "Manual" else formatDuration(step.durationMillis))
-                                    step.roundInGroup?.let { round -> append(" · round $round of ${step.roundsInGroup}") }
+                                    append(if (step.isIndefinite) strings.getString(R.string.manual) else formatDuration(step.durationMillis))
+                                    step.roundInGroup?.let { round -> append(" · " + strings.getString(R.string.player_round, round, step.roundsInGroup ?: 0)) }
                                     step.sideLabel?.let { append(" · $it") }
                                 },
                                 style = PulseType.NumericSmall,
@@ -854,7 +861,7 @@ fun WorkoutDetailsScreen(
             }
 
             plan.equipment?.let { equipment ->
-                item { SectionHeader("Equipment") }
+                item { SectionHeader(strings.getString(R.string.details_equipment)) }
                 item { PulseCard { Text(equipment, color = colors.textPrimary) } }
             }
         }
@@ -876,13 +883,14 @@ fun WorkoutDetailsScreen(
 /** A quiet category pill for places that only need the name. */
 @Composable
 private fun CategoryLabel(category: WorkoutCategory) {
+    val strings = LocalContext.current.resources
     Surface(
         shape = LocalPulseShapes.current.chip,
         color = LocalPulseColors.current.categoryTint(category.hue),
         contentColor = LocalPulseColors.current.categoryColor(category.hue),
     ) {
         Text(
-            text = category.title,
+            text = strings.categoryTitle(category),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
             maxLines = 1,
@@ -900,12 +908,12 @@ private fun shareWorkout(context: android.content.Context, container: AppContain
             appendLine(plan.name)
             appendLine()
             expanded.steps.forEach { step ->
-                append(if (step.isIndefinite) "manual" else formatDuration(step.durationMillis))
+                append(if (step.isIndefinite) context.getString(R.string.manual) else formatDuration(step.durationMillis))
                 append("  ")
                 appendLine(step.name)
             }
             appendLine()
-            append("Total: ")
+            append(context.getString(R.string.session_total)); append(": ")
             append(expanded.totalMillis?.let { formatDuration(it) } ?: "≥ ${formatDuration(expanded.knownMillis)}")
         }
         withContext(Dispatchers.Main) {
@@ -914,7 +922,7 @@ private fun shareWorkout(context: android.content.Context, container: AppContain
                 putExtra(android.content.Intent.EXTRA_SUBJECT, plan.name)
                 putExtra(android.content.Intent.EXTRA_TEXT, text)
             }
-            context.startActivity(android.content.Intent.createChooser(intent, "Share workout"))
+            context.startActivity(android.content.Intent.createChooser(intent, context.getString(R.string.summary_share_title)))
         }
     }
 }
@@ -940,6 +948,7 @@ fun CategoryScreen(
     onStart: (WorkoutPlan) -> Unit,
     onBuild: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val category = remember(categoryKey) { WorkoutCategories.byKey(categoryKey) }
@@ -962,7 +971,7 @@ fun CategoryScreen(
         ) {
             item {
                 PulsePageHeader(
-                    title = category.title,
+                    title = strings.categoryTitle(category),
                     onBack = onBack,
                 )
             }
@@ -986,26 +995,26 @@ fun CategoryScreen(
                         }
                         Spacer(Modifier.height(dimens.l))
                         Text(
-                            text = category.title,
+                            text = strings.categoryTitle(category),
                             style = MaterialTheme.typography.headlineMedium,
                             color = colors.textPrimary,
                         )
                         Spacer(Modifier.height(dimens.l))
                         Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                             StatTile(
-                                label = "Work",
+                                label = strings.getString(R.string.builder_work),
                                 value = formatDuration(category.defaults.workMillis),
                                 accent = hue,
                                 modifier = Modifier.weight(1f),
                             )
                             StatTile(
-                                label = "Rest",
+                                label = strings.getString(R.string.builder_rest),
                                 value = formatDuration(category.defaults.restMillis),
                                 accent = hue,
                                 modifier = Modifier.weight(1f),
                             )
                             StatTile(
-                                label = "Rounds",
+                                label = strings.getString(R.string.builder_rounds),
                                 value = category.defaults.rounds.toString(),
                                 accent = hue,
                                 modifier = Modifier.weight(1f),
@@ -1016,7 +1025,7 @@ fun CategoryScreen(
 
             item {
                 PrimaryActionButton(
-                    text = "Start ${category.title} now",
+                    text = strings.getString(R.string.action_start_category, strings.categoryTitle(category)),
                     onClick = {
                         val d = category.defaults
                         onStart(
@@ -1027,7 +1036,7 @@ fun CategoryScreen(
                                 preparationMillis = d.preparationMillis,
                                 cooldownMillis = d.cooldownMillis,
                                 includeFinalRest = d.includeFinalRest,
-                                name = category.title,
+                                name = strings.categoryTitle(category),
                                 type = category.type,
                                 workName = d.workName,
                                 restName = d.restName,
@@ -1040,7 +1049,7 @@ fun CategoryScreen(
             }
             item {
                 SecondaryActionButton(
-                    text = "Adjust it in the quick builder",
+                    text = strings.getString(R.string.category_adjust),
                     onClick = onBuild,
                     modifier = Modifier.fillMaxWidth(),
                     icon = Icons.Filled.Tune,
@@ -1048,7 +1057,7 @@ fun CategoryScreen(
             }
 
             if (inCategory.isNotEmpty()) {
-                item { SectionHeader(text = "Your ${category.title} workouts", trailing = "${inCategory.size}") }
+                item { SectionHeader(text = strings.getString(R.string.category_your_workouts, strings.categoryTitle(category)), trailing = "${inCategory.size}") }
                 // One table surface with 56 dp rows, hairline-separated — the same shape the
                 // library and the Today page use for lists of workouts. Rows sit inside the
                 // card's inset, so titles never hug the phone edge, and each row keeps the
@@ -1059,8 +1068,8 @@ fun CategoryScreen(
                             inCategory.forEachIndexed { index, workout ->
                                 PulseListRow(
                                     title = workout.name,
-                                    subtitle = "${workout.intervalCount} intervals · " +
-                                        (if (workout.hasOpenEnded) "open-ended" else formatDuration(workout.knownDurationMillis)),
+                                    subtitle = strings.getString(R.string.interval_count, workout.intervalCount) + " · " +
+                                        (if (workout.hasOpenEnded) strings.getString(R.string.player_open_ended) else formatDuration(workout.knownDurationMillis)),
                                     leadingIcon = workout.categoryOrCustom().icon,
                                     leadingTint = hue,
                                     leadingContainer = colors.categoryTint(category.hue),
@@ -1077,10 +1086,10 @@ fun CategoryScreen(
             } else {
                 item {
                     EmptyState(
-                        title = "No ${category.title} workouts yet",
-                        body = "Create a workout or use the defaults above.",
+                        title = strings.getString(R.string.category_empty, strings.categoryTitle(category)),
+                        body = strings.getString(R.string.category_empty_body),
                         icon = category.icon,
-                        actionLabel = "Build one",
+                        actionLabel = strings.getString(R.string.action_build_one),
                         onAction = onBuild,
                     )
                 }

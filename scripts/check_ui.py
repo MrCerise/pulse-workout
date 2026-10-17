@@ -11,7 +11,7 @@ class of mistake that actually breaks a UI change without needing a toolchain:
      inflation of the icon, not the build);
   3. every `@type/name` reference in an XML resource resolves to a resource that exists;
   4. every `R.string.x` / `R.drawable.x` / `R.color.x` used from Kotlin resolves to a resource;
-  5. every English string has a French translation (the two tables must stay in step);
+  5. every packaged translation covers the source strings and plurals, preserving format arguments;
   6. each Kotlin source file is structurally balanced — brackets, braces, parentheses, quotes,
      triple-quoted strings and comments — so an edit that drops a brace is caught here.
 
@@ -115,7 +115,56 @@ def string_tables(res_root: Path) -> tuple[set[str], set[str]]:
             if child.tag.endswith("string") and child.get("name")
         }
 
-    return names(res_root / "values/strings.xml"), names(res_root / "values-fr/strings.xml")
+    return names(res_root / "values/strings.xml"), names(res_root / "values-fr-rFR/strings.xml")
+
+
+FORMAT_ARGUMENT = re.compile(r"%(\d+)\$[\d.]*([a-zA-Z])")
+
+
+def check_translation_tables(res_root: Path) -> list[str]:
+    """Reject incomplete exports and mismatched formatter arguments before Android falls back."""
+    def entries(path: Path) -> dict[tuple[str, str], ET.Element]:
+        return {
+            (entry.tag, entry.get("name")): entry
+            for entry in parse_xml(path).getroot()
+            if entry.tag in {"string", "plurals"} and entry.get("translatable") != "false"
+        }
+
+    source = entries(res_root / "values/strings.xml")
+    problems = []
+    for path in sorted(res_root.glob("values-*/strings.xml")):
+        translated = entries(path)
+        label = f"{res_root.parent.parent.parent.name}/{path.parent.name}"
+        for kind, name in sorted(source.keys() - translated.keys()):
+            problems.append(f"{label}: missing {kind}/{name}")
+        for kind, name in sorted(translated.keys() - source.keys()):
+            problems.append(f"{label}: unknown {kind}/{name}")
+        for key in source.keys() & translated.keys():
+            original, translation = source[key], translated[key]
+            expected = sorted(FORMAT_ARGUMENT.findall("".join(original.itertext())))
+            if original.tag == "plurals":
+                # A locale may have more plural categories than English; every item needs the
+                # arguments used by the source's "other" form, including reordered arguments.
+                expected = sorted(FORMAT_ARGUMENT.findall("".join(original.find("item[@quantity='other']").itertext())))
+                forms = list(translation)
+                if not any(item.get("quantity") == "other" for item in forms):
+                    problems.append(f"{label}: {key[1]} needs an other plural form")
+            else:
+                forms = [translation]
+            for form in forms:
+                actual = "".join(form.itertext())
+                if not actual.strip():
+                    problems.append(f"{label}: empty {key[0]}/{key[1]}")
+                if sorted(FORMAT_ARGUMENT.findall(actual)) != expected:
+                    problems.append(f"{label}: format arguments differ for {key[0]}/{key[1]}")
+            # Brand names and short words can legitimately be shared. Entire English sentences
+            # copied into a translation table (as in untranslated Crowdin exports) cannot.
+            if original.tag == "string":
+                text = "".join(original.itertext())
+                words = re.findall(r"[A-Za-z]{2,}", FORMAT_ARGUMENT.sub("", text))
+                if len(words) >= 3 and text == "".join(translation.itertext()):
+                    problems.append(f"{label}: untranslated English text in string/{key[1]}")
+    return problems
 
 
 # ---------------------------------------------------------------------------------------------
@@ -294,6 +343,7 @@ def main() -> int:
             resources = collect_resources(res_root)
             module_resources[res_root] = resources
             problems += check_xml(resources, res_root)
+            problems += check_translation_tables(res_root)
             total_types = max(total_types, len(resources))
             total_names += sum(len(names) for names in resources.values())
 
@@ -306,7 +356,7 @@ def main() -> int:
             missing_en = sorted(french - english)
             label = res_root.relative_to(ROOT).parts[0]
             if missing_fr:
-                problems.append(f"{label} values-fr/strings.xml is missing: " + ", ".join(missing_fr))
+                problems.append(f"{label} values-fr-rFR/strings.xml is missing: " + ", ".join(missing_fr))
             if missing_en:
                 problems.append(
                     f"{label} values/strings.xml is missing (present in French only): " + ", ".join(missing_en)

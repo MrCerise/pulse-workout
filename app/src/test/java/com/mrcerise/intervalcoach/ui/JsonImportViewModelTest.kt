@@ -39,6 +39,7 @@ class JsonImportViewModelTest {
         assertNull(model.state.value.preview)
         assertEquals(0, writes)
         assertNotNull(model.state.value.error)
+        assertEquals(JsonImportViewModel.ErrorKind.INVALID_JSON, model.state.value.errorKind)
     }
 
     @Test fun `rapid edits debounce and only preview the latest document`() = runTest(dispatcher) {
@@ -112,6 +113,7 @@ class JsonImportViewModelTest {
         model.save()
         advanceUntilIdle()
         assertEquals("Storage full", model.state.value.error)
+        assertEquals(JsonImportViewModel.ErrorKind.IMPORT_FAILED, model.state.value.errorKind)
         assertTrue(model.state.value.savedIds.isEmpty())
         assertNotNull(model.state.value.preview)
         fail = false
@@ -151,6 +153,7 @@ class JsonImportViewModelTest {
         advanceUntilIdle()
         model.save()
         assertTrue(model.state.value.error!!.contains("256 KiB"))
+        assertEquals(JsonImportViewModel.ErrorKind.TOO_LARGE, model.state.value.errorKind)
         assertNull(model.state.value.preview)
     }
 

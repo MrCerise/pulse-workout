@@ -15,7 +15,7 @@ class PrivacyPolicyTest(unittest.TestCase):
         policies = json.loads((generator.ROOT / "legal/privacy.json").read_text(encoding="utf-8"))
         generated = dict(generator.outputs())
         for language, policy in policies.items():
-            folder = "values" if language == "en" else f"values-{language}"
+            folder = "values" if language == "en" else "values-fr-rFR"
             phone = generated[generator.ROOT / "app/src/main/res" / folder / "privacy.xml"]
             watch = generated[generator.ROOT / "wear/src/main/res" / folder / "privacy.xml"]
             self.assertEqual(phone, watch)

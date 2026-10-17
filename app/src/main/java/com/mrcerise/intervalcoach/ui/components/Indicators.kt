@@ -1,5 +1,10 @@
 package com.mrcerise.intervalcoach.ui.components
 
+import com.mrcerise.intervalcoach.locale.phaseLabel
+import com.mrcerise.intervalcoach.locale.categoryTitle
+import com.mrcerise.intervalcoach.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -64,10 +69,11 @@ enum class PulseTone { NEUTRAL, INFO, SUCCESS, WARNING, DANGER }
  */
 @Composable
 fun PhaseChip(kind: PhaseKind, name: String?, modifier: Modifier = Modifier) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val accent = colors.phaseColor(kind)
-    val label = name ?: PhaseKind.defaultLabel(kind)
+    val label = name ?: strings.phaseLabel(kind)
     Surface(
         modifier = modifier,
         shape = LocalPulseShapes.current.chip,
@@ -136,6 +142,7 @@ fun CategoryChip(
     modifier: Modifier = Modifier,
     showTitle: Boolean = true,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val hue = colors.categoryColor(category.hue)
@@ -158,7 +165,7 @@ fun CategoryChip(
             if (showTitle) {
                 Spacer(Modifier.width(5.dp))
                 Text(
-                    text = category.title,
+                    text = strings.categoryTitle(category),
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -424,12 +431,13 @@ fun CategoryPicker(
     modifier: Modifier = Modifier,
     enabledFor: (WorkoutCategory) -> Boolean = { true },
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     var expanded by remember { mutableStateOf(false) }
     val effective = WorkoutCategories.byKey(selected.key)
     Column(modifier.fillMaxWidth()) {
-        Text("Category", style = PulseType.SectionLabel, color = colors.textMuted,
+        Text(strings.getString(R.string.title_category), style = PulseType.SectionLabel, color = colors.textMuted,
             modifier = Modifier.padding(start = dimens.xs, bottom = dimens.s))
         Surface(
             onClick = { expanded = true },
@@ -443,17 +451,17 @@ fun CategoryPicker(
                 verticalAlignment = Alignment.CenterVertically) {
                 Icon(effective.icon, contentDescription = null, tint = colors.categoryColor(effective.hue), modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(dimens.s))
-                Text(effective.title, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary,
+                Text(strings.categoryTitle(effective), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary,
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                 Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(20.dp))
             }
         }
     }
     if (expanded) {
-        PulseBottomSheet(title = "Category", onDismiss = { expanded = false }) {
+        PulseBottomSheet(title = strings.getString(R.string.title_category), onDismiss = { expanded = false }) {
             WorkoutCategories.picker.forEach { category ->
                 PulseSheetRow(
-                    text = category.title,
+                    text = strings.categoryTitle(category),
                     leadingIcon = category.icon,
                     selected = category.key == effective.key,
                     onClick = { if (enabledFor(category)) { expanded = false; onSelect(category) } },

@@ -1,5 +1,7 @@
 package com.mrcerise.intervalcoach.ui.home
 
+import com.mrcerise.intervalcoach.locale.categoryTitle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -140,7 +142,7 @@ class HomeViewModel(
         HomeUiState(
             favorites = summaries.filter { it.isFavorite }.take(8),
             recent = recent,
-            nextPlanned = nextReminder?.let { PlannedInfo(it, byId[it.workoutId]?.name ?: "Deleted workout") },
+            nextPlanned = nextReminder?.let { PlannedInfo(it, byId[it.workoutId]?.name ?: "") },
             week = activities,
             weekSessions = activities.sumOf { it.sessionCount },
             weekMillis = activities.sumOf { it.activeMillis },
@@ -172,11 +174,17 @@ class HomeViewModel(
     }
 
     /** Builds the ad-hoc work/rest workout used by Quick Start. */
-    fun buildQuickPlan(): WorkoutPlan = QuickWorkoutFactory.build(
+    fun buildQuickPlan(resources: android.content.res.Resources): WorkoutPlan = QuickWorkoutFactory.build(
         workMillis = _quickState.value.work,
         restMillis = _quickState.value.rest,
         rounds = _quickState.value.rounds,
         preparationMillis = _quickState.value.prepMillis,
+        name = resources.getString(R.string.quick_workout_name),
+        workName = resources.getString(R.string.builder_work),
+        restName = resources.getString(R.string.builder_rest),
+        preparationName = resources.getString(R.string.phase_prepare),
+        cooldownName = resources.getString(R.string.builder_cooldown),
+        roundName = resources.getString(R.string.builder_group),
     )
 
     suspend fun planFor(id: String): WorkoutPlan? = container.workouts.plan(id)
@@ -260,6 +268,7 @@ fun HomeScreen(
     onOpenLibrary: (() -> Unit)? = null,
     onOpenWatchSession: (() -> Unit)? = null,
 ) {
+    val strings = LocalContext.current.resources
     val viewModel: HomeViewModel = viewModel(initializer = { HomeViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val quick by viewModel.quickState.collectAsStateWithLifecycle()
@@ -292,7 +301,7 @@ fun HomeScreen(
                 PulsePageHeader(
                     title = greeting(),
                     description = LocalDate.now()
-                        .format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())) +
+                        .format(DateTimeFormatter.ofPattern("EEEE, d MMMM", strings.configuration.locales[0])) +
                         weekSummarySuffix(state.weekSessions, state.weekMillis),
                 )
             }
@@ -303,16 +312,16 @@ fun HomeScreen(
                     weekMillis = state.weekMillis,
                     weekSessions = state.weekSessions,
                     goalMillis = goalMillis,
-                    onStart = { onStartWorkout(viewModel.buildQuickPlan()) },
+                    onStart = { onStartWorkout(viewModel.buildQuickPlan(strings)) },
                 )
             }
 
-            item { SectionHeader(text = "Today") }
+            item { SectionHeader(text = strings.getString(R.string.nav_today)) }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    StatTile("Active today", formatDuration(state.todayMillis), modifier = Modifier.weight(1f))
-                    StatTile("Sessions today", state.todaySessions.toString(), modifier = Modifier.weight(1f))
-                    StatTile("Next planned", state.nextPlanned?.workoutName ?: "—", modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.home_active_today), formatDuration(state.todayMillis), modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.home_sessions_today), state.todaySessions.toString(), modifier = Modifier.weight(1f))
+                    StatTile(strings.getString(R.string.home_next_planned), state.nextPlanned?.workoutName ?: "—", modifier = Modifier.weight(1f))
                 }
             }
 
@@ -328,7 +337,7 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.spacedBy(dimens.microGap),
                             ) {
                                 Text(
-                                    text = "Workout in progress",
+                                    text = strings.getString(R.string.home_in_progress),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = colors.textPrimary,
                                     maxLines = 1,
@@ -336,7 +345,7 @@ fun HomeScreen(
                                 )
                                 Text(
                                     text = "${activeSession?.plan?.name} · ${snapshot.step?.name ?: ""} · " +
-                                        formatDuration(snapshot.stepRemainingMillis) + " left",
+                                        strings.getString(R.string.time_left, formatDuration(snapshot.stepRemainingMillis)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.textMuted,
                                     maxLines = 1,
@@ -371,7 +380,7 @@ fun HomeScreen(
                                 Text(
                                     text = watchSession?.let { watch ->
                                         watch.planName + " · " + watch.stepName + " · " +
-                                            formatDuration(watch.stepRemainingMillis) + " left"
+                                            strings.getString(R.string.time_left, formatDuration(watch.stepRemainingMillis))
                                     } ?: "",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.textMuted,
@@ -386,7 +395,7 @@ fun HomeScreen(
             }
 
             // --- Start by category ---------------------------------------------------------------
-            item { SectionHeader("Start by category") }
+            item { SectionHeader(strings.getString(R.string.home_by_category)) }
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                     items(categories, key = { it.key }) { category ->
@@ -410,7 +419,7 @@ fun HomeScreen(
             if (onOpenLibrary != null) {
                 item {
                     SecondaryActionButton(
-                        text = "All workouts",
+                        text = strings.getString(R.string.home_all_workouts),
                         onClick = onOpenLibrary,
                         icon = Icons.Filled.FitnessCenter,
                         modifier = Modifier.fillMaxWidth(),
@@ -424,11 +433,11 @@ fun HomeScreen(
             // directly on the canvas and the tiles carry the visual weight themselves.
             item {
                 Column(Modifier.fillMaxWidth()) {
-                    SectionHeader("Quick start")
+                    SectionHeader(strings.getString(R.string.home_quick_start))
                     Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                         presets.take(2).forEach { preset ->
                             PresetTile(
-                                title = preset.category.title,
+                                title = strings.categoryTitle(preset.category),
                                 icon = preset.category.icon,
                                 hue = colors.categoryColor(preset.category.hue),
                                 tint = colors.categoryTint(preset.category.hue),
@@ -442,7 +451,7 @@ fun HomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                         presets.drop(2).forEach { preset ->
                             PresetTile(
-                                title = preset.category.title,
+                                title = strings.categoryTitle(preset.category),
                                 icon = preset.category.icon,
                                 hue = colors.categoryColor(preset.category.hue),
                                 tint = colors.categoryTint(preset.category.hue),
@@ -453,16 +462,16 @@ fun HomeScreen(
                         }
                     }
 
-                    SectionHeader(text = "Custom", trailing = formatDuration(quickTotal(quick)))
+                    SectionHeader(text = strings.getString(R.string.home_custom), trailing = formatDuration(quickTotal(quick)))
                     Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
                         DurationStepper(
-                            label = "Work",
+                            label = strings.getString(R.string.builder_work),
                             millis = quick.work,
                             onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
                             modifier = Modifier.weight(1f),
                         )
                         DurationStepper(
-                            label = "Rest",
+                            label = strings.getString(R.string.builder_rest),
                             millis = quick.rest,
                             onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
                             modifier = Modifier.weight(1f),
@@ -471,13 +480,13 @@ fun HomeScreen(
                     Spacer(Modifier.height(dimens.m))
                     Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
                         NumberStepper(
-                            label = "Rounds",
+                            label = strings.getString(R.string.builder_rounds),
                             value = quick.rounds,
                             onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
                             modifier = Modifier.weight(1f),
                         )
                         DurationStepper(
-                            label = "Prep",
+                            label = strings.getString(R.string.builder_preparation),
                             millis = quick.prepMillis,
                             onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
                             modifier = Modifier.weight(1f),
@@ -485,14 +494,14 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height(dimens.l))
                     PrimaryActionButton(
-                        text = "Start",
-                        onClick = { onStartWorkout(viewModel.buildQuickPlan()) },
+                        text = strings.getString(R.string.home_start),
+                        onClick = { onStartWorkout(viewModel.buildQuickPlan(strings)) },
                         icon = Icons.Filled.PlayArrow,
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Spacer(Modifier.height(dimens.s))
                     SecondaryActionButton(
-                        text = "Customize in the quick builder",
+                        text = strings.getString(R.string.home_customize),
                         onClick = onQuickStart,
                         icon = Icons.Filled.Tune,
                         modifier = Modifier.fillMaxWidth(),
@@ -503,18 +512,18 @@ fun HomeScreen(
             // --- Weekly activity -----------------------------------------------------------------
             // The hero already answers "where am I against my goal", so this section is only the
             // day-by-day chart — one container, one job, and no second copy of the same numbers.
-            item { SectionHeader(text = "This week", trailing = "${state.weekSessions} session${if (state.weekSessions == 1) "" else "s"}") }
+            item { SectionHeader(text = strings.getString(R.string.home_week_summary), trailing = strings.getQuantityString(R.plurals.session_count, state.weekSessions, state.weekSessions)) }
             item {
                 PulseCard {
                     ActivityChart(
                         bars = state.week.map {
                             ActivityBar(
-                                label = it.date.format(DateTimeFormatter.ofPattern("EEEEE", Locale.getDefault())),
+                                label = it.date.format(DateTimeFormatter.ofPattern("EEEEE", strings.configuration.locales[0])),
                                 value = it.activeMillis,
                             )
                         },
                         height = dimens.chartHeight - 48.dp,
-                        emptyLabel = "No sessions recorded this week yet.",
+                        emptyLabel = strings.getString(R.string.home_week_empty),
                         color = colors.accent,
                     )
                 }
@@ -529,14 +538,14 @@ fun HomeScreen(
                             Spacer(Modifier.width(dimens.s))
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    text = "Progress",
+                                    text = strings.getString(R.string.nav_progress),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = colors.textPrimary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    text = "History & charts",
+                                    text = strings.getString(R.string.home_history_charts),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.textMuted,
                                     maxLines = 1,
@@ -552,14 +561,14 @@ fun HomeScreen(
                             Spacer(Modifier.width(dimens.s))
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    text = "Goals",
+                                    text = strings.getString(R.string.goals_title),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = colors.textPrimary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    text = "Weekly target",
+                                    text = strings.getString(R.string.home_weekly_target),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colors.textMuted,
                                     maxLines = 1,
@@ -574,7 +583,7 @@ fun HomeScreen(
 
             // --- Favorites rail -------------------------------------------------------------------
             if (state.favorites.isNotEmpty()) {
-                item { SectionHeader("Favorites") }
+                item { SectionHeader(strings.getString(R.string.home_favorites)) }
                 item {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
                         items(state.favorites, key = { it.id }) { workout ->
@@ -589,7 +598,7 @@ fun HomeScreen(
             }
 
             // --- Templates rail: the starters, inline — never a separate page ----------------------
-            item { SectionHeader("Templates") }
+            item { SectionHeader(strings.getString(R.string.home_templates)) }
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
                     items(templates, key = { it.plan.id }) { template ->
@@ -608,13 +617,13 @@ fun HomeScreen(
 
             // --- Next planned & recent: one table, two sections ------------------------------------
             if (state.nextPlanned != null || state.recent.isNotEmpty()) {
-                item { SectionHeader("Recent activity") }
+                item { SectionHeader(strings.getString(R.string.home_recent_activity)) }
                 item {
                     PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.xs)) {
                         Column(Modifier.fillMaxWidth()) {
                             state.nextPlanned?.let { planned ->
                                 PulseListRow(
-                                    title = planned.workoutName,
+                                    title = planned.workoutName.ifBlank { strings.getString(R.string.deleted_workout) },
                                     subtitle = formatPlanned(planned.reminder.scheduledAt),
                                     leadingIcon = Icons.Filled.Schedule,
                                     leadingTint = colors.prepare,
@@ -634,8 +643,8 @@ fun HomeScreen(
                                 val category = workout.categoryOrCustom()
                                 PulseListRow(
                                     title = workout.name,
-                                    subtitle = "${workout.intervalCount} intervals · " +
-                                        (if (workout.hasOpenEnded) "open-ended" else formatDuration(workout.knownDurationMillis)),
+                                    subtitle = strings.getString(R.string.interval_count, workout.intervalCount) + " · " +
+                                        (if (workout.hasOpenEnded) strings.getString(R.string.player_open_ended) else formatDuration(workout.knownDurationMillis)),
                                     leadingIcon = category.icon,
                                     leadingTint = colors.categoryColor(category.hue),
                                     leadingContainer = colors.categoryTint(category.hue),
@@ -651,7 +660,7 @@ fun HomeScreen(
                 }
                 item {
                     SecondaryActionButton(
-                        text = "Full history",
+                        text = strings.getString(R.string.home_full_history),
                         onClick = onOpenProgress,
                         icon = Icons.Filled.Insights,
                         modifier = Modifier.fillMaxWidth(),
@@ -660,16 +669,16 @@ fun HomeScreen(
             }
 
             if (state.loading) {
-                item { LoadingBox(label = "Loading…", modifier = Modifier.height(160.dp)) }
+                item { LoadingBox(label = strings.getString(R.string.loading), modifier = Modifier.height(160.dp)) }
             }
 
             if (state.favorites.isEmpty() && state.recent.isEmpty() && !state.loading) {
                 item {
                     EmptyState(
-                        title = "Nothing here yet",
-                        body = "Star a workout to pin it here.",
+                        title = strings.getString(R.string.home_nothing),
+                        body = strings.getString(R.string.home_no_favorites),
                         icon = Icons.Filled.FitnessCenter,
-                        actionLabel = if (onOpenLibrary != null) "Browse workouts" else null,
+                        actionLabel = if (onOpenLibrary != null) strings.getString(R.string.home_browse) else null,
                         onAction = onOpenLibrary,
                     )
                 }
@@ -692,6 +701,7 @@ private fun TodayHero(
     goalMillis: Long,
     onStart: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val goalMinutes = (goalMillis / 60000L).coerceAtLeast(1)
@@ -699,13 +709,13 @@ private fun TodayHero(
         Column(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "This week",
+                    text = strings.getString(R.string.home_week_summary),
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.heroMuted,
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = if (weekSessions == 0) "Not started" else "$weekSessions session${if (weekSessions == 1) "" else "s"}",
+                    text = if (weekSessions == 0) strings.getString(R.string.home_not_started) else strings.getQuantityString(R.plurals.session_count, weekSessions, weekSessions),
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.heroMuted,
                 )
@@ -719,8 +729,8 @@ private fun TodayHero(
                 )
                 Spacer(Modifier.width(dimens.s))
                 Text(
-                    text = "of $goalMinutes active minutes" +
-                        if (goalMinutes == WHO_WEEKLY_MINUTES.toLong()) " · WHO guideline" else "",
+                    text = strings.getString(R.string.home_goal_progress, goalMinutes) +
+                        if (goalMinutes == WHO_WEEKLY_MINUTES.toLong()) strings.getString(R.string.home_who) else "",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.heroMuted,
                     modifier = Modifier.padding(bottom = dimens.xs),
@@ -734,7 +744,7 @@ private fun TodayHero(
             )
             Spacer(Modifier.height(dimens.l))
             PrimaryActionButton(
-                text = if (weekSessions == 0) "Start your first session" else "Quick start",
+                text = if (weekSessions == 0) strings.getString(R.string.home_first_session) else strings.getString(R.string.home_quick_start),
                 onClick = onStart,
                 modifier = Modifier.fillMaxWidth(),
                 icon = Icons.Filled.PlayArrow,
@@ -756,6 +766,7 @@ private fun CategoryStartTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val hue = colors.categoryColor(category.hue)
@@ -778,7 +789,7 @@ private fun CategoryStartTile(
                 modifier = Modifier.size(20.dp),
             )
             Text(
-                text = category.title,
+                text = strings.categoryTitle(category),
                 style = MaterialTheme.typography.titleSmall,
                 color = colors.textPrimary,
                 maxLines = 1,
@@ -801,6 +812,7 @@ private fun FavoriteCard(
     onOpen: () -> Unit,
     onStart: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val category = workout.categoryOrCustom()
@@ -817,7 +829,7 @@ private fun FavoriteCard(
                 )
                 Spacer(Modifier.width(dimens.s))
                 Text(
-                    text = category.title,
+                    text = strings.categoryTitle(category),
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.textMuted,
                     maxLines = 1,
@@ -828,8 +840,8 @@ private fun FavoriteCard(
                 // block inside the button block the card already is.
                 PulseIconButton(
                     icon = Icons.Filled.PlayArrow,
-                    contentDescription = "Start ${workout.name}",
-                    tooltip = "Start",
+                    contentDescription = strings.getString(R.string.action_start_named, workout.name),
+                    tooltip = strings.getString(R.string.home_start),
                     onClick = onStart,
                     tint = colors.textPrimary,
                     modifier = Modifier.size(dimens.iconButtonSize),
@@ -845,7 +857,7 @@ private fun FavoriteCard(
             )
             Spacer(Modifier.height(dimens.xs))
             Text(
-                text = if (workout.hasOpenEnded) "Open-ended" else formatDuration(workout.knownDurationMillis),
+                text = if (workout.hasOpenEnded) strings.getString(R.string.player_open_ended) else formatDuration(workout.knownDurationMillis),
                 style = PulseType.NumericSmall,
                 color = colors.textMuted,
             )
@@ -972,15 +984,17 @@ private fun PresetTile(
     }
 }
 
+@Composable
 private fun greeting(): String = when (java.time.LocalTime.now(ZoneId.systemDefault()).hour) {
-    in 5..11 -> "Good morning"
-    in 12..17 -> "Good afternoon"
-    else -> "Good evening"
+    in 5..11 -> stringResource(R.string.greeting_morning)
+    in 12..17 -> stringResource(R.string.greeting_afternoon)
+    else -> stringResource(R.string.greeting_evening)
 }
 
 /** The parenthetical after the date: only shown once there is something to report. */
+@Composable
 private fun weekSummarySuffix(sessions: Int, millis: Long): String =
-    if (sessions == 0) "" else " · ${formatDuration(millis)} trained this week"
+    if (sessions == 0) "" else stringResource(R.string.home_trained_week, formatDuration(millis))
 
 private fun presetDuration(plan: WorkoutPlan): String = runCatching {
     com.pulse.engine.TimelineExpander.expand(plan).let {
@@ -1014,13 +1028,15 @@ private fun planForCategory(category: WorkoutCategory): WorkoutPlan {
 private fun quickTotal(quick: HomeViewModel.QuickState): Long =
     quick.prepMillis + quick.rounds * (quick.work + quick.rest)
 
+@Composable
 private fun formatPlanned(millis: Long): String {
+    val strings = LocalContext.current.resources
     val zone = ZoneId.systemDefault()
     val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), zone)
     val today = LocalDateTime.now(zone).toLocalDate()
     return when (dateTime.toLocalDate()) {
-        today -> "Today, " + dateTime.format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
-        today.plusDays(1) -> "Tomorrow, " + dateTime.format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
-        else -> dateTime.format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm", Locale.getDefault()))
+        today -> strings.getString(R.string.date_today_time, dateTime.format(DateTimeFormatter.ofPattern("HH:mm", strings.configuration.locales[0])))
+        today.plusDays(1) -> strings.getString(R.string.date_tomorrow_time, dateTime.format(DateTimeFormatter.ofPattern("HH:mm", strings.configuration.locales[0])))
+        else -> dateTime.format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm", strings.configuration.locales[0]))
     }
 }

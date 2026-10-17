@@ -1,5 +1,6 @@
 package com.mrcerise.intervalcoach.ui.goals
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -110,6 +111,7 @@ fun GoalsScreen(
     container: AppContainer,
     onBack: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val viewModel: GoalsViewModel = viewModel(initializer = { GoalsViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
@@ -128,7 +130,7 @@ fun GoalsScreen(
         ) {
             item {
                 PulsePageHeader(
-                    title = "Goals",
+                    title = strings.getString(R.string.goals_title),
                     onBack = onBack,
                 )
             }
@@ -136,27 +138,27 @@ fun GoalsScreen(
             if (state.totalWorkouts == 0) {
                 item {
                     EmptyState(
-                        title = "Start your first workout",
-                        body = "No sessions yet.",
+                        title = strings.getString(R.string.goals_first_workout),
+                        body = strings.getString(R.string.goals_no_sessions),
                         icon = Icons.Filled.Flag,
                     )
                 }
             } else {
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        StatTile("Workouts", state.totalWorkouts.toString(), modifier = Modifier.weight(1f))
-                        StatTile("Total minutes", state.totalMinutes.toString(), modifier = Modifier.weight(1f))
+                        StatTile(strings.getString(R.string.nav_workouts), state.totalWorkouts.toString(), modifier = Modifier.weight(1f))
+                        StatTile(strings.getString(R.string.goals_total_minutes), state.totalMinutes.toString(), modifier = Modifier.weight(1f))
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
                         StatTile(
-                            "Current streak",
-                            "${state.currentStreak}d",
+                            strings.getString(R.string.progress_streak),
+                            strings.getQuantityString(R.plurals.day_count, state.currentStreak, state.currentStreak),
                             accent = colors.success,
                             modifier = Modifier.weight(1f),
                         )
-                        StatTile("Longest streak", "${state.longestStreak}d", modifier = Modifier.weight(1f))
+                        StatTile(strings.getString(R.string.goals_longest_streak), strings.getQuantityString(R.plurals.day_count, state.longestStreak, state.longestStreak), modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -165,7 +167,7 @@ fun GoalsScreen(
             item {
                 Column {
                     Text(
-                        text = "Weekly goal: ${state.goalMinutes} active minutes",
+                        text = strings.getString(R.string.goals_weekly, state.goalMinutes),
                         style = MaterialTheme.typography.titleMedium,
                         color = colors.textPrimary,
                     )
@@ -175,8 +177,8 @@ fun GoalsScreen(
                     )
                     Spacer(Modifier.height(dimens.s))
                     Text(
-                        text = "${state.minutesThisWeek} / ${state.goalMinutes} minutes this week" +
-                            if (state.goalMinutes == WHO_WEEKLY_MINUTES) " · WHO guideline" else "",
+                        text = strings.getString(R.string.goals_week_progress, state.minutesThisWeek, state.goalMinutes) +
+                            if (state.goalMinutes == WHO_WEEKLY_MINUTES) strings.getString(R.string.home_who) else "",
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.textMuted,
                     )

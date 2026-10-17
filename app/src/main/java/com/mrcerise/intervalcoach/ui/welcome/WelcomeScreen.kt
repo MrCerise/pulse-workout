@@ -78,6 +78,7 @@ fun WelcomeScreen(
     onDone: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     var step by rememberSaveable { mutableIntStateOf(0) }
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
@@ -147,13 +148,13 @@ fun WelcomeScreen(
                         mutableIntStateOf(prefs?.weeklyGoalMinutes ?: WHO_WEEKLY_MINUTES)
                     }
                     Text(
-                        text = "How much per week?",
+                        text = strings.getString(R.string.welcome_goal_question),
                         style = MaterialTheme.typography.headlineMedium,
                         color = colors.textPrimary,
                     )
                     Spacer(Modifier.height(dimens.s))
                     Text(
-                        text = "Pick a weekly target in active minutes. You can change it any time in Goals.",
+                        text = strings.getString(R.string.welcome_goal_body),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textSecondary,
                     )
@@ -170,7 +171,7 @@ fun WelcomeScreen(
                     }
                     Spacer(Modifier.height(dimens.l))
                     PulseSliderRow(
-                        label = "Weekly goal",
+                        label = strings.getString(R.string.settings_weekly_goal),
                         value = goal.toFloat(),
                         onValueChange = { goal = (Math.round(it / 15f) * 15).coerceIn(30, 600) },
                         valueRange = 30f..600f,
@@ -180,14 +181,13 @@ fun WelcomeScreen(
                     PulsePanel {
                         Column {
                             Text(
-                                text = "Your week at a glance",
+                                text = strings.getString(R.string.welcome_week),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = colors.textMuted,
                             )
                             Spacer(Modifier.height(dimens.xs))
                             Text(
-                                text = "$goal active minutes across the week — about " +
-                                    (goal / 30) + " half-hour session${if (goal / 30 == 1) "" else "s"}.",
+                                text = strings.getQuantityString(R.plurals.welcome_week_summary, goal / 30, goal, goal / 30),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colors.textSecondary,
                             )
@@ -229,7 +229,7 @@ fun WelcomeScreen(
                                 color = colors.textPrimary,
                             )
                             Text(
-                                text = "work",
+                                text = strings.getString(R.string.builder_work),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = colors.textMuted,
                             )
@@ -238,17 +238,17 @@ fun WelcomeScreen(
                     Spacer(Modifier.height(dimens.l))
                     PulsePanel {
                         Text(
-                            text = "Round one. Work, twenty seconds. Three, two, one, go.",
+                            text = strings.getString(R.string.voice_test_line),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.textSecondary,
                         )
                     }
                     Spacer(Modifier.height(dimens.l))
                     SecondaryActionButton(
-                        text = "Play voice sample",
+                        text = strings.getString(R.string.welcome_play_voice),
                         onClick = {
                             container.speech.initialise()
-                            val spoken = container.speech.speakPreview("Round one. Work, twenty seconds. Three, two, one, go.")
+                            val spoken = container.speech.speakPreview(strings.getString(R.string.voice_test_line))
                             if (!spoken) {
                                 container.cueSoundPlayer.play(SoundCue.DOUBLE_BEEP)
                             }
@@ -258,7 +258,7 @@ fun WelcomeScreen(
                 }
                 else -> {
                     Text(
-                        text = "Start with an example",
+                        text = strings.getString(R.string.welcome_example),
                         style = MaterialTheme.typography.headlineMedium,
                         color = colors.textPrimary,
                     )
@@ -301,7 +301,7 @@ fun WelcomeScreen(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(dimens.chipGap),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.semantics { contentDescription = "Step ${step + 1} of 4" },
+                modifier = Modifier.semantics { contentDescription = strings.getString(R.string.welcome_step, step + 1, 4) },
             ) {
                 repeat(4) { index ->
                     Box(
@@ -318,9 +318,9 @@ fun WelcomeScreen(
             Spacer(Modifier.height(dimens.l))
             PrimaryActionButton(
                 text = when (step) {
-                    0 -> "Continue"
-                    1 -> "Continue"
-                    2 -> "Continue"
+                    0 -> strings.getString(R.string.continue_label)
+                    1 -> strings.getString(R.string.continue_label)
+                    2 -> strings.getString(R.string.continue_label)
                     else -> stringResource(R.string.welcome_start)
                 },
                 onClick = {

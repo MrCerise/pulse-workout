@@ -1,5 +1,6 @@
 package com.mrcerise.intervalcoach.ui.components
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,7 @@ import com.mrcerise.intervalcoach.ui.theme.LocalPulseShapes
 /** Language chooser using the exact same drop-down (bottom-sheet) style as every other picker. */
 @Composable
 fun LanguagePicker(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, modifier: Modifier = Modifier) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     var expanded by remember { mutableStateOf(false) }
@@ -48,7 +50,7 @@ fun LanguagePicker(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, modif
     ) {
         Row(Modifier.fillMaxWidth().heightIn(min = dimens.buttonHeight).padding(horizontal = dimens.l, vertical = dimens.m),
             verticalAlignment = Alignment.CenterVertically) {
-            Text("Language", style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(strings.getString(R.string.settings_language), style = MaterialTheme.typography.titleMedium, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.width(dimens.s))
             Text(selected.flag + " " + selectedLabel, style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary,
                 maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
@@ -58,7 +60,7 @@ fun LanguagePicker(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, modif
         }
     }
     if (expanded) {
-        PulseBottomSheet(title = "Language", onDismiss = { expanded = false }) {
+        PulseBottomSheet(title = strings.getString(R.string.settings_language), onDismiss = { expanded = false }) {
             AppLanguage.entries.forEach { language ->
                 PulseSheetRow(
                     text = language.flag + "  " + if (language == AppLanguage.SYSTEM) systemLabel else language.nativeName,

@@ -1,5 +1,8 @@
 package com.mrcerise.intervalcoach.ui.components
 
+import com.mrcerise.intervalcoach.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -341,6 +344,7 @@ fun PulseTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
     isError: Boolean = false,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(modifier.fillMaxWidth()) {
@@ -415,7 +419,7 @@ fun PulseTextField(
         if (isError) {
             Spacer(Modifier.height(dimens.xs))
             Text(
-                text = "Check this field",
+                text = strings.getString(R.string.field_check),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.error,
                 modifier = Modifier.padding(start = dimens.xs),
@@ -830,6 +834,7 @@ fun DurationStepper(
     enabled: Boolean = true,
     onChange: (Long) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val min = if (allowZero) 0L else stepMillis
@@ -847,7 +852,7 @@ fun DurationStepper(
             Row(Modifier.padding(horizontal = dimens.m, vertical = dimens.s), verticalAlignment = Alignment.CenterVertically) {
                 Text(formatStepperDuration(millis), style = PulseType.StepperValue,
                     color = if (enabled) colors.textPrimary else colors.textDisabled,
-                    modifier = Modifier.semantics { contentDescription = "$label duration, scroll to change" })
+                    modifier = Modifier.semantics { contentDescription = strings.getString(R.string.duration_scroll, label) })
                 Spacer(Modifier.width(dimens.xs))
                 Icon(Icons.Filled.UnfoldMore, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
             }
@@ -867,12 +872,12 @@ fun DurationStepper(
         }
         PulseBottomSheet(title = label, onDismiss = { editing = false }) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                NumberWheel((0..23).toList(), hours, "h", Modifier.weight(1f)) { hours = it; emit() }
-                NumberWheel((0..59).toList(), minutes, "min", Modifier.weight(1f)) { minutes = it; emit() }
-                NumberWheel(secondOptions, seconds, "s", Modifier.weight(1f)) { seconds = it; emit() }
+                NumberWheel((0..23).toList(), hours, strings.getString(R.string.unit_hour), Modifier.weight(1f)) { hours = it; emit() }
+                NumberWheel((0..59).toList(), minutes, strings.getString(R.string.unit_minute), Modifier.weight(1f)) { minutes = it; emit() }
+                NumberWheel(secondOptions, seconds, strings.getString(R.string.unit_second), Modifier.weight(1f)) { seconds = it; emit() }
             }
             Spacer(Modifier.height(dimens.m))
-            PrimaryActionButton("Done", onClick = { editing = false }, modifier = Modifier.fillMaxWidth())
+            PrimaryActionButton(strings.getString(R.string.summary_done), onClick = { editing = false }, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -947,12 +952,13 @@ fun NumberStepper(
     enabled: Boolean = true,
     onChange: (Int) -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     StepperField(
         label = label,
         value = value.toString(),
-        valueDescription = label + " count",
-        decreaseDescription = "Decrease $label",
-        increaseDescription = "Increase $label",
+        valueDescription = strings.getString(R.string.stepper_count, label),
+        decreaseDescription = strings.getString(R.string.action_decrease, label),
+        increaseDescription = strings.getString(R.string.action_increase, label),
         atMin = value <= min,
         atMax = value >= max,
         enabled = enabled,

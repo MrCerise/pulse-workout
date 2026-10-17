@@ -85,6 +85,68 @@ class PlayReleaseTest(unittest.TestCase):
             with self.subTest(overrides=overrides), self.assertRaises(ValueError):
                 self.resolve(**overrides)
 
+    def test_tag_drives_the_built_version_instead_of_repository_default(self):
+        result = self.resolve(RELEASE_TAG="v1.8.4", RELEASE_VERSION_NAME="",
+                              RELEASE_VERSION_CODE="", GITHUB_RUN_NUMBER="190")
+        self.assertEqual(result["name"], "1.8.4")
+        self.assertEqual(result["full_name"], "1.8.4")
+        self.assertEqual(result["code"], "10804190")
+        self.assertEqual(result["track"], "internal")
+        self.assertEqual(result["status"], "draft")
+        self.assertEqual(result["release_tag"], "v1.8.4")
+        self.assertEqual(result["prerelease"], "false")
+
+    def test_stable_tag_does_not_reset_the_prerelease_version_code(self):
+        before = self.resolve(RELEASE_TAG="v1.8.1-rc.1", RELEASE_VERSION_CODE="",
+                              GITHUB_RUN_NUMBER="190")
+        after = self.resolve(RELEASE_TAG="v1.8.1", RELEASE_VERSION_CODE="",
+                             GITHUB_RUN_NUMBER="191")
+        self.assertGreater(int(after["code"]), int(before["code"]))
+        self.assertEqual(before["full_name"], "1.8.1-rc.1")
+        self.assertEqual(before["prerelease"], "true")
+
+    def test_automatic_code_never_wraps_a_workflow_run_number(self):
+        for run in ("", "0", "1000", "1190", "001", "1\ncode=5"):
+            with self.subTest(run=run), self.assertRaises(ValueError):
+                self.resolve(RELEASE_TAG="v1.8.1", RELEASE_VERSION_CODE="", GITHUB_RUN_NUMBER=run)
+
+    def test_explicit_code_overrides_automatic_slots(self):
+        result = self.resolve(RELEASE_TAG="v1.8.1", GITHUB_RUN_NUMBER="2000")
+        self.assertEqual(result["code"], "18001050")
+        result = self.resolve(RELEASE_TAG="v1.100.101", RELEASE_VERSION_NAME="1.100.101")
+        self.assertEqual(result["code"], "18001050")
+
+    def test_automatic_code_bounds(self):
+        for tag in ("v210.0.0", "v1.100.0", "v1.0.100"):
+            with self.subTest(tag=tag), self.assertRaises(ValueError):
+                self.resolve(RELEASE_TAG=tag, RELEASE_VERSION_NAME="",
+                             RELEASE_VERSION_CODE="", GITHUB_RUN_NUMBER="190")
+
+    def test_tag_name_validation_and_version_mismatch(self):
+        for tag in ("1.8.1", "v1.8", "v01.8.1", "v1.8.1;bad", "v1.8.1\ntrack=production", "v1.8.1-", "v1.8.1-rc..1"):
+            with self.subTest(tag=tag), self.assertRaises(ValueError):
+                self.resolve(RELEASE_TAG=tag)
+        with self.assertRaises(ValueError):
+            self.resolve(RELEASE_TAG="v1.8.2")
+
+    def test_testing_releases_have_distinct_github_tags(self):
+        result = self.resolve()
+        self.assertEqual(result["release_tag"], "v1.8.1-internal.18001050")
+        self.assertEqual(result["prerelease"], "true")
+        self.assertEqual(self.resolve(RELEASE_CHANNEL="production")["release_tag"], "v1.8.1")
+
+    def test_closed_track_id_is_explicit_and_preserved(self):
+        result = self.resolve(RELEASE_CHANNEL="closed", RELEASE_PLAY_TRACK="alpha")
+        self.assertEqual(result["track"], "alpha")
+        self.assertEqual(result["full_name"], "1.8.1-closed.18001050")
+        for track in ("", "production", "beta", "internal", "track\ncode=99", "../production"):
+            with self.subTest(track=track), self.assertRaises(ValueError):
+                self.resolve(RELEASE_CHANNEL="closed", RELEASE_PLAY_TRACK=track)
+
+    def test_track_cannot_redirect_another_channel(self):
+        with self.assertRaises(ValueError):
+            self.resolve(RELEASE_CHANNEL="internal", RELEASE_PLAY_TRACK="production")
+
     def test_missing_repository_default(self):
         with self.assertRaises(ValueError):
             resolve_release({"RELEASE_CHANNEL": "internal"}, "")

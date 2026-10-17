@@ -1,5 +1,8 @@
 package com.mrcerise.intervalcoach.ui.components
 
+import com.mrcerise.intervalcoach.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -466,7 +469,7 @@ fun PulsePageHeader(
     modifier: Modifier = Modifier,
     description: String? = null,
     onBack: (() -> Unit)? = null,
-    backLabel: String = "Back",
+    backLabel: String = stringResource(R.string.back),
     navigationActions: @Composable (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
 ) {

@@ -18,6 +18,8 @@ class JsonImportViewModel(
     private val saveImport: suspend (String) -> List<String>,
     private val worker: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
+    enum class ErrorKind { TOO_LARGE, INVALID_JSON, IMPORT_FAILED }
+
     data class State(
         val text: String = "",
         val request: String = "",
@@ -25,6 +27,7 @@ class JsonImportViewModel(
         val busy: Boolean = false,
         val validating: Boolean = false,
         val error: String? = null,
+        val errorKind: ErrorKind? = null,
         val savedIds: List<String> = emptyList(),
     )
     private val mutableState = MutableStateFlow(State())
@@ -45,6 +48,7 @@ class JsonImportViewModel(
             text = text.take(WorkoutImport.MAX_BYTES + 1), preview = null, savedIds = emptyList(),
             validating = text.isNotBlank() && !oversized,
             error = if (oversized) "JSON must be at most 256 KiB." else null,
+            errorKind = if (oversized) ErrorKind.TOO_LARGE else null,
         )
         if (!state.value.validating) return
         validation = viewModelScope.launch {
@@ -55,7 +59,12 @@ class JsonImportViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (version == inputVersion) mutableState.value = state.value.copy(error = e.message ?: "Invalid workout JSON.")
+                if (version == inputVersion) mutableState.value = state.value.copy(
+                    error = e.message ?: "Invalid workout JSON.",
+                    errorKind = if (text.toByteArray(Charsets.UTF_8).size > WorkoutImport.MAX_BYTES) {
+                        ErrorKind.TOO_LARGE
+                    } else ErrorKind.INVALID_JSON,
+                )
             } finally {
                 if (version == inputVersion) mutableState.value = state.value.copy(validating = false)
             }
@@ -89,14 +98,17 @@ class JsonImportViewModel(
 
     private fun operation(action: suspend () -> Unit) {
         if (state.value.busy) return
-        mutableState.value = state.value.copy(busy = true, error = null)
+        mutableState.value = state.value.copy(busy = true, error = null, errorKind = null)
         viewModelScope.launch {
             try {
                 action()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                mutableState.value = state.value.copy(error = e.message ?: "Import failed. Please try again.")
+                mutableState.value = state.value.copy(
+                    error = e.message ?: "Import failed. Please try again.",
+                    errorKind = ErrorKind.IMPORT_FAILED,
+                )
             } finally {
                 mutableState.value = state.value.copy(busy = false)
             }

@@ -1,5 +1,8 @@
 package com.mrcerise.intervalcoach.ui.components
 
+import com.mrcerise.intervalcoach.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,6 +60,7 @@ fun PulseCalendar(
     minDate: LocalDate = LocalDate.now(),
     maxDate: LocalDate = LocalDate.now().plusYears(2),
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val shapes = LocalPulseShapes.current
@@ -79,23 +83,23 @@ fun PulseCalendar(
             Text(
                 text = visibleMonth
                     .atDay(1)
-                    .format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
-                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                    .format(DateTimeFormatter.ofPattern("MMMM yyyy", strings.configuration.locales[0]))
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(strings.configuration.locales[0]) else it.toString() },
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.textPrimary,
                 modifier = Modifier.weight(1f),
             )
             PulseIconButton(
                 icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Previous month",
-                tooltip = "Previous month",
+                contentDescription = strings.getString(R.string.calendar_previous),
+                tooltip = strings.getString(R.string.calendar_previous),
                 onClick = { shiftMonth(-1) },
                 enabled = !visibleMonth.isBefore(YearMonth.from(minDate)),
             )
             PulseIconButton(
                 icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Next month",
-                tooltip = "Next month",
+                contentDescription = strings.getString(R.string.calendar_next),
+                tooltip = strings.getString(R.string.calendar_next),
                 onClick = { shiftMonth(1) },
                 enabled = !visibleMonth.isAfter(YearMonth.from(maxDate)),
             )
@@ -107,7 +111,7 @@ fun PulseCalendar(
         Row(modifier = Modifier.fillMaxWidth()) {
             DayOfWeek.entries.forEach { day ->
                 Text(
-                    text = day.getDisplayName(TextStyle.NARROW, Locale.getDefault()).uppercase(),
+                    text = day.getDisplayName(TextStyle.NARROW, strings.configuration.locales[0]).uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.textMuted,
                     textAlign = TextAlign.Center,

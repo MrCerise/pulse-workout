@@ -1,5 +1,8 @@
 package com.mrcerise.intervalcoach.ui.components
 
+import com.mrcerise.intervalcoach.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -62,11 +65,12 @@ fun TimelineBar(
     modifier: Modifier = Modifier,
     height: Dp = 8.dp,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val description = if (kinds.isEmpty()) {
-        "No intervals"
+        strings.getString(R.string.timeline_empty)
     } else {
-        "Interval ${currentIndex + 1} of ${kinds.size}"
+        strings.getString(R.string.timeline_position, currentIndex + 1, kinds.size)
     }
     Canvas(
         modifier = modifier
@@ -188,9 +192,10 @@ fun ActivityChart(
     height: Dp = 120.dp,
     showLabels: Boolean = true,
     labelEvery: Int = 1,
-    emptyLabel: String = "No sessions recorded in this period.",
+    emptyLabel: String = stringResource(R.string.chart_empty),
     color: Color = LocalPulseColors.current.work,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     if (bars.isEmpty()) {
@@ -208,7 +213,7 @@ fun ActivityChart(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(height)
-                .semantics { contentDescription = "Activity over ${bars.size} days" },
+                .semantics { contentDescription = strings.getString(R.string.chart_activity, bars.size) },
         ) {
             val slot = size.width / bars.size
             val barWidth = (slot - 4.dp.toPx()).coerceAtLeast(3.dp.toPx())
@@ -267,6 +272,7 @@ fun ProgressBar(
     height: Dp = 6.dp,
     trackColor: Color = LocalPulseColors.current.track,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val animated by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
@@ -278,7 +284,7 @@ fun ProgressBar(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .semantics { contentDescription = "Progress ${(animated * 100).toInt()} percent" }
+            .semantics { contentDescription = strings.getString(R.string.progress_percent, (animated * 100).toInt()) }
             .clip(radius)
             .background(trackColor),
     ) {

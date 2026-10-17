@@ -1,5 +1,8 @@
 package com.mrcerise.intervalcoach.ui.components
 
+import com.mrcerise.intervalcoach.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.Image
@@ -34,11 +37,12 @@ fun workoutQrBitmap(content: String, sizePx: Int = 640): Bitmap {
 /** QR code for a workout with the app logo in the middle. */
 @Composable
 fun WorkoutQrCode(content: String, modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 220.dp) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val bitmap = remember(content) { runCatching { workoutQrBitmap(content) }.getOrNull() }
     Box(modifier.size(size), contentAlignment = Alignment.Center) {
         if (bitmap != null) {
-            Image(bitmap.asImageBitmap(), contentDescription = "Workout QR code", modifier = Modifier.size(size))
+            Image(bitmap.asImageBitmap(), contentDescription = strings.getString(R.string.workout_qr), modifier = Modifier.size(size))
             Surface(shape = LocalPulseShapes.current.control, color = androidx.compose.ui.graphics.Color.White) {
                 Box(Modifier.size(52.dp).background(androidx.compose.ui.graphics.Color.White), contentAlignment = Alignment.Center) {
                     PulseLogo(size = 36.dp, tint = androidx.compose.ui.graphics.Color.Black)

@@ -1,5 +1,6 @@
 package com.mrcerise.intervalcoach.ui.progress
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -74,6 +75,7 @@ fun ScheduleScreen(
     workoutId: String?,
     onBack: () -> Unit,
 ) {
+    val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()
@@ -113,7 +115,7 @@ fun ScheduleScreen(
             }
 
             // --- When --------------------------------------------------------------------------
-            item { SectionHeader("When") }
+            item { SectionHeader(strings.getString(R.string.schedule_when)) }
             item {
                 PulseCalendar(selectedDate = selectedDate, onSelectDate = { selectedDate = it })
             }
@@ -123,7 +125,7 @@ fun ScheduleScreen(
                     verticalAlignment = Alignment.Top,
                 ) {
                     NumberStepper(
-                        label = "Hour",
+                        label = strings.getString(R.string.schedule_hour),
                         value = hour,
                         min = 0,
                         max = 23,
@@ -131,7 +133,7 @@ fun ScheduleScreen(
                         modifier = Modifier.weight(1f),
                     )
                     NumberStepper(
-                        label = "Minute",
+                        label = strings.getString(R.string.schedule_minute),
                         value = minute,
                         min = 0,
                         max = 59,
@@ -149,8 +151,8 @@ fun ScheduleScreen(
                         modifier = Modifier.padding(end = dimens.s),
                     )
                     Text(
-                        text = at.format(DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm", Locale.getDefault()))
-                            .replaceFirstChar { it.titlecase(Locale.getDefault()) },
+                        text = at.format(DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm", strings.configuration.locales[0]))
+                            .replaceFirstChar { it.titlecase(strings.configuration.locales[0]) },
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.textPrimary,
                         maxLines = 1,
@@ -160,12 +162,12 @@ fun ScheduleScreen(
             }
 
             // --- Which workout ------------------------------------------------------------------
-            item { SectionHeader("Which workout", trailing = "${filtered.size}") }
+            item { SectionHeader(strings.getString(R.string.schedule_which), trailing = "${filtered.size}") }
             item {
                 PulseTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = "Search workouts",
+                    placeholder = strings.getString(R.string.history_search),
                     leadingIcon = Icons.Filled.Search,
                     singleLine = true,
                 )
@@ -173,11 +175,11 @@ fun ScheduleScreen(
             if (filtered.isEmpty()) {
                 item {
                     EmptyState(
-                        title = if (summaries.isEmpty()) "No workouts yet" else "Nothing matches",
+                        title = if (summaries.isEmpty()) strings.getString(R.string.workouts_empty_title) else strings.getString(R.string.schedule_no_matches),
                         body = if (summaries.isEmpty()) {
                             stringResource(R.string.workouts_empty_body)
                         } else {
-                            "Try another search."
+                            strings.getString(R.string.schedule_try_search)
                         },
                     )
                 }
@@ -190,8 +192,8 @@ fun ScheduleScreen(
                                 val category = workout.categoryOrCustom()
                                 PulseListRow(
                                     title = workout.name,
-                                    subtitle = "${workout.intervalCount} intervals · " +
-                                        (if (workout.hasOpenEnded) "open-ended" else formatDuration(workout.knownDurationMillis)),
+                                    subtitle = strings.getString(R.string.interval_count, workout.intervalCount) + " · " +
+                                        (if (workout.hasOpenEnded) strings.getString(R.string.player_open_ended) else formatDuration(workout.knownDurationMillis)),
                                     leadingIcon = category.icon,
                                     leadingTint = colors.categoryColor(category.hue),
                                     leadingContainer = colors.categoryTint(category.hue),
@@ -200,7 +202,7 @@ fun ScheduleScreen(
                                         if (isSelected) {
                                             Icon(
                                                 imageVector = Icons.Filled.CheckCircle,
-                                                contentDescription = "Selected",
+                                                contentDescription = strings.getString(R.string.schedule_selected),
                                                 tint = colors.accent,
                                             )
                                         }
@@ -218,7 +220,7 @@ fun ScheduleScreen(
                 Column {
                     Spacer(Modifier.height(dimens.s))
                     PrimaryActionButton(
-                        text = if (selectedName == null) "Pick a workout" else "Schedule \"$selectedName\"",
+                        text = if (selectedName == null) strings.getString(R.string.schedule_pick) else strings.getString(R.string.schedule_named, selectedName),
                         onClick = {
                             val id = selectedId
                             if (id != null) {

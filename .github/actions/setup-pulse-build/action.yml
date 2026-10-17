@@ -2,6 +2,10 @@ name: Set up PULSE build
 description: JDK 17, Android SDK platform and build tools (37, falling back to 36/35), and Gradle caching.
 
 inputs:
+  check-resources:
+    description: Run static checks here (disable when an upstream job already checked this source)
+    required: false
+    default: 'true'
   minimum-api:
     description: Lowest compile SDK accepted by this job (Play phone releases require 36)
     required: false
@@ -11,6 +15,7 @@ runs:
   using: composite
   steps:
     - name: Check UI resources, branding and contrast
+      if: inputs.check-resources == 'true'
       shell: bash
       run: |
         set -euo pipefail

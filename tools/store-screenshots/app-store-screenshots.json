@@ -1,0 +1,697 @@
+{
+  "schemaVersion": 3,
+  "appName": "Interval Coach",
+  "themeId": "neon-athletic-night",
+  "fontId": "template-default",
+  "connectedCanvas": true,
+  "locales": [
+    "en"
+  ],
+  "locale": "en",
+  "device": "feature-graphic",
+  "orientation": "portrait",
+  "appIcon": "/app-icon.png",
+  "slidesByDevice": {
+    "iphone": [],
+    "android": [
+      {
+        "id": "interval-coach-01",
+        "layout": "hero",
+        "label": {
+          "en": "INTERVAL COACH / LIVE TIMER"
+        },
+        "headline": {
+          "en": "OWN EVERY\nINTERVAL."
+        },
+        "screenshot": "/screenshots/android/phone/en/player.png",
+        "transforms": {
+          "caption": {
+            "x": 90,
+            "y": 70,
+            "width": 900,
+            "height": 440,
+            "rotation": 0,
+            "zIndex": 5
+          },
+          "device": {
+            "x": 230,
+            "y": 535,
+            "width": 620,
+            "height": 1343.3333333333333,
+            "rotation": -7,
+            "zIndex": 3
+          }
+        }
+      },
+      {
+        "id": "interval-coach-02",
+        "layout": "device-bottom",
+        "label": {
+          "en": "INTERVAL COACH / WORKOUT BUILDER"
+        },
+        "headline": {
+          "en": "BUILD IT\nYOUR WAY."
+        },
+        "screenshot": "/screenshots/android/phone/en/builder.png",
+        "transforms": {
+          "caption": {
+            "x": 90,
+            "y": 70,
+            "width": 900,
+            "height": 440,
+            "rotation": 0,
+            "zIndex": 5
+          },
+          "device": {
+            "x": 385,
+            "y": 550,
+            "width": 600,
+            "height": 1300,
+            "rotation": 7,
+            "zIndex": 3
+          }
+        },
+        "textElements": [
+          {
+            "id": "real-interval-count",
+            "text": {
+              "en": "14"
+            },
+            "transform": {
+              "x": 76,
+              "y": 1020,
+              "width": 260,
+              "height": 205,
+              "rotation": -9,
+              "zIndex": 2
+            },
+            "fontSize": 170,
+            "fontWeight": 400,
+            "color": "#D4FF3A"
+          },
+          {
+            "id": "intervals-label",
+            "text": {
+              "en": "INTERVALS"
+            },
+            "transform": {
+              "x": 82,
+              "y": 1220,
+              "width": 220,
+              "height": 65,
+              "rotation": 0,
+              "zIndex": 2
+            },
+            "fontSize": 27,
+            "color": "#A3A8AF"
+          }
+        ]
+      },
+      {
+        "id": "interval-coach-03",
+        "layout": "hero",
+        "label": {
+          "en": "INTERVAL COACH / WORKOUT LIBRARY"
+        },
+        "headline": {
+          "en": "FIND YOUR\nNEXT SET."
+        },
+        "screenshot": "/screenshots/android/phone/en/workouts.png",
+        "transforms": {
+          "caption": {
+            "x": 90,
+            "y": 70,
+            "width": 900,
+            "height": 440,
+            "rotation": 0,
+            "zIndex": 5
+          },
+          "device": {
+            "x": 205,
+            "y": 540,
+            "width": 620,
+            "height": 1343.3333333333333,
+            "rotation": -8,
+            "zIndex": 3
+          }
+        }
+      },
+      {
+        "id": "interval-coach-04",
+        "layout": "device-bottom",
+        "label": {
+          "en": "INTERVAL COACH / RUNNING"
+        },
+        "headline": {
+          "en": "RUN YOUR\n5K."
+        },
+        "screenshot": "/screenshots/android/phone/en/player.png",
+        "transforms": {
+          "caption": {
+            "x": 90,
+            "y": 70,
+            "width": 900,
+            "height": 440,
+            "rotation": 0,
+            "zIndex": 5
+          },
+          "device": {
+            "x": 220,
+            "y": 540,
+            "width": 620,
+            "height": 1343.3333333333333,
+            "rotation": 7,
+            "zIndex": 3
+          }
+        },
+        "inverted": true
+      },
+      {
+        "id": "interval-coach-05",
+        "layout": "device-top",
+        "label": {
+          "en": "INTERVAL COACH / WEEKLY GOALS"
+        },
+        "headline": {
+          "en": "MAKE TIME\nTO TRAIN."
+        },
+        "screenshot": "/screenshots/android/phone/en/today.png",
+        "transforms": {
+          "caption": {
+            "x": 90,
+            "y": 1450,
+            "width": 900,
+            "height": 380,
+            "rotation": 0,
+            "zIndex": 5
+          },
+          "device": {
+            "x": 235,
+            "y": 70,
+            "width": 600,
+            "height": 1300,
+            "rotation": -7,
+            "zIndex": 3
+          }
+        },
+        "typography": {
+          "headlineScale": 0.85
+        }
+      },
+      {
+        "id": "interval-coach-06",
+        "layout": "two-devices",
+        "label": {
+          "en": "INTERVAL COACH / YOUR ROUTINE"
+        },
+        "headline": {
+          "en": "YOUR PLAN.\nYOUR PACE."
+        },
+        "screenshot": "/screenshots/android/phone/en/player.png",
+        "transforms": {
+          "caption": {
+            "x": 90,
+            "y": 70,
+            "width": 900,
+            "height": 440,
+            "rotation": 0,
+            "zIndex": 5
+          },
+          "device": {
+            "x": 385,
+            "y": 540,
+            "width": 600,
+            "height": 1300,
+            "rotation": 7,
+            "zIndex": 3
+          },
+          "deviceSecondary": {
+            "x": 60,
+            "y": 680,
+            "width": 530,
+            "height": 1148.3333333333333,
+            "rotation": -9,
+            "zIndex": 2
+          }
+        },
+        "screenshotSecondary": "/screenshots/android/phone/en/builder.png"
+      }
+    ],
+    "ipad": [],
+    "tvos": [
+      {
+        "id": "s_mvclaovg_d",
+        "layout": "hero",
+        "label": {
+          "en": "MEET YOUR APP"
+        },
+        "headline": {
+          "en": "Made for\nthe living room."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_e",
+        "layout": "split-landscape",
+        "label": {
+          "en": "FEATURE 01"
+        },
+        "headline": {
+          "en": "One idea\nper screen."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_f",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "Flip the contrast."
+        },
+        "screenshot": "",
+        "inverted": true
+      },
+      {
+        "id": "s_mvclaovg_g",
+        "layout": "no-device",
+        "label": {
+          "en": "MORE"
+        },
+        "headline": {
+          "en": "And so\nmuch more."
+        },
+        "screenshot": ""
+      }
+    ],
+    "watchos": [
+      {
+        "id": "s_mvclaovg_h",
+        "layout": "hero",
+        "label": {
+          "en": "MEET YOUR APP"
+        },
+        "headline": {
+          "en": "On your\nwrist."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_i",
+        "layout": "device-bottom",
+        "label": {
+          "en": "FEATURE 01"
+        },
+        "headline": {
+          "en": "One glance.\nDone."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_j",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "Always\nwith you."
+        },
+        "screenshot": "",
+        "inverted": true
+      }
+    ],
+    "carplay": [
+      {
+        "id": "s_mvclaovg_k",
+        "layout": "split-landscape",
+        "label": {
+          "en": "CARPLAY"
+        },
+        "headline": {
+          "en": "Eyes on\nthe road."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_l",
+        "layout": "device-bottom",
+        "label": {
+          "en": "FEATURE 01"
+        },
+        "headline": {
+          "en": "Everything, one tap away."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_m",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "Made for every drive."
+        },
+        "screenshot": "",
+        "inverted": true
+      }
+    ],
+    "mac": [
+      {
+        "id": "s_mvclaovg_n",
+        "layout": "hero",
+        "label": {
+          "en": "MEET YOUR APP"
+        },
+        "headline": {
+          "en": "Made for\nyour Mac."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_o",
+        "layout": "split-landscape",
+        "label": {
+          "en": "FEATURE 01"
+        },
+        "headline": {
+          "en": "Everything in\none window."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_p",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "One shortcut away."
+        },
+        "screenshot": "",
+        "inverted": true
+      },
+      {
+        "id": "s_mvclaovg_q",
+        "layout": "two-devices",
+        "label": {
+          "en": "FEATURE 03"
+        },
+        "headline": {
+          "en": "Work across windows."
+        },
+        "screenshot": "",
+        "screenshotSecondary": ""
+      },
+      {
+        "id": "s_mvclaovg_r",
+        "layout": "no-device",
+        "label": {
+          "en": "MORE"
+        },
+        "headline": {
+          "en": "And so\nmuch more."
+        },
+        "screenshot": ""
+      }
+    ],
+    "android-7": [],
+    "android-10": [],
+    "feature-graphic": [
+      {
+        "id": "interval-coach-feature",
+        "layout": "feature-graphic",
+        "label": {
+          "en": "WORKOUT TIMER"
+        },
+        "headline": {
+          "en": "TRAIN AT YOUR PACE."
+        },
+        "screenshot": "",
+        "inverted": false
+      }
+    ],
+    "duo-outer": [
+      {
+        "id": "s_mvclaovg_x",
+        "layout": "hero",
+        "label": {
+          "en": "MEET YOUR APP"
+        },
+        "headline": {
+          "en": "Everything,\none hand."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_y",
+        "layout": "device-bottom",
+        "label": {
+          "en": "FEATURE 01"
+        },
+        "headline": {
+          "en": "One idea\nper screen."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_z",
+        "layout": "two-devices",
+        "label": {
+          "en": "OPEN IT"
+        },
+        "headline": {
+          "en": "Open it for\nthe full view."
+        },
+        "screenshot": "",
+        "screenshotSecondary": ""
+      },
+      {
+        "id": "s_mvclaovg_10",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "Flip the contrast."
+        },
+        "screenshot": "",
+        "inverted": true
+      },
+      {
+        "id": "s_mvclaovg_11",
+        "layout": "no-device",
+        "label": {
+          "en": "MORE"
+        },
+        "headline": {
+          "en": "And so\nmuch more."
+        },
+        "screenshot": ""
+      }
+    ],
+    "duo-outer-landscape": [
+      {
+        "id": "s_mvclaovg_12",
+        "layout": "hero",
+        "label": {
+          "en": "TURN IT"
+        },
+        "headline": {
+          "en": "Made for the wide view."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_13",
+        "layout": "split-landscape",
+        "label": {
+          "en": "FEATURE 01"
+        },
+        "headline": {
+          "en": "One idea\nper screen."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_14",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "Flip the contrast."
+        },
+        "screenshot": "",
+        "inverted": true
+      }
+    ],
+    "duo-inner": [
+      {
+        "id": "s_mvclaovg_15",
+        "layout": "hero",
+        "label": {
+          "en": "UNFOLD IT"
+        },
+        "headline": {
+          "en": "Room for\nthe whole view."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_16",
+        "layout": "device-bottom",
+        "label": {
+          "en": "FEATURE 01"
+        },
+        "headline": {
+          "en": "One idea\nper screen."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_17",
+        "layout": "two-devices",
+        "label": {
+          "en": "FOLDED + OPEN"
+        },
+        "headline": {
+          "en": "Turn it, open it,\nkeep going."
+        },
+        "screenshot": "",
+        "screenshotSecondary": ""
+      },
+      {
+        "id": "s_mvclaovg_18",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "Flip the contrast."
+        },
+        "screenshot": "",
+        "inverted": true
+      }
+    ],
+    "duo-inner-landscape": [
+      {
+        "id": "s_mvclaovg_19",
+        "layout": "hero",
+        "label": {
+          "en": "UNFOLD IT"
+        },
+        "headline": {
+          "en": "Lead with the two-pane view."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_1a",
+        "layout": "two-devices",
+        "label": {
+          "en": "FOLDED + OPEN"
+        },
+        "headline": {
+          "en": "Same moment, closed and open."
+        },
+        "screenshot": "",
+        "screenshotSecondary": ""
+      },
+      {
+        "id": "s_mvclaovg_1b",
+        "layout": "split-landscape",
+        "label": {
+          "en": "FEATURE 02"
+        },
+        "headline": {
+          "en": "One idea\nper screen."
+        },
+        "screenshot": ""
+      },
+      {
+        "id": "s_mvclaovg_1c",
+        "layout": "device-top",
+        "label": {
+          "en": "FEATURE 03"
+        },
+        "headline": {
+          "en": "Show what only the wide screen can."
+        },
+        "screenshot": "",
+        "inverted": true
+      },
+      {
+        "id": "s_mvclaovg_1d",
+        "layout": "no-device",
+        "label": {
+          "en": "MORE"
+        },
+        "headline": {
+          "en": "And so much more."
+        },
+        "screenshot": ""
+      }
+    ],
+    "creative-universal": [
+      {
+        "id": "s_mvclaovg_1e",
+        "layout": "split-landscape",
+        "label": {
+          "en": "NEW"
+        },
+        "headline": {
+          "en": "Your app,\nat a glance."
+        },
+        "screenshot": ""
+      }
+    ],
+    "creative-header": [
+      {
+        "id": "s_mvclaovg_1f",
+        "layout": "split-landscape",
+        "label": {
+          "en": "NEW"
+        },
+        "headline": {
+          "en": "Your app,\nat a glance."
+        },
+        "screenshot": ""
+      }
+    ],
+    "creative-search": [
+      {
+        "id": "s_mvclaovg_1g",
+        "layout": "split-landscape",
+        "label": {
+          "en": "NEW"
+        },
+        "headline": {
+          "en": "Your app,\nat a glance."
+        },
+        "screenshot": ""
+      }
+    ]
+  },
+  "crossScreenMockupsByDevice": {
+    "iphone": [],
+    "ipad": [],
+    "android": [],
+    "android-7": [],
+    "android-10": [],
+    "feature-graphic": []
+  },
+  "scene": {
+    "backdrop": "spotlight",
+    "span": true,
+    "decoration": "none",
+    "shadow": 85,
+    "glow": 65,
+    "tilt": 0,
+    "headlineWeight": 400,
+    "headlineScale": 1,
+    "headlineCase": "upper",
+    "captionAlign": "left"
+  }
+}

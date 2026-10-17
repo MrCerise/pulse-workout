@@ -1,230 +1,173 @@
-# Releasing
+# Releasing Interval Coach
 
-How a PULSE release is cut, signed and published. This page is for maintainers; contributors do not
-need it, and pull requests should **not** bump versions or edit release notes (see
-[CONTRIBUTING.md](../CONTRIBUTING.md)).
+The same signed phone AAB/APK is published to GitHub Releases and, when enabled, Google Play.
+Wear OS AAB/APK files, both R8 mappings and SHA-256 checksums are also attached to GitHub Releases.
 
-- [Versioning](#versioning)
-- [Release checklist](#release-checklist)
-- [Signing setup](#signing-setup)
-- [Google Play releases](#google-play-releases)
-- [What the workflow does](#what-the-workflow-does)
-- [Publishing](#publishing)
-- [Re-signing an existing release](#re-signing-an-existing-release)
+## Automatic tag releases
 
-## Versioning
+Push an existing source commit under a new version tag, for example:
 
-| Field | Where | Rule |
-| --- | --- | --- |
-| `versionName` | `app/build.gradle.kts` | SemVer: `MAJOR.MINOR.PATCH` |
-| `versionCode` | `app/build.gradle.kts` | Local fallback; CI overrides it for releases |
+```bash
+git tag -a v1.8.4 -m "v1.8.4"
+git push origin v1.8.4
+```
 
-Both `app/build.gradle.kts` and `wear/build.gradle.kts` carry the same `versionCode`/`versionName`;
-bump them together so a release tag always produces matching phone and watch APKs.
+**Build and release** calls the reusable **Release train**. It checks the tagged source, runs tests,
+then builds signed phone and watch artifacts in parallel. A tag upload goes to **Play internal
+testing as a draft**; it does not publish to testers or production automatically.
 
-Keep both modules' defaults in sync. The Play release train overrides them with its validated
-`version_name` and required `version_code` inputs. Choose a version code higher than **every**
-previous Play upload, including drafts and all testing tracks. Codes must be integers between
-1 and 2,100,000,000. The workflow validates the format and range; the maintainer must check Play's
-existing codes before dispatching. A workflow's run number cannot ensure uniqueness across workflows.
+GitHub Release publishing and Play uploading are independent after the build. A Play credential,
+permission or API failure does not prevent the GitHub assets from being published. The overall
+workflow still fails so a failed Play upload is visible. GitHub Release assets are available for
+all channels and Play statuses, including internal testing and drafts.
 
-The separate GitHub APK workflow derives codes from the tag's numeric version, with a run-number
-suffix for prereleases. If users install both GitHub and Play builds, choose the Play code above
-the GitHub APK code too. Testing train builds append `-internal.<code>` or `-beta.<code>` to the
-display version; production uses the plain version name.
+A `v1.8.4` tag publishes a normal GitHub Release; a suffix such as `v1.8.4-rc.1` marks a prerelease.
+Manual testing trains without an existing tag get a distinct tag, such as
+`v1.8.4-internal.10804190`, so they cannot overwrite the stable release.
 
-## Release checklist
+## Version names and codes
 
-1. Merge everything intended for the release into `main`.
-2. Bump the version defaults in both `app/build.gradle.kts` and `wear/build.gradle.kts` on a
-   dedicated release branch.
-3. Update [CHANGELOG.md](../CHANGELOG.md): turn `Unreleased` into a versioned section with its date.
-4. Add `docs/RELEASE_<version>.md` — the per-release verification note: what changed, which
-   automated checks ran, and which device/maintainer checks remain outstanding. Existing notes
-   (`RELEASE_1.6.5.md` … `RELEASE_1.7.0.md`) are the template.
-5. If the database changed: bump the schema version, commit the exported schema under `app/schemas/`
-   and extend `DatabaseMigrationTest`.
-6. If the workout exchange format changed: update [WORKOUT_JSON.md](WORKOUT_JSON.md),
-   `docs/workout-import.schema.json` and the example files. Files that import today must keep
-   importing.
-7. Regenerate and commit [CONTRAST.md](CONTRAST.md) if any colour token changed.
-8. Open a PR, let CI go green, merge it.
-9. For Google Play, dispatch **Release train** as described below. For a GitHub-only APK release,
-   tag the merge commit `v<version>` and push the tag. The production train creates its own GitHub
-   release after a successful non-draft Play upload (or an explicit artifact-only run).
+Both `app/build.gradle.kts` and `wear/build.gradle.kts` keep matching local defaults. A tagged
+build uses the **tag's version and exact commit**, even if the workflow was dispatched from `main`.
+The train validates its inputs before starting a Gradle runner or decoding a signing key.
+
+For tag builds, an empty `version_code` derives a code using the existing numeric tag scheme:
+
+```text
+major * 10,000,000 + minor * 100,000 + patch * 1,000 + workflow run number
+```
+
+For example, `v1.8.4` on workflow run 190 produces `10804190`. Stable tags also use the run slot,
+so moving from a prerelease to a stable tag does not reset the code to a lower value. Automatic
+codes require minor/patch values below 100 and a run number from 1 to 999; the workflow fails rather
+than wrapping and reusing a slot. An explicit code overrides the calculation.
+
+**Check Play's existing codes before uploading.** No offline formula can verify the highest code
+already uploaded by another workflow or manually. A Play code must be an integer from 1 to
+2,100,000,000, above every prior upload across tracks and drafts. If Play already has a higher code,
+or an automatic slot is exhausted, dispatch the workflow with an explicit higher `version_code`.
+Manual trains without a tag require an explicit code.
+
+Re-running the same workflow run keeps its original code. If Play has already accepted that code,
+start a new dispatch with a new code, or manage the accepted release in Play Console. To promote
+exactly the tested bundle, use Play Console rather than rebuilding it.
 
 ## Signing setup
 
-Tagged builds are signed; a tag release **fails** if the signing key is missing, rather than
-publishing an unsigned APK as a signed release. Ordinary pushes to `main` still build without signing
-credentials.
-
-Create a release keystore and keep it backed up somewhere private. **Never commit the keystore or its
-passwords** (`*.jks`, `*.keystore` and `keystore.properties` are gitignored):
-
-```bash
-keytool -genkeypair -v -keystore pulse-release.jks \
-  -alias pulse -keyalg RSA -keysize 4096 -validity 10000
-```
-
-In **Settings → Secrets and variables → Actions**, add these repository secrets:
+Add these **repository** secrets in **Settings → Secrets and variables → Actions**:
 
 | Secret | Value |
 | --- | --- |
-| `ANDROID_KEYSTORE_BASE64` | Base64 encoding of `pulse-release.jks` |
+| `ANDROID_KEYSTORE_BASE64` | Base64 encoding of the upload keystore |
 | `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
-| `ANDROID_KEY_ALIAS` | `pulse` (or the alias you chose) |
-| `ANDROID_KEY_PASSWORD` | Password for the key |
+| `ANDROID_KEY_ALIAS` | Existing key alias |
+| `ANDROID_KEY_PASSWORD` | Password for that key |
 
-In PowerShell, generate the base64 value with:
+Never commit the key or passwords. Use the existing Play upload key for an already published app.
+PowerShell can encode a keystore with:
 
 ```powershell
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("pulse-release.jks"))
 ```
 
-## Google Play releases
+A missing signing secret fails the build. The decoded keystore lives in the runner's temporary
+directory and is removed even if the build fails.
 
-Before submission, complete [Google Play compliance preparation](PLAY_COMPLIANCE.md): publish the
-generated public privacy policy, review Data safety/health/foreground-service declarations, and add
-the supplied health disclaimer to store descriptions. The policy must match the offline app text.
-`python scripts/generate_privacy_policy.py --check` is enforced in CI.
+## Google Play setup
 
-The phone targets API 36 and Wear API 35 independently of compile SDK discovery. The Play phone job
-requires compile SDK 36+ and passes `-Ppulse.playRelease=true`, which rejects a lower platform.
+Before submission, complete [Play compliance preparation](PLAY_COMPLIANCE.md): publish the privacy
+policy, review Data safety/health/foreground-service declarations and supply the store disclaimers.
+`python scripts/generate_privacy_policy.py --check` checks the public and in-app policy copies.
 
-Use [`.github/workflows/release-train.yml`](../.github/workflows/release-train.yml) from
-**Actions → Release train → Run workflow**. It builds signed phone and Wear OS AABs/APKs,
-keeps both R8 mappings, and uploads the **phone** bundle and its mapping to Google Play.
-Tag pushes continue to publish GitHub APKs only.
+1. Create the Play Console application for `com.mrcerise.intervalcoach`, complete its setup, enroll
+   in Play App Signing and upload the first signed phone AAB manually. An artifact-only train can
+   produce this first bundle.
+2. Enable the Google Play Android Developer API, create a service account and JSON key, then give
+   that account access to this app and the required release permissions in Play Console. See the
+   [API setup guide](https://developers.google.com/android-publisher/getting_started).
+3. Add the full plain JSON key as **`ANDROID_SERVICE_ACCOUNT_JSON`**, at repository level or in
+   the matching GitHub environment. It is **not base64**. The signing secrets above stay at
+   repository level because build jobs run before the Play environment.
+4. Configure **`play-testing`** for testing channels and **`play-production`** for production.
+   If branch/tag restrictions or reviewers are enabled, allow the refs intended for release.
+   Create the selected testing track and configure its testers in Play Console.
 
-### One-time setup
+Phone releases require compile SDK 36+ and use `-Ppulse.playRelease=true`; the phone targets API 36
+and Wear OS targets API 35 independently of the installed compile SDK.
 
-**Certificate compatibility:** the keystore below signs Play uploads; it is not necessarily the app
-signing key Google uses on delivered APKs. GitHub APKs signed with an upload key can differ from Play
-installs. Phone/watch Data Layer requires matching signatures; compare installed APK certificates
-against Play Console's app signing certificate before mixing channels. A Google-generated app key
-cannot simply be downloaded for local signing. See [signing checks](PLAY_COMPLIANCE.md#signing-phonewatch-compatibility-and-api-levels).
+**Certificate compatibility:** GitHub APKs use the local keystore, while Play-delivered APKs use
+Play App Signing. These certificates can differ. Phone/watch Data Layer requires matching installed
+signatures. See [signing checks](PLAY_COMPLIANCE.md#signing-phonewatch-compatibility-and-api-levels)
+before mixing distribution channels.
 
-1. Create the Play Console application for `com.mrcerise.intervalcoach`, finish its required setup,
-   enroll in Play App Signing, and upload the first signed phone AAB manually. Use the upload key
-   registered with Play for the four signing secrets above; an existing app needs its existing key.
-   To produce that first bundle, run the train with `publish_to_play` disabled and download its
-   signed artifacts. For a draft app, keep `release_status` set to `draft` on API uploads until
-   the app is ready for publication.
-2. Enable the Google Play Android Developer API in a Google Cloud project, create a service account
-   and JSON key, then invite its email in Play Console **Users and permissions** with access to
-   this app and permission to release to the intended testing/production tracks. Google's
-   [API setup guide](https://developers.google.com/android-publisher/getting_started) describes
-   the Cloud and Play Console steps.
-3. Add the complete JSON key contents as the `ANDROID_SERVICE_ACCOUNT_JSON` Actions secret.
-   Store it at repository level or in the environments below. It is plain JSON, **not base64**.
-   Keep signing secrets at repository level, since the build jobs run before the Play environment.
-4. Create GitHub environments `play-testing` and `play-production`. Configure their allowed branches
-   and, if desired, required reviewers. Testing channels use `play-testing`; production uses
-   `play-production`. Ensure the selected testing track exists and testers are configured in Play.
+## Manual dispatch
 
-### Dispatch inputs
+Use **Actions → Release train → Run workflow**:
 
 | Input | Behavior |
 | --- | --- |
-| `channel` | `internal` (default), `beta` (closed testing), or `production` |
-| `version_name` | `MAJOR.MINOR.PATCH`, without `v`; empty reads the default from `app/build.gradle.kts` |
-| `version_code` | Required unique increasing integer; use a new code for each upload |
-| `publish_to_play` | Enabled by default; disable for signed artifacts without a store upload |
-| `release_status` | `draft` (default) to prepare a Play release, or `completed` to release to the track |
-| `staged_rollout_percent` | Integer 1–100; values below 100 require production and `completed` |
-| `run_tests` | Enabled by default; production always runs tests, even if this is disabled |
+| `channel` | `internal` (default), `closed`, `beta` (open testing), or `production` |
+| `play_track` | Required for `closed`: the exact track ID, such as `alpha` or your custom ID |
+| `release_tag` | Optional existing tag; builds that tag's commit and uses its version |
+| `version_name` | Plain `MAJOR.MINOR.PATCH`; empty reads the tag or repository default |
+| `version_code` | Explicit increasing Play code; may be empty only for a tag with an automatic slot |
+| `publish_to_play` | Enabled by default; disable for GitHub Release + signed artifacts only |
+| `release_status` | `draft` (default) for review, or `completed` to distribute to the selected track |
+| `staged_rollout_percent` | Integer 1-100; below 100 requires production + completed |
+| `run_tests` | Enabled by default; production always runs tests |
 
-For example, after checking that `18001050` exceeds all previous uploads, use `internal`,
-`version_name=1.8.1`, `version_code=18001050` and `release_status=completed` to distribute to testers.
-For production, use a fresh code, choose `completed` and a rollout such as `10` to reach 10% of users.
-The workflow translates that into `status=inProgress` and `userFraction=0.10`. At 100%, it sends
-`status=completed` without a fraction, as required by the
-[Play track API](https://developers.google.com/android-publisher/api-ref/rest/v3/edits.tracks).
+`beta` is not the closed-testing channel. Select `closed` and supply the actual Play track ID for
+closed testing. Production staged rollouts below 100% become `inProgress` with `userFraction`.
+Finish draft releases and send them for review in Play Console when ready.
 
-To promote the exact tested bundle, finish a draft, expand/halt a staged rollout, or retry a store
-submission after an edit was committed, use Play Console. Re-running an upload with an already
-used code is rejected by Play; a new workflow upload requires a new code.
+**Actions → Build and release** remains a shortcut: set `release_tag` to rebuild an existing tag,
+optionally override `version_code`, and toggle `publish_to_play`. An empty tag runs ordinary CI.
+If a release tag already points to another commit, the train fails rather than attaching binaries
+built from the wrong source. Select that tag explicitly or choose a new version.
 
-All channels retain signed phone/watch artifacts and mappings for 30 days. An enabled Play upload
-fails if credentials are missing or the API rejects it; the signed artifacts remain downloadable.
-A production GitHub release waits for Play success, and is omitted for Play drafts. Artifact-only
-production runs still create the GitHub release. Trains serialize across channels to avoid
-concurrent edits to the same Play app. GitHub may replace a pending run with a newer dispatch, so
-wait for a train to finish before dispatching the next one.
+Wear OS bundles are supplied on GitHub for manual distribution. Only the phone AAB and its mapping
+are uploaded to Play automatically. Phone and watch currently share a version code; automated Wear
+publishing needs distinct codes and form-factor tracks such as `wear:production`.
 
-Wear OS bundles are provided for manual distribution. They currently share the phone version code
-and are **not uploaded by this workflow**: Play Wear publishing needs distinct version codes and
-form-factor tracks such as `wear:production` (see
-[Wear OS packaging](https://developer.android.com/training/wearables/packaging)).
+## Artifacts and optimization
 
-## What the workflow does
+Each release produces:
 
-`.github/workflows/build-release.yml`:
-
-| Job | Trigger | What it runs |
-| --- | --- | --- |
-| `resource-checks` | pull requests, merges to `main`, tags, manual runs | `check_ui.py`, `check_brand.py`, `kotlin_xref_gate.py`, `contrast_check.py`, then `git diff --exit-code -- docs/CONTRAST.md` |
-| `unit-tests (engine, sync, library)` | pull requests, merges to `main`, manual runs | `:engine:test :sync:test :library:test` |
-| `unit-tests (app)` | pull requests, merges to `main`, manual runs | `:app:testDebugUnitTest` |
-| `unit-tests (wear)` | pull requests, merges to `main`, manual runs | `:wear:testDebugUnitTest` |
-| `release` | tags `v*`, manual runs with `release_tag` | signed `:app:assembleDebug :app:assembleRelease :wear:assembleDebug :wear:assembleRelease`, four APKs attached to the GitHub release |
-
-Every Gradle job reports its own compiler diagnostics and failing test names in the job output, and
-keeps its build log as an artifact when it fails.
-
-Why the jobs are arranged this way:
-
-- **The unit tests are three jobs, not one.** A public repository gets as many runners as the run
-  has jobs, so the wall-clock cost of a pull request is the slowest job instead of the sum of all of
-  them, and a failure in one group cannot hide the results of the others.
-- **Merges to `main` run the same checks as pull requests, and they are what keeps CI fast.**
-  Gradle cache entries are branch-scoped, so the runs on `main` are the ones that produce a cache
-  every other branch and every tag can restore. Pull requests opened from this repository write
-  their own branch-scoped entries too, which is what makes a second push to the same pull request
-  cheaper than the first; a pull request from a fork stays read-only, so untrusted code cannot plant
-  a cache entry that a later trusted build would restore. Tag runs are read-only as well — an entry
-  written for a tag is visible to that tag alone — but they still restore `main`'s.
-- **Documentation-only changes skip CI.** A pull request or a merge whose files all match the
-  workflow's `paths-ignore` list runs nothing: prose, templates and the licence cannot change what
-  compiles. Path filters are not evaluated for tag pushes, so a release is never skipped this way.
-- **The Android SDK step probes the runner first.** The runner image already ships the platforms and
-  build tools, so the step only calls `sdkmanager` when nothing usable is on disk.
-- **A build without that step still compiles.** The root `build.gradle.kts` resolves `compileSdk`
-  against the platforms installed on the machine and hands the value to both APK modules, so a plain
-  `./gradlew assemble` — a code scanner's autobuild, a contributor's first build — works on a runner
-  that has no `platforms;android-37` instead of failing on the download attempt. CI's explicit
-  `-Ppulse.compileSdk` is still honoured exactly, so a tagged release is built against the platform the
-  project names, and the printed line about a substitution is the only sign a fallback happened.
-
-A run waits for the slowest group — `:app` — instead of for the sum of the groups, and the groups
-are cached: `gradle.properties` enables the build cache, so a run after the first on the same branch
-restores compiled classes instead of compiling from scratch.
-
-The tests themselves are the exception. **A `Test` task is never satisfied from the cache or skipped
-as up to date in CI**: `.github/ci/no-cached-tests.init.gradle`, passed with `-I`, makes every test
-task execute, and the unit-test job then counts the test result files the run wrote and fails if
-there are none. A restored result would be a green run in which nothing ran, and at least one test
-here reads a schema file that is not an input Gradle can see, so a change to it would not even
-invalidate a restored result.
-
-Pull-request runs are cancelled when a new push supersedes them; merges to `main`, tag runs and
-manual release runs never are — the runs on `main` are what write the caches, and a cancelled
-release publishes nothing.
-
-## Publishing
-
-```bash
-git tag -a v1.7.1 -m "v1.7.1"
-git push origin v1.7.1
+```text
+interval-coach-<version>-phone-release.apk
+interval-coach-<version>-phone-release.aab
+interval-coach-<version>-phone-mapping.txt
+interval-coach-<version>-wear-release.apk
+interval-coach-<version>-wear-release.aab
+interval-coach-<version>-wear-mapping.txt
+SHA256SUMS
 ```
 
-The workflow builds the phone and watch APKs, names them `intervals-<tag>-debug.apk`,
-`intervals-<tag>-release.apk`, `intervals-<tag>-wear-debug.apk` and `intervals-<tag>-wear-release.apk`,
-generates release notes and attaches them to the release.
+Release APKs are ready for direct installation; AABs are for Play distribution. Debug APKs are no
+longer built as release assets. R8 mappings remain available for diagnosing each exact release.
 
-## Re-signing an existing release
+- One reusable train replaces the two separate APK/AAB release implementations.
+- Static resource, privacy, brand, contrast and Python checks run once before the release builds.
+- Phone and Wear OS build in parallel. Each platform's tests and packaging share one Gradle
+  invocation and runner; JVM tests run on the phone runner only.
+- Compiled work stays cached. CI test tasks always execute and must produce fresh result files.
+- Already-compressed APK/AAB artifacts use compression level 0 and are uploaded once per platform.
+  The GitHub and Play jobs download those exact artifacts, with no second build or combined upload.
+- Run artifacts are retained for 30 days; published GitHub Release assets remain on the release.
+- Release trains serialize across Play channels and are never cancelled while running. GitHub may
+  replace an older pending run, so wait for one train to finish before queueing another.
+- Ordinary CI keeps its three parallel unit-test groups and runs static checks once. Marketing
+  assets, screenshot-editor changes and documentation-only changes skip Android CI; generated
+  privacy pages and runtime brand vectors remain in scope.
+- No release is started by an ordinary push to `main`. GitHub Release tags created with the workflow
+  token do not trigger a second tag workflow, avoiding duplicate builds.
 
-If a release was published before signing was configured, run **Actions → Build and release → Run
-workflow** on `main` with `release_tag` set to the existing tag (for example `v1.7.0`). The workflow
-builds, signs and re-uploads the APKs with `overwrite_files: true`.
+## Release checklist
+
+1. Merge the intended source into `main` and keep phone/watch version defaults aligned.
+2. Update the changelog and release verification note when preparing a release.
+3. If schemas or exchange formats changed, complete their migrations and compatibility checks.
+4. Regenerate privacy/contrast files if their sources changed and let CI pass.
+5. Verify signing certificates, Play credentials and the next version code.
+6. Push the new version tag or dispatch the train. Inspect both publishing jobs, then review the
+   internal draft in Play Console before releasing it to testers.
