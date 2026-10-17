@@ -40,16 +40,16 @@ android {
         }
     }
 
-    namespace = "com.pulse.intervalcoach"
+    namespace = "com.mrcerise.intervalcoach"
     compileSdk = pulseCompileSdk
 
     defaultConfig {
-        applicationId = "com.pulse.intervalcoach"
+        applicationId = "com.mrcerise.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
         // CI release trains override these per channel (`-Ppulse.versionCode/-Name`); the values
         // here are the published release line of record.
-        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 24
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 30
         versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.1"
         // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -124,6 +124,7 @@ implementation(project(":library"))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.zxing.core)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

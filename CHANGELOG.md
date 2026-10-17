@@ -12,6 +12,28 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.6] — 2026-10-16
+
+**Changed**
+- Page headers can no longer collide with their actions: the centred title gets the band to
+  itself, back sits on its own left-aligned row, and header actions sit on a row under the title.
+- Language and workout Category now use the same drop-down (bottom-sheet) style as every other picker.
+- The app package is now `com.mrcerise.intervalcoach` and the installed app name is **Interval Coach**.
+- Duration steppers move in ±5 s and ±1 min steps, and tapping the value types an exact min:sec.
+- Workout, interval and block names are all big inline-editable boxes — no rename popup.
+- Run / Walk is folded into **Running** (existing Run / Walk workouts show as Running).
+- Distinct Today stats (active today, sessions today, next planned) instead of repeating Progress.
+
+**Added**
+- Running workouts record their GPS route; it is stored with the session and drawn on the
+  session summary, the history session detail and the share image.
+- History filtering by search, status and period.
+- QR-code sharing for a workout, with the app logo in the centre of the code.
+
+**Fixed**
+- Spacing between the "When audio is interrupted" and headphone rows in Settings.
+- Sessions under one minute are no longer stored or counted.
+
 ## [1.8.1-beta1.4] — 2026-10-16
 
 The sheet-and-hero pass: pickers become modern bottom sheets, page titles are centred, and the

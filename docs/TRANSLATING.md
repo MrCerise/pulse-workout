@@ -51,7 +51,7 @@ files:
   French table compatible with `scripts/check_ui.py`. Android itself falls back to English for any
   missing string.
 - **Every locale folder is packaged**, not only English and French.
-- The app offers a language of its own in Settings → Appearance, defaulting to *Follow system*. An offered language is an `AppLanguage` entry whose tag names a packaged folder (`fr` → `values-fr`, `de-DE` → `values-de-rDE`; a bare `de` would match nothing and fall back to English), and `app/src/test/java/com/pulse/intervalcoach/AppLanguageTest.kt` fails the build when a tag and a folder stop agreeing — so enabling a language in the Crowdin project is not by itself enough to get it into that picker. A packaged-but-unoffered locale is still used when the *device* asks for it.
+- The app offers a language of its own in Settings → Appearance, defaulting to *Follow system*. An offered language is an `AppLanguage` entry whose tag names a packaged folder (`fr` → `values-fr`, `de-DE` → `values-de-rDE`; a bare `de` would match nothing and fall back to English), and `app/src/test/java/com/mrcerise/intervalcoach/AppLanguageTest.kt` fails the build when a tag and a folder stop agreeing — so enabling a language in the Crowdin project is not by itself enough to get it into that picker. A packaged-but-unoffered locale is still used when the *device* asks for it.
 - Translation updates open a PR against `main`, never merge automatically, and go through the same
   unit tests as code changes. Keep automatic merging disabled.
 - Avoid renaming existing resource keys: doing so loses translation history.

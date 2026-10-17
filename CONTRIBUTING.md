@@ -62,7 +62,7 @@ echo "sdk.dir=/absolute/path/to/Android/sdk" > local.properties
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The debug build uses the package id `com.pulse.intervalcoach.debug`, so it installs alongside a
+The debug build uses the package id `com.mrcerise.intervalcoach.debug`, so it installs alongside a
 release build without touching your real data.
 
 If Gradle runs out of memory on a smaller machine, see

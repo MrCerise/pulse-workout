@@ -7,7 +7,7 @@
 //
 //   * a test that never executes cannot catch anything, so "the tests pass" would stop meaning what
 //     the branch protection reads it as; and
-//   * `DatabaseMigrationTest` reads app/schemas/com.pulse.intervalcoach.data.db.PulseDatabase/2.json
+//   * `DatabaseMigrationTest` reads app/schemas/com.mrcerise.intervalcoach.data.db.PulseDatabase/2.json
 //     from the project directory, which Gradle cannot see as an input of the test task, so a change
 //     to that file would not even invalidate a restored result.
 //

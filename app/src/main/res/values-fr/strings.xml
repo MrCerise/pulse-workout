@@ -6,7 +6,7 @@
   lets Settings → Appearance offer German, Spanish and Italian alongside French.
 -->
 <resources>
-    <string name="app_name">Intervals</string>
+    <string name="app_name">Interval Coach</string>
     <string name="app_tagline">Coach d\'intervalles</string>
 
     <!-- Navigation -->
@@ -316,7 +316,7 @@
     <!-- Import / export -->
 
     <!-- Onboarding -->
-    <string name="welcome_title">Intervals</string>
+    <string name="welcome_title">Interval Coach</string>
     <string name="welcome_subtitle">Le minuteur d’intervalles HIIT &amp; Tabata.</string>
     <string name="welcome_theme">Choisissez une apparence</string>
     <string name="welcome_language">Choisissez une langue</string>
