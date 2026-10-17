@@ -68,6 +68,21 @@ class RaceMathTest {
         assertEquals(0.0, RaceMath.stepMeters(origin, jump), 0.0)
     }
 
+    @Test
+    fun `invalid coordinates and accuracy never seed a measured route`() {
+        listOf(
+            point(Double.NaN, 2.0), point(48.0, Double.POSITIVE_INFINITY),
+            point(91.0, 2.0), point(48.0, 181.0),
+            point(48.0, 2.0, Float.NaN), point(48.0, 2.0, Float.POSITIVE_INFINITY),
+            point(48.0, 2.0, -1f),
+        ).forEach { invalid ->
+            assertFalse(RaceMath.isUsablePoint(invalid))
+            assertEquals(0.0, RaceMath.stepMeters(origin, invalid), 0.0)
+            assertEquals(0.0, RaceMath.stepMeters(invalid, origin), 0.0)
+        }
+        assertTrue(RaceMath.isUsablePoint(origin))
+    }
+
     // -------------------------------------------------------------------------------------------
     // Projection without GPS
     // -------------------------------------------------------------------------------------------

@@ -13,6 +13,7 @@ import android.content.pm.ServiceInfo
 import android.media.AudioManager
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.pulse.engine.TimerSnapshot
@@ -84,6 +85,7 @@ class WorkoutService : Service() {
             }
         }
         runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type) }
+            .onFailure { Log.e("WorkoutService", "Could not start workout foreground service (type=$type)", it) }
     }
 
     private fun observeSession() {

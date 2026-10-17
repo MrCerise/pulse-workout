@@ -92,6 +92,12 @@ object RaceMath {
 
     private const val EARTH_RADIUS_METERS = 6_371_000.0
 
+    /** Missing accuracy, invalid coordinates and non-finite sensor data cannot seed a route. */
+    fun isUsablePoint(point: RacePoint): Boolean =
+        point.latitude.isFinite() && point.latitude in -90.0..90.0 &&
+            point.longitude.isFinite() && point.longitude in -180.0..180.0 &&
+            point.accuracyMeters.isFinite() && point.accuracyMeters in 0f..MAX_ACCEPTABLE_ACCURACY_METERS
+
     /** Great-circle distance between two fixes, in metres. */
     fun haversineMeters(from: RacePoint, to: RacePoint): Double {
         val latDelta = Math.toRadians(to.latitude - from.latitude)
@@ -111,8 +117,7 @@ object RaceMath {
      * fix whose accuracy is acceptable, so an opening bad fix is simply skipped.
      */
     fun stepMeters(previous: RacePoint?, next: RacePoint): Double {
-        if (previous == null) return 0.0
-        if (next.accuracyMeters > MAX_ACCEPTABLE_ACCURACY_METERS) return 0.0
+        if (previous == null || !isUsablePoint(previous) || !isUsablePoint(next)) return 0.0
         val step = haversineMeters(previous, next)
         return if (step > MAX_PLAUSIBLE_STEP_METERS) 0.0 else step
     }

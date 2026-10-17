@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import com.mrcerise.intervalcoach.session.Notifications
+import com.mrcerise.intervalcoach.session.WorkoutService
 import com.mrcerise.intervalcoach.ui.PulseAppRoot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,6 +62,17 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         deeplinks.value = intent.data?.toString()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val tracker = (application as PulseApp).container.runTracker
+        if (tracker.isTracking) {
+            // Returning from location/app settings can restore permission or providers mid-run.
+            // Refresh the foreground type too when location access was previously denied.
+            WorkoutService.start(this)
+            tracker.refreshLocationAccess()
+        }
     }
 
     /**
