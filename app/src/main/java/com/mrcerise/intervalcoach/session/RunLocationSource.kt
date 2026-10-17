@@ -1,6 +1,7 @@
 package com.mrcerise.intervalcoach.session
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -52,8 +53,10 @@ internal class AndroidRunLocationSource(context: Context) : RunLocationSource {
         }
     }
 
+    @SuppressLint("MissingPermission") // access() checks precise access; revocation races are caught below.
     override fun start(onFix: (RunLocationFix) -> Unit): Boolean {
         stop()
+        if (access() != RunLocationAccess.AVAILABLE) return false
         val manager = manager ?: return false
         // A cold satellite fix can take a long time indoors. Listen to fused/network fixes as
         // well as GNSS; the tracker accepts only fresh positions accurate enough for a run.

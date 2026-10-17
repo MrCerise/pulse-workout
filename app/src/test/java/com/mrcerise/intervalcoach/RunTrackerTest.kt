@@ -161,6 +161,21 @@ class RunTrackerTest {
         assertEquals(0.0, tracker.raceInfo.value!!.distanceMeters, 0.0)
     }
 
+    @Test fun `an unsuccessful first fix search reports the problem and can still recover`() = runTest {
+        val source = Source()
+        val tracker = tracker(source)
+        tracker.start(plan)
+        tracker.setPaused(false)
+        advanceTimeBy(31_000)
+        runCurrent()
+        assertFalse(tracker.hasFix)
+        assertEquals(RunTrackingStatus.SIGNAL_LOST, tracker.trackingStatus.value)
+        assertEquals(RaceSource.ESTIMATED, tracker.raceInfo.value!!.source)
+        source.fix!!.invoke(sample(31_000))
+        assertEquals(RunTrackingStatus.TRACKING, tracker.trackingStatus.value)
+        assertEquals(RaceSource.GPS, tracker.raceInfo.value!!.source)
+    }
+
     @Test fun `a rejected GPS jump is not reused as the next distance seed`() = runTest {
         val source = Source()
         val tracker = tracker(source)

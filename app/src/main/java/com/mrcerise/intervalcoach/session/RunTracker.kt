@@ -199,7 +199,11 @@ class RunTracker internal constructor(
             RunLocationAccess.APPROXIMATE -> RunTrackingStatus.PRECISE_LOCATION_REQUIRED
             RunLocationAccess.DISABLED -> RunTrackingStatus.LOCATION_DISABLED
             RunLocationAccess.UNAVAILABLE -> RunTrackingStatus.UNAVAILABLE
-            RunLocationAccess.AVAILABLE -> RunTrackingStatus.SEARCHING
+            RunLocationAccess.AVAILABLE -> when {
+                lastFixMillis == null -> RunTrackingStatus.SEARCHING
+                elapsedRealtime() - lastFixMillis!! >= SIGNAL_TIMEOUT_MILLIS -> RunTrackingStatus.SIGNAL_LOST
+                else -> RunTrackingStatus.TRACKING
+            }
         }
         if (access == RunLocationAccess.AVAILABLE) {
             subscribed = locationSource.start { fix ->
