@@ -36,9 +36,10 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 
 **Releases** — [latest APKs](https://github.com/MrCerise/pulse-workout/releases/latest) ·
 [CHANGELOG.md](CHANGELOG.md) · store releases run through the **release train**
-(`.github/workflows/release-train.yml`): a tagged `v*` push builds the production APKs, and a
-workflow dispatch builds `internal` / `beta` / `production` releases, with signed artifacts on the
-run and optional Google Play upload (draft by default). See [the Play release setup and inputs](docs/RELEASING.md#google-play-releases).
+(`.github/workflows/release-train.yml`): a tagged `v*` push builds signed phone/watch APKs and
+AABs once, publishes them to GitHub Releases, and uploads the phone AAB to Play internal testing
+as a draft. Manual trains support internal, closed, open and production tracks. See
+[release setup and inputs](docs/RELEASING.md#manual-dispatch).
 
 ## Highlights
 
