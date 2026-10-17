@@ -8,13 +8,13 @@ Wear OS AAB/APK files, both R8 mappings and SHA-256 checksums are also attached 
 Push an existing source commit under a new version tag, for example:
 
 ```bash
-git tag -a v1.8.4 -m "v1.8.4"
-git push origin v1.8.4
+git tag -a v1.8.5 -m "v1.8.5"
+git push origin v1.8.5
 ```
 
 **Build and release** calls the reusable **Release train**. It checks the tagged source, runs tests,
-then builds signed phone and watch artifacts in parallel. A tag upload goes to **Play internal
-testing as a draft**; it does not publish to testers or production automatically.
+then builds signed phone and watch artifacts in parallel. A tag upload goes to **Play closed
+testing track `4701389324980022660` as a draft**; it does not publish to testers or production automatically.
 
 GitHub Release publishing and Play uploading are independent after the build. A Play credential,
 permission or API failure does not prevent the GitHub assets from being published. The overall
@@ -109,8 +109,8 @@ Use **Actions → Release train → Run workflow**:
 
 | Input | Behavior |
 | --- | --- |
-| `channel` | `internal` (default), `closed`, `beta` (open testing), or `production` |
-| `play_track` | Required for `closed`: the exact track ID, such as `alpha` or your custom ID |
+| `channel` | `closed` (default), `internal`, `beta` (open testing), or `production` |
+| `play_track` | Closed testing only: defaults to `4701389324980022660`; override for another track |
 | `release_tag` | Optional existing tag; builds that tag's commit and uses its version |
 | `version_name` | Plain `MAJOR.MINOR.PATCH`; empty reads the tag or repository default |
 | `version_code` | Explicit increasing Play code; may be empty only for a tag with an automatic slot |
@@ -122,6 +122,18 @@ Use **Actions → Release train → Run workflow**:
 `beta` is not the closed-testing channel. Select `closed` and supply the actual Play track ID for
 closed testing. Production staged rollouts below 100% become `inProgress` with `userFraction`.
 Finish draft releases and send them for review in Play Console when ready.
+
+## Release notes
+
+Before tagging a version, create `distribution/releases/MAJOR.MINOR.PATCH/github.md` and a
+`whatsnew/` subdirectory containing `whatsnew-en-US`, `whatsnew-fr-FR` and any other supported
+locales. Version 1.8.5 includes all five app languages. Filenames have no extension; Play notes
+must contain 1–500 Unicode characters per language. Notes describe actual changes, without promotion.
+
+The validation job stages these files once in a `release-notes-<run ID>` artifact. GitHub uses
+`github.md` as its release body alongside generated commit/PR notes. Google Play receives the same
+version's localized files through `whatsNewDirectory`. Missing or invalid notes stop the train
+before signed builds start. Keep previous version directories so tagged releases remain reproducible.
 
 **Actions → Build and release** remains a shortcut: set `release_tag` to rebuild an existing tag,
 optionally override `version_code`, and toggle `publish_to_play`. An empty tag runs ordinary CI.
@@ -175,4 +187,4 @@ longer built as release assets. R8 mappings remain available for diagnosing each
 4. Regenerate privacy/contrast files if their sources changed and let CI pass.
 5. Verify signing certificates, Play credentials and the next version code.
 6. Push the new version tag or dispatch the train. Inspect both publishing jobs, then review the
-   internal draft in Play Console before releasing it to testers.
+   closed-testing draft in Play Console before releasing it to testers.

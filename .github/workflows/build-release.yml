@@ -53,7 +53,7 @@ on:
         required: false
         type: string
       publish_to_play:
-        description: Upload the phone AAB to internal testing as a draft
+        description: Upload the phone AAB to closed testing as a draft
         default: true
         type: boolean
 
@@ -155,7 +155,7 @@ jobs:
           artifact-name: build-logs-${{ github.job }}-${{ matrix.key }}-${{ github.run_id }}
 
   release:
-    name: GitHub Release and Play internal draft
+    name: GitHub Release and Play closed-testing draft
     if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     permissions:
       contents: write
@@ -163,7 +163,8 @@ jobs:
     with:
       release_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
       version_code: ${{ inputs.version_code || '' }}
-      channel: internal
+      channel: closed
+      play_track: '4701389324980022660'
       release_status: draft
       publish_to_play: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_to_play }}
       run_tests: true

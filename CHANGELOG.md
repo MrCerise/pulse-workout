@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to INTERVALS are documented in this file.
+All notable changes to Interval Coach are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *version name*
@@ -11,6 +11,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Per-release verification notes live next to this file as `docs/RELEASE_<version>.md`.
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+## [1.8.5] — 2026-10-17
+
+**Changed**
+- Version-tag uploads now target closed testing track `4701389324980022660` as a draft for review.
+- Both phone and Wear OS report version 1.8.5; tag builds use an increasing Play version code.
+
+**Added**
+- Versioned GitHub changelogs and localized Google Play release notes in English, French, German,
+  Spanish and Italian, shared between publishing jobs without rebuilding the app.
+- Validation for missing, empty or oversized release notes before release builds start.
+
+The app includes the translations and fixes shipped in 1.8.4. This release updates distribution
+and version metadata; it does not add new workout behaviour.
 
 ## [1.8.1-beta1.8] — 2026-10-17
 

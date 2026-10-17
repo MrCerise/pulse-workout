@@ -46,8 +46,8 @@ android {
         minSdk = 26
         // Wear has a separate Play requirement; compile SDK availability must not change this.
         targetSdk = 35
-        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 32
-        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.1"
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 10805000
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.5"
         vectorDrawables.useSupportLibrary = true
     }
 
