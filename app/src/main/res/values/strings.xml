@@ -453,4 +453,11 @@
     <string name="watch_session_stop_message">The workout on your watch will end and be saved as stopped early.</string>
     <string name="watch_session_keep_going">Keep going</string>
     <string name="recording_delete_failed">Could not delete the recording. Please try again.</string>
+    <string name="player_race_permission_required">Location access is off</string>
+    <string name="player_race_precise_required">Enable precise location to measure your run</string>
+    <string name="player_race_location_disabled">Device location is turned off</string>
+    <string name="player_race_location_unavailable">Location is unavailable on this device</string>
+    <string name="player_race_signal_lost">No usable GPS signal · try an open area</string>
+    <string name="player_race_location_permissions">Location permissions</string>
+    <string name="player_race_enable_location">Enable device location</string>
 </resources>

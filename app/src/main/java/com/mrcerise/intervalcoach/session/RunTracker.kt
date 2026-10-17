@@ -3,11 +3,6 @@ package com.mrcerise.intervalcoach.session
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.pulse.engine.RaceInfo
@@ -16,6 +11,7 @@ import com.pulse.engine.RacePoint
 import com.pulse.engine.RaceSource
 import com.pulse.engine.WorkoutPlan
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -41,17 +37,20 @@ import kotlinx.coroutines.launch
  * service of its own: [WorkoutService] keeps the process alive and promotes its foreground type to
  * include location while this is running.
  */
-class RunTracker(
-    context: Context,
+class RunTracker internal constructor(
+    private val locationSource: RunLocationSource,
     private val scope: CoroutineScope,
+    private val mainDispatcher: CoroutineDispatcher,
+    private val elapsedRealtime: () -> Long,
 ) {
-    private val appContext = context.applicationContext
-    private val locationManager =
-        appContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private val mainHandler = Handler(Looper.getMainLooper())
+    constructor(context: Context, scope: CoroutineScope) : this(
+        AndroidRunLocationSource(context), scope, Dispatchers.Main.immediate, SystemClock::elapsedRealtime,
+    )
 
     private val _raceInfo = MutableStateFlow<RaceInfo?>(null)
     val raceInfo: StateFlow<RaceInfo?> = _raceInfo.asStateFlow()
+    private val _trackingStatus = MutableStateFlow(RunTrackingStatus.INACTIVE)
+    val trackingStatus: StateFlow<RunTrackingStatus> = _trackingStatus.asStateFlow()
 
     /** The last read-out, frozen when the session ends — what the summary screen shows. */
     var finalInfo: RaceInfo? = null
@@ -80,10 +79,14 @@ class RunTracker(
     private var distanceMeters = 0.0
     private var lastPoint: RacePoint? = null
     private var speedMps = 0.0
-    private var lastLocationNanos = 0L
+    private var lastFixMillis: Long? = null
+    private var startedAt = 0L
+    private var lastAccessCheck = 0L
+    private var lastAccess: RunLocationAccess? = null
+    private var subscribed = false
+    private var generation = 0L
 
     private var tickerJob: Job? = null
-    private var locationListener: LocationListener? = null
 
     /** Starts tracking a run described by [plan]. Safe to call without location permission. */
     fun start(plan: WorkoutPlan) = onMain {
@@ -95,16 +98,19 @@ class RunTracker(
         hasFix = false
         paused = true
         movingMillis = 0L
-        lastTickAt = SystemClock.elapsedRealtime()
+        startedAt = elapsedRealtime()
+        lastTickAt = startedAt
         distanceMeters = 0.0
         lastPoint = null
         speedMps = 0.0
-        lastLocationNanos = 0L
+        lastFixMillis = null
+        lastAccess = null
+        subscribed = false
         targetDistanceMeters = plan.raceDistanceMeters?.takeIf { it > 0.0 }
         racePaceSecondsPerKm = plan.racePaceSecondsPerKm?.takeIf { it > 0 } ?: RaceMath.DEFAULT_PACE_SECONDS_PER_KM
         publish()
-        requestLocationUpdates()
-        tickerJob = scope.launch(Dispatchers.Main.immediate) {
+        refreshAccess(force = true)
+        tickerJob = scope.launch(mainDispatcher) {
             while (isActive && isTracking) {
                 delay(1_000L)
                 onMain { tick() }
@@ -114,6 +120,11 @@ class RunTracker(
 
     /** Stops tracking and freezes [finalInfo] for the summary. */
     fun stop() = onMain { stopInternal() }
+
+    /** Returning from Android settings or retrying a failed subscription does not reset a run. */
+    fun refreshLocationAccess() = onMain {
+        if (isTracking) refreshAccess(force = true)
+    }
 
     /** Pausing the timer pauses the race: no distance, no moving time, no stale speed. */
     fun setPaused(value: Boolean) = onMain {
@@ -125,7 +136,8 @@ class RunTracker(
             lastPoint = null
             speedMps = 0.0
         } else {
-            lastTickAt = SystemClock.elapsedRealtime()
+            lastPoint = null
+            lastTickAt = elapsedRealtime()
         }
         publish()
     }
@@ -143,6 +155,10 @@ class RunTracker(
 
         /** Without fresh fixes, decay the shown speed toward stopped each second. */
         private const val SPEED_DECAY_PER_TICK = 0.92
+        private const val ACCESS_RECHECK_MILLIS = 5_000L
+        private const val MAX_FIX_AGE_MILLIS = 15_000L
+        private const val SIGNAL_TIMEOUT_MILLIS = 30_000L
+        private const val MAX_RUNNING_SPEED_MPS = 15.0
     }
 
     // -------------------------------------------------------------------------------------------
@@ -150,84 +166,89 @@ class RunTracker(
     // -------------------------------------------------------------------------------------------
 
     private fun onMain(block: () -> Unit) {
-        if (Looper.myLooper() == Looper.getMainLooper()) block() else mainHandler.post(block)
+        scope.launch(mainDispatcher) { block() }
     }
 
     private fun stopInternal() {
         if (!isTracking) return
         tickerJob?.cancel()
         tickerJob = null
-        locationListener?.let { runCatching { locationManager.removeUpdates(it) } }
-        locationListener = null
+        generation++
+        locationSource.stop()
+        subscribed = false
         advanceMovingClock()
         publish()
         finalInfo = _raceInfo.value
         finalRoute = routePoints.toList()
         isTracking = false
+        _trackingStatus.value = RunTrackingStatus.INACTIVE
     }
 
-    private fun requestLocationUpdates() {
-        if (!hasLocationPermission(appContext)) return
-        val provider = pickProvider() ?: return
-        val listener = LocationListener { location -> onMain { onLocation(location) } }
-        val ok = runCatching {
-            locationManager.requestLocationUpdates(
-                provider,
-                /* minTimeMillis = */ 1_000L,
-                /* minDistanceMeters = */ 0.5f,
-                listener,
-                Looper.getMainLooper(),
-            )
-        }.isSuccess
-        if (ok) {
-            locationListener = listener
-            runCatching { locationManager.getLastKnownLocation(provider) }
-                .getOrNull()
-                ?.let { onLocation(it) }
+    private fun refreshAccess(force: Boolean) {
+        lastAccessCheck = elapsedRealtime()
+        val access = locationSource.access()
+        if (!force && access == lastAccess && subscribed && !locationSource.providersChanged()) return
+        generation++
+        val requestGeneration = generation
+        locationSource.stop()
+        subscribed = false
+        lastPoint = null
+        lastAccess = access
+        _trackingStatus.value = when (access) {
+            RunLocationAccess.DENIED -> RunTrackingStatus.PERMISSION_REQUIRED
+            RunLocationAccess.APPROXIMATE -> RunTrackingStatus.PRECISE_LOCATION_REQUIRED
+            RunLocationAccess.DISABLED -> RunTrackingStatus.LOCATION_DISABLED
+            RunLocationAccess.UNAVAILABLE -> RunTrackingStatus.UNAVAILABLE
+            RunLocationAccess.AVAILABLE -> when {
+                lastFixMillis == null -> RunTrackingStatus.SEARCHING
+                elapsedRealtime() - lastFixMillis!! >= SIGNAL_TIMEOUT_MILLIS -> RunTrackingStatus.SIGNAL_LOST
+                else -> RunTrackingStatus.TRACKING
+            }
+        }
+        if (access == RunLocationAccess.AVAILABLE) {
+            subscribed = locationSource.start { fix ->
+                onMain { if (isTracking && generation == requestGeneration) onLocation(fix) }
+            }
+            if (!subscribed) _trackingStatus.value = RunTrackingStatus.UNAVAILABLE
         }
     }
 
-    private fun pickProvider(): String? {
-        val candidates = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-        return candidates.firstOrNull { provider ->
-            runCatching { locationManager.isProviderEnabled(provider) }.getOrDefault(false)
+    private fun onLocation(fix: RunLocationFix) {
+        val now = elapsedRealtime()
+        val point = fix.point
+        if (now - fix.elapsedRealtimeMillis !in 0L..MAX_FIX_AGE_MILLIS || !RaceMath.isUsablePoint(point)) return
+        val previousFixAt = lastFixMillis
+        if (previousFixAt != null && fix.elapsedRealtimeMillis <= previousFixAt) return
+        // Never bridge a paused session, a lost signal or an old warm-start position.
+        val previous = lastPoint.takeIf {
+            !paused && previousFixAt != null && now - previousFixAt < SIGNAL_TIMEOUT_MILLIS
         }
-    }
-
-    private fun onLocation(location: Location) {
-        if (!isTracking || paused) return
-        val point = RacePoint(location.latitude, location.longitude, location.accuracy)
-        val previous = lastPoint
         val step = RaceMath.stepMeters(previous, point)
         if (previous != null) {
+            val dt = (fix.elapsedRealtimeMillis - previousFixAt!!) / 1_000.0
+            // A rejected jump must not become the seed for the next measurement.
+            if (RaceMath.haversineMeters(previous, point) > RaceMath.MAX_PLAUSIBLE_STEP_METERS ||
+                dt <= 0.0 || step / dt > MAX_RUNNING_SPEED_MPS) return
             distanceMeters += step
-            if (step > 0.0) {
-                val sampled = if (location.hasSpeed() && location.speed >= 0f) {
-                    location.speed.toDouble()
-                } else {
-                    val dt = (location.elapsedRealtimeNanos - lastLocationNanos) / 1_000_000_000.0
-                    if (dt > 0.5) step / dt else null
-                }
-                if (sampled != null) {
-                    speedMps = SPEED_SMOOTHING * speedMps + (1 - SPEED_SMOOTHING) * sampled
-                }
-            }
+            val sampled = fix.speedMps?.takeIf { it.isFinite() && it in 0.0..MAX_RUNNING_SPEED_MPS } ?: step / dt
+            speedMps = SPEED_SMOOTHING * speedMps + (1 - SPEED_SMOOTHING) * sampled
+        } else {
+            speedMps = 0.0
         }
-        // Seed or reseed only with fixes good enough to trust as a position.
-        if (point.accuracyMeters <= RaceMath.MAX_ACCEPTABLE_ACCURACY_METERS) {
+        if (!paused && fix.elapsedRealtimeMillis >= startedAt) {
             if (routePoints.lastOrNull() != point) routePoints.add(point)
             lastPoint = point
-            if (!hasFix) {
-                hasFix = true
-                speedMps = 0.0
-            }
+        } else {
+            lastPoint = null
         }
-        lastLocationNanos = location.elapsedRealtimeNanos
+        hasFix = true
+        lastFixMillis = fix.elapsedRealtimeMillis
+        _trackingStatus.value = RunTrackingStatus.TRACKING
         publish()
     }
 
     private fun advanceMovingClock() {
-        val now = SystemClock.elapsedRealtime()
+        val now = elapsedRealtime()
         if (!paused && isTracking) {
             movingMillis += (now - lastTickAt).coerceAtLeast(0L)
         }
@@ -237,6 +258,15 @@ class RunTracker(
     private fun tick() {
         if (!isTracking) return
         advanceMovingClock()
+        val now = elapsedRealtime()
+        if (now - lastAccessCheck >= ACCESS_RECHECK_MILLIS) refreshAccess(force = false)
+        if (subscribed && lastAccess == RunLocationAccess.AVAILABLE) {
+            _trackingStatus.value = when {
+                now - (lastFixMillis ?: startedAt) >= SIGNAL_TIMEOUT_MILLIS -> RunTrackingStatus.SIGNAL_LOST
+                hasFix -> RunTrackingStatus.TRACKING
+                else -> RunTrackingStatus.SEARCHING
+            }
+        }
         when {
             paused -> Unit
             !hasFix -> speedMps = 1000.0 / racePaceSecondsPerKm

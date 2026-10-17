@@ -1,6 +1,9 @@
 package com.mrcerise.intervalcoach.ui.player
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.view.WindowManager
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -64,7 +67,7 @@ import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.data.PlayerDensity
 import com.mrcerise.intervalcoach.data.category
 import com.mrcerise.intervalcoach.health.HrZones
-import com.mrcerise.intervalcoach.session.RunTracker
+import com.mrcerise.intervalcoach.session.RunTrackingStatus
 import com.mrcerise.intervalcoach.session.formatClock
 import com.mrcerise.intervalcoach.ui.components.CategoryChip
 import com.mrcerise.intervalcoach.ui.components.ConfirmDialog
@@ -385,7 +388,20 @@ fun PlayerScreen(
                 if (active?.plan?.category?.capabilities?.supportsRaceInfo == true) {
                     Spacer(Modifier.height(dimens.xs))
                     val race by container.runTracker.raceInfo.collectAsStateWithLifecycle()
-                    RaceInfoBand(race = race, hasLocationPermission = RunTracker.hasLocationPermission(context))
+                    val trackingStatus by container.runTracker.trackingStatus.collectAsStateWithLifecycle()
+                    RaceInfoBand(
+                        race = race,
+                        trackingStatus = trackingStatus,
+                        onLocationAction = {
+                            when (trackingStatus) {
+                                RunTrackingStatus.LOCATION_DISABLED ->
+                                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                                RunTrackingStatus.PERMISSION_REQUIRED, RunTrackingStatus.PRECISE_LOCATION_REQUIRED ->
+                                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                                else -> container.runTracker.refreshLocationAccess()
+                            }
+                        },
+                    )
                 }
 
                 // --- Next interval, timeline and controls: anchored to the bottom -----------
@@ -584,7 +600,12 @@ private fun PlayerRoundButton(icon: androidx.compose.ui.graphics.vector.ImageVec
  * third column is what is left of the race; otherwise it is the live pace.
  */
 @Composable
-private fun RaceInfoBand(race: RaceInfo?, hasLocationPermission: Boolean, modifier: Modifier = Modifier) {
+private fun RaceInfoBand(
+    race: RaceInfo?,
+    trackingStatus: RunTrackingStatus,
+    onLocationAction: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(modifier.fillMaxWidth()) {
@@ -613,18 +634,39 @@ private fun RaceInfoBand(race: RaceInfo?, hasLocationPermission: Boolean, modifi
             }
         }
         Spacer(Modifier.height(dimens.microGap))
+        val statusText = when (trackingStatus) {
+            RunTrackingStatus.INACTIVE -> stringResource(R.string.player_race_starting)
+            RunTrackingStatus.SEARCHING -> stringResource(R.string.player_race_waiting_gps)
+            RunTrackingStatus.TRACKING -> stringResource(R.string.player_race_gps_live)
+            RunTrackingStatus.SIGNAL_LOST -> stringResource(R.string.player_race_signal_lost)
+            RunTrackingStatus.PERMISSION_REQUIRED -> stringResource(R.string.player_race_permission_required)
+            RunTrackingStatus.PRECISE_LOCATION_REQUIRED -> stringResource(R.string.player_race_precise_required)
+            RunTrackingStatus.LOCATION_DISABLED -> stringResource(R.string.player_race_location_disabled)
+            RunTrackingStatus.UNAVAILABLE -> stringResource(R.string.player_race_location_unavailable)
+        }
+        val estimated = race != null && !race.hasFix && trackingStatus != RunTrackingStatus.SEARCHING
         Text(
-            text = when {
-                race == null -> stringResource(R.string.player_race_starting)
-                race.hasFix -> stringResource(R.string.player_race_gps_live)
-                hasLocationPermission -> stringResource(R.string.player_race_waiting_gps)
-                else -> stringResource(R.string.player_race_estimated, RaceMath.formatPace(race.racePaceSecondsPerKm?.toDouble()))
-            },
+            text = if (estimated) {
+                statusText + "\n" + stringResource(R.string.player_race_estimated, RaceMath.formatPace(race?.racePaceSecondsPerKm?.toDouble()))
+            } else statusText,
             style = MaterialTheme.typography.labelSmall,
             color = colors.textMuted,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
+        val actionLabel = when (trackingStatus) {
+            RunTrackingStatus.PERMISSION_REQUIRED, RunTrackingStatus.PRECISE_LOCATION_REQUIRED -> R.string.player_race_location_permissions
+            RunTrackingStatus.LOCATION_DISABLED -> R.string.player_race_enable_location
+            RunTrackingStatus.UNAVAILABLE, RunTrackingStatus.SIGNAL_LOST -> R.string.retry
+            else -> null
+        }
+        if (actionLabel != null) {
+            GhostActionButton(
+                text = stringResource(actionLabel),
+                onClick = onLocationAction,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 

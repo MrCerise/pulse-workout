@@ -458,4 +458,11 @@
     <string name="watch_session_stop_message">L’entraînement sur votre montre se terminera et sera enregistré comme arrêté avant la fin.</string>
     <string name="watch_session_keep_going">Continuer</string>
     <string name="recording_delete_failed">Impossible de supprimer l’enregistrement. Réessayez.</string>
+    <string name="player_race_permission_required">L’accès à la localisation est désactivé</string>
+    <string name="player_race_precise_required">Activez la position précise pour mesurer votre course</string>
+    <string name="player_race_location_disabled">La localisation de l’appareil est désactivée</string>
+    <string name="player_race_location_unavailable">La localisation est indisponible sur cet appareil</string>
+    <string name="player_race_signal_lost">Aucun signal GPS exploitable · essayez à l’extérieur</string>
+    <string name="player_race_location_permissions">Autorisations de localisation</string>
+    <string name="player_race_enable_location">Activer la localisation</string>
 </resources>

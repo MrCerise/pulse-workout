@@ -218,12 +218,15 @@ class SessionController(
         music.configure(current)
         music.start()
         acquireWakeLockIfNeeded(current)
-        ensureTicker()
         // The running system: GPS race info for categories that carry it, projected pace otherwise.
         if (plan.category.capabilities.supportsRaceInfo) {
             runTracker.start(plan)
         }
+        // Publish the active state before the service observes it; otherwise its first snapshot
+        // can still be inactive and stop the GPS foreground service immediately after startup.
+        publish()
         WorkoutService.start(context)
+        ensureTicker()
         Result.success(session)
     }
 
