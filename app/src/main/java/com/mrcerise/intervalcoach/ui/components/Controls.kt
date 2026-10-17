@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,6 +72,7 @@ import com.mrcerise.intervalcoach.ui.theme.LocalPulseMotion
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseDimens
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseShapes
 import com.mrcerise.intervalcoach.ui.theme.PulseType
+import kotlinx.coroutines.launch
 
 /**
  * Buttons, fields, chips and pickers — the interactive half of the Momentum design system.
@@ -812,7 +817,7 @@ fun PulseSliderRow(
     }
 }
 
-/** A duration field: -/+ step, -/+1 min shortcuts, and tap the value to type an exact min:sec. */
+/** A duration field: tap the value pill to open a number-scroll (wheel) picker — hours, minutes, seconds. */
 @Composable
 fun DurationStepper(
     label: String,
@@ -828,56 +833,105 @@ fun DurationStepper(
     val dimens = LocalPulseDimens.current
     val min = if (allowZero) 0L else stepMillis
     var editing by remember { mutableStateOf(false) }
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
-        Column(Modifier.fillMaxWidth().clickable(enabled = enabled) { editing = true },
-            verticalArrangement = Arrangement.spacedBy(dimens.microGap)) {
-            Text(label, style = PulseType.SectionLabel, color = colors.textMuted)
-            Text(formatStepperDuration(millis), style = PulseType.StepperValue,
-                color = if (enabled) colors.textPrimary else colors.textDisabled,
-                modifier = Modifier.semantics { contentDescription = "$label duration, tap to edit" })
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(dimens.xs), verticalAlignment = Alignment.CenterVertically) {
-            MinuteStepperButton("-1m", "Decrease $label by one minute", enabled && millis > min) { onChange((millis - 60_000L).coerceAtLeast(min)) }
-            StepperButton(Icons.Filled.Remove, "Decrease $label", enabled && millis > min, onClick = { onChange((millis - stepMillis).coerceAtLeast(min)) })
-            StepperButton(Icons.Filled.Add, "Increase $label", enabled && millis < maxMillis, onClick = { onChange((millis + stepMillis).coerceAtMost(maxMillis)) })
-            MinuteStepperButton("+1m", "Increase $label by one minute", enabled && millis < maxMillis) { onChange((millis + 60_000L).coerceAtMost(maxMillis)) }
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, style = PulseType.SectionLabel, color = colors.textMuted, modifier = Modifier.weight(1f))
+        Surface(
+            onClick = { if (enabled) editing = true },
+            enabled = enabled,
+            shape = LocalPulseShapes.current.control,
+            color = colors.surfaceRaised,
+            contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
+            border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+        ) {
+            Row(Modifier.padding(horizontal = dimens.m, vertical = dimens.s), verticalAlignment = Alignment.CenterVertically) {
+                Text(formatStepperDuration(millis), style = PulseType.StepperValue,
+                    color = if (enabled) colors.textPrimary else colors.textDisabled,
+                    modifier = Modifier.semantics { contentDescription = "$label duration, scroll to change" })
+                Spacer(Modifier.width(dimens.xs))
+                Icon(Icons.Filled.UnfoldMore, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
+            }
         }
     }
     if (editing) {
-        var minutes by remember(millis) { mutableStateOf((millis / 60_000L).toString()) }
-        var seconds by remember(millis) { mutableStateOf(((millis % 60_000L) / 1000L).toString()) }
-        Dialog(onDismissRequest = { editing = false }) {
-            Surface(shape = LocalPulseShapes.current.sheet, color = colors.surfaceOverlay, contentColor = colors.textPrimary,
-                border = BorderStroke(dimens.borderWidth, colors.border)) {
-                Column(Modifier.padding(dimens.xl), verticalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    Text(label, style = MaterialTheme.typography.headlineSmall, color = colors.textPrimary)
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        Box(Modifier.weight(1f)) { PulseTextField(minutes, { minutes = it.filter(Char::isDigit).take(4) }, label = "Minutes", singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number, imeAction = ImeAction.Next)) }
-                        Box(Modifier.weight(1f)) { PulseTextField(seconds, { seconds = it.filter(Char::isDigit).take(2) }, label = "Seconds", singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number, imeAction = ImeAction.Done)) }
-                    }
-                    PrimaryActionButton("Save", onClick = {
-                        val total = ((minutes.toLongOrNull() ?: 0L) * 60L + (seconds.toLongOrNull() ?: 0L).coerceIn(0L, 59L)) * 1000L
-                        onChange(total.coerceIn(min, maxMillis)); editing = false
-                    }, modifier = Modifier.fillMaxWidth())
-                    GhostActionButton("Cancel", onClick = { editing = false }, modifier = Modifier.fillMaxWidth())
-                }
+        var hours by remember(millis) { mutableStateOf((millis / 3_600_000L).toInt()) }
+        var minutes by remember(millis) { mutableStateOf(((millis % 3_600_000L) / 60_000L).toInt()) }
+        val stepSec = (stepMillis / 1000L).toInt().coerceAtLeast(1)
+        val secondOptions = remember(stepSec, millis) {
+            ((0..59 step stepSec).toList() + ((millis % 60_000L) / 1000L).toInt()).distinct().sorted()
+        }
+        var seconds by remember(millis) { mutableStateOf(((millis % 60_000L) / 1000L).toInt()) }
+        fun emit() {
+            val total = (hours * 3600L + minutes * 60L + seconds) * 1000L
+            onChange(total.coerceIn(min, maxMillis))
+        }
+        PulseBottomSheet(title = label, onDismiss = { editing = false }) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                NumberWheel((0..23).toList(), hours, "h", Modifier.weight(1f)) { hours = it; emit() }
+                NumberWheel((0..59).toList(), minutes, "min", Modifier.weight(1f)) { minutes = it; emit() }
+                NumberWheel(secondOptions, seconds, "s", Modifier.weight(1f)) { seconds = it; emit() }
             }
+            Spacer(Modifier.height(dimens.m))
+            PrimaryActionButton("Done", onClick = { editing = false }, modifier = Modifier.fillMaxWidth())
         }
     }
 }
 
+/**
+ * One scrolling number column: scroll (or tap) to centre a value; the centred value is selected.
+ * A highlight band marks the centre row, values shrink/fade with distance from it.
+ */
 @Composable
-private fun MinuteStepperButton(text: String, description: String, enabled: Boolean, onClick: () -> Unit) {
+private fun NumberWheel(
+    values: List<Int>,
+    selected: Int,
+    unit: String,
+    modifier: Modifier = Modifier,
+    onSelect: (Int) -> Unit,
+) {
     val colors = LocalPulseColors.current
-    Surface(onClick = onClick, enabled = enabled, modifier = Modifier.size(width = 40.dp, height = 36.dp),
-        shape = LocalPulseShapes.current.control, color = if (enabled) colors.surface else colors.surfaceHover,
-        contentColor = if (enabled) colors.textPrimary else colors.textDisabled,
-        border = BorderStroke(LocalPulseDimens.current.borderWidth, colors.borderStrong)) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(text, style = MaterialTheme.typography.labelMedium, modifier = Modifier.semantics { contentDescription = description })
+    val dimens = LocalPulseDimens.current
+    val itemHeight = 44.dp
+    val initialIndex = values.indexOf(selected).coerceAtLeast(0)
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    LaunchedEffect(listState, selected) {
+        androidx.compose.runtime.snapshotFlow { listState.isScrollInProgress }
+            .collect { scrolling ->
+                if (!scrolling) {
+                    val info = listState.layoutInfo
+                    val centre = (info.viewportStartOffset + info.viewportEndOffset) / 2
+                    val centred = info.visibleItemsInfo.minByOrNull { kotlin.math.abs((it.offset + it.size / 2) - centre) }
+                    val idx = centred?.index
+                    if (idx != null && idx in values.indices && values[idx] != selected) onSelect(values[idx])
+                }
+            }
+    }
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.fillMaxWidth().height(itemHeight * 3)) {
+            Box(Modifier.align(Alignment.Center).fillMaxWidth().height(itemHeight)
+                .background(colors.accentTint, LocalPulseShapes.current.control))
+            androidx.compose.foundation.lazy.LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = itemHeight),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                items(values.size) { i ->
+                    val value = values[i]
+                    Box(Modifier.fillMaxWidth().height(itemHeight).clickable {
+                        scope.launch { listState.animateScrollToItem(i) }; onSelect(value)
+                    }, contentAlignment = Alignment.Center) {
+                        Text(
+                            value.toString(),
+                            style = if (value == selected) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
+                            color = if (value == selected) colors.textPrimary else colors.textMuted,
+                        )
+                    }
+                }
+            }
         }
+        Spacer(Modifier.height(dimens.xs))
+        Text(unit, style = PulseType.SectionLabel, color = colors.textMuted)
     }
 }
 
@@ -1019,6 +1073,7 @@ fun PulseBottomSheet(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.navigationBars)
                 .background(colors.scrim)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -1039,8 +1094,8 @@ fun PulseBottomSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 560.dp)
-                        .padding(bottom = dimens.xl),
+                        .heightIn(max = 640.dp)
+                        .padding(bottom = dimens.l),
                 ) {
                     Spacer(Modifier.height(dimens.s))
                     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

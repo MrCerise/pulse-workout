@@ -272,22 +272,41 @@ fun SessionSummaryScreen(
                     sharing = true
                     shareError = false
                     scope.launch {
-                        try {
-                            val uri = withContext(Dispatchers.IO) {
+                        // Image first; if rendering or the provider fails for any reason, fall back
+                        // to a text share so sharing always works.
+                        val imageUri = runCatching {
+                            withContext(Dispatchers.IO) {
                                 val bitmap = SummaryImage.render(context, current)
-                                try { SummaryImage.writeToCache(context, bitmap) }
-                                finally { bitmap.recycle() }
+                                try { SummaryImage.writeToCache(context, bitmap) } finally { bitmap.recycle() }
                             }
-                            val intent = Intent(Intent.ACTION_SEND).apply {
-                                type = "image/png"
-                                putExtra(Intent.EXTRA_STREAM, uri)
-                                putExtra(Intent.EXTRA_TITLE, current.planName)
-                                clipData = ClipData.newRawUri(current.planName, uri)
-                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }.getOrNull()
+                        try {
+                            if (imageUri != null) {
+                                val send = Intent(Intent.ACTION_SEND).apply {
+                                    type = "image/png"
+                                    putExtra(Intent.EXTRA_STREAM, imageUri)
+                                    putExtra(Intent.EXTRA_TITLE, current.planName)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                // Grant every chooser target read access explicitly (some OEM
+                                // choosers drop the flag grant for the wrapped intent).
+                                val chooser = Intent.createChooser(send, context.getString(R.string.summary_share_title)).apply {
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                context.packageManager.queryIntentActivities(send, 0).forEach { info ->
+                                    runCatching { context.grantUriPermission(info.activityInfo.packageName, imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+                                }
+                                context.startActivity(chooser)
+                            } else {
+                                val text = "${current.planName} — ${formatDuration(current.activeMillis)} active, " +
+                                    "${current.completedIntervals}/${current.totalIntervals} intervals"
+                                val send = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_SUBJECT, current.planName)
+                                    putExtra(Intent.EXTRA_TEXT, text)
+                                }
+                                context.startActivity(Intent.createChooser(send, context.getString(R.string.summary_share_title)))
                             }
-                            context.startActivity(Intent.createChooser(intent, context.getString(R.string.summary_share_title)))
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
                         } catch (_: Exception) {
                             shareError = true
                         } finally {

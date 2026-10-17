@@ -79,6 +79,7 @@ import com.mrcerise.intervalcoach.ui.components.PulseTone
 import com.mrcerise.intervalcoach.ui.components.TimelineBar
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseColors
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseDimens
+import com.mrcerise.intervalcoach.ui.theme.LocalPulseElevation
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseShapes
 import com.mrcerise.intervalcoach.ui.theme.PulseType
 import kotlinx.coroutines.delay
@@ -427,19 +428,20 @@ fun PlayerScreen(
 
                 Spacer(Modifier.height(dimens.l))
 
-                // --- Controls (mirrored for left-handed use) ---
-                val mainControls: @Composable () -> Unit = {
+                // --- Controls: one centred transport cluster --------------------------------
+                Column(
+                    Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(dimens.m),
+                ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(dimens.m),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.l, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        PulseIconButton(
+                        PlayerRoundButton(
                             icon = Icons.Filled.SkipPrevious,
-                            contentDescription = "Previous interval",
-                            tooltip = "Previous interval",
+                            description = "Previous interval",
                             onClick = { controller.previous() },
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
                         )
                         TransportButton(
                             paused = snapshot.status == TimerStatus.PAUSED,
@@ -449,35 +451,16 @@ fun PlayerScreen(
                                 if (snapshot.status == TimerStatus.AWAITING_MANUAL) controller.completeManual() else controller.togglePause()
                             },
                         )
-                        PulseIconButton(
+                        PlayerRoundButton(
                             icon = Icons.Filled.SkipNext,
-                            contentDescription = stringResource(R.string.player_next),
-                            tooltip = stringResource(R.string.player_next),
+                            description = stringResource(R.string.player_next),
                             onClick = { controller.next() },
-                            tint = colors.textSecondary,
-                            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
                         )
                     }
-                }
-
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val secondary: @Composable () -> Unit = {
-                        SecondaryControls(
-                            onAddTime = { controller.addTime(15_000) },
-                            onLap = { controller.lap() },
-                        )
-                    }
-                    if (leftHanded) {
-                        secondary()
-                        mainControls()
-                    } else {
-                        mainControls()
-                        secondary()
-                    }
+                    SecondaryControls(
+                        onAddTime = { controller.addTime(15_000) },
+                        onLap = { controller.lap() },
+                    )
                 }
 
                 Spacer(Modifier.height(dimens.s))
@@ -553,7 +536,7 @@ private fun TransportButton(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .size(76.dp)
+            .size(88.dp)
             .semantics { contentDescription = description },
         shape = CircleShape,
         // The transport is the phase: one round control, filled with the colour of the interval it
@@ -569,8 +552,28 @@ private fun TransportButton(
                     else -> Icons.Filled.Pause
                 },
                 contentDescription = null,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(38.dp),
             )
+        }
+    }
+}
+
+/** A modern round secondary transport button: raised circle, border, centred glyph. */
+@Composable
+private fun PlayerRoundButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.size(56.dp).semantics { contentDescription = description },
+        shape = CircleShape,
+        color = colors.surfaceRaised,
+        contentColor = colors.textPrimary,
+        border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+        shadowElevation = LocalPulseElevation.current.level1,
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, tint = colors.textPrimary, modifier = Modifier.size(26.dp))
         }
     }
 }
@@ -686,24 +689,30 @@ private fun HeartRateBadge(bpm: Int, modifier: Modifier = Modifier) {
 @Composable
 private fun SecondaryControls(onAddTime: () -> Unit, onLap: () -> Unit) {
     val colors = LocalPulseColors.current
-    Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.xs), verticalAlignment = Alignment.CenterVertically) {
-        PulseIconButton(
-            icon = Icons.Filled.Add,
-            contentDescription = "Add 15 seconds",
-            tooltip = "Add 15 seconds",
-            onClick = onAddTime,
-            tint = colors.textSecondary,
-            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
-        )
-        // A play triangle for "record a lap" read as a second start button — hence the flag.
-        PulseIconButton(
-            icon = Icons.Filled.Flag,
-            contentDescription = "Record a lap",
-            tooltip = "Record a lap",
-            onClick = onLap,
-            tint = colors.textSecondary,
-            modifier = Modifier.size(LocalPulseDimens.current.minTouchTarget),
-        )
+    val dimens = LocalPulseDimens.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(dimens.s, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        listOf(
+            Triple(Icons.Filled.Add, "Add 15 seconds", onAddTime),
+            Triple(Icons.Filled.Flag, "Record a lap", onLap),
+        ).forEach { (icon, label, action) ->
+            Surface(
+                onClick = action,
+                shape = LocalPulseShapes.current.pill,
+                color = colors.surfaceRaised,
+                contentColor = colors.textPrimary,
+                border = BorderStroke(dimens.borderWidth, colors.borderStrong),
+            ) {
+                Row(Modifier.padding(horizontal = dimens.m, vertical = dimens.s), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(icon, contentDescription = label, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(dimens.xs))
+                    Text(label, style = MaterialTheme.typography.labelLarge, color = colors.textPrimary)
+                }
+            }
+        }
     }
 }
 
