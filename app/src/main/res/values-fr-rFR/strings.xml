@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Interval Coach</string>
+    <string name="app_name">Intervalle d\'entraînement</string>
     <string name="app_tagline">Intervalle d\'entrainement</string>
     <!-- Navigation -->
     <string name="nav_home">Accueil</string>
     <string name="nav_workouts">Entraînements</string>
     <string name="nav_progress">Progression</string>
     <string name="nav_settings">Paramètres</string>
-    <string name="nav_today">Today</string>
-    <string name="nav_health">Health</string>
-    <string name="nav_group_library">Library</string>
-    <string name="nav_group_system">System</string>
+    <string name="nav_today">Aujourd’hui</string>
+    <string name="nav_health">Santé</string>
+    <string name="nav_group_library">Bibliothèque</string>
+    <string name="nav_group_system">Système</string>
     <!-- Breadcrumb titles for the routes whose own header string cannot be reused. -->
-    <string name="title_category">Category</string>
-    <string name="title_builder">Builder</string>
-    <string name="title_details">Workout</string>
-    <string name="title_session">Session</string>
+    <string name="title_category">Catégorie</string>
+    <string name="title_builder">Constructeur</string>
+    <string name="title_details">Entraînement</string>
+    <string name="title_session">Séance</string>
     <!-- Home -->
     <string name="home_greeting">Aujourd’hui</string>
     <string name="home_quick_start">Démarrage rapide</string>
@@ -23,7 +23,7 @@
     <string name="home_recent">Récent</string>
     <string name="home_next_planned">Prochaine planifiée</string>
     <string name="home_week_summary">Cette semaine</string>
-    <string name="home_start">Début</string>
+    <string name="home_start">Démarrer</string>
     <string name="home_no_favorites">Faites une séance d\'entraînement pour l\'épingler ici.</string>
     <string name="home_no_recent">Aucune session récente</string>
     <string name="home_no_planned">Aucune session planifiée</string>
@@ -43,14 +43,14 @@
     <string name="view_list">Liste</string>
     <string name="view_grid">Grille</string>
     <string name="filter_favorites">Favoris</string>
-    <string name="filter_all">All</string>
-    <string name="filter_title">Filter workouts</string>
-    <string name="filter_clear">Clear filters</string>
-    <string name="workouts_filter_empty_body">Try another filter or search.</string>
+    <string name="filter_all">Tous</string>
+    <string name="filter_title">Filtrer les entraînements</string>
+    <string name="filter_clear">Effacer les filtres</string>
+    <string name="workouts_filter_empty_body">Essayez un autre filtre ou une recherche.</string>
     <string name="filter_all_folders">Tous les dossiers</string>
-    <string name="workouts_no_favorites_title">No favorites yet</string>
+    <string name="workouts_no_favorites_title">Aucun favori pour l’instant</string>
     <string name="action_duplicate">Doublon</string>
-    <string name="action_delete">Supprimez</string>
+    <string name="action_delete">Supprimer</string>
     <string name="action_edit">Modifier</string>
     <string name="action_share">Partager</string>
     <string name="action_move">Déplacer vers le dossier</string>
@@ -73,7 +73,7 @@
     <string name="external_start_body">Un lien demandé pour démarrer «%1$s». Le démarrage ajoutera une session à votre historique.</string>
     <string name="external_start_replace_body">Démarrer «%1$s» et terminer «%2$s»? La session en cours sera sauvegardée comme arrêtée.</string>
     <string name="external_start_unavailable">Cet entraînement n\'est plus disponible.</string>
-    <string name="details_preview">Aperçu des cues</string>
+    <string name="details_preview">Aperçu des annonces</string>
     <string name="details_intervals">Intervalles %1$d</string>
     <!-- Builder -->
     <string name="builder_quick_title">Constructeur rapide</string>
@@ -102,26 +102,26 @@
     <string name="builder_rest_after_group">Repos après bloc</string>
     <string name="builder_manual">Manuel (appuyez pour terminer)</string>
     <string name="builder_phase">Phase</string>
-    <string name="builder_interval_name">Interval name</string>
-    <string name="builder_editor_basics">Basics</string>
-    <string name="builder_editor_timing">Timing</string>
-    <string name="builder_editor_cues">Cues</string>
-    <string name="builder_editor_voice_notes">Voice &amp; notes</string>
-    <string name="builder_interval_actions">Interval actions</string>
-    <string name="builder_editor_block_settings">Block settings</string>
-    <string name="builder_block_name">Block name</string>
-    <string name="builder_editor_intervals">Intervals</string>
-    <string name="builder_block_intervals">Intervals inside this block</string>
-    <string name="builder_add_interval_to_block">Add interval to block</string>
-    <string name="builder_speech">cue parlée</string>
-    <string name="builder_sound">Sonnerie</string>
-    <string name="builder_haptic">Vibreur</string>
+    <string name="builder_interval_name">Nom de l’intervalle</string>
+    <string name="builder_editor_basics">Bases</string>
+    <string name="builder_editor_timing">Minutage</string>
+    <string name="builder_editor_cues">Signaux</string>
+    <string name="builder_editor_voice_notes">Voix &amp; notes</string>
+    <string name="builder_interval_actions">Actions des intervalles</string>
+    <string name="builder_editor_block_settings">Paramètres du bloc</string>
+    <string name="builder_block_name">Nom du bloc</string>
+    <string name="builder_editor_intervals">Intervalles</string>
+    <string name="builder_block_intervals">Intervalles dans ce bloc</string>
+    <string name="builder_add_interval_to_block">Ajouter un intervalle au bloc</string>
+    <string name="builder_speech">Annonce parlée</string>
+    <string name="builder_sound">Son</string>
+    <string name="builder_haptic">Vibration</string>
     <string name="builder_color">Couleur</string>
     <string name="builder_image">Image de l\'exercice</string>
     <string name="builder_image_description">Description de l\'image</string>
-    <string name="builder_notes">Intervalle de note</string>
+    <string name="builder_notes">Note de l\'intervalle</string>
     <string name="builder_tags">Tags</string>
-    <string name="builder_folder">Répertoire</string>
+    <string name="builder_folder">Dossier</string>
     <string name="builder_equipment">Équipement </string>
     <string name="builder_shuffle">Intervalles d\'effort aléatoire</string>
     <string name="builder_left_right">Ajouter à gauche / droite</string>
@@ -129,11 +129,11 @@
     <string name="builder_ladder_delta">Changement par manche</string>
     <string name="draft_restored">Brouillon inachevé restauré</string>
     <string name="discard_draft_title">Ignorer les modifications ?</string>
-    <string name="discard_draft_body">Vous avez des modifications non enregistrées vers «%1$s».</string>
+    <string name="discard_draft_body">Vous avez des modifications non enregistrées vers \"%1$s\".</string>
     <string name="save_draft">Enregistrer</string>
     <string name="discard_draft">Abandonner</string>
-    <string name="cancel">Abandonner</string>
-    <string name="saved_toast">Enregistré «%1$s»</string>
+    <string name="cancel">Annuler</string>
+    <string name="saved_toast">Enregistré \"%1$s\"</string>
     <!-- Player -->
     <string name="player_next">Intervalle suivant</string>
     <string name="player_round">Tour %1$d de %2$d</string>
@@ -145,7 +145,7 @@
     <string name="player_session_remaining">Restantes : %1$s</string>
     <string name="player_open_ended">Ouverture terminée</string>
     <string name="player_voice_on">Voix activée</string>
-    <string name="player_voice_off">Cues en sourdine</string>
+    <string name="player_voice_off">Annonces en sourdine</string>
     <string name="player_music_on">Musique activée</string>
     <string name="player_music_ducked">Musique abaissée</string>
     <string name="player_keep_screen_on">Garder l\'écran allumé</string>
@@ -155,29 +155,29 @@
     <string name="player_end_session">Fin de la session</string>
     <string name="player_countdown_resumed">Minuterie en cours d\'exécution</string>
     <string name="player_up_next">Suivant</string>
-    <string name="player_elapsed">Elapsed</string>
-    <string name="player_remaining">Remaining</string>
-    <string name="settings_weekly_goal">Weekly goal</string>
+    <string name="player_elapsed">Temps écoulé</string>
+    <string name="player_remaining">Restant</string>
+    <string name="settings_weekly_goal">Objectif hebdomadaire</string>
     <string name="player_lap">Tour</string>
     <string name="player_laps">%1$d tours</string>
     <string name="player_instructor">Vue de l\'instructeur</string>
     <!-- Running system — race info in the player -->
-    <string name="player_race_speed">Speed</string>
+    <string name="player_race_speed">Vitesse</string>
     <string name="player_race_distance">Distance</string>
-    <string name="player_race_left">Left</string>
-    <string name="player_race_pace">Pace</string>
-    <string name="player_race_starting">Starting race tracking…</string>
-    <string name="player_race_gps_live">GPS live</string>
-    <string name="player_race_waiting_gps">Waiting for GPS · estimating from plan pace</string>
-    <string name="player_race_estimated">Estimated · %1$s /km plan</string>
-    <string name="builder_race_section">Race</string>
-    <string name="builder_race_pace">Target pace (per km)</string>
-    <string name="builder_race_distance">Race distance (km)</string>
-    <string name="builder_race_distance_hint">0 = open-ended run · race info shows speed and distance</string>
+    <string name="player_race_left">Gauche</string>
+    <string name="player_race_pace">Allure</string>
+    <string name="player_race_starting">Lancement du suivi de course…</string>
+    <string name="player_race_gps_live">GPS en direct</string>
+    <string name="player_race_waiting_gps">Attente du GPS · estimation à partir de l’allure prévue</string>
+    <string name="player_race_estimated">Estimé · %1$s/km prévu</string>
+    <string name="builder_race_section">Course</string>
+    <string name="builder_race_pace">Allure cible (par km)</string>
+    <string name="builder_race_distance">Distance de course (km)</string>
+    <string name="builder_race_distance_hint">0 = course sans fin · les infos de course affichent la vitesse et la distance</string>
     <string name="summary_race_distance">Distance</string>
-    <string name="summary_race_avg_speed">Average speed</string>
+    <string name="summary_race_avg_speed">Vitesse moyenne</string>
     <string name="summary_race_source_gps">GPS</string>
-    <string name="summary_race_source_estimated">Estimated</string>
+    <string name="summary_race_source_estimated">Estimé</string>
     <!-- Summary -->
     <string name="summary_title">Résumé de la session</string>
     <string name="summary_completed_at">%1$s terminé</string>
@@ -228,7 +228,7 @@
     <string name="voice_engine_missing">Aucun moteur de parole disponible</string>
     <string name="voice_engine_missing_body">Installez une voix dans les paramètres de synthèse vocale d\'Android. Les signaux sonores sont toujours disponibles.</string>
     <string name="voice_engine_install">Ouvrir les paramètres de synthèse vocale</string>
-    <string name="voice_offline_hint">Les annonces de ue ont besoin d\'une voix hors ligne pour fonctionner sans connexion.</string>
+    <string name="voice_offline_hint">Les annonces ont besoin d\'une voix hors ligne pour fonctionner sans connexion.</string>
     <string name="voice_rate">Taux de parole</string>
     <string name="voice_pitch">Tailler</string>
     <string name="voice_verbosity">Verbosité</string>
@@ -238,14 +238,14 @@
     <string name="voice_profile_name">Nom du profil</string>
     <string name="voice_preview">Aperçu</string>
     <string name="voice_stop_preview">Arrêter</string>
-    <string name="voice_test_line">Tour 1. Travaille, vingt secondes. Trois secondes, deux, une, une.</string>
+    <string name="voice_test_line">Round un. Effort, vingt secondes. Trois, deux, un, go.</string>
     <string name="voice_sounds">Sons sonores</string>
-    <string name="voice_sound_volume">Volume de la cue</string>
+    <string name="voice_sound_volume">Volume des annonces</string>
     <string name="voice_vibration">Vibreur</string>
-    <string name="voice_duck_music">Diminuer la musique pendant les cues</string>
+    <string name="voice_duck_music">Diminuer la musique pendant les annonces</string>
     <string name="voice_duck_title">Canard audio</string>
     <string name="voice_duck_hint">D\'autres applications de musique utilisent leur propre niveau de canard.</string>
-    <string name="voice_duck_level">Volume de la musique pendant les cues</string>
+    <string name="voice_duck_level">Volume de la musique pendant les annonces</string>
     <string name="voice_duck_active">Canard demandé</string>
     <string name="voice_duck_idle">Pas de canard demandé</string>
     <string name="voice_duck_phase">Canard : %1$s</string>
@@ -258,10 +258,10 @@
     <string name="voice_music_play">Jouer l\'audio de fond</string>
     <string name="voice_music_stop">Arrêter l\'audio en arrière-plan</string>
     <string name="voice_music_unavailable">Ce fichier ne peut pas être lu (%1$s). Sélectionnez-le à nouveau.</string>
-    <string name="voice_recording_title">Vos propres enregistrements cue</string>
+    <string name="voice_recording_title">Vos propres enregistrements d\'annonces</string>
     <string name="voice_record_start">Enregistrements</string>
     <string name="voice_record_stop">Arrêter l\'enregistrement</string>
-    <string name="voice_record_denied">L\'autorisation du microphone est nécessaire pour enregistrer une cue.</string>
+    <string name="voice_record_denied">L\'autorisation du microphone est nécessaire pour enregistrer une annonce.</string>
     <string name="voice_record_saved">Enregistrement enregistré «%1$s»</string>
     <string name="voice_tts_unavailable_toast">Pas de moteur de parole — jouer des signaux sonores à la place.</string>
     <string name="voice_countdown">Compte à rebours 3-2-1</string>
@@ -275,9 +275,9 @@
     <string name="theme_light">Lumière</string>
     <string name="theme_dark">Sombre</string>
     <string name="theme_black">Vrai noir</string>
-    <string name="settings_language">Language</string>
-    <string name="settings_language_system">System default</string>
-    <string name="settings_health_title">Health Connect</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_system">Par défaut du système</string>
+    <string name="settings_health_title">Connexion Santé</string>
     <string name="settings_dynamic_color">Accent du fond d\'écran</string>
     <string name="settings_reduced_motion">Mouvement réduit</string>
     <string name="settings_high_contrast">Contraste élevé</string>
@@ -295,10 +295,10 @@
     <string name="units_lb">Livres (lb)</string>
     <string name="settings_behaviour">Pendant les entraînements</string>
     <string name="settings_keep_screen_on">Garder l\'écran allumé</string>
-    <string name="settings_screen_off_cues">Continuer les cues avec l\'écran éteint</string>
+    <string name="settings_screen_off_cues">Continuer les annonces avec l\'écran éteint</string>
     <string name="settings_audio_interruption">Lorsque l\'audio est interrompu (appel, autre application)</string>
     <string name="audio_interrupt_pause">Mettre en pause l\'entraînement</string>
-    <string name="audio_interrupt_continue">Garder le timing, couper les cues</string>
+    <string name="audio_interrupt_continue">Garder le timing, couper les annonces</string>
     <string name="audio_interrupt_duck">Garder le timing, canard autre audio</string>
     <string name="settings_headphone_unplug">Lorsque les écouteurs sont débranchés</string>
     <string name="headphone_pause">Mettre en pause l\'entraînement</string>
@@ -314,33 +314,33 @@
     <string name="settings_permissions">Autorisations utilisées</string>
     <!-- Import / export -->
     <!-- Onboarding -->
-    <string name="welcome_title">Interval Coach</string>
-    <string name="welcome_subtitle">The HIIT &amp; Tabata interval timer.</string>
+    <string name="welcome_title">Intervalle d\'entraînement</string>
+    <string name="welcome_subtitle">Le minuteur d’intervalles HIIT &amp; Tabata.</string>
     <string name="welcome_theme">Choisir un thème</string>
-    <string name="welcome_language">Choose a language</string>
-    <string name="welcome_voice">Écouter une cue</string>
+    <string name="welcome_language">Choisir une langue</string>
+    <string name="welcome_voice">Écouter une annonce</string>
     <string name="welcome_voice_body">Écouter les changements d\'intervalle sans regarder l\'écran.</string>
     <string name="welcome_sample_workout">Essayez un démarrage de 4 minutes</string>
     <string name="welcome_skip">Ignorer</string>
     <string name="welcome_next">Suivant</string>
-    <string name="welcome_start">Start using Interval Coach</string>
+    <string name="welcome_start">Commencer à utiliser Intervalle d\'entraînement</string>
     <string name="welcome_notifications">Les notifications ajoutent des contrôles de minuterie à votre écran de verrouillage.</string>
     <string name="welcome_notifications_allow">Autoriser les notifications</string>
     <string name="welcome_permission_denied">Les notifications sont désactivées. L\'entraînement fonctionne toujours, mais sans contrôle en direct.</string>
     <!-- Help -->
     <string name="help_title">Aide</string>
     <string name="help_voice">Configuration de la voix</string>
-    <string name="help_voice_body">For offline coaching, install a voice in Android Settings → Text-to-speech. Without a voice, Interval Coach uses sound cues.</string>
+    <string name="help_voice_body">Pour un coaching hors ligne, installez une voix dans Paramètres Android → Synthèse vocale. Sans voix, Intervalle d\'entraînement utilise des signaux sonores.</string>
     <string name="help_background">Opération d\'arrière-plan</string>
     <string name="help_background_body">Le chronométrage continue avec la désactivation de l\'écran. Activez les indices d\'extinction de l\'écran dans les paramètres pour continuer à jouer les annonces.</string>
     <string name="help_audio">Dépannage audio</string>
-    <string name="help_audio_body">Vérifiez le volume des médias, ne pas déranger et le volume de cue dans l\'audio Voix &amp; . Le canard dans d\'autres applications de musique dépend du lecteur.</string>
+    <string name="help_audio_body">Vérifiez le volume multimédia, le mode Ne pas déranger et le volume des annonces dans \"Voix &amp; audio\". L’atténuation du volume des autres applications musicales dépend du lecteur utilisé.</string>
     <string name="help_gestures">Contrôles du lecteur</string>
     <string name="help_gestures_body">Les boutons de volume ajustent le volume des médias. Utilisez le lecteur ou la notification pour mettre en pause, passer ou terminer une session.</string>
     <string name="help_accessibility">Accessibilité</string>
     <string name="help_accessibility_body">Les mouvements réduits, les commandes à haut contraste et à gauche sont dans les paramètres. Utilisez Déplacer vers le haut / Déplacer vers le bas pour réorganiser les intervalles.</string>
     <!-- Common -->
-    <string name="builder_invalid_title">Cannot save yet</string>
+    <string name="builder_invalid_title">Impossible d’enregistrer pour l’instant</string>
     <string name="ok">Ok</string>
     <string name="close">Fermer</string>
     <string name="back">Précédent</string>
@@ -352,11 +352,11 @@
     <string name="minutes_short">%1$dm</string>
     <string name="hours_minutes">%1$sh %2$sm</string>
     <!-- Widgets & shortcuts -->
-    <string name="widget_favorites_name">Interval Coach favorites</string>
-    <string name="widget_quick_start_name">Interval Coach quick start</string>
+    <string name="widget_favorites_name">Entraînements favoris d’Intervalle d\'entraînement</string>
+    <string name="widget_quick_start_name">Début rapide avec Intervalle d\'entraînement</string>
     <string name="widget_quick_start_label">Démarrage rapide</string>
     <string name="widget_quick_start_sub">Travail / repos</string>
-    <string name="widget_empty">Open Interval Coach to star a workout</string>
+    <string name="widget_empty">Ouvrez Intervalle d\'entraînement pour commencer un entraînement</string>
     <string name="shortcut_recent">Entraînements récents</string>
     <string name="shortcut_quick">Constructeur rapide</string>
     <!-- Notifications -->
@@ -400,7 +400,7 @@
     <string name="share_total_time">Temps total · pauses incluses</string>
     <string name="share_skipped">Intervalles ignorés</string>
     <string name="share_rounds">Rounds enregistrées</string>
-    <string name="share_recorded">Recorded with Intervals</string>
+    <string name="share_recorded">Enregistré avec Intervalle d\'entraînement</string>
     <!-- Theme & streamlined AI flow -->
     <string name="json_send_prompt">Envoyer à l\'application AI</string>
     <string name="json_paste">Coller la réponse</string>
@@ -411,7 +411,7 @@
     <string name="json_paste_error">Impossible de coller. Utilisez Modifier JSON ou ouvrez un fichier.</string>
     <string name="help_health">Synchronisation de la santé</string>
     <string name="help_health_body">Connectez Health dans Paramètres→ Santé pour lire la fréquence cardiaque et les étapes ou synchroniser les entraînements. Gérez l\'accès dans les paramètres de Health d\'Android.</string>
-    <string name="help_permissions_body">Notifications: commandes de minuterie. Microphone: enregistrement de cue seulement. Accès à la santé: fréquence cardiaque, pas et synchronisation d\'entraînement. Chacune est optionnelle.</string>
+    <string name="help_permissions_body">Notifications : commandes de minuterie. Microphone : enregistrement des annonces seulement. Accès à la santé : fréquence cardiaque, pas et synchronisation d\'entraînement. Chacune est optionnelle.</string>
     <!-- Wear OS companion -->
     <string name="watch_banner_title">Entraînement en cours sur votre montre</string>
     <string name="watch_session_title">Regarder la session</string>
@@ -431,4 +431,5 @@
     <string name="watch_session_stop_confirm">Arrêter l\'entraînement de la montre ?</string>
     <string name="watch_session_stop_message">L\'entraînement sur votre montre se terminera et sera sauvegardé comme arrêté tôt.</string>
     <string name="watch_session_keep_going">Continuez</string>
+    <string name="recording_delete_failed">Impossible de supprimer l’enregistrement. Veuillez réessayer.</string>
 </resources>
