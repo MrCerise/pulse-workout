@@ -178,6 +178,10 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
     fun toggleFavoritesOnly() { favoritesOnly.value = !favoritesOnly.value }
     fun toggleGrid() { grid.value = !grid.value }
     fun setCategory(key: String?) { categoryKey.value = key }
+    fun clearFilters() {
+        favoritesOnly.value = false
+        categoryKey.value = null
+    }
 
     fun duplicate(id: String) = viewModelScope.launch {
         val plan = container.workouts.plan(id) ?: return@launch
@@ -217,6 +221,8 @@ fun WorkoutLibraryScreen(
     var pendingDelete by remember { mutableStateOf<WorkoutSummary?>(null) }
     var showNewMenu by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
+    val hasActiveFilters = state.favoritesOnly || state.categoryKey != null
+    val favoritesFilterLabel = stringResource(R.string.filter_favorites)
 
     PulseScaffold(
         floatingActionButton = {
@@ -255,7 +261,7 @@ fun WorkoutLibraryScreen(
                 },
             )
 
-            // --- Toolbar: sort (labelled, left), favourites, layout toggle (right) ----------------
+            // Sorting and presentation stay together; all content filters now live in one rail below.
             Row(
                 modifier = Modifier.padding(horizontal = dimens.pagePadding, vertical = dimens.xs),
                 verticalAlignment = Alignment.CenterVertically,
@@ -275,7 +281,6 @@ fun WorkoutLibraryScreen(
                         Text(state.sort.label(), style = MaterialTheme.typography.labelLarge, color = colors.textPrimary)
                     }
                 }
-                PulseChoiceChip(text = "Favorites", selected = state.favoritesOnly, onClick = viewModel::toggleFavoritesOnly)
                 Spacer(Modifier.weight(1f))
                 PulseIconButton(
                     icon = if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
@@ -285,11 +290,18 @@ fun WorkoutLibraryScreen(
                 )
             }
 
-            // --- Category rail -------------------------------------------------------------------
+            SectionHeader(
+                text = stringResource(R.string.filter_title),
+                modifier = Modifier.padding(horizontal = dimens.pagePadding),
+                actionLabel = if (hasActiveFilters) stringResource(R.string.filter_clear) else null,
+                onAction = if (hasActiveFilters) viewModel::clearFilters else null,
+            )
             CategoryFilterRail(
                 categories = WorkoutCategories.picker,
                 selectedKey = state.categoryKey,
                 onSelect = viewModel::setCategory,
+                favoritesOnly = state.favoritesOnly,
+                onToggleFavorites = viewModel::toggleFavoritesOnly,
             )
 
             if (state.workouts.isEmpty()) {
@@ -300,19 +312,24 @@ fun WorkoutLibraryScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     EmptyState(
-                        title = if (state.query.isBlank() && state.categoryKey == null) {
-                            "No workouts yet"
-                        } else {
-                            buildString {
+                        title = when {
+                            state.query.isBlank() && state.categoryKey == null && !state.favoritesOnly ->
+                                stringResource(R.string.workouts_empty_title)
+                            state.query.isBlank() && state.categoryKey == null && state.favoritesOnly ->
+                                stringResource(R.string.workouts_no_favorites_title)
+                            else -> buildString {
                                 append("Nothing matches ")
                                 state.categoryKey?.let { append("${WorkoutCategories.byKey(it).title} ") }
+                                if (state.favoritesOnly) append("$favoritesFilterLabel ")
                                 if (state.query.isNotBlank()) append("“${state.query}”")
                             }.trim()
                         },
-                        body = if (state.query.isBlank() && state.categoryKey == null) {
-                            stringResource(R.string.workouts_empty_body)
-                        } else {
-                            "Try another category or search."
+                        body = when {
+                            state.query.isBlank() && state.categoryKey == null && !state.favoritesOnly ->
+                                stringResource(R.string.workouts_empty_body)
+                            state.query.isBlank() && state.categoryKey == null && state.favoritesOnly ->
+                                stringResource(R.string.home_no_favorites)
+                            else -> stringResource(R.string.workouts_filter_empty_body)
                         },
                         icon = Icons.Filled.FitnessCenter,
                         actionLabel = "Build a workout",
@@ -420,16 +437,18 @@ fun WorkoutLibraryScreen(
 }
 
 /**
- * The category filter rail.
+ * The library's single horizontal filter rail: All, Favorites, then every category.
  *
- * It is generated from [WorkoutCategories.all] rather than from the workouts that happen to exist,
- * so the vocabulary of the app never depends on what is in the library today.
+ * Categories are generated from [WorkoutCategories.all] rather than from the workouts that happen
+ * to exist, so the available filters never depend on what is in the library today.
  */
 @Composable
 fun CategoryFilterRail(
     categories: List<WorkoutCategory>,
     selectedKey: String?,
     onSelect: (String?) -> Unit,
+    favoritesOnly: Boolean,
+    onToggleFavorites: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dimens = LocalPulseDimens.current
@@ -440,9 +459,17 @@ fun CategoryFilterRail(
     ) {
         item {
             PulseChoiceChip(
-                text = "All",
+                text = stringResource(R.string.filter_all),
                 selected = selectedKey == null,
                 onClick = { onSelect(null) },
+            )
+        }
+        item {
+            PulseChoiceChip(
+                text = stringResource(R.string.filter_favorites),
+                selected = favoritesOnly,
+                leadingIcon = if (favoritesOnly) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                onClick = onToggleFavorites,
             )
         }
         items(categories, key = { it.key }) { category ->
