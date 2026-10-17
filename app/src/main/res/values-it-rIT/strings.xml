@@ -315,7 +315,7 @@
     <!-- Import / export -->
     <!-- Onboarding -->
     <string name="welcome_title">Interval Coach</string>
-    <string name="welcome_subtitle">Il timer a intervalli HIIT e Tabata.</string>
+    <string name="welcome_subtitle">The HIIT &amp; Tabata interval timer.</string>
     <string name="welcome_theme">Choose a look</string>
     <string name="welcome_language">Choose a language</string>
     <string name="welcome_voice">Hear a cue</string>
@@ -410,6 +410,8 @@
     <string name="json_clipboard_empty">Copy your AI’s JSON response first.</string>
     <string name="json_paste_error">Could not paste. Use Edit JSON or open a file.</string>
     <string name="help_health">Health sync</string>
+    <string name="help_health_body">Connect Health Connect in Settings → Health to export completed workouts. Manage access in Android’s Health Connect settings.</string>
+    <string name="help_permissions_body">Notifications: timer controls. Microphone: cue recording only. Health access: workout export only. Each is optional.</string>
     <!-- Wear OS companion -->
     <string name="watch_banner_title">Workout running on your watch</string>
     <string name="watch_session_title">Watch session</string>
@@ -430,4 +432,11 @@
     <string name="watch_session_stop_message">The workout on your watch will end and be saved as stopped early.</string>
     <string name="watch_session_keep_going">Keep going</string>
     <string name="recording_delete_failed">Could not delete the recording. Please try again.</string>
+    <string name="player_race_permission_required">Location access is off</string>
+    <string name="player_race_precise_required">Enable precise location to measure your run</string>
+    <string name="player_race_location_disabled">Device location is turned off</string>
+    <string name="player_race_location_unavailable">Location is unavailable on this device</string>
+    <string name="player_race_signal_lost">No usable GPS signal · try an open area</string>
+    <string name="player_race_location_permissions">Location permissions</string>
+    <string name="player_race_enable_location">Enable device location</string>
 </resources>
