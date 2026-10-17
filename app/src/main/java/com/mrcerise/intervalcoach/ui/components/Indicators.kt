@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -445,7 +444,7 @@ fun CategoryPicker(
                 Spacer(Modifier.width(dimens.s))
                 Text(effective.title, style = MaterialTheme.typography.titleMedium, color = colors.textPrimary,
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Icon(KeyboardArrowDown, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(20.dp))
+                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(20.dp))
             }
         }
     }
