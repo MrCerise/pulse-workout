@@ -431,4 +431,5 @@
     <string name="watch_session_stop_confirm">Stop the watch workout?</string>
     <string name="watch_session_stop_message">The workout on your watch will end and be saved as stopped early.</string>
     <string name="watch_session_keep_going">Keep going</string>
+    <string name="recording_delete_failed">Could not delete the recording. Please try again.</string>
 </resources>
