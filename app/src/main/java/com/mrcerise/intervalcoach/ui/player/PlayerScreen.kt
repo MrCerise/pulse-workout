@@ -25,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -66,7 +65,6 @@ import com.mrcerise.intervalcoach.AppContainer
 import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.data.PlayerDensity
 import com.mrcerise.intervalcoach.data.category
-import com.mrcerise.intervalcoach.health.HrZones
 import com.mrcerise.intervalcoach.session.RunTrackingStatus
 import com.mrcerise.intervalcoach.session.formatClock
 import com.mrcerise.intervalcoach.ui.components.CategoryChip
@@ -85,7 +83,6 @@ import com.mrcerise.intervalcoach.ui.theme.LocalPulseDimens
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseElevation
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseShapes
 import com.mrcerise.intervalcoach.ui.theme.PulseType
-import kotlinx.coroutines.delay
 
 /**
  * The workout player.
@@ -131,20 +128,6 @@ fun PlayerScreen(
     // Leaving the player when the session ended (and was recorded) shows the summary.
     LaunchedEffect(summary, active) {
         if (active == null && summary != null) onFinished()
-    }
-
-    // Live heart rate: poll the health hub while a session is running. No health platform?
-    // The chip simply never appears — no fake numbers.
-    var liveHr by remember { mutableStateOf<Int?>(null) }
-    LaunchedEffect(active) {
-        if (active == null) {
-            liveHr = null
-            return@LaunchedEffect
-        }
-        while (true) {
-            liveHr = runCatching { container.health.latestLiveHeartRate() }.getOrNull()
-            delay(3_000)
-        }
     }
 
     if (active == null) {
@@ -369,7 +352,6 @@ fun PlayerScreen(
                         style = PulseType.NumericSmall,
                         color = colors.textMuted,
                     )
-                    liveHr?.let { bpm -> HeartRateBadge(bpm = bpm) }
                     if (musicPlaying) {
                         NeutralChip(
                             text = if (musicDucked.isDucked) {
@@ -688,43 +670,6 @@ private fun RaceStat(
             style = PulseType.NumericSmall,
             color = colors.textSecondary,
         )
-    }
-}
-
-/** Live heart rate, shown only when a connected health platform actually reported one. */
-@Composable
-private fun HeartRateBadge(bpm: Int, modifier: Modifier = Modifier) {
-    val colors = LocalPulseColors.current
-    val dimens = LocalPulseDimens.current
-    Surface(
-        modifier = modifier,
-        shape = LocalPulseShapes.current.chip,
-        color = colors.warningTint,
-        border = BorderStroke(dimens.borderWidth, colors.border),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.s, vertical = LocalPulseDimens.current.xs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = null,
-                tint = colors.prepare,
-                modifier = Modifier.size(12.dp),
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = "$bpm",
-                style = PulseType.NumericSmall,
-                color = colors.textPrimary,
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = HrZones.zone(bpm),
-                style = MaterialTheme.typography.labelMedium,
-                color = colors.textMuted,
-            )
-        }
     }
 }
 

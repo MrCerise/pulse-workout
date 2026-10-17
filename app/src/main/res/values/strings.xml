@@ -430,8 +430,8 @@
     <string name="json_clipboard_empty">Copy your AI’s JSON response first.</string>
     <string name="json_paste_error">Could not paste. Use Edit JSON or open a file.</string>
     <string name="help_health">Health sync</string>
-    <string name="help_health_body">Connect Health Connect in Settings → Health to read heart rate and steps or sync workouts. Manage access in Android’s Health Connect settings.</string>
-    <string name="help_permissions_body">Notifications: timer controls. Microphone: cue recording only. Health access: heart rate, steps and workout sync. Each is optional.</string>
+    <string name="help_health_body">Connect Health Connect in Settings → Health to export completed workouts. Manage access in Android’s Health Connect settings.</string>
+    <string name="help_permissions_body">Notifications: timer controls. Microphone: cue recording only. Health access: workout export only. Each is optional.</string>
 
     <!-- Wear OS companion -->
     <string name="watch_banner_title">Workout running on your watch</string>

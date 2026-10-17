@@ -41,7 +41,6 @@ import com.mrcerise.intervalcoach.ui.components.PulsePageHeader
 import com.mrcerise.intervalcoach.ui.components.PulseScaffold
 import com.mrcerise.intervalcoach.ui.components.PulseTone
 import com.mrcerise.intervalcoach.ui.components.SectionHeader
-import com.mrcerise.intervalcoach.ui.components.StatTile
 import com.mrcerise.intervalcoach.ui.components.StatusBadge
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseColors
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseDimens
@@ -52,13 +51,7 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-/**
- * Health setup & sync screen.
- *
- * Health Connect is the one backend: it reads heart rate and steps and receives finished workout
- * sessions. Every state on this screen is a real platform state — nothing is faked, and every
- * failure says why.
- */
+/** Optional Health Connect workout export setup and sync. */
 @Composable
 fun HealthScreen(
     container: AppContainer,
@@ -180,10 +173,8 @@ fun HealthScreen(
                     }
                     if (availability == HcAvailability.AVAILABLE) {
                         Spacer(Modifier.height(LocalPulseDimens.current.m))
-                        permissionRow("Heart rate (read)", permissions.heartRateRead)
-                        permissionRow("Steps (read)", permissions.stepsRead)
                         permissionRow("Workouts (write)", permissions.workoutWrite)
-                        if (!permissions.anyReadGranted || !permissions.workoutWrite) {
+                        if (!permissions.workoutWrite) {
                             Spacer(Modifier.height(LocalPulseDimens.current.m))
                             PrimaryActionButton(
                                 text = "Grant Health Connect access",
@@ -200,22 +191,6 @@ fun HealthScreen(
                 }
             }
 
-            // --- Your data, as the backend sees it ---
-            item { SectionHeader("Your data") }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
-                    StatTile(
-                        "Steps today",
-                        snapshot.stepsToday?.let { "${it} " } ?: "—",
-                        modifier = Modifier.weight(1f),
-                    )
-                    StatTile(
-                        "Latest HR",
-                        snapshot.latestHeartRate?.let { "$it bpm" } ?: "—",
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
             item {
                 Column {
                     Text(

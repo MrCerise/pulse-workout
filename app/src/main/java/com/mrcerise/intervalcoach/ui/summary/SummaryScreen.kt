@@ -33,7 +33,6 @@ import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.mrcerise.intervalcoach.AppContainer
 import com.mrcerise.intervalcoach.R
-import com.mrcerise.intervalcoach.health.HrStats
 import com.mrcerise.intervalcoach.ui.components.InfoBanner
 import com.mrcerise.intervalcoach.ui.components.MetricRow
 import com.mrcerise.intervalcoach.ui.components.NeutralChip
@@ -61,7 +60,7 @@ import kotlinx.coroutines.withContext
 /**
  * Post-workout summary built from the saved session — real recorded numbers only.
  * When Health Connect is connected and the user allows sharing, the finished session is written
- * to it here (idempotent per session UUID), and real heart-rate stats are shown when available.
+ * to it here (idempotent per session UUID).
  */
 @Composable
 fun SessionSummaryScreen(
@@ -99,15 +98,11 @@ fun SessionSummaryScreen(
         }
 
         val entity by container.sessions.observeSession(current.sessionId).collectAsStateWithLifecycle(initialValue = null)
-        var hrStats by remember(current.sessionId) { mutableStateOf<HrStats?>(null) }
         var healthShared by remember(current.sessionId) { mutableStateOf<Boolean?>(null) }
 
-        // Read HR stats for the session window and (if the user allows) write the session to health apps.
+        // Export the finished session when the user allows workout sync.
         LaunchedEffect(current.sessionId, entity, prefs?.healthSyncSessions) {
             val e = entity ?: return@LaunchedEffect
-            hrStats = if (e.endedAt > e.startedAt) {
-                container.health.heartRateStats(e.startedAt, e.endedAt)
-            } else null
             if (prefs?.healthSyncSessions == true && healthShared == null) {
                 val events = container.sessions.observeEvents(current.sessionId)
                     .first()
@@ -218,19 +213,6 @@ fun SessionSummaryScreen(
             if (current.raceRoute.size >= 2) {
                 SectionHeader("Route")
                 PulseCard { RouteMap(current.raceRoute) }
-            }
-
-            // --- Heart rate (real data only, when a connected app recorded it) ---
-            val stats = hrStats
-            if (stats != null && stats.sampleCount >= 4) {
-                SectionHeader("Heart rate")
-                PulseCard(contentPadding = PaddingValues(horizontal = dimens.l, vertical = dimens.s)) {
-                    Column(Modifier.fillMaxWidth()) {
-                        MetricRow("Average", "${stats.average} bpm", valueColor = colors.success)
-                        PulseDivider()
-                        MetricRow("Peak", "${stats.max} bpm", valueColor = colors.warning)
-                    }
-                }
             }
 
             // --- Health sync result (only ever shown for what actually happened) ---

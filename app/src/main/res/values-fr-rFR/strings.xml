@@ -410,8 +410,6 @@
     <string name="json_clipboard_empty">Copiez d\'abord la réponse JSON de votre IA.</string>
     <string name="json_paste_error">Impossible de coller. Utilisez Modifier JSON ou ouvrez un fichier.</string>
     <string name="help_health">Synchronisation avec Health</string>
-    <string name="help_health_body">Connectez Health dans Paramètres→ Santé pour lire la fréquence cardiaque et les étapes ou synchroniser les entraînements. Gérez l\'accès dans les paramètres de Health d\'Android.</string>
-    <string name="help_permissions_body">Notifications : commandes de minuterie. Microphone : enregistrement des annonces seulement. Accès à la santé : fréquence cardiaque, pas et synchronisation d\'entraînement. Chacune est optionnelle.</string>
     <!-- Wear OS companion -->
     <string name="watch_banner_title">Entraînement en cours sur votre montre</string>
     <string name="watch_session_title">Voir la session</string>

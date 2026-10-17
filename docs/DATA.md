@@ -12,8 +12,8 @@ Everything lives in the app's private storage on the device: workouts and their 
 tags, session history (including the workout as it was actually run), notes, voice profiles and
 preferences. Nothing is cached in a service we run, because there is no service.
 
-Running session history can include GPS coordinates, distance, speed and a route. Heart-rate and
-step readings come from Health Connect; session summaries query heart-rate statistics for that time.
+Running session history can include GPS coordinates, distance, speed and a route. Health Connect
+integration only exports completed workouts; PULSE does not read heart-rate or step records.
 
 | Store | Holds |
 | --- | --- |
@@ -63,8 +63,7 @@ writes and handle them under their own policies:
   switch off under *Settings → Health* at any time.
 - What is written: exercise sessions with per-interval segments. PULSE does **not** write heart-rate
   records.
-- Heart rate read for the player and steps read for the Today screen are read permissions of the
-  same kind: granted by you, revocable in Android settings.
+- PULSE requests only the exercise-session write permission; it does not request health read access.
 - See [SECURITY.md](../SECURITY.md#scope) for what is in scope for a vulnerability report.
 
 ## Export and import
