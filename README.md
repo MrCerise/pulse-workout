@@ -18,7 +18,7 @@ Health Connect.
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org)
 [![Crowdin](https://badges.crowdin.net/pulse-workout/localized.svg)](https://crowdin.com/project/pulse-workout)
 
-[![Get it on Google Play](https://appure.io/badges/playstore/en.svg)](https://play.google.com/store/apps/details?id=com.mrcerise.intervalcoach)
+<a href="https://play.google.com/store/apps/details?id=com.mrcerise.intervalcoach"><img src="https://appure.io/badges/playstore/en.svg" alt="Get it on Google Play" width="160" /></a>
 
 <a href="https://crowdin.com/?utm_term=click-badge-add-on"><img style="width:140;height:40px" src="https://badges.crowdin.net/badge/light/crowdin-on-dark.png" srcset="https://badges.crowdin.net/badge/light/crowdin-on-dark.png 1x,https://badges.crowdin.net/badge/light/crowdin-on-dark@2x.png 2x" alt="Crowdin | Agile localization for tech companies" /></a>
 
