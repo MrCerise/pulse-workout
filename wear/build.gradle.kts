@@ -45,7 +45,7 @@ android {
         applicationId = "com.mrcerise.intervalcoach"
         minSdk = 26
         targetSdk = pulseCompileSdk
-        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 31
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 32
         versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.1"
         vectorDrawables.useSupportLibrary = true
     }

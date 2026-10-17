@@ -161,7 +161,7 @@ fun SettingsScreen(
 
             item { SectionHeader("Appearance") }
             item {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     ThemePicker(
                         selected = current.themeMode,
                         onSelect = { mode -> scope.launch { container.preferences.setTheme(mode) } },
@@ -219,7 +219,7 @@ fun SettingsScreen(
 
             item { SectionHeader("Workout defaults") }
             item {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     DurationStepper("Default work", current.defaultWorkMillis) { scope.launch { container.preferences.setDefaultWork(it) } }
                     DurationStepper("Default rest", current.defaultRestMillis) { scope.launch { container.preferences.setDefaultRest(it) } }
                     NumberStepper("Default rounds", current.defaultRounds, onChange = { scope.launch { container.preferences.setDefaultRounds(it) } })
@@ -471,7 +471,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
 
             item { SectionHeader("Coaching style") }
             item {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     PulseSliderRow(
                         label = "Speaking rate",
                         value = current.voiceRate,
@@ -509,7 +509,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
 
             item { SectionHeader("Sound cues") }
             item {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     PulseSliderRow(
                         label = "Cue volume",
                         value = current.cueVolume,
@@ -598,7 +598,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
 
             item { SectionHeader(stringResource(R.string.voice_duck_title)) }
             item {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalPulseDimens.current.m)) {
                     ToggleRow(
                         label = stringResource(R.string.voice_duck_music),
                         hint = stringResource(R.string.voice_duck_hint),

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -1053,6 +1054,7 @@ private fun StepperButton(
  * drawn in the app's own dialog shell (one radius, one elevation, one button system) rather than
  * the platform's menu popup, which reads as a web form on a phone.
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun PulseBottomSheet(
     title: String,
@@ -1062,67 +1064,41 @@ fun PulseBottomSheet(
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
-    val elevation = LocalPulseElevation.current
-    val motion = LocalPulseMotion.current
-    Dialog(
+    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        sheetState = sheetState,
+        modifier = modifier,
+        shape = RoundedCornerShape(topStart = dimens.sheetRadius, topEnd = dimens.sheetRadius),
+        containerColor = colors.surfaceOverlay,
+        contentColor = colors.textPrimary,
+        dragHandle = {
+            Box(Modifier.fillMaxWidth().padding(top = dimens.s), contentAlignment = Alignment.Center) {
+                Box(Modifier.width(36.dp).height(4.dp).background(colors.border, LocalPulseShapes.current.chip))
+            }
+        },
     ) {
-        val slide = remember { Animatable(1f) }
-        LaunchedEffect(Unit) { slide.animateTo(0f, tween(motion.standard())) }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .background(colors.scrim)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onDismiss,
-                ),
-            contentAlignment = Alignment.BottomCenter,
-        ) {
-            Surface(
+        Column(Modifier.fillMaxWidth().padding(bottom = dimens.xs)) {
+            Spacer(Modifier.height(dimens.s))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = colors.textPrimary,
+                modifier = Modifier.padding(horizontal = dimens.l),
+            )
+            Spacer(Modifier.height(dimens.s))
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer { translationY = slide.value * size.height },
-                shape = RoundedCornerShape(topStart = dimens.sheetRadius, topEnd = dimens.sheetRadius),
-                color = colors.surfaceOverlay,
-                contentColor = colors.textPrimary,
-                shadowElevation = elevation.level3,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 640.dp)
-                        .padding(bottom = dimens.l),
-                ) {
-                    Spacer(Modifier.height(dimens.s))
-                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Box(
-                            Modifier
-                                .width(36.dp)
-                                .height(4.dp)
-                                .background(colors.border, LocalPulseShapes.current.chip),
-                        )
-                    }
-                    Spacer(Modifier.height(dimens.l))
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = colors.textPrimary,
-                        modifier = Modifier.padding(horizontal = dimens.l),
-                    )
-                    Spacer(Modifier.height(dimens.s))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = dimens.s),
-                        content = content,
-                    )
-                }
-            }
+                    .heightIn(max = 560.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = dimens.s)
+                    .navigationBarsPadding()
+                    .padding(bottom = dimens.xxl),
+                content = content,
+            )
+            // Guaranteed breathing room under the last row, above the gesture bar.
+            Spacer(Modifier.height(dimens.xl))
         }
     }
 }

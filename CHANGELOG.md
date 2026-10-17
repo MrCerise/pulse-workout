@@ -12,6 +12,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.1-beta1.8] — 2026-10-17
+
+**Fixed**
+- Drop-down sheets are now real modal bottom sheets (platform window and insets), so the last
+  option is always fully visible — including **AI workout** in the New workout sheet — with
+  clear space under it above the gesture bar.
+
+**Changed**
+- Drop-downs/selectors and sliders (Voice verbosity, Cue volume, Speaking rate, Pitch and the
+  Settings pickers) get a little more spacing between stacked controls, matching the
+  background-audio section's volume + drop-down rhythm.
+
 ## [1.8.1-beta1.7] — 2026-10-17
 
 **Changed**
