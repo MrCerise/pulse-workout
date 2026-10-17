@@ -49,16 +49,32 @@ def outputs():
         page = f'''<!doctype html>
 <!-- Generated from legal/privacy.json; run scripts/generate_privacy_policy.py. -->
 <html lang="{language}">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PULSE — {html.escape(policy["title"])}</title>
-<style>body{{font:1rem/1.65 system-ui,sans-serif;max-width:48rem;margin:auto;padding:1.5rem;color:#17212b;background:#fff}}h1,h2{{line-height:1.25}}a{{color:#174ea6}}section{{margin-block:2rem}}</style>
-<nav aria-label="Language"><a href="index.html" lang="en">English</a> · <a href="fr.html" lang="fr">Français</a></nav>
-<main><h1>PULSE — {html.escape(policy["title"])}</h1>
+<title>Interval Coach — {html.escape(policy["title"])}</title>
+<style>
+body{{font:1rem/1.7 system-ui,sans-serif;max-width:48rem;margin:auto;padding:1.5rem;color:#17212b;background:#fff;overflow-wrap:break-word}}
+h1,h2{{line-height:1.25}}h1{{font-size:2rem}}h2{{font-size:1.25rem}}
+a{{color:#174ea6;text-underline-offset:.2em}}a:focus-visible{{outline:2px solid currentColor;outline-offset:4px}}
+header{{border-bottom:1px solid #d5dbe1;padding-block:1.5rem}}section{{margin-block:2rem}}
+nav{{text-align:right}}footer{{border-top:1px solid #d5dbe1;padding-block:1rem}}
+@media print{{nav{{display:none}}body{{max-width:none;padding:0}}}}
+</style>
+</head>
+<body>
+<nav aria-label="{'Langue' if language == 'fr' else 'Language'}"><a href="index.html" lang="en" hreflang="en">English</a> · <a href="fr.html" lang="fr" hreflang="fr">Français</a></nav>
+<main>
+<header>
+<p>Interval Coach · Android &amp; Wear OS</p>
+<h1>{html.escape(policy["title"])}</h1>
 <p>{html.escape(policy["updated"])}</p>
-<p><a href="mailto:security@nexalab.fr">security@nexalab.fr</a></p>
+</header>
 {sections}
-</main></html>
+</main>
+<footer><p>{'Contact confidentialité' if language == 'fr' else 'Privacy contact'} : <a href="mailto:security@nexalab.fr">security@nexalab.fr</a></p></footer>
+</body>
+</html>
 '''
         yield ROOT / "docs/privacy" / ("index.html" if language == "en" else f"{language}.html"), page
 
