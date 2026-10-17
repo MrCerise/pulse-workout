@@ -43,7 +43,12 @@
     <string name="view_list">List</string>
     <string name="view_grid">Grid</string>
     <string name="filter_favorites">Favorites</string>
+    <string name="filter_all">All</string>
+    <string name="filter_title">Filter workouts</string>
+    <string name="filter_clear">Clear filters</string>
+    <string name="workouts_filter_empty_body">Try another filter or search.</string>
     <string name="filter_all_folders">All folders</string>
+    <string name="workouts_no_favorites_title">No favorites yet</string>
     <string name="action_duplicate">Duplicate</string>
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
@@ -96,6 +101,18 @@
     <string name="builder_repeats">Repeats</string>
     <string name="builder_rest_after_group">Rest after block</string>
     <string name="builder_manual">Manual (tap to finish)</string>
+    <string name="builder_phase">Phase</string>
+    <string name="builder_interval_name">Interval name</string>
+    <string name="builder_editor_basics">Basics</string>
+    <string name="builder_editor_timing">Timing</string>
+    <string name="builder_editor_cues">Cues</string>
+    <string name="builder_editor_voice_notes">Voice &amp; notes</string>
+    <string name="builder_interval_actions">Interval actions</string>
+    <string name="builder_editor_block_settings">Block settings</string>
+    <string name="builder_block_name">Block name</string>
+    <string name="builder_editor_intervals">Intervals</string>
+    <string name="builder_block_intervals">Intervals inside this block</string>
+    <string name="builder_add_interval_to_block">Add interval to block</string>
     <string name="builder_speech">Spoken cue</string>
     <string name="builder_sound">Sound</string>
     <string name="builder_haptic">Vibration</string>
@@ -144,6 +161,23 @@
     <string name="player_lap">Lap</string>
     <string name="player_laps">%1$d laps</string>
     <string name="player_instructor">Instructor view</string>
+    <!-- Running system — race info in the player -->
+    <string name="player_race_speed">Speed</string>
+    <string name="player_race_distance">Distance</string>
+    <string name="player_race_left">Left</string>
+    <string name="player_race_pace">Pace</string>
+    <string name="player_race_starting">Starting race tracking…</string>
+    <string name="player_race_gps_live">GPS live</string>
+    <string name="player_race_waiting_gps">Waiting for GPS · estimating from plan pace</string>
+    <string name="player_race_estimated">Estimated · %1$s /km plan</string>
+    <string name="builder_race_section">Race</string>
+    <string name="builder_race_pace">Target pace (per km)</string>
+    <string name="builder_race_distance">Race distance (km)</string>
+    <string name="builder_race_distance_hint">0 = open-ended run · race info shows speed and distance</string>
+    <string name="summary_race_distance">Distance</string>
+    <string name="summary_race_avg_speed">Average speed</string>
+    <string name="summary_race_source_gps">GPS</string>
+    <string name="summary_race_source_estimated">Estimated</string>
     <!-- Summary -->
     <string name="summary_title">Session summary</string>
     <string name="summary_completed_at">Completed %1$s</string>
@@ -243,6 +277,7 @@
     <string name="theme_black">True black</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System default</string>
+    <string name="settings_health_title">Health Connect</string>
     <string name="settings_dynamic_color">Wallpaper accent</string>
     <string name="settings_reduced_motion">Reduced motion</string>
     <string name="settings_high_contrast">High contrast</string>
@@ -396,4 +431,5 @@
     <string name="watch_session_stop_confirm">Stop the watch workout?</string>
     <string name="watch_session_stop_message">The workout on your watch will end and be saved as stopped early.</string>
     <string name="watch_session_keep_going">Keep going</string>
+    <string name="recording_delete_failed">Could not delete the recording. Please try again.</string>
 </resources>
