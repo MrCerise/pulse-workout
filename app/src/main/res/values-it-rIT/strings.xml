@@ -747,4 +747,32 @@
     <string name="workout_save_failed">Impossibile salvare questo allenamento. Riprova.</string>
     <string name="starter_label">\u0020· modello</string>
     <string name="summary_share_text">%1$s — %2$s attivi, %3$d/%4$d intervalli</string>
+
+    <!-- Workout sharing by QR code and the reworked library -->
+    <string name="workouts_scan_qr">Scansiona un codice QR</string>
+    <string name="workouts_scan_qr_body">Usa la fotocamera per aggiungere un allenamento condiviso</string>
+    <string name="workouts_import_image">Importa da un’immagine</string>
+    <string name="workouts_import_image_body">Uno screenshot o una foto di un codice QR di allenamento</string>
+    <string name="workouts_section_create">Crea</string>
+    <string name="workouts_section_import">Importa</string>
+    <string name="workouts_section_favorites">Preferiti</string>
+    <string name="workouts_section_yours">I tuoi allenamenti</string>
+    <string name="workouts_section_starters">Allenamenti di base</string>
+    <string name="share_import_title">Aggiungere questo allenamento?</string>
+    <string name="share_import_body">Viene aggiunto alla tua libreria come nuovo allenamento. Nient’altro cambia.</string>
+    <string name="share_import_add">Aggiungi alla libreria</string>
+    <string name="share_import_added">Aggiunto alla tua libreria</string>
+    <string name="share_import_failed">Impossibile aggiungere questo allenamento. Riprova.</string>
+    <string name="share_code_invalid">Questo codice QR non è un allenamento di questa app.</string>
+    <string name="share_scanner_unavailable">Lo scanner non è disponibile su questo dispositivo. Importa invece uno screenshot del codice.</string>
+    <string name="share_image_no_code">Nessun codice QR di allenamento trovato in quell’immagine.</string>
+    <string name="workout_qr_hint">Su un altro telefono apri Allenamenti → Scansiona un codice QR per aggiungerlo.</string>
+    <string name="workout_qr_too_large">Questo allenamento è troppo grande per un codice QR. Condividilo come testo.</string>
+    <string name="workout_share_qr_image">Condividi immagine QR</string>
+    <string name="details_block_per_round">%1$s per giro</string>
+    <string name="details_times">×%1$d</string>
+    <plurals name="workouts_count">
+        <item quantity="one">%1$d allenamento</item>
+        <item quantity="other">%1$d allenamenti</item>
+    </plurals>
 </resources>

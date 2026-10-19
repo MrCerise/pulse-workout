@@ -18,6 +18,8 @@ dependencies {
     api(project(":engine"))
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
+    // The bundled catalogue is the realistic corpus for share-code size and round-trip tests.
+    testImplementation(project(":library"))
     testImplementation(libs.kotlinx.coroutines.test)
 }
 

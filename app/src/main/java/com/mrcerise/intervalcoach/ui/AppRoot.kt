@@ -79,6 +79,7 @@ import com.mrcerise.intervalcoach.ui.components.PulseSnackbar
 import com.mrcerise.intervalcoach.ui.health.HealthScreen
 import com.mrcerise.intervalcoach.ui.home.HomeScreen
 import com.mrcerise.intervalcoach.ui.importer.JsonImportScreen
+import com.mrcerise.intervalcoach.ui.importer.SharedWorkoutDialog
 import com.mrcerise.intervalcoach.ui.player.PlayerScreen
 import com.mrcerise.intervalcoach.ui.progress.HistoryScreen
 import com.mrcerise.intervalcoach.ui.progress.ProgressScreen
@@ -88,7 +89,9 @@ import com.mrcerise.intervalcoach.ui.settings.HelpScreen
 import com.mrcerise.intervalcoach.ui.settings.SettingsScreen
 import com.mrcerise.intervalcoach.ui.settings.VoiceStudioScreen
 import com.mrcerise.intervalcoach.ui.summary.SessionSummaryScreen
+import com.pulse.engine.Validation
 import com.pulse.engine.WorkoutPlan
+import com.pulse.sync.ShareCode
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseColors
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseMotion
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseDimens
@@ -313,6 +316,17 @@ private fun PulseAppRootContent(
         val scope = rememberCoroutineScope()
         val pendingStartPlan = remember { mutableStateOf<WorkoutPlan?>(null) }
         val pendingLocationStart = remember { mutableStateOf<Pair<WorkoutPlan, Boolean>?>(null) }
+        // A workout received by QR code or `pulse://import` link, waiting for the user to accept it.
+        val pendingShared = remember { mutableStateOf<WorkoutPlan?>(null) }
+        val sharedSaving = remember { mutableStateOf(false) }
+        val openSharedCode: (String) -> Unit = { text ->
+            val plan = ShareCode.decode(text)?.takeIf { Validation.validate(it).isEmpty() }
+            if (plan == null) {
+                scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.share_code_invalid)) }
+            } else {
+                pendingShared.value = plan
+            }
+        }
 
         // Starting over an active session is always an explicit user decision. The controller also
         // refuses silent replacement, so alternate callers cannot bypass this UI check.
@@ -380,6 +394,8 @@ private fun PulseAppRootContent(
                     val id = link.removePrefix("pulse://workout/")
                     navController.navigate(Routes.details(id))
                 }
+                // Never saved directly: the shared-workout dialog asks first.
+                ShareCode.isShareCode(link) -> openSharedCode(link)
                 link == DeepLinks.QUICK_BUILDER -> navController.navigate(Routes.QUICK_BUILDER)
                 link == DeepLinks.RECENT -> navController.navigate(Routes.WORKOUTS)
                 link == DeepLinks.PLAYER -> if (activeSession != null) navController.navigate(Routes.PLAYER)
@@ -474,6 +490,7 @@ private fun PulseAppRootContent(
                                 onStartWorkout = startSession,
                                 onEdit = { navController.navigate(Routes.advancedBuilder(it)) },
                                 onJsonImport = { navController.navigate(Routes.JSON_IMPORT) },
+                                onImportCode = openSharedCode,
                             )
                         }
                         composable(Routes.CATEGORY) { entry ->
@@ -496,6 +513,11 @@ private fun PulseAppRootContent(
                                 onEdit = { id -> navController.navigate(Routes.advancedBuilder(id)) },
                                 onStart = startSession,
                                 onSchedule = { id -> navController.navigate(Routes.schedule(id)) },
+                                onOpenWorkout = { id ->
+                                    navController.navigate(Routes.details(id)) {
+                                        popUpTo(Routes.DETAILS) { inclusive = true }
+                                    }
+                                },
                             )
                         }
                         composable(Routes.QUICK_BUILDER) {
@@ -691,6 +713,33 @@ private fun PulseAppRootContent(
                         performStart(plan, replaceActive)
                     }) { Text(stringResource(R.string.privacy_location_skip)) }
                 },
+            )
+        }
+        pendingShared.value?.let { plan ->
+            SharedWorkoutDialog(
+                plan = plan,
+                busy = sharedSaving.value,
+                onAdd = {
+                    sharedSaving.value = true
+                    scope.launch {
+                        val id = try {
+                            container.workouts.importShared(plan)
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            null
+                        }
+                        sharedSaving.value = false
+                        pendingShared.value = null
+                        if (id != null) {
+                            navController.navigate(Routes.details(id))
+                            snackbarHostState.showSnackbar(context.getString(R.string.share_import_added))
+                        } else {
+                            snackbarHostState.showSnackbar(context.getString(R.string.share_import_failed))
+                        }
+                    }
+                },
+                onDismiss = { pendingShared.value = null },
             )
         }
         pendingStartPlan.value?.let { plan ->

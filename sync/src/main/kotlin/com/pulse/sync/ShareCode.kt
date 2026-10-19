@@ -1,0 +1,126 @@
+package com.pulse.sync
+
+import com.pulse.engine.IntervalNode
+import com.pulse.engine.Node
+import com.pulse.engine.RepeatGroup
+import com.pulse.engine.WorkoutImport
+import com.pulse.engine.WorkoutPlan
+import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
+import java.util.Base64
+import java.util.zip.DataFormatException
+import java.util.zip.Deflater
+import java.util.zip.Inflater
+
+/**
+ * A whole workout as one short, URL-safe string — what a workout QR code carries.
+ *
+ * The code is `pulse://import?w=1.<payload>`: the payload is the plan as JSON with every default
+ * left out, raw-DEFLATE compressed and base64url encoded. Defaults are what made the old QR codes
+ * fail: the persisted format writes every field of every interval, so an ordinary workout came to
+ * well over a kilobyte and no longer fitted a QR code at all. Compressed, a typical workout is a
+ * few hundred characters.
+ *
+ * The link form is deliberate: the app already owns the `pulse://` scheme, so a code scanned with
+ * the system camera can open the app straight onto the import, and the in-app scanner reads the
+ * same text. Everything personal to this device — the id, folder, favourite flag, voice profile,
+ * timestamps and picked exercise images (local `content://` URIs) — is stripped before encoding.
+ *
+ * A code is untrusted input. Decoding is bounded: the code length, and the decompressed JSON to
+ * the same 256 KiB a pasted import may have. A code that fails any step decodes to null; whether
+ * the workout is *runnable* is still the importer's job (`Validation.validate`).
+ */
+object ShareCode {
+    const val PREFIX = "pulse://import?w="
+    private const val VERSION = "1."
+
+    /** Comfortably above the 2,953 bytes a QR code can hold, far below anything costly to parse. */
+    const val MAX_CODE_CHARS = 16_384
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = false
+        explicitNulls = false
+        // The same discriminator as the persisted plan format, so a shared node reads like a saved one.
+        classDiscriminator = "nodeType"
+    }
+
+    fun encode(plan: WorkoutPlan): String {
+        val text = json.encodeToString(WorkoutPlan.serializer(), forSharing(plan))
+        return PREFIX + VERSION + Base64.getUrlEncoder().withoutPadding().encodeToString(deflate(text.toByteArray(Charsets.UTF_8)))
+    }
+
+    /** True when [text] looks like a share code, before any decoding is attempted. */
+    fun isShareCode(text: String): Boolean = text.trim().startsWith(PREFIX)
+
+    /** The workout carried by [text], or null when it is not a readable share code. */
+    fun decode(text: String): WorkoutPlan? {
+        val trimmed = text.trim()
+        if (trimmed.length > MAX_CODE_CHARS || !trimmed.startsWith(PREFIX)) return null
+        val payload = trimmed.removePrefix(PREFIX).substringBefore('&')
+        if (!payload.startsWith(VERSION)) return null
+        val compressed = runCatching { Base64.getUrlDecoder().decode(payload.removePrefix(VERSION)) }.getOrNull() ?: return null
+        val bytes = inflate(compressed) ?: return null
+        return runCatching { json.decodeFromString(WorkoutPlan.serializer(), bytes.decodeToString()) }
+            .getOrNull()
+            ?.takeIf { it.name.isNotBlank() && it.nodes.isNotEmpty() }
+    }
+
+    /** The plan as it is shared: structure and coaching content only. */
+    fun forSharing(plan: WorkoutPlan): WorkoutPlan = plan.copy(
+        id = "",
+        nodes = withoutLocalImages(plan.nodes),
+        voiceProfileId = null,
+        folderId = null,
+        isFavorite = false,
+        createdAt = 0L,
+        updatedAt = 0L,
+        revision = 1,
+    )
+
+    private fun withoutLocalImages(nodes: List<Node>): List<Node> = nodes.map { node ->
+        when (node) {
+            is IntervalNode -> node.copy(interval = node.interval.copy(imageUri = null))
+            is RepeatGroup -> node.copy(children = withoutLocalImages(node.children))
+        }
+    }
+
+    private fun deflate(input: ByteArray): ByteArray {
+        val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
+        try {
+            deflater.setInput(input)
+            deflater.finish()
+            val out = ByteArrayOutputStream(input.size / 2 + 16)
+            val buffer = ByteArray(1024)
+            while (!deflater.finished()) {
+                out.write(buffer, 0, deflater.deflate(buffer))
+            }
+            return out.toByteArray()
+        } finally {
+            deflater.end()
+        }
+    }
+
+    /** Inflates at most [WorkoutImport.MAX_BYTES]; a larger or truncated stream is rejected. */
+    private fun inflate(input: ByteArray): ByteArray? {
+        val inflater = Inflater(true)
+        try {
+            inflater.setInput(input)
+            val out = ByteArrayOutputStream(input.size * 4)
+            val buffer = ByteArray(1024)
+            while (!inflater.finished()) {
+                val count = try {
+                    inflater.inflate(buffer)
+                } catch (e: DataFormatException) {
+                    return null
+                }
+                if (count == 0 && (inflater.needsInput() || inflater.needsDictionary())) return null
+                if (out.size() + count > WorkoutImport.MAX_BYTES) return null
+                out.write(buffer, 0, count)
+            }
+            return out.toByteArray()
+        } finally {
+            inflater.end()
+        }
+    }
+}

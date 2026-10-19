@@ -747,4 +747,32 @@
     <string name="workout_save_failed">No se pudo guardar este entrenamiento. Inténtalo de nuevo.</string>
     <string name="starter_label">\u0020· plantilla</string>
     <string name="summary_share_text">%1$s — %2$s activos, %3$d/%4$d intervalos</string>
+
+    <!-- Workout sharing by QR code and the reworked library -->
+    <string name="workouts_scan_qr">Escanear un código QR</string>
+    <string name="workouts_scan_qr_body">Usa la cámara para añadir un entrenamiento compartido</string>
+    <string name="workouts_import_image">Importar desde una imagen</string>
+    <string name="workouts_import_image_body">Una captura o foto de un código QR de entrenamiento</string>
+    <string name="workouts_section_create">Crear</string>
+    <string name="workouts_section_import">Importar</string>
+    <string name="workouts_section_favorites">Favoritos</string>
+    <string name="workouts_section_yours">Tus entrenamientos</string>
+    <string name="workouts_section_starters">Entrenamientos de inicio</string>
+    <string name="share_import_title">¿Añadir este entrenamiento?</string>
+    <string name="share_import_body">Se añade a tu biblioteca como un entrenamiento nuevo. No cambia nada más.</string>
+    <string name="share_import_add">Añadir a la biblioteca</string>
+    <string name="share_import_added">Añadido a tu biblioteca</string>
+    <string name="share_import_failed">No se pudo añadir este entrenamiento. Inténtalo de nuevo.</string>
+    <string name="share_code_invalid">Ese código QR no es un entrenamiento de esta app.</string>
+    <string name="share_scanner_unavailable">El escáner no está disponible en este dispositivo. Importa una captura del código.</string>
+    <string name="share_image_no_code">No se encontró ningún código QR de entrenamiento en esa imagen.</string>
+    <string name="workout_qr_hint">En otro teléfono, abre Entrenamientos → Escanear un código QR para añadirlo.</string>
+    <string name="workout_qr_too_large">Este entrenamiento es demasiado grande para un código QR. Compártelo como texto.</string>
+    <string name="workout_share_qr_image">Compartir imagen QR</string>
+    <string name="details_block_per_round">%1$s por ronda</string>
+    <string name="details_times">×%1$d</string>
+    <plurals name="workouts_count">
+        <item quantity="one">%1$d entrenamiento</item>
+        <item quantity="other">%1$d entrenamientos</item>
+    </plurals>
 </resources>

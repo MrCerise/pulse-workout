@@ -747,4 +747,32 @@
     <string name="workout_save_failed">Impossible d’enregistrer cette séance. Réessayez.</string>
     <string name="starter_label">\u0020· modèle</string>
     <string name="summary_share_text">%1$s — %2$s actives, %3$d/%4$d intervalles</string>
+
+    <!-- Workout sharing by QR code and the reworked library -->
+    <string name="workouts_scan_qr">Scanner un QR code</string>
+    <string name="workouts_scan_qr_body">Ajoutez une séance partagée avec l’appareil photo</string>
+    <string name="workouts_import_image">Importer depuis une image</string>
+    <string name="workouts_import_image_body">Capture d’écran ou photo d’un QR code de séance</string>
+    <string name="workouts_section_create">Créer</string>
+    <string name="workouts_section_import">Importer</string>
+    <string name="workouts_section_favorites">Favoris</string>
+    <string name="workouts_section_yours">Vos séances</string>
+    <string name="workouts_section_starters">Séances de départ</string>
+    <string name="share_import_title">Ajouter cette séance ?</string>
+    <string name="share_import_body">Elle est ajoutée à votre bibliothèque comme nouvelle séance. Rien d’autre ne change.</string>
+    <string name="share_import_add">Ajouter à la bibliothèque</string>
+    <string name="share_import_added">Ajoutée à votre bibliothèque</string>
+    <string name="share_import_failed">Impossible d’ajouter cette séance. Veuillez réessayer.</string>
+    <string name="share_code_invalid">Ce QR code n’est pas une séance de cette application.</string>
+    <string name="share_scanner_unavailable">Le scanner n’est pas disponible sur cet appareil. Importez plutôt une capture d’écran du code.</string>
+    <string name="share_image_no_code">Aucun QR code de séance dans cette image.</string>
+    <string name="workout_qr_hint">Sur un autre téléphone, ouvrez Séances → Scanner un QR code pour l’ajouter.</string>
+    <string name="workout_qr_too_large">Cette séance est trop volumineuse pour un QR code. Partagez-la plutôt en texte.</string>
+    <string name="workout_share_qr_image">Partager l’image du QR code</string>
+    <string name="details_block_per_round">%1$s par tour</string>
+    <string name="details_times">×%1$d</string>
+    <plurals name="workouts_count">
+        <item quantity="one">%1$d séance</item>
+        <item quantity="other">%1$d séances</item>
+    </plurals>
 </resources>

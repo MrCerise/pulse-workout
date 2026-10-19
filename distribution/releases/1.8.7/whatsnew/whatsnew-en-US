@@ -1,0 +1,7 @@
+Version 1.8.7 brings workout sharing by QR code and a redesigned library.
+- Workout QR codes work again: show one or share it as an image.
+- Scan a code with the camera, or import it from a screenshot or photo.
+- The library is split into favorites, your workouts and starters.
+- Workout pages show the work and rest time and the structure block by block.
+- 11 new starter workouts.
+- The phone now syncs with the watch automatically.

@@ -12,6 +12,36 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.7] — 2026-10-20
+
+**Added**
+- Workouts can be imported from a QR code: scanned with the camera through the Google Play services
+  code scanner (no camera permission in the app) or read from a screenshot or photo on the device.
+  `pulse://import` links open the same confirmation.
+- Workout QR codes can be shared as an image.
+- Eleven starter workouts: E2MOM 16, Norwegian 4x4, Sprint Repeats, Jump Rope 30/30, Double Tabata,
+  Lower-Body Burner, Core Crusher, Shadowboxing Combos, Morning Mobility, 4-7-8 Breathing and
+  Deep Work 50/10.
+
+**Changed**
+- The workout library is grouped into favorites, your workouts and starter workouts; list and grid
+  share one scrolling page, and creation and every import live under the + button.
+- The workout page shows work and rest time, the structure block by block (×rounds), and puts
+  preview, share and schedule beside Start; duplicate and delete moved into its menu.
+- The privacy policy describes QR scanning and image import.
+
+**Fixed**
+- Sharing a workout as a QR code showed an empty dialog: the full plan JSON exceeded QR capacity.
+  Codes are now compact, compressed `pulse://import` links that fit every bundled workout.
+- The phone never started its Wear OS sync link, so the library, settings and watch sessions did not
+  cross between devices.
+- Starter workout notes were dropped, and repeated template steps shared one id in the builder.
+- Background work for sharing, recordings and widgets no longer runs in unowned coroutine scopes;
+  a recording saves the file it actually wrote.
+
+**Removed**
+- The unused `play-services-auth` dependency.
+
 ## [1.8.6] — 2026-10-19
 
 **Fixed**

@@ -194,6 +194,22 @@ class WorkoutRepository(
         }
     }
 
+    /**
+     * Saves a workout received from someone else (a scanned QR code) as a brand-new workout. A shared
+     * plan carries no id of its own, so it can never overwrite one already in the library.
+     */
+    suspend fun importShared(shared: WorkoutPlan): String {
+        val now = System.currentTimeMillis()
+        val plan = shared.copy(
+            id = UUID.randomUUID().toString(),
+            createdAt = now,
+            updatedAt = now,
+            isFavorite = false,
+            revision = 1,
+        )
+        return save(plan, tags = plan.tags)
+    }
+
     suspend fun duplicate(source: WorkoutPlan, newName: String? = null): WorkoutPlan {
         val copy = source.copy(
             id = UUID.randomUUID().toString(),

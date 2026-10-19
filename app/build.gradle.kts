@@ -55,8 +55,8 @@ android {
         targetSdk = pulsePhoneTargetSdk
         // CI release trains override these per channel (`-Ppulse.versionCode/-Name`); the values
         // here are the published release line of record.
-        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 10806000
-        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.6"
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 10807000
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.7"
         // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -131,6 +131,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.zxing.core)
+    // Workout QR import: Google Play services' scanner UI, so the app itself needs no camera permission.
+    implementation(libs.gms.play.services.code.scanner)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

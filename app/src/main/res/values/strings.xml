@@ -770,4 +770,32 @@
     <string name="workout_save_failed">Could not save this workout. Please try again.</string>
     <string name="starter_label">\u0020· starter</string>
     <string name="summary_share_text">%1$s — %2$s active, %3$d/%4$d intervals</string>
+
+    <!-- Workout sharing by QR code and the reworked library -->
+    <string name="workouts_scan_qr">Scan a QR code</string>
+    <string name="workouts_scan_qr_body">Use the camera to add a shared workout</string>
+    <string name="workouts_import_image">Import from an image</string>
+    <string name="workouts_import_image_body">A screenshot or photo of a workout QR code</string>
+    <string name="workouts_section_create">Create</string>
+    <string name="workouts_section_import">Import</string>
+    <string name="workouts_section_favorites">Favorites</string>
+    <string name="workouts_section_yours">Your workouts</string>
+    <string name="workouts_section_starters">Starter workouts</string>
+    <string name="share_import_title">Add this workout?</string>
+    <string name="share_import_body">It is added to your library as a new workout. Nothing else changes.</string>
+    <string name="share_import_add">Add to library</string>
+    <string name="share_import_added">Added to your library</string>
+    <string name="share_import_failed">Could not add this workout. Please try again.</string>
+    <string name="share_code_invalid">That QR code isn’t a workout from this app.</string>
+    <string name="share_scanner_unavailable">The scanner isn’t available on this device. Import a screenshot of the code instead.</string>
+    <string name="share_image_no_code">No workout QR code found in that image.</string>
+    <string name="workout_qr_hint">On another phone, open Workouts → Scan a QR code to add it.</string>
+    <string name="workout_qr_too_large">This workout is too large for a QR code. Share it as text instead.</string>
+    <string name="workout_share_qr_image">Share QR image</string>
+    <string name="details_block_per_round">%1$s per round</string>
+    <string name="details_times">×%1$d</string>
+    <plurals name="workouts_count">
+        <item quantity="one">%1$d workout</item>
+        <item quantity="other">%1$d workouts</item>
+    </plurals>
 </resources>
