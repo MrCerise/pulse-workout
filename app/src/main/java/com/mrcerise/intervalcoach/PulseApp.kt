@@ -126,6 +126,9 @@ class PulseApp : Application() {
                 container.sessions.recoverInterruptedSessions()
             }
             runCatching { ReminderWorker.schedule(this@PulseApp) }
+            // The watch link: registers the message listener and pushes the library and preferences.
+            // Without a paired watch or Play services every data-layer call is a no-op.
+            runCatching { container.wearSync.start() }
             // First look at Health Connect. All of this is read-only and cheap; without the
             // Health Connect app it simply reports unavailable.
             runCatching { container.health.refresh() }

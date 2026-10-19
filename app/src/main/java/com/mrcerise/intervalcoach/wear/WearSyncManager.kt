@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The phone half of the PULSE sync link.
@@ -82,6 +83,7 @@ class WearSyncManager(
     /** Ids and timestamps pushed so far, so removals can be detected and deleted. */
     private val pushedWorkouts = LinkedHashMap<String, Long>()
 
+    private val started = AtomicBoolean(false)
     private var remoteTimeoutJob: Job? = null
     private var wasPushingLive = false
     private var lastLiveSessionId: String = ""
@@ -93,6 +95,7 @@ class WearSyncManager(
 
     /** Registers listeners and starts the observers. Idempotent. */
     fun start() {
+        if (!started.compareAndSet(false, true)) return
         runCatching { messageClient.addListener(messageListener) }
         scope.launch {
             // Re-push on start: identical data items are de-duplicated by the system, so this is
