@@ -57,10 +57,46 @@ object StarterWorkouts {
             ),
         )
 
-    private fun work(name: String, millis: Long, notes: String? = null) = node(name, PhaseKind.WORK, millis)
+    private fun work(name: String, millis: Long, notes: String? = null) = node(name, PhaseKind.WORK, millis, notes = notes)
     private fun rest(name: String, millis: Long) = node(name, PhaseKind.REST, millis)
     private fun prepare(millis: Long) = node("Get ready", PhaseKind.PREPARE, millis, SoundCue.DOUBLE_BEEP)
     private fun cooldown(millis: Long) = node("Cool-down", PhaseKind.COOLDOWN, millis, SoundCue.CHIME, haptic = HapticCue.DOUBLE)
+
+    /**
+     * Gives every node in a plan a distinct id. [node] derives ids from name, kind and duration, so a
+     * circuit's repeated "Rest" or "Change" would otherwise share one — and the builder edits, moves
+     * and deletes nodes by id, so editing one of them would edit them all.
+     */
+    private fun uniqueNodeIds(nodes: List<Node>, seen: MutableMap<String, Int> = mutableMapOf()): List<Node> =
+        nodes.map { node ->
+            val count = (seen[node.nodeId] ?: 0) + 1
+            seen[node.nodeId] = count
+            val id = if (count == 1) node.nodeId else "${node.nodeId}-$count"
+            when (node) {
+                is IntervalNode -> node.copy(
+                    nodeId = id,
+                    interval = if (count == 1) node.interval else node.interval.copy(id = "${node.interval.id}-$count"),
+                )
+                is RepeatGroup -> node.copy(nodeId = id, children = uniqueNodeIds(node.children, seen))
+            }
+        }
+
+    /** One side of an alternating hold or exercise, announced as "Left side." / "Right side.". */
+    private fun side(name: String, side: String, millis: Long, notes: String? = null): IntervalNode {
+        val id = "$name-$side-$millis"
+        return IntervalNode(
+            nodeId = id,
+            interval = IntervalSpec(
+                id = id,
+                name = name,
+                kind = PhaseKind.WORK,
+                durationMillis = millis,
+                sideLabel = side,
+                notes = notes,
+                speechText = "$side side.",
+            ),
+        )
+    }
 
     private fun plan(
         seed: String,
@@ -76,7 +112,7 @@ object StarterWorkouts {
         id = id(seed),
         name = name,
         type = type,
-        nodes = nodes,
+        nodes = uniqueNodeIds(nodes),
         includeFinalRest = includeFinalRest,
         equipment = equipment,
         shuffleEager = shuffle,
@@ -483,6 +519,288 @@ object StarterWorkouts {
                     includeFinalRest = false,
                 ),
                 tags = listOf("compound", "full session", "11 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "e2mom-16",
+                    name = "E2MOM 16",
+                    type = WorkoutType.E2MOM,
+                    nodes = listOf(
+                        prepare(10_000),
+                        RepeatGroup(
+                            nodeId = "e2mom",
+                            name = "8 blocks",
+                            repeat = 8,
+                            children = listOf(
+                                work("Two-minute block", 120_000, "Finish your set, then rest until the next block starts"),
+                            ),
+                        ),
+                    ),
+                    includeFinalRest = false,
+                    equipment = "Barbell, kettlebell or dumbbells",
+                ),
+                tags = listOf("E2MOM", "strength", "16 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "norwegian-4x4",
+                    name = "Norwegian 4x4",
+                    type = WorkoutType.RUN,
+                    nodes = listOf(
+                        node("Easy warm-up", PhaseKind.WARM_UP, 600_000, SoundCue.CHIME),
+                        RepeatGroup(
+                            nodeId = "4x4",
+                            name = "4 intervals",
+                            repeat = 4,
+                            children = listOf(
+                                work("Hard", 240_000, "Hard but steady: you can say a word or two, not a sentence"),
+                                rest("Easy jog", 180_000),
+                            ),
+                        ),
+                        cooldown(120_000),
+                    ),
+                    includeFinalRest = false,
+                ),
+                tags = listOf("running", "VO2 max", "40 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "sprint-repeats",
+                    name = "Sprint Repeats",
+                    type = WorkoutType.RUN,
+                    nodes = listOf(
+                        node("Jog warm-up", PhaseKind.WARM_UP, 480_000, SoundCue.CHIME),
+                        RepeatGroup(
+                            nodeId = "sprints",
+                            name = "8 sprints",
+                            repeat = 8,
+                            children = listOf(
+                                node(
+                                    "Sprint",
+                                    PhaseKind.WORK,
+                                    30_000,
+                                    SoundCue.WHISTLE,
+                                    HapticCue.STRONG,
+                                    notes = "Fast and relaxed, not all-out from the first step",
+                                ),
+                                rest("Walk back", 90_000),
+                            ),
+                        ),
+                        cooldown(300_000),
+                    ),
+                    includeFinalRest = false,
+                ),
+                tags = listOf("running", "sprints", "29 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "jump-rope",
+                    name = "Jump Rope 30/30",
+                    type = WorkoutType.HIIT,
+                    nodes = listOf(
+                        prepare(10_000),
+                        RepeatGroup(
+                            nodeId = "rope",
+                            name = "10 rounds",
+                            repeat = 10,
+                            children = listOf(
+                                work("Skip", 30_000, "Stay on the balls of your feet and turn the rope from the wrists"),
+                                rest("Rest", 30_000),
+                            ),
+                        ),
+                    ),
+                    includeFinalRest = false,
+                    equipment = "Jump rope",
+                ),
+                tags = listOf("HIIT", "cardio", "~10 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "double-tabata",
+                    name = "Double Tabata",
+                    type = WorkoutType.TABATA,
+                    nodes = listOf(
+                        prepare(10_000),
+                        RepeatGroup(
+                            nodeId = "double-tabata",
+                            name = "2 sets",
+                            repeat = 2,
+                            children = listOf(
+                                RepeatGroup(
+                                    nodeId = "double-tabata-rounds",
+                                    name = "8 rounds",
+                                    repeat = 8,
+                                    children = listOf(work("Max effort", 20_000), rest("Recover", 10_000)),
+                                ),
+                            ),
+                            restAfterGroupMillis = 60_000,
+                            restAfterGroupName = "Reset",
+                        ),
+                    ),
+                    includeFinalRest = false,
+                ),
+                tags = listOf("HIIT", "Tabata", "9 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "lower-body-burner",
+                    name = "Lower-Body Burner",
+                    type = WorkoutType.HIIT,
+                    nodes = listOf(
+                        prepare(10_000),
+                        RepeatGroup(
+                            nodeId = "lower-body",
+                            name = "3 rounds",
+                            repeat = 3,
+                            children = listOf(
+                                work("Jump squats", 30_000, "Land softly, knees tracking over toes"),
+                                rest("Rest", 15_000),
+                                work("Reverse lunges", 30_000, "Alternate legs, front knee stacked over the ankle"),
+                                rest("Rest", 15_000),
+                                work("Wall sit", 45_000, "Thighs parallel to the floor, back flat on the wall"),
+                                rest("Rest", 15_000),
+                                work("Skater hops", 30_000, "Push off sideways and stick each landing"),
+                                rest("Rest", 15_000),
+                            ),
+                            restAfterGroupMillis = 60_000,
+                            restAfterGroupName = "Rest between rounds",
+                        ),
+                    ),
+                    includeFinalRest = false,
+                    equipment = "A wall",
+                ),
+                tags = listOf("HIIT", "legs", "~12 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "core-crusher",
+                    name = "Core Crusher",
+                    type = WorkoutType.CIRCUIT,
+                    nodes = listOf(
+                        prepare(10_000),
+                        RepeatGroup(
+                            nodeId = "core-circuit",
+                            name = "Circuit",
+                            repeat = 2,
+                            children = listOf(
+                                work("Dead bug", 40_000, "Lower back pressed into the floor"),
+                                rest("Rest", 20_000),
+                                work("Bicycle crunches", 40_000, "Slow and controlled, elbow towards the opposite knee"),
+                                rest("Rest", 20_000),
+                                side("Side plank", "Left", 40_000, "Hips high, body in one line"),
+                                rest("Rest", 20_000),
+                                side("Side plank", "Right", 40_000, "Hips high, body in one line"),
+                                rest("Rest", 20_000),
+                                work("Mountain climbers", 40_000, "Shoulders over wrists, drive the knees"),
+                                rest("Rest", 20_000),
+                                work("Hollow hold", 40_000, "Ribs down; bend the knees to make it easier"),
+                                rest("Rest", 20_000),
+                            ),
+                            restAfterGroupMillis = 60_000,
+                            restAfterGroupName = "Rest between circuits",
+                        ),
+                    ),
+                    includeFinalRest = false,
+                    equipment = "Mat",
+                ),
+                tags = listOf("circuit", "core", "13 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "shadowboxing",
+                    name = "Shadowboxing Combos",
+                    type = WorkoutType.BOXING,
+                    nodes = listOf(
+                        node("Stance up", PhaseKind.PREPARE, 15_000, SoundCue.BELL),
+                        RepeatGroup(
+                            nodeId = "shadow-rounds",
+                            name = "6 rounds",
+                            repeat = 6,
+                            children = listOf(
+                                node(
+                                    "Round",
+                                    PhaseKind.WORK,
+                                    120_000,
+                                    SoundCue.BELL,
+                                    HapticCue.STRONG,
+                                    notes = "Jab-cross, slip, hook — hands back to your chin after every punch",
+                                ),
+                            ),
+                            restAfterGroupMillis = 30_000,
+                            restAfterGroupName = "Shake out",
+                        ),
+                    ),
+                    includeFinalRest = false,
+                ),
+                tags = listOf("boxing", "no equipment", "15 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "morning-mobility",
+                    name = "Morning Mobility",
+                    type = WorkoutType.STRETCHING,
+                    nodes = listOf(
+                        prepare(5_000),
+                        work("Cat-cow", 45_000, "Move slowly with your breath"),
+                        node("Next", PhaseKind.TRANSITION, 5_000),
+                        work("Hip circles", 40_000, "Big slow circles; switch direction halfway"),
+                        node("Next", PhaseKind.TRANSITION, 5_000),
+                        side("World's greatest stretch", "Left", 40_000, "Lunge, elbow to instep, then rotate open"),
+                        node("Switch sides", PhaseKind.TRANSITION, 5_000),
+                        side("World's greatest stretch", "Right", 40_000, "Lunge, elbow to instep, then rotate open"),
+                        node("Next", PhaseKind.TRANSITION, 5_000),
+                        work("Thoracic rotations", 40_000, "On all fours, hand behind your head; switch sides halfway"),
+                        node("Next", PhaseKind.TRANSITION, 5_000),
+                        work("Downward dog", 40_000, "Pedal the heels, keep the spine long"),
+                        node("Next", PhaseKind.TRANSITION, 5_000),
+                        work("Deep squat hold", 45_000, "Heels down, elbows pushing the knees out"),
+                    ),
+                    includeFinalRest = false,
+                    equipment = "Mat",
+                ),
+                tags = listOf("stretching", "mobility", "6 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "breathing-478",
+                    name = "4-7-8 Breathing",
+                    type = WorkoutType.BREATHING,
+                    nodes = listOf(
+                        RepeatGroup(
+                            nodeId = "breath-478",
+                            name = "6 cycles",
+                            repeat = 6,
+                            children = listOf(
+                                IntervalNode("478-inhale", IntervalSpec("478-inhale", "Breathe in", PhaseKind.WORK, 4_000, sound = SoundCue.TICK, haptic = HapticCue.LIGHT, speechText = "In")),
+                                IntervalNode("478-hold", IntervalSpec("478-hold", "Hold", PhaseKind.CUSTOM, 7_000, sound = SoundCue.NONE, haptic = HapticCue.NONE, speechText = "Hold")),
+                                IntervalNode("478-exhale", IntervalSpec("478-exhale", "Breathe out", PhaseKind.REST, 8_000, sound = SoundCue.TICK, haptic = HapticCue.LIGHT, speechText = "Out")),
+                            ),
+                        ),
+                    ),
+                    // The last exhale belongs to the cycle; it is not a trailing rest to drop.
+                    includeFinalRest = true,
+                ),
+                tags = listOf("breathing", "sleep", "2 minutes"),
+            ),
+            Template(
+                plan = plan(
+                    seed = "deep-work",
+                    name = "Deep Work 50/10",
+                    type = WorkoutType.FOCUS,
+                    nodes = listOf(
+                        RepeatGroup(
+                            nodeId = "deep-work",
+                            name = "3 blocks",
+                            repeat = 3,
+                            children = listOf(
+                                work("Focus", 3_000_000, "One task, notifications off"),
+                                rest("Break", 600_000),
+                            ),
+                        ),
+                    ),
+                    includeFinalRest = false,
+                ),
+                tags = listOf("focus", "work", "2 hours 50 minutes"),
             ),
         )
     }

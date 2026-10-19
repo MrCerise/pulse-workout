@@ -72,7 +72,7 @@ as a draft. Manual trains support internal, closed, open and production tracks. 
 | --- | --- |
 | **Timing** | Monotonic-clock engine, absolute anchors, open-ended (AMRAP/stopwatch/strength) intervals, accelerated preview, per-session timeline |
 | **Cues** | On-device TTS with speech-text overrides, tone fallback, haptics, a cue gate, audio ducking with a live depth control, background music |
-| **Building** | Quick builder, advanced builder (nesting depth 8, ladders, group/ungroup, multi-select, bulk edit), 15 starter templates, clone with scaling |
+| **Building** | Quick builder, advanced builder (nesting depth 8, ladders, group/ungroup, multi-select, bulk edit), 27 starter templates, clone with scaling |
 | **Library** | Search, tags, favourites, folders, sort, list/grid, duplicate, share, delete, JSON import/export |
 | **Player** | Full-screen tabular timer, current/next interval, round and position, elapsed and remaining totals, left-handed layout, tablet instructor view |
 | **History & progress** | Per-session details with the workout as it was run, weekly chart, daily minutes, streaks, all-time totals, a monthly goal and a local planner with reminders; starter templates live right on Today |

@@ -1,5 +1,8 @@
 package com.pulse.library
 
+import com.pulse.engine.IntervalNode
+import com.pulse.engine.Node
+import com.pulse.engine.RepeatGroup
 import com.pulse.engine.TimelineExpander
 import com.pulse.engine.Validation
 import com.pulse.engine.WorkoutType
@@ -65,6 +68,48 @@ class StarterWorkoutsTest {
             StarterWorkouts.templates.map { it.plan.name }.toSet().size,
         )
         assertTrue("bundled ids keep the builtin- prefix", ids.all { it.startsWith("builtin-") })
+    }
+
+    @Test
+    fun `node ids are unique within each workout, so the builder edits one node at a time`() {
+        fun ids(nodes: List<Node>): List<String> = nodes.flatMap { node ->
+            when (node) {
+                is IntervalNode -> listOf(node.nodeId)
+                is RepeatGroup -> listOf(node.nodeId) + ids(node.children)
+            }
+        }
+        for (template in StarterWorkouts.templates) {
+            val nodeIds = ids(template.plan.nodes)
+            assertEquals("${template.plan.name} repeats a node id: $nodeIds", nodeIds.size, nodeIds.toSet().size)
+        }
+    }
+
+    @Test
+    fun `exercise notes written for a template reach the timeline`() {
+        val circuit = StarterWorkouts.templates.first { it.plan.name == "Bodyweight Circuit" }.plan
+        val squats = TimelineExpander.expand(circuit).steps.first { it.name == "Squats" }
+        assertEquals("Chest tall, knees tracking over toes", squats.notes)
+    }
+
+    @Test
+    fun `duration tags of the timed templates match what the engine computes`() {
+        val expected = mapOf(
+            "E2MOM 16" to 970_000L,
+            "Norwegian 4x4" to 2_400_000L,
+            "Sprint Repeats" to 1_740_000L,
+            "Jump Rope 30/30" to 580_000L,
+            "Double Tabata" to 540_000L,
+            "Lower-Body Burner" to 700_000L,
+            "Core Crusher" to 770_000L,
+            "Shadowboxing Combos" to 885_000L,
+            "Morning Mobility" to 370_000L,
+            "4-7-8 Breathing" to 114_000L,
+            "Deep Work 50/10" to 10_200_000L,
+        )
+        for ((name, millis) in expected) {
+            val plan = StarterWorkouts.templates.first { it.plan.name == name }.plan
+            assertEquals(name, millis, TimelineExpander.expand(plan).totalMillis)
+        }
     }
 
     @Test
