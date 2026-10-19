@@ -347,8 +347,9 @@ interface SessionDao {
     @Query("UPDATE sessions SET notes = :notes WHERE id = :id")
     suspend fun updateNotes(id: String, notes: String?)
 
-    @Query("UPDATE sessions SET lastHeartbeatAtMillis = :at WHERE id = :id")
-    suspend fun heartbeat(id: String, at: Long)
+    /** Also records how far the workout got, so a session interrupted by process death is recoverable. */
+    @Query("UPDATE sessions SET lastHeartbeatAtMillis = :at, sessionElapsedMillis = :elapsedMillis WHERE id = :id")
+    suspend fun heartbeat(id: String, at: Long, elapsedMillis: Long)
 
     @Query("UPDATE sessions SET status = :status WHERE id = :id")
     suspend fun updateStatus(id: String, status: String)

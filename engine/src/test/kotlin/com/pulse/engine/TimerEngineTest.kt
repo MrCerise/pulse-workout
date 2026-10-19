@@ -227,11 +227,27 @@ class TimerEngineTest {
         engine.previous()
         assertEquals(1, engine.snapshot().stepIndex)
         assertTrue(engine.snapshot().completedSteps <= 2)
-        clock.advance(10_000); engine.tick()
+        // Step 1 restarts from its beginning instead of bouncing straight back to step 2.
+        clock.advance(1_000); engine.tick()
+        assertEquals(1, engine.snapshot().stepIndex)
+        assertEquals(9_000L, engine.snapshot().stepRemainingMillis)
+        clock.advance(19_000); engine.tick()
         // Step 1 re-runs, then step 2 completes again and the session ends. Distinct intervals
         // completed = 3 of 3, so the summary can never read more than 100 %.
         assertEquals(3, engine.snapshot().completedSteps)
         assertEquals(TimerStatus.FINISHED, engine.snapshot().status)
+    }
+
+    @Test
+    fun `a cue policy set before start drives the countdown`() {
+        val clock = FakeClock()
+        val engine = TimerEngine(clock)
+        engine.prepare(TimelineExpander.expand(plan(listOf(interval("a", "A", PhaseKind.WORK, 10)))), "p", "T")
+        engine.setCuePolicy(CuePolicy(countdownSeconds = listOf(5, 4, 3, 2, 1)))
+        engine.start()
+        (1..10).forEach { _ -> clock.advance(1_000); engine.tick() }
+        val counted = engine.drainEvents().filterIsInstance<TimerEvent.Countdown>().map { it.secondsRemaining }
+        assertEquals(listOf(5, 4, 3, 2, 1), counted)
     }
 
     @Test
@@ -442,6 +458,12 @@ class TimerEngineTest {
         assertEquals(45_000L, TimelineExpander.applyLadder(30_000L, Ladder(deltaMillis = 10_000, minMillis = 5_000, maxMillis = 45_000), 3))
         val timeline = TimelineExpander.expand(plan(nodes))
         assertEquals(8, timeline.steps.size)
+        assertEquals(
+            listOf(30_000L, 40_000L, 45_000L, 45_000L),
+            timeline.steps.filter { it.kind == PhaseKind.WORK }.map { it.durationMillis },
+        )
+        // Only the targeted kind moves.
+        assertTrue(timeline.steps.filter { it.kind == PhaseKind.REST }.all { it.durationMillis == 30_000L })
     }
 
     @Test

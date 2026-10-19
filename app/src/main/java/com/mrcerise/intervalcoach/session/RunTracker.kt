@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The running system's live measurement: GPS-backed speed and distance for a running workout.
@@ -120,6 +121,19 @@ class RunTracker internal constructor(
 
     /** Stops tracking and freezes [finalInfo] for the summary. */
     fun stop() = onMain { stopInternal() }
+
+    /**
+     * Stops tracking and returns the frozen read-out and route once they are actually frozen.
+     *
+     * [stop] only queues the work on the main thread, so reading [finalInfo] right after it from a
+     * background thread sees the value from the *previous* run (or null). A session that was not
+     * tracked returns nothing rather than that stale run.
+     */
+    suspend fun stopAndFreeze(): Pair<RaceInfo?, List<RacePoint>> = withContext(mainDispatcher) {
+        if (!isTracking) return@withContext null to emptyList()
+        stopInternal()
+        finalInfo to finalRoute
+    }
 
     /** Returning from Android settings or retrying a failed subscription does not reset a run. */
     fun refreshLocationAccess() = onMain {

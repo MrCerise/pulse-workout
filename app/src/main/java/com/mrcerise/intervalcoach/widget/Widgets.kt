@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Home-screen widgets built with RemoteViews.
@@ -61,7 +62,7 @@ class FavoritesWidgetProvider : AppWidgetProvider() {
                     container.workouts.summaries.first().filter { it.isFavorite }.take(MAX_ROWS)
                 }.getOrDefault(emptyList())
                 val remoteViews = build(context, views, favorites)
-                with(Dispatchers.Main) { runCatching { manager.updateAppWidget(widgetId, remoteViews) } }
+                withContext(Dispatchers.Main) { runCatching { manager.updateAppWidget(widgetId, remoteViews) } }
             }
         }
 

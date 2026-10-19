@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -34,6 +36,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -53,7 +58,6 @@ import com.pulse.engine.WorkoutPlan
 import com.pulse.engine.formatDuration
 import com.mrcerise.intervalcoach.AppContainer
 import com.mrcerise.intervalcoach.R
-import com.mrcerise.intervalcoach.data.CategoryDefaults
 import com.mrcerise.intervalcoach.data.DailyActivity
 import com.mrcerise.intervalcoach.data.QuickWorkoutFactory
 import com.mrcerise.intervalcoach.data.WorkoutCategories
@@ -67,6 +71,8 @@ import com.mrcerise.intervalcoach.ui.components.ActivityChart
 import com.mrcerise.intervalcoach.ui.components.CategoryChip
 import com.mrcerise.intervalcoach.ui.components.DurationStepper
 import com.mrcerise.intervalcoach.ui.components.EmptyState
+import com.mrcerise.intervalcoach.ui.components.GhostActionButton
+import com.mrcerise.intervalcoach.ui.components.InfoBanner
 import com.mrcerise.intervalcoach.ui.components.LoadingBox
 import com.mrcerise.intervalcoach.ui.components.NumberStepper
 import com.mrcerise.intervalcoach.ui.components.PrimaryActionButton
@@ -137,7 +143,9 @@ class HomeViewModel(
         val recent = recentSessions.mapNotNull { session -> byId[session.workoutId] }
             .distinctBy { it.id }
             .take(5)
-        val nextReminder = reminders.firstOrNull()
+        // Reminders stay enabled after they fire, so the oldest one is usually in the past.
+        val now = System.currentTimeMillis()
+        val nextReminder = reminders.firstOrNull { it.scheduledAt >= now }
         val activities = container.sessions.weeklyActivity(7)
         HomeUiState(
             favorites = summaries.filter { it.isFavorite }.take(8),
@@ -193,40 +201,6 @@ class HomeViewModel(
         container.workouts.save(template.plan, tags = template.tags)
 }
 
-/**
- * A one-tap start tile built straight from a category's [CategoryDefaults].
- *
- * This is what the category registry buys the Today screen: the presets are no longer four
- * hand-written blocks of arguments, they are four categories asked for their own starting point, so
- * a new category can appear here without this screen being edited.
- */
-data class CategoryPreset(val category: WorkoutCategory, val plan: WorkoutPlan)
-
-/** The presets shown on Today, in the order they are trained. */
-fun buildCategoryPresets(): List<CategoryPreset> {
-    val keys = listOf("TABATA", "HIIT", "RUN", "STRENGTH")
-    return keys.mapNotNull { key ->
-        val category = WorkoutCategories.byKey(key)
-        val d: CategoryDefaults = category.defaults
-        val plan = if (key == "TABATA") {
-            QuickWorkoutFactory.tabata()
-        } else {
-            QuickWorkoutFactory.build(
-                workMillis = d.workMillis,
-                restMillis = d.restMillis,
-                rounds = d.rounds,
-                preparationMillis = d.preparationMillis,
-                includeFinalRest = d.includeFinalRest,
-                name = category.title,
-                type = category.type,
-                workName = d.workName,
-                restName = d.restName,
-            )
-        }
-        CategoryPreset(category, plan)
-    }
-}
-
 /** The categories offered as one-tap starts in the category rail. */
 val homeStartableCategories: List<WorkoutCategory>
     get() = listOf("HIIT", "TABATA", "EMOM", "AMRAP", "STRENGTH", "RUN", "STRETCHING", "BREATHING", "FOCUS")
@@ -235,25 +209,7 @@ val homeStartableCategories: List<WorkoutCategory>
 /** The WHO weekly guideline in active minutes — the default for the goal picker. */
 const val WHO_WEEKLY_MINUTES = 150
 
-/**
- * Today — the dashboard's overview page.
- *
- * The page answers one question — "what do I do right now?" — so it is ordered by urgency and every
- * section is a decision rather than a report:
- *
- * 1. a **page intro** that names the page and dates it;
- * 2. a **hero panel** (ink in both themes) with the week against the 150-minute guideline and the
- *    one primary action on the page;
- * 3. a **live session** row when a workout is running;
- * 4. a **category rail**, because most people know the *kind* of session they want before they know
- *    its name;
- * 5. **quick start** with the four presets and the custom work/rest/rounds steppers;
- * 6. the week's chart, health, favourites and a **table-like recent list**.
- *
- * Density is deliberate: rows are 56 dp, sections are 12 dp apart, and a list of what you did last
- * week fits in one screen without a scroll. Every number on it is a recorded one; nothing is
- * estimated.
- */
+/** Today puts the current workout first, followed by discovery and weekly progress. */
 @Composable
 fun HomeScreen(
     container: AppContainer,
@@ -279,7 +235,10 @@ fun HomeScreen(
     val watchSession by container.wearSync.remoteWatchSession.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val goalMillis = state.goalMinutes.coerceAtLeast(1).toLong() * 60L * 1000L
-    val presets = remember { buildCategoryPresets() }
+    val quickPlan = remember(quick, strings) { viewModel.buildQuickPlan(strings) }
+    val quickDuration = remember(quickPlan) {
+        runCatching { com.pulse.engine.TimelineExpander.expand(quickPlan).knownMillis }.getOrNull()
+    }
     val categories = remember { homeStartableCategories }
     val templates = remember { StarterWorkouts.templates }
 
@@ -306,53 +265,28 @@ fun HomeScreen(
                 )
             }
 
-            // --- Hero ----------------------------------------------------------------------------
-            item {
-                TodayHero(
-                    weekMillis = state.weekMillis,
-                    weekSessions = state.weekSessions,
-                    goalMillis = goalMillis,
-                    onStart = { onStartWorkout(viewModel.buildQuickPlan(strings)) },
-                )
-            }
-
-            item { SectionHeader(text = strings.getString(R.string.nav_today)) }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    StatTile(strings.getString(R.string.home_active_today), formatDuration(state.todayMillis), modifier = Modifier.weight(1f))
-                    StatTile(strings.getString(R.string.home_sessions_today), state.todaySessions.toString(), modifier = Modifier.weight(1f))
-                    StatTile(strings.getString(R.string.home_next_planned), state.nextPlanned?.workoutName ?: "—", modifier = Modifier.weight(1f))
-                }
-            }
-
-            // --- Live session --------------------------------------------------------------------
+            // A running workout takes priority over creating another timer.
             if (activeSession != null) {
                 item {
-                    PulseCard(onClick = onResumeSession) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconTile(icon = Icons.Filled.PlayArrow, tint = colors.accent, container = colors.accentTint)
-                            Spacer(Modifier.width(dimens.m))
-                            Column(
-                                Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(dimens.microGap),
-                            ) {
-                                Text(
-                                    text = strings.getString(R.string.home_in_progress),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = colors.textPrimary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    text = "${activeSession?.plan?.name} · ${snapshot.step?.name ?: ""} · " +
-                                        strings.getString(R.string.time_left, formatDuration(snapshot.stepRemainingMillis)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textMuted,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
+                    PulseHeroCard {
+                        Column(verticalArrangement = Arrangement.spacedBy(dimens.m)) {
+                            Text(strings.getString(R.string.home_in_progress),
+                                style = MaterialTheme.typography.labelLarge, color = colors.heroMuted)
+                            Text(activeSession?.plan?.name.orEmpty(),
+                                style = MaterialTheme.typography.headlineSmall, color = colors.heroText)
+                            Text(
+                                text = listOfNotNull(snapshot.step?.name,
+                                    strings.getString(R.string.time_left, formatDuration(snapshot.stepRemainingMillis)))
+                                    .joinToString(" · "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.heroMuted,
+                            )
+                            PrimaryActionButton(
+                                text = strings.getString(R.string.home_return_to_workout),
+                                onClick = onResumeSession,
+                                icon = Icons.Filled.PlayArrow,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
                 }
@@ -394,6 +328,18 @@ fun HomeScreen(
                 }
             }
 
+            if (activeSession == null) {
+                item {
+                    QuickStartCard(
+                        quick = quick,
+                        durationMillis = quickDuration,
+                        onChange = viewModel::updateQuick,
+                        onStart = { onStartWorkout(quickPlan) },
+                        onBuild = onQuickStart,
+                    )
+                }
+            }
+
             // --- Start by category ---------------------------------------------------------------
             item { SectionHeader(strings.getString(R.string.home_by_category)) }
             item {
@@ -427,92 +373,27 @@ fun HomeScreen(
                 }
             }
 
-            // --- Quick start ---------------------------------------------------------------------
-            // Deliberately *not* a card: presets and steppers are already raised surfaces, so a
-            // container around them would be a container inside a container. The section sits
-            // directly on the canvas and the tiles carry the visual weight themselves.
-            item {
-                Column(Modifier.fillMaxWidth()) {
-                    SectionHeader(strings.getString(R.string.home_quick_start))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        presets.take(2).forEach { preset ->
-                            PresetTile(
-                                title = strings.categoryTitle(preset.category),
-                                icon = preset.category.icon,
-                                hue = colors.categoryColor(preset.category.hue),
-                                tint = colors.categoryTint(preset.category.hue),
-                                duration = presetDuration(preset.plan),
-                                onClick = { onStartWorkout(preset.plan) },
-                                modifier = Modifier.weight(1f),
+            // --- Favorites rail -------------------------------------------------------------------
+            if (state.favorites.isNotEmpty()) {
+                item { SectionHeader(strings.getString(R.string.home_favorites)) }
+                item {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
+                        items(state.favorites, key = { it.id }) { workout ->
+                            FavoriteCard(
+                                workout = workout,
+                                onOpen = { onOpenWorkout(workout.id) },
+                                onStart = { scope.launch { viewModel.planFor(workout.id)?.let(onStartWorkout) } },
                             )
                         }
                     }
-                    Spacer(Modifier.height(dimens.s))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                        presets.drop(2).forEach { preset ->
-                            PresetTile(
-                                title = strings.categoryTitle(preset.category),
-                                icon = preset.category.icon,
-                                hue = colors.categoryColor(preset.category.hue),
-                                tint = colors.categoryTint(preset.category.hue),
-                                duration = presetDuration(preset.plan),
-                                onClick = { onStartWorkout(preset.plan) },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
-
-                    SectionHeader(text = strings.getString(R.string.home_custom), trailing = formatDuration(quickTotal(quick)))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
-                        DurationStepper(
-                            label = strings.getString(R.string.builder_work),
-                            millis = quick.work,
-                            onChange = { viewModel.updateQuick { s -> s.copy(work = it) } },
-                            modifier = Modifier.weight(1f),
-                        )
-                        DurationStepper(
-                            label = strings.getString(R.string.builder_rest),
-                            millis = quick.rest,
-                            onChange = { viewModel.updateQuick { s -> s.copy(rest = it) } },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    Spacer(Modifier.height(dimens.m))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimens.m)) {
-                        NumberStepper(
-                            label = strings.getString(R.string.builder_rounds),
-                            value = quick.rounds,
-                            onChange = { viewModel.updateQuick { s -> s.copy(rounds = it) } },
-                            modifier = Modifier.weight(1f),
-                        )
-                        DurationStepper(
-                            label = strings.getString(R.string.builder_preparation),
-                            millis = quick.prepMillis,
-                            onChange = { viewModel.updateQuick { s -> s.copy(prepMillis = it) } },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    Spacer(Modifier.height(dimens.l))
-                    PrimaryActionButton(
-                        text = strings.getString(R.string.home_start),
-                        onClick = { onStartWorkout(viewModel.buildQuickPlan(strings)) },
-                        icon = Icons.Filled.PlayArrow,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(dimens.s))
-                    SecondaryActionButton(
-                        text = strings.getString(R.string.home_customize),
-                        onClick = onQuickStart,
-                        icon = Icons.Filled.Tune,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
                 }
             }
 
             // --- Weekly activity -----------------------------------------------------------------
-            // The hero already answers "where am I against my goal", so this section is only the
-            // day-by-day chart — one container, one job, and no second copy of the same numbers.
             item { SectionHeader(text = strings.getString(R.string.home_week_summary), trailing = strings.getQuantityString(R.plurals.session_count, state.weekSessions, state.weekSessions)) }
+            item {
+                WeeklyGoalCard(state.weekMillis, state.weekSessions, goalMillis)
+            }
             item {
                 PulseCard {
                     ActivityChart(
@@ -576,22 +457,6 @@ fun HomeScreen(
                                 )
                             }
                             Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = colors.textMuted)
-                        }
-                    }
-                }
-            }
-
-            // --- Favorites rail -------------------------------------------------------------------
-            if (state.favorites.isNotEmpty()) {
-                item { SectionHeader(strings.getString(R.string.home_favorites)) }
-                item {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(dimens.cardGap)) {
-                        items(state.favorites, key = { it.id }) { workout ->
-                            FavoriteCard(
-                                workout = workout,
-                                onOpen = { onOpenWorkout(workout.id) },
-                                onStart = { scope.launch { viewModel.planFor(workout.id)?.let(onStartWorkout) } },
-                            )
                         }
                     }
                 }
@@ -687,19 +552,83 @@ fun HomeScreen(
     }
 }
 
-/**
- * The hero: the week against the 150-minute guideline, on an ink panel.
- *
- * It is deliberately dark in both themes — the one panel on the page that is not a card — so the
- * single primary action sits on a surface nothing else can imitate. No gradient, no glow: ink, a
- * hairline, and the accent used exactly once.
- */
+/** Show exactly what Start will run; reveal the timer fields only when the user wants to edit. */
 @Composable
-private fun TodayHero(
+private fun QuickStartCard(
+    quick: HomeViewModel.QuickState,
+    durationMillis: Long?,
+    onChange: ((HomeViewModel.QuickState) -> HomeViewModel.QuickState) -> Unit,
+    onStart: () -> Unit,
+    onBuild: () -> Unit,
+) {
+    val strings = LocalContext.current.resources
+    val colors = LocalPulseColors.current
+    val dimens = LocalPulseDimens.current
+    var editing by rememberSaveable { mutableStateOf(false) }
+    val canStart = durationMillis != null && durationMillis > 0L
+
+    PulseCard {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(dimens.m)) {
+            Text(strings.getString(R.string.quick_workout_name),
+                style = MaterialTheme.typography.titleLarge, color = colors.textPrimary)
+            if (canStart) {
+                Column {
+                    Text(formatDuration(durationMillis!!), style = PulseType.NumericLarge, color = colors.textPrimary)
+                    Text(strings.getString(R.string.total_time_label),
+                        style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
+                }
+            }
+            Text(
+                strings.getString(R.string.home_timer_summary, quick.rounds, formatDuration(quick.work), formatDuration(quick.rest)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary,
+            )
+            if (quick.prepMillis > 0L) {
+                Text(strings.getString(R.string.home_preparation_summary, formatDuration(quick.prepMillis)),
+                    style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+            }
+            PulseListRow(
+                title = strings.getString(if (editing) R.string.home_hide_timer else R.string.home_adjust_timer),
+                leadingIcon = Icons.Filled.Tune,
+                onClick = { editing = !editing },
+                trailing = {
+                    Icon(if (editing) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = null, tint = colors.textSecondary)
+                },
+            )
+            if (editing) {
+                DurationStepper(strings.getString(R.string.builder_work), quick.work, allowZero = false,
+                    onChange = { value -> onChange { it.copy(work = value) } })
+                DurationStepper(strings.getString(R.string.builder_rest), quick.rest,
+                    onChange = { value -> onChange { it.copy(rest = value) } })
+                NumberStepper(strings.getString(R.string.builder_rounds), quick.rounds,
+                    onChange = { value -> onChange { it.copy(rounds = value) } })
+                DurationStepper(strings.getString(R.string.builder_preparation), quick.prepMillis,
+                    onChange = { value -> onChange { it.copy(prepMillis = value) } })
+            }
+            if (!canStart) InfoBanner(strings.getString(R.string.home_timing_invalid))
+            PrimaryActionButton(
+                text = strings.getString(R.string.home_start_workout),
+                onClick = onStart,
+                enabled = canStart,
+                icon = Icons.Filled.PlayArrow,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            GhostActionButton(
+                text = strings.getString(R.string.home_create_saved),
+                onClick = onBuild,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** Weekly progress stays below workout actions and saved favorites. */
+@Composable
+private fun WeeklyGoalCard(
     weekMillis: Long,
     weekSessions: Int,
     goalMillis: Long,
-    onStart: () -> Unit,
 ) {
     val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
@@ -741,13 +670,6 @@ private fun TodayHero(
                 progress = (weekMillis.toFloat() / goalMillis.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f),
                 height = 4.dp,
                 trackColor = colors.heroMuted.copy(alpha = 0.28f),
-            )
-            Spacer(Modifier.height(dimens.l))
-            PrimaryActionButton(
-                text = if (weekSessions == 0) strings.getString(R.string.home_first_session) else strings.getString(R.string.home_quick_start),
-                onClick = onStart,
-                modifier = Modifier.fillMaxWidth(),
-                icon = Icons.Filled.PlayArrow,
             )
         }
     }
@@ -941,49 +863,6 @@ private fun IconTile(
     }
 }
 
-/** A preset tile in the quick-start grid, coloured by its category. */
-@Composable
-private fun PresetTile(
-    title: String,
-    icon: ImageVector,
-    hue: Color,
-    tint: Color,
-    duration: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = LocalPulseColors.current
-    val dimens = LocalPulseDimens.current
-    Surface(
-        onClick = onClick,
-        modifier = modifier,
-        shape = LocalPulseShapes.current.panel,
-        color = tint,
-        contentColor = hue,
-        border = null,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = dimens.m, vertical = dimens.m),
-            verticalArrangement = Arrangement.spacedBy(dimens.xs),
-        ) {
-            Icon(icon, contentDescription = null, tint = hue, modifier = Modifier.size(18.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = colors.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = duration,
-                style = PulseType.NumericSmall,
-                color = colors.textMuted,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
 @Composable
 private fun greeting(): String = when (java.time.LocalTime.now(ZoneId.systemDefault()).hour) {
     in 5..11 -> stringResource(R.string.greeting_morning)
@@ -1004,8 +883,7 @@ private fun presetDuration(plan: WorkoutPlan): String = runCatching {
 
 /** The duration a one-tap start from a category produces, from that category's own defaults. */
 private fun presetTotalMillis(category: WorkoutCategory): String {
-    val d = category.defaults
-    return formatDuration(d.preparationMillis + d.rounds * (d.workMillis + d.restMillis) + d.cooldownMillis)
+    return presetDuration(planForCategory(category))
 }
 
 /** Builds a runnable plan straight from a category's defaults, without going through a builder. */
@@ -1024,9 +902,6 @@ private fun planForCategory(category: WorkoutCategory): WorkoutPlan {
         restName = d.restName,
     )
 }
-
-private fun quickTotal(quick: HomeViewModel.QuickState): Long =
-    quick.prepMillis + quick.rounds * (quick.work + quick.rest)
 
 @Composable
 private fun formatPlanned(millis: Long): String {

@@ -406,7 +406,8 @@ object StarterWorkouts {
                     ),
                     includeFinalRest = false,
                 ),
-                tags = listOf("mobility", "progressive", "6 minutes"),
+                // 10 s get ready + holds of 30/40/50/60 s + three 30 s rests (final rest omitted).
+                tags = listOf("mobility", "progressive", "5 minutes"),
             ),
             Template(
                 plan = plan(

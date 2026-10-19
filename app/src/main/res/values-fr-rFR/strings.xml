@@ -486,6 +486,16 @@
     <string name="home_not_started">Pas encore commencé</string>
     <string name="home_goal_progress">sur %1$d minutes actives</string>
     <string name="home_first_session">Démarrer votre première séance</string>
+    <string name="home_return_to_workout">Revenir à la séance</string>
+    <string name="home_start_workout">Démarrer la séance</string>
+    <string name="home_create_saved">Créer une séance enregistrée</string>
+    <string name="home_adjust_timer">Régler le minuteur</string>
+    <string name="home_hide_timer">Masquer les réglages du minuteur</string>
+    <string name="home_timer_summary">%1$d × (%2$s d’effort + %3$s de repos)</string>
+    <string name="home_preparation_summary">Commence par %1$s de préparation</string>
+    <string name="home_timing_invalid">Choisissez un temps d’effort supérieur à zéro pour démarrer.</string>
+    <string name="cue_headphones_paused">Écouteurs débranchés — séance en pause</string>
+    <string name="cue_intervals_passed">(intervalles passés pendant que l’app était occupée : %1$d)</string>
     <string name="greeting_morning">Bonjour</string>
     <string name="greeting_afternoon">Bon après-midi</string>
     <string name="greeting_evening">Bonsoir</string>

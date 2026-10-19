@@ -494,6 +494,7 @@ object TimelineExpander {
             breadcrumb = emptyList(),
             context = null,
             random = random,
+            ladder = null,
         )
         if (!plan.includeFinalRest) trimTrailingRecovery(steps)
         if (steps.size > limits.maxExpandedIntervals) {
@@ -559,6 +560,7 @@ object TimelineExpander {
         breadcrumb: List<String>,
         context: GroupContext?,
         random: kotlin.random.Random?,
+        ladder: ActiveLadder?,
     ) {
         if (depth > limits.maxNestingDepth) {
             throw ExpansionException("Groups nested deeper than ${limits.maxNestingDepth} levels are not supported.")
@@ -567,7 +569,7 @@ object TimelineExpander {
         prepared.forEach { node ->
             when (node) {
                 is IntervalNode -> appendInterval(
-                    spec = node.interval,
+                    spec = ladder?.applyTo(node.interval) ?: node.interval,
                     steps = steps,
                     breadcrumb = breadcrumb,
                     context = context,
@@ -581,6 +583,7 @@ object TimelineExpander {
                         )
                     }
                     val childBreadcrumb = breadcrumb + node.name
+                    val ownLadder = node.ladder?.takeIf { it.deltaMillis != 0L }
                     for (round in 1..node.repeat) {
                         expandNodes(
                             nodes = node.children,
@@ -591,6 +594,7 @@ object TimelineExpander {
                             breadcrumb = childBreadcrumb,
                             context = GroupContext(node.nodeId, node.name, round, node.repeat, childBreadcrumb),
                             random = null,
+                            ladder = ownLadder?.let { ActiveLadder(it, round - 1) } ?: ladder,
                         )
                         if (node.restAfterGroupMillis > 0L) {
                             appendInterval(
@@ -643,6 +647,23 @@ object TimelineExpander {
             groupBreadcrumb = breadcrumb,
             sourceNodeId = sourceNodeId,
         )
+    }
+
+    /** The ladder of the nearest enclosing group that has one, at that group's repetition. */
+    private data class ActiveLadder(val ladder: Ladder, val repetitionIndex: Int) {
+        /**
+         * Only timed intervals that would be played anyway are adjusted, so a ladder never turns an
+         * omitted zero-length phase into a step and the symbolic step estimate stays exact.
+         */
+        fun applyTo(spec: IntervalSpec): IntervalSpec {
+            if (spec.omitted || spec.manualCompletion || spec.durationMillis <= 0L) return spec
+            val matches = when (ladder.target) {
+                Ladder.TargetKind.WORK -> spec.kind == PhaseKind.WORK
+                Ladder.TargetKind.REST -> spec.kind == PhaseKind.REST
+                Ladder.TargetKind.ALL -> true
+            }
+            return if (matches) spec.copy(durationMillis = TimelineExpander.applyLadder(spec.durationMillis, ladder, repetitionIndex)) else spec
+        }
     }
 
     /** Applies a ladder to a duration for a given 0-based repetition index. */

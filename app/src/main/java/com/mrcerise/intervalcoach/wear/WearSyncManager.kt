@@ -306,6 +306,15 @@ class WearSyncManager(
 
     /** Stores a finished watch session into the phone's history, then acknowledges it. */
     private suspend fun storeWatchSession(log: SessionLog, sourceNodeId: String) {
+        // A redelivered log (the ack was lost) is already stored: only acknowledge it again, or
+        // every retry would append a second copy of its events.
+        val stored = sessions.session(log.sessionId) != null ||
+            runCatching { storeNewWatchSession(log) }.isSuccess
+        // Unacknowledged logs stay queued on the watch, so a failed write is retried, not lost.
+        if (stored) runCatching { messageClient.sendMessage(sourceNodeId, SyncPaths.MESSAGE_LOG_ACK, log.sessionId.toByteArray()) }
+    }
+
+    private suspend fun storeNewWatchSession(log: SessionLog) {
         val events = log.events.map { event ->
             SessionEventEntity(
                 sessionId = log.sessionId,
@@ -336,13 +345,15 @@ class WearSyncManager(
             rounds = log.roundsLogged,
             weightUnit = log.weightUnit,
         )
+        // Sessions under a minute are not kept (the same rule as phone sessions), so there is no
+        // row for their events to reference; inserting them would fail the foreign key.
+        if (sessions.session(log.sessionId) == null) return
         sessions.recordEvents(log.sessionId, events)
         runCatching { workouts.markUsed(log.workoutId) }
         val prefs = preferences.current()
         if (prefs.healthSyncSessions) {
             runCatching { health.writeSession(entity, events) }
         }
-        runCatching { messageClient.sendMessage(sourceNodeId, SyncPaths.MESSAGE_LOG_ACK, log.sessionId.toByteArray()) }
     }
 
     // -------------------------------------------------------------------------------------------

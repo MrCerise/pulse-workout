@@ -33,6 +33,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -62,6 +64,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -141,8 +144,10 @@ fun PrimaryActionButton(
             Text(
                 text = text,
                 style = PulseType.ButtonLabel,
-                maxLines = 1,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
         }
     }
@@ -184,8 +189,10 @@ fun SecondaryActionButton(
             Text(
                 text = text,
                 style = PulseType.ButtonLabel,
-                maxLines = 1,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
         }
     }
@@ -222,8 +229,10 @@ fun GhostActionButton(
             Text(
                 text = text,
                 style = PulseType.ButtonLabel,
-                maxLines = 1,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
         }
     }
@@ -261,8 +270,10 @@ fun DangerActionButton(
             Text(
                 text = text,
                 style = PulseType.ButtonLabel,
-                maxLines = 1,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
         }
     }
@@ -343,6 +354,7 @@ fun PulseTextField(
     trailing: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
     isError: Boolean = false,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     val strings = LocalContext.current.resources
     val colors = LocalPulseColors.current
@@ -394,6 +406,7 @@ fun PulseTextField(
                         color = if (enabled) colors.textPrimary else colors.textDisabled,
                     ),
                     keyboardOptions = keyboardOptions,
+                    keyboardActions = keyboardActions,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = dimens.controlHeight - dimens.m),
@@ -591,8 +604,10 @@ fun PulseActionMenu(
             Text(
                 text = text,
                 style = PulseType.ButtonLabel,
-                maxLines = 1,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
             Spacer(Modifier.width(dimens.s))
             Icon(
@@ -725,9 +740,12 @@ fun ToggleRow(
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Surface(
-        onClick = { if (enabled) onCheckedChange(!checked) },
-        modifier = modifier.fillMaxWidth(),
-        enabled = enabled,
+        modifier = modifier.fillMaxWidth().toggleable(
+            value = checked,
+            enabled = enabled,
+            role = Role.Switch,
+            onValueChange = onCheckedChange,
+        ),
         color = Color.Transparent,
         contentColor = colors.textPrimary,
     ) {
@@ -755,7 +773,7 @@ fun ToggleRow(
             Spacer(Modifier.width(dimens.m))
             Switch(
                 checked = checked,
-                onCheckedChange = if (enabled) onCheckedChange else null,
+                onCheckedChange = null,
                 enabled = enabled,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = colors.onAccent,
@@ -843,6 +861,7 @@ fun DurationStepper(
         Text(label, style = PulseType.SectionLabel, color = colors.textMuted, modifier = Modifier.weight(1f))
         Surface(
             onClick = { if (enabled) editing = true },
+            modifier = Modifier.heightIn(min = 48.dp),
             enabled = enabled,
             shape = LocalPulseShapes.current.control,
             color = colors.surfaceRaised,
@@ -852,7 +871,7 @@ fun DurationStepper(
             Row(Modifier.padding(horizontal = dimens.m, vertical = dimens.s), verticalAlignment = Alignment.CenterVertically) {
                 Text(formatStepperDuration(millis), style = PulseType.StepperValue,
                     color = if (enabled) colors.textPrimary else colors.textDisabled,
-                    modifier = Modifier.semantics { contentDescription = strings.getString(R.string.duration_scroll, label) })
+                    modifier = Modifier.semantics { contentDescription = strings.getString(R.string.duration_scroll, label) + ", " + formatStepperDuration(millis) })
                 Spacer(Modifier.width(dimens.xs))
                 Icon(Icons.Filled.UnfoldMore, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
             }
@@ -956,7 +975,7 @@ fun NumberStepper(
     StepperField(
         label = label,
         value = value.toString(),
-        valueDescription = strings.getString(R.string.stepper_count, label),
+        valueDescription = strings.getString(R.string.stepper_count, label) + ", " + value,
         decreaseDescription = strings.getString(R.string.action_decrease, label),
         increaseDescription = strings.getString(R.string.action_increase, label),
         atMin = value <= min,
@@ -1027,7 +1046,7 @@ private fun StepperButton(
     description: String,
     enabled: Boolean,
     onClick: () -> Unit,
-    size: Dp = 36.dp,
+    size: Dp = 48.dp,
 ) {
     val colors = LocalPulseColors.current
     Surface(
@@ -1124,6 +1143,7 @@ fun PulseSheetRow(
     leadingIcon: ImageVector? = null,
     selected: Boolean = false,
     destructive: Boolean = false,
+    supportingText: String? = null,
 ) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
@@ -1155,14 +1175,16 @@ fun PulseSheetRow(
                 )
                 Spacer(Modifier.width(dimens.m))
             }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleMedium,
-                color = tint,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = tint,
+                )
+                supportingText?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                }
+            }
             if (selected) {
                 Spacer(Modifier.width(dimens.s))
                 Icon(

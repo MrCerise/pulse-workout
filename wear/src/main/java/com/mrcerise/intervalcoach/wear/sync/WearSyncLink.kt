@@ -150,7 +150,10 @@ class WearSyncLink(
         // still deliver it rather than quietly dropping the workout.
         scope.launch {
             preferences.queueSessionLog(log)
-            deliverPendingLogs()
+            // Sent straight away rather than through deliverPendingLogs(): its retry throttle (and a
+            // queue snapshot that may not include this log yet) could hold a fresh session back until
+            // the next minute-long sweep. The queued copy still covers a failed send.
+            if (syncEnabled) sendToPeers(SyncPaths.MESSAGE_LOG, SyncJson.encodeLog(log))
         }
     }
 
