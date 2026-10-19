@@ -102,7 +102,7 @@ class StarterWorkoutsTest {
             "Lower-Body Burner" to 700_000L,
             "Core Crusher" to 770_000L,
             "Shadowboxing Combos" to 885_000L,
-            "Morning Mobility" to 370_000L,
+            "Morning Mobility" to 325_000L,
             "4-7-8 Breathing" to 114_000L,
             "Deep Work 50/10" to 10_200_000L,
         )
