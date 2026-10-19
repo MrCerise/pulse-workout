@@ -1,9 +1,13 @@
 # Build outputs
 build/
-app/build/
-engine/build/
 .gradle/
 .kotlin/
+*.apk
+*.aab
+
+# Node tooling (tools/store-screenshots)
+node_modules/
+.next/
 
 # Machine-specific
 local.properties

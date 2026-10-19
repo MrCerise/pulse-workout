@@ -1,0 +1,23 @@
+# Weekly dependency updates. Updates are grouped so a week's bumps arrive as one PR per ecosystem;
+# the Gradle catalogue (`gradle/libs.versions.toml`) is read from the root project.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      androidx-and-kotlin:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -33,8 +33,4 @@
 -keep class androidx.health.connect.client.** { *; }
 -keepclassmembers class androidx.health.connect.client.records.** { *; }
 
-# Google Fit / sign-in clients are bound through Play services.
--keep class com.google.android.gms.fitness.** { *; }
--keep class com.google.android.gms.auth.api.signin.** { *; }
-
 -dontwarn org.jetbrains.annotations.**

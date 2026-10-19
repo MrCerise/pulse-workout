@@ -13,10 +13,10 @@ import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.data.WorkoutSummary
 import com.mrcerise.intervalcoach.pulseContainer
 import com.mrcerise.intervalcoach.session.formatClock
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -40,24 +40,33 @@ object Widgets {
             QuickStartWidgetProvider.updateWidget(context, manager, id)
         }
         // Shortcut publishing is a suspended read of the library; fire and forget.
-        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch { ShortcutHelper.publish(context) }
+        context.pulseContainer.appScope.launch { ShortcutHelper.publish(context) }
     }
 }
 
 class FavoritesWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        appWidgetIds.forEach { id -> updateWidget(context, appWidgetManager, id) }
+        // The library read is asynchronous: keep the broadcast alive until every widget is drawn, or
+        // the process may be reclaimed before the update lands.
+        val pending = goAsync()
+        val updates = appWidgetIds.map { id -> updateWidget(context, appWidgetManager, id) }
+        context.pulseContainer.appScope.launch {
+            try {
+                updates.joinAll()
+            } finally {
+                pending.finish()
+            }
+        }
     }
 
     companion object {
         private const val MAX_ROWS = 4
 
-        fun updateWidget(context: Context, manager: AppWidgetManager, widgetId: Int) {
+        fun updateWidget(context: Context, manager: AppWidgetManager, widgetId: Int): Job {
             val views = RemoteViews(context.packageName, R.layout.widget_favorites)
-            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-            scope.launch {
-                val container = context.pulseContainer
+            val container = context.pulseContainer
+            return container.appScope.launch {
                 val favorites = runCatching {
                     container.workouts.summaries.first().filter { it.isFavorite }.take(MAX_ROWS)
                 }.getOrDefault(emptyList())

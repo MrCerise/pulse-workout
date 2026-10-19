@@ -406,7 +406,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
     val musicPlaying by container.music.playing.collectAsStateWithLifecycle()
     val musicUnavailable by container.music.unavailable.collectAsStateWithLifecycle()
     val duckState by container.music.duckState.collectAsStateWithLifecycle()
-    var recording by remember { mutableStateOf<MediaRecorder?>(null) }
+    var recording by remember { mutableStateOf<ActiveRecording?>(null) }
     /** True when *this screen* started the background audio, so leaving stops only the preview. */
     var previewingHere by remember { mutableStateOf(false) }
     val current = prefs
@@ -691,7 +691,7 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
                         PrimaryActionButton(
                             text = stringResource(R.string.voice_record_stop),
                             onClick = {
-                                stopRecording(recording, context, container)
+                                stopRecording(recording, container)
                                 recording = null
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -734,7 +734,10 @@ fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
     }
 }
 
-private fun startRecording(context: Context, container: AppContainer, onStarted: (MediaRecorder) -> Unit) {
+/** A cue being recorded, with the file it is written to. */
+private class ActiveRecording(val recorder: MediaRecorder, val file: File)
+
+private fun startRecording(context: Context, container: AppContainer, onStarted: (ActiveRecording) -> Unit) {
     val dir = File(context.filesDir, "recordings").apply { mkdirs() }
     val file = File(dir, "cue-${System.currentTimeMillis()}.m4a")
     val recorder = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else @Suppress("DEPRECATION") MediaRecorder()).apply {
@@ -745,23 +748,21 @@ private fun startRecording(context: Context, container: AppContainer, onStarted:
         prepare()
         start()
     }
-    onStarted(recorder)
+    onStarted(ActiveRecording(recorder, file))
 }
 
-private fun stopRecording(recorder: MediaRecorder?, context: Context, container: AppContainer) {
-    val output = runCatching {
-        recorder?.stop()
-        recorder?.release()
-    }
+private fun stopRecording(recording: ActiveRecording?, container: AppContainer) {
+    val active = recording ?: return
+    val output = runCatching { active.recorder.stop() }
+    runCatching { active.recorder.release() }
     output.onSuccess {
-        val dir = File(context.filesDir, "recordings")
-        val newest = dir.listFiles()?.maxByOrNull { it.lastModified() } ?: return
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        val file = active.file
+        container.appScope.launch {
             container.audioAssets.add(
                 AudioAssetEntity(
-                    id = newest.nameWithoutExtension,
-                    name = newest.nameWithoutExtension,
-                    uri = Uri.fromFile(newest).toString(),
+                    id = file.nameWithoutExtension,
+                    name = file.nameWithoutExtension,
+                    uri = Uri.fromFile(file).toString(),
                     source = "RECORDING",
                     createdAt = System.currentTimeMillis(),
                 )

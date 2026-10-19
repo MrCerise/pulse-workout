@@ -120,7 +120,7 @@ ksp {
 dependencies {
     implementation(project(":engine"))
     implementation(project(":sync"))
-implementation(project(":library"))
+    implementation(project(":library"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -150,7 +150,6 @@ implementation(project(":library"))
 
     // Health integration (Health Connect)
     implementation(libs.androidx.health.connect.client)
-    implementation(libs.gms.play.services.auth)
 
     // Wear OS companion link (workout library/preferences sync, session mirroring and control)
     implementation(libs.gms.play.services.wearable)

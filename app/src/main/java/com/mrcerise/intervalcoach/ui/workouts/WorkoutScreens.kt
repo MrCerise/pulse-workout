@@ -384,7 +384,7 @@ fun WorkoutLibraryScreen(
                                         onFavorite = { viewModel.setFavorite(workout.id, !workout.isFavorite) },
                                         onDuplicate = { viewModel.duplicate(workout.id) },
                                         onDelete = { pendingDelete = workout },
-                                        onShare = { shareWorkout(context, container, workout.id) },
+                                        onShare = { shareWorkout(context, container, scope, workout.id) },
                                     )
                                     if (index != state.workouts.lastIndex) PulseDivider()
                                 }
@@ -899,11 +899,17 @@ private fun CategoryLabel(category: WorkoutCategory) {
 }
 
 /** Shares a readable text summary of a workout (structure only — never fake session numbers). */
-private fun shareWorkout(context: android.content.Context, container: AppContainer, workoutId: String) {
-    val scope = kotlinx.coroutines.CoroutineScope(Dispatchers.Default)
+private fun shareWorkout(
+    context: android.content.Context,
+    container: AppContainer,
+    scope: kotlinx.coroutines.CoroutineScope,
+    workoutId: String,
+) {
     scope.launch {
         val plan = container.workouts.plan(workoutId) ?: return@launch
-        val expanded = runCatching { com.pulse.engine.TimelineExpander.expand(plan) }.getOrNull() ?: return@launch
+        val expanded = withContext(Dispatchers.Default) {
+            runCatching { com.pulse.engine.TimelineExpander.expand(plan) }.getOrNull()
+        } ?: return@launch
         val text = buildString {
             appendLine(plan.name)
             appendLine()
