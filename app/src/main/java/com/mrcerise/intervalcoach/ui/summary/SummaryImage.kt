@@ -1,6 +1,8 @@
 package com.mrcerise.intervalcoach.ui.summary
 
+import android.content.ClipData
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -8,6 +10,7 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.net.Uri
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -44,6 +47,21 @@ object SummaryImage {
     private val BORDER: Int = 0xFF2E323A.toInt()   // hairlines
     private val SUCCESS: Int = 0xFF4CC38A.toInt()  // work / success
     private val WARNING: Int = 0xFFF5B544.toInt()  // prepare / warning
+
+    /** Carry the image and its temporary read grant through the system chooser to the receiver. */
+    fun shareIntent(context: Context, title: String, imageUri: Uri): Intent {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, imageUri)
+            putExtra(Intent.EXTRA_TITLE, title)
+            clipData = ClipData.newRawUri(title, imageUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        return Intent.createChooser(send, context.getString(R.string.summary_share_title)).apply {
+            clipData = send.clipData
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }
 
     fun render(context: Context, summary: SessionSummaryData): Bitmap {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)

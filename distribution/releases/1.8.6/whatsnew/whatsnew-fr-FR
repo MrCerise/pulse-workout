@@ -1,0 +1,5 @@
+La version 1.8.6 corrige le guidage vocal et le minutage.
+- La voix du coach ne se coupe plus quand une autre application prend le son ; le bouton de sourdine la réactive toujours.
+- Le compte à rebours et l’annonce de mi-parcours suivent vos réglages sur le téléphone.
+- L’intervalle précédent, les séances en échelle et les durées enregistrées fonctionnent correctement.
+- Les séances de la montre arrivent immédiatement sur le téléphone.

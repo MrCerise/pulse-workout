@@ -18,6 +18,8 @@ Health Connect.
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org)
 [![Crowdin](https://badges.crowdin.net/pulse-workout/localized.svg)](https://crowdin.com/project/pulse-workout)
 
+<a href="https://play.google.com/store/apps/details?id=com.mrcerise.intervalcoach"><img src="https://appure.io/badges/playstore/en.svg" alt="Get it on Google Play" width="160" /></a>
+
 <a href="https://crowdin.com/?utm_term=click-badge-add-on"><img style="width:140;height:40px" src="https://badges.crowdin.net/badge/light/crowdin-on-dark.png" srcset="https://badges.crowdin.net/badge/light/crowdin-on-dark.png 1x,https://badges.crowdin.net/badge/light/crowdin-on-dark@2x.png 2x" alt="Crowdin | Agile localization for tech companies" /></a>
 
 </div>
@@ -37,7 +39,7 @@ a backup file you exported, or a prompt you pasted into an AI tool of your own c
 **Releases** — [latest APKs](https://github.com/MrCerise/pulse-workout/releases/latest) ·
 [CHANGELOG.md](CHANGELOG.md) · store releases run through the **release train**
 (`.github/workflows/release-train.yml`): a tagged `v*` push builds signed phone/watch APKs and
-AABs once, publishes them to GitHub Releases, and uploads the phone AAB to Play internal testing
+AABs once, publishes them to GitHub Releases, and uploads the phone AAB to Play closed testing
 as a draft. Manual trains support internal, closed, open and production tracks. See
 [release setup and inputs](docs/RELEASING.md#manual-dispatch).
 

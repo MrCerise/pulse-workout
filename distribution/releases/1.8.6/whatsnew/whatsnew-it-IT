@@ -1,0 +1,5 @@
+La versione 1.8.6 corregge la guida vocale e la misurazione del tempo.
+- La voce del coach non si spegne più quando un'altra app prende l'audio; il pulsante di silenzio la riattiva sempre.
+- Il conto alla rovescia e l'avviso a metà seguono le tue impostazioni sul telefono.
+- Intervallo precedente, allenamenti a scala e tempi salvati funzionano correttamente.
+- Le sessioni dell'orologio arrivano subito sul telefono.

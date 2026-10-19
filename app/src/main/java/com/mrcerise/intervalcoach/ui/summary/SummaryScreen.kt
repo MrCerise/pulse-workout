@@ -1,6 +1,5 @@
 package com.mrcerise.intervalcoach.ui.summary
 
-import android.content.ClipData
 import android.content.Intent
 import kotlinx.coroutines.CancellationException
 import androidx.compose.foundation.layout.Arrangement
@@ -265,21 +264,7 @@ fun SessionSummaryScreen(
                         }.getOrNull()
                         try {
                             if (imageUri != null) {
-                                val send = Intent(Intent.ACTION_SEND).apply {
-                                    type = "image/png"
-                                    putExtra(Intent.EXTRA_STREAM, imageUri)
-                                    putExtra(Intent.EXTRA_TITLE, current.planName)
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                // Grant every chooser target read access explicitly (some OEM
-                                // choosers drop the flag grant for the wrapped intent).
-                                val chooser = Intent.createChooser(send, context.getString(R.string.summary_share_title)).apply {
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                context.packageManager.queryIntentActivities(send, 0).forEach { info ->
-                                    runCatching { context.grantUriPermission(info.activityInfo.packageName, imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-                                }
-                                context.startActivity(chooser)
+                                context.startActivity(SummaryImage.shareIntent(context, current.planName, imageUri))
                             } else {
                                 val text = strings.getString(R.string.summary_share_text, current.planName, formatDuration(current.activeMillis), current.completedIntervals, current.totalIntervals)
                                 val send = Intent(Intent.ACTION_SEND).apply {

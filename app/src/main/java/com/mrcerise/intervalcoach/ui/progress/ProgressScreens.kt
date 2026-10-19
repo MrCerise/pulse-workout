@@ -678,7 +678,8 @@ private fun String.humanEvent(): String = when (this) {
     "RESUMED" -> stringResource(R.string.event_resumed)
     "TIME_ADDED" -> stringResource(R.string.event_time_added)
     "LAP" -> stringResource(R.string.event_lap)
-    "ROUND_STARTED" -> stringResource(R.string.event_round)
+    // Phone sessions log ROUND_STARTED; sessions synced from the watch log ROUND_LOGGED.
+    "ROUND_STARTED", "ROUND_LOGGED" -> stringResource(R.string.event_round)
     "PERIODIC_CUE" -> stringResource(R.string.event_cue)
     "COUNTDOWN" -> stringResource(R.string.event_countdown)
     "HALFWAY" -> stringResource(R.string.event_halfway)

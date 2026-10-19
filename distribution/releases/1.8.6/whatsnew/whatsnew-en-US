@@ -1,0 +1,5 @@
+Version 1.8.6 fixes voice coaching and timing.
+- The coach voice no longer goes silent after another app takes the audio; the mute button always turns it back on.
+- Countdown and halfway settings are respected on the phone.
+- Previous interval, ladder workouts and saved session times work correctly.
+- Watch sessions reach the phone right away.

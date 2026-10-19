@@ -146,7 +146,7 @@ data class CuePolicy(
  */
 class TimerEngine(
     private val clock: MonotonicClock,
-    private val cuePolicy: CuePolicy = CuePolicy(),
+    private var cuePolicy: CuePolicy = CuePolicy(),
 ) {
     private var timeline: ExpandedTimeline = ExpandedTimeline(emptyList(), 0L, 0, emptyList())
     private var planId: String = ""
@@ -183,6 +183,13 @@ class TimerEngine(
 
     private val _events = mutableListOf<TimerEvent>()
     private var onEvent: ((TimerEvent) -> Unit)? = null
+
+    /**
+     * Replaces the cue configuration, e.g. with the user's countdown and halfway preferences. Takes
+     * effect from the next settle; call it before [start] so a session uses one policy throughout.
+     */
+    @Synchronized
+    fun setCuePolicy(policy: CuePolicy) { cuePolicy = policy }
 
     /** Sets the consumer for engine events. Called by the app-layer session controller. */
     fun setEventListener(listener: (TimerEvent) -> Unit) { onEvent = listener }
@@ -324,10 +331,11 @@ class TimerEngine(
             emit(TimerEvent.StepStarted(0, current, timeline.steps.size, resumed = true))
             return
         }
-        val previousStep = timeline.steps[stepIndex - 1]
-        val newStart = (stepStartAt - previousStep.durationMillis).coerceAtLeast(0L)
+        // The previous interval restarts from its beginning at the current session position.
+        // Back-dating its start by its duration would leave it already expired, and the next
+        // settle would bounce straight back to the interval the user just left.
         stepIndex -= 1
-        stepStartAt = newStart
+        stepStartAt = elapsed
         forgottenCuesFrom(stepIndex)
         // Rewinding re-arms cues for the step we return to. Completion is tracked per distinct
         // interval index, so history can never claim more completions than the timeline has steps.

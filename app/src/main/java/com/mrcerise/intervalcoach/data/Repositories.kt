@@ -407,7 +407,11 @@ class SessionRepository(
         return entity
     }
 
-    suspend fun heartbeat(sessionId: String, at: Long) = sessionDao.heartbeat(sessionId, at)
+    /**
+     * [elapsedMillis] is what [recoverInterruptedSessions] later reads: without it every RUNNING row
+     * reports 0 ms and an interrupted workout is deleted instead of being marked INTERRUPTED.
+     */
+    suspend fun heartbeat(sessionId: String, at: Long, elapsedMillis: Long) = sessionDao.heartbeat(sessionId, at, elapsedMillis)
 
     suspend fun finish(
         sessionId: String,

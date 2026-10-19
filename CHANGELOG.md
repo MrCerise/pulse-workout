@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to INTERVALS are documented in this file.
+All notable changes to Interval Coach are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *version name*
@@ -11,6 +11,35 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Per-release verification notes live next to this file as `docs/RELEASE_<version>.md`.
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+## [1.8.6] — 2026-10-19
+
+**Fixed**
+- Voice cues no longer stay muted for the rest of a workout after a permanent audio-focus loss,
+  and the mute button always re-enables them.
+- The phone timer applies the countdown, halfway and halfway-minimum preferences.
+- Previous interval restarts the earlier step instead of immediately skipping forward again.
+- Group ladders lengthen matching intervals per round; the Mobility Ladder tag shows 5 minutes.
+- Completed sessions are always finalised once, the heartbeat stores elapsed time, and route data
+  is captured before tracking stops.
+- Watch session logs are sent as soon as they finish, and short watch sessions are acknowledged.
+- Headphone and missed-interval cue messages follow the app language.
+
+**Changed**
+- Refreshed home screen quick-start layout.
+
+
+**Changed**
+- Version-tag uploads now target closed testing track `PreRelease Beta` as a draft for review.
+- Both phone and Wear OS report version 1.8.5; tag builds use an increasing Play version code.
+
+**Added**
+- Versioned GitHub changelogs and localized Google Play release notes in English, French, German,
+  Spanish and Italian, shared between publishing jobs without rebuilding the app.
+- Validation for missing, empty or oversized release notes before release builds start.
+
+The app includes the translations and fixes shipped in 1.8.4. This release updates distribution
+and version metadata; it does not add new workout behaviour.
 
 ## [1.8.1-beta1.8] — 2026-10-17
 

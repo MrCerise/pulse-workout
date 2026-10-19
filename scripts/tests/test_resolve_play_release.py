@@ -136,10 +136,12 @@ class PlayReleaseTest(unittest.TestCase):
         self.assertEqual(self.resolve(RELEASE_CHANNEL="production")["release_tag"], "v1.8.1")
 
     def test_closed_track_id_is_explicit_and_preserved(self):
-        result = self.resolve(RELEASE_CHANNEL="closed", RELEASE_PLAY_TRACK="alpha")
-        self.assertEqual(result["track"], "alpha")
-        self.assertEqual(result["full_name"], "1.8.1-closed.18001050")
-        for track in ("", "production", "beta", "internal", "track\ncode=99", "../production"):
+        for track in ("alpha", "PreRelease Beta", "closed-testing"):
+            with self.subTest(track=track):
+                result = self.resolve(RELEASE_CHANNEL="closed", RELEASE_PLAY_TRACK=track)
+                self.assertEqual(result["track"], track)
+                self.assertEqual(result["full_name"], "1.8.1-closed.18001050")
+        for track in ("", "production", "beta", "internal", "track\ncode=99", "../production", "track\rname", "track\tname"):
             with self.subTest(track=track), self.assertRaises(ValueError):
                 self.resolve(RELEASE_CHANNEL="closed", RELEASE_PLAY_TRACK=track)
 

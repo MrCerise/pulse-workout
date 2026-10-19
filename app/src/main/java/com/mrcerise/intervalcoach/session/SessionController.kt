@@ -6,6 +6,7 @@ import android.os.SystemClock
 import com.pulse.engine.EngineLimits
 import com.pulse.engine.ExpansionException
 import com.pulse.engine.CompletionReason
+import com.pulse.engine.CuePolicy
 import com.pulse.engine.FinishReason
 import com.pulse.engine.MonotonicClock
 import com.pulse.engine.TimelineExpander
@@ -30,6 +31,8 @@ import com.mrcerise.intervalcoach.data.SessionRepository
 import com.mrcerise.intervalcoach.data.UserPreferences
 import com.mrcerise.intervalcoach.data.WorkoutRepository
 import com.mrcerise.intervalcoach.data.category
+import com.mrcerise.intervalcoach.locale.AppLocale
+import com.mrcerise.intervalcoach.R
 import com.mrcerise.intervalcoach.data.db.SessionEventEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -136,6 +139,8 @@ class SessionController(
     private var lastHeartbeatAt = 0L
     private var mutedByFocus = false
     private var mutedByUser = false
+    /** The session [finalizeSession] has already recorded; guards against a second finalize. */
+    private var finalizedSessionId: String? = null
 
     private val eventChannel = Channel<TimerEvent>(capacity = Channel.UNLIMITED)
 
@@ -188,6 +193,9 @@ class SessionController(
             }
             stopInternal()
         }
+        // The player and notification show the last cue; never carry one over from the last session.
+        // Cleared before engine.start(), whose first announcement the reducer may publish at once.
+        _lastCueText.value = null
         val start = sessionRepository.start(plan)
         val problems = engine.prepare(timeline, plan.id, plan.name, periodicCueMillis = plan.periodicCueMillis)
         if (problems.isNotEmpty()) {
@@ -198,6 +206,14 @@ class SessionController(
             )
             return@withLock Result.failure(IllegalStateException(problems.joinToString(" ")))
         }
+        // The user's countdown length and halfway settings, fixed for the length of this session.
+        engine.setCuePolicy(
+            CuePolicy(
+                countdownSeconds = current.countdownThresholds,
+                halfwayCues = current.halfwayAnnouncements,
+                halfwayMinMillis = current.halfwayMinSeconds * 1000L,
+            ),
+        )
         val errors = engine.start()
         if (errors.isNotEmpty()) return@withLock Result.failure(IllegalStateException(errors.joinToString(" ")))
 
@@ -238,7 +254,10 @@ class SessionController(
             FocusEvent.LOSS -> when (behavior) {
                 AudioInterruptionBehavior.PAUSE -> pause()
                 AudioInterruptionBehavior.KEEP_TIMING_MUTE_CUES -> setFocusMuted(true)
-                AudioInterruptionBehavior.KEEP_TIMING_DUCK -> setFocusMuted(true)
+                // A permanent loss never comes back with GAIN, so muting here silenced the coach for
+                // the rest of the session. "Duck" keeps coaching: each cue requests may-duck focus
+                // again and lowers the other app while it speaks.
+                AudioInterruptionBehavior.KEEP_TIMING_DUCK -> Unit
             }
             FocusEvent.LOSS_TRANSIENT -> when (behavior) {
                 AudioInterruptionBehavior.PAUSE -> pause()
@@ -255,10 +274,11 @@ class SessionController(
     }
 
     fun onHeadphonesDisconnected() {
+        if (_active.value == null) return
         when (prefsSnapshot.headphoneBehavior) {
             HeadphoneBehavior.PAUSE -> {
                 pause()
-                _lastCueText.value = "Headphones unplugged — workout paused"
+                _lastCueText.value = localizedString(R.string.cue_headphones_paused)
             }
             HeadphoneBehavior.KEEP_GOING -> Unit
         }
@@ -313,8 +333,17 @@ class SessionController(
         publish()
     }
 
+    /**
+     * The player's mute button. Unmuting clears an audio-focus mute too: otherwise a focus loss that
+     * never returned a GAIN left the cues muted with a button that only flipped the user's own flag.
+     */
     fun toggleCuesMuted() {
-        mutedByUser = !mutedByUser
+        if (_cuesMuted.value) {
+            mutedByUser = false
+            mutedByFocus = false
+        } else {
+            mutedByUser = true
+        }
         updateCueMute()
     }
 
@@ -346,7 +375,22 @@ class SessionController(
         finalizeSession(active, stoppedEarly = true)
     }
 
+    /**
+     * Claims the right to finalize [active] exactly once. A completed timeline and a Stop press (from
+     * the player, the notification or the watch) can both reach [finalizeSession] on the
+     * multi-threaded app scope, and only the first may write the record and tear down.
+     */
+    private fun claimFinalize(active: ActiveSession): Boolean = synchronized(this) {
+        if (finalizedSessionId == active.sessionId) {
+            false
+        } else {
+            finalizedSessionId = active.sessionId
+            true
+        }
+    }
+
     private suspend fun finalizeSession(active: ActiveSession, stoppedEarly: Boolean) {
+        if (!claimFinalize(active)) return
         val snapshot = engine.snapshot()
         val status = if (stoppedEarly && snapshot.status == TimerStatus.FINISHED && snapshot.completedSteps >= snapshot.totalSteps) {
             STATUS_COMPLETED
@@ -358,9 +402,7 @@ class SessionController(
         val endedAt = System.currentTimeMillis()
         // Freeze the race read-out before the summary is built: the tracker is the only thing that
         // knows how far the runner actually went.
-        runTracker.stop()
-        val race = runTracker.finalInfo
-        val route = runTracker.finalRoute
+        val (race, route) = runTracker.stopAndFreeze()
         sessionRepository.finish(
             sessionId = active.sessionId,
             endedAt = endedAt,
@@ -396,15 +438,16 @@ class SessionController(
             raceFinished = race?.finished == true,
             raceRoute = route,
         )
-        teardown()
+        // A completed timeline has just queued its "workout complete" line; let it finish.
+        teardown(silenceSpeech = stoppedEarly)
     }
 
-    private fun teardown() {
+    private fun teardown(silenceSpeech: Boolean = true) {
         tickerJob?.cancel()
         tickerJob = null
         releaseWakeLock()
         soundPlayer.release()
-        speech.stop()
+        if (silenceSpeech) speech.stop()
         music.stop()
         haptics.cancel()
         runTracker.stop()
@@ -442,7 +485,7 @@ class SessionController(
         val now = System.currentTimeMillis()
         if (now - lastHeartbeatAt < HEARTBEAT_INTERVAL_MS) return
         lastHeartbeatAt = now
-        runCatching { sessionRepository.heartbeat(active.sessionId, now) }
+        runCatching { sessionRepository.heartbeat(active.sessionId, now, engine.snapshot().sessionElapsedMillis) }
     }
 
     private fun publish() {
@@ -467,6 +510,14 @@ class SessionController(
             if (event is TimerEvent.SessionFinished) {
                 flush(pending)
                 _snapshot.value = engine.snapshot()
+                // Nothing else ends a session whose timeline ran out: without this the record stays
+                // RUNNING, no summary is shown and the next start is refused as a replacement.
+                // The status check keeps a late event from finalizing a session started since.
+                if (event.reason == FinishReason.TIMELINE_COMPLETED && active != null &&
+                    engine.snapshot().status == TimerStatus.FINISHED
+                ) {
+                    finalizeSession(active, stoppedEarly = false)
+                }
             } else {
                 _snapshot.value = engine.snapshot()
             }
@@ -554,9 +605,15 @@ class SessionController(
             _lastCueText.value = text
             speech.speak(text, CuePriority.INTERVAL_CHANGE)
         }
-        if (skipped > 0) _lastCueText.value = (text ?: "") + " (+$skipped intervals passed while the app was busy)"
+        if (skipped > 0) {
+            _lastCueText.value = ((text ?: "") + " " + localizedString(R.string.cue_intervals_passed, skipped)).trim()
+        }
         lastAnnounceAt = now
     }
+
+    /** UI text in the app's chosen language; [context] is the application context. */
+    private fun localizedString(id: Int, vararg args: Any): String =
+        AppLocale.localizedContext(context, prefsSnapshot.appLanguage).getString(id, *args)
 
     private fun playCue(step: TimelineStep) {
         val cue = if (step.kind == com.pulse.engine.PhaseKind.REST) com.pulse.engine.SoundCue.BEEP else step.sound

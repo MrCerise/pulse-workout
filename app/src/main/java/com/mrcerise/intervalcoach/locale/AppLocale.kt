@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
+import android.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -52,7 +53,10 @@ object AppLocale {
     fun localizedContext(base: Context, language: AppLanguage): Context {
         val locale = localeFor(language) ?: return base
         val configuration = Configuration(base.resources.configuration).apply { setLocale(locale) }
-        return base.createConfigurationContext(configuration)
+        // Keep the activity in the ContextWrapper chain. A configuration context alone loses
+        // the ActivityResultRegistryOwner (Health permissions) and cannot launch the share sheet
+        // as part of the current activity's task.
+        return ContextThemeWrapper(base, 0).apply { applyOverrideConfiguration(configuration) }
     }
 
     /**
