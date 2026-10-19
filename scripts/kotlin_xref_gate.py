@@ -214,8 +214,8 @@ for p, text in app_sources.items():
 app_root = next(t for p, t in code_sources.items() if p.name == "AppRoot.kt")
 screen_files = {
     "HomeScreen": next(t for p, t in code_sources.items() if p.name == "HomeScreen.kt"),
-    "WorkoutLibraryScreen": next(t for p, t in code_sources.items() if p.name == "WorkoutScreens.kt"),
-    "WorkoutDetailsScreen": next(t for p, t in code_sources.items() if p.name == "WorkoutScreens.kt"),
+    "WorkoutLibraryScreen": next(t for p, t in code_sources.items() if p.name == "WorkoutLibraryScreen.kt"),
+    "WorkoutDetailsScreen": next(t for p, t in code_sources.items() if p.name == "WorkoutDetailsScreen.kt"),
     "TemplateGalleryScreen": next(t for p, t in code_sources.items() if p.name == "WorkoutScreens.kt"),
     "ProgressScreen": next(t for p, t in code_sources.items() if p.name == "ProgressScreens.kt"),
     "HistoryScreen": next(t for p, t in code_sources.items() if p.name == "ProgressScreens.kt"),
