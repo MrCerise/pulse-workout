@@ -486,6 +486,16 @@
     <string name="home_not_started">Non iniziato</string>
     <string name="home_goal_progress">di %1$d minuti attivi</string>
     <string name="home_first_session">Inizia la tua prima sessione</string>
+    <string name="home_return_to_workout">Return to workout</string>
+    <string name="home_start_workout">Start workout</string>
+    <string name="home_create_saved">Create a saved workout</string>
+    <string name="home_adjust_timer">Adjust timer</string>
+    <string name="home_hide_timer">Hide timer settings</string>
+    <string name="home_timer_summary">%1$d × (%2$s work + %3$s rest)</string>
+    <string name="home_preparation_summary">Starts with %1$s of preparation</string>
+    <string name="home_timing_invalid">Set a work time longer than zero to start.</string>
+    <string name="cue_headphones_paused">Headphones unplugged — workout paused</string>
+    <string name="cue_intervals_passed">(intervals passed while the app was busy: %1$d)</string>
     <string name="greeting_morning">Buongiorno</string>
     <string name="greeting_afternoon">Buon pomeriggio</string>
     <string name="greeting_evening">Buonasera</string>
