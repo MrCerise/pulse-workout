@@ -1,0 +1,5 @@
+La versión 1.8.6 corrige la guía por voz y la medición del tiempo.
+- La voz del entrenador ya no se silencia cuando otra aplicación toma el audio; el botón de silencio siempre la reactiva.
+- La cuenta atrás y el aviso de mitad respetan tus ajustes en el teléfono.
+- El intervalo anterior, los entrenamientos en escalera y los tiempos guardados funcionan correctamente.
+- Las sesiones del reloj llegan al teléfono al instante.

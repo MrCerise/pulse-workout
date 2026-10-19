@@ -12,7 +12,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
-## [1.8.5] — 2026-10-17
+## [1.8.6] — 2026-10-19
+
+**Fixed**
+- Voice cues no longer stay muted for the rest of a workout after a permanent audio-focus loss,
+  and the mute button always re-enables them.
+- The phone timer applies the countdown, halfway and halfway-minimum preferences.
+- Previous interval restarts the earlier step instead of immediately skipping forward again.
+- Group ladders lengthen matching intervals per round; the Mobility Ladder tag shows 5 minutes.
+- Completed sessions are always finalised once, the heartbeat stores elapsed time, and route data
+  is captured before tracking stops.
+- Watch session logs are sent as soon as they finish, and short watch sessions are acknowledged.
+- Headphone and missed-interval cue messages follow the app language.
+
+**Changed**
+- Refreshed home screen quick-start layout.
+
 
 **Changed**
 - Version-tag uploads now target closed testing track `PreRelease Beta` as a draft for review.

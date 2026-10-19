@@ -1,0 +1,5 @@
+Version 1.8.6 behebt Fehler bei Sprachansagen und Zeitmessung.
+- Die Trainerstimme verstummt nicht mehr, wenn eine andere App den Ton übernimmt; die Stummschalttaste schaltet sie immer wieder ein.
+- Countdown- und Halbzeit-Einstellungen werden auf dem Telefon berücksichtigt.
+- Vorheriges Intervall, Leiter-Workouts und gespeicherte Trainingszeiten funktionieren korrekt.
+- Uhr-Trainings erreichen das Telefon sofort.
