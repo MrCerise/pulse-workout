@@ -7,14 +7,20 @@ import android.os.SystemClock
 import com.pulse.engine.MonotonicClock
 import com.mrcerise.intervalcoach.wear.history.WatchHistoryStore
 import com.mrcerise.intervalcoach.wear.session.AndroidWatchCues
+import com.mrcerise.intervalcoach.wear.session.AndroidWatchVoice
 import com.mrcerise.intervalcoach.wear.session.WatchCues
 import com.mrcerise.intervalcoach.wear.session.WatchSessionController
 import com.mrcerise.intervalcoach.wear.session.WatchSessionPublisher
 import com.mrcerise.intervalcoach.wear.session.WatchSessionRecorder
 import com.mrcerise.intervalcoach.wear.sync.WearSyncLink
+import com.mrcerise.intervalcoach.wear.tile.PulseTileService
+import androidx.wear.tiles.TileService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /** Real elapsed-time source on the watch, immune to wall-clock changes (same as the phone). */
@@ -52,6 +58,7 @@ class WearAppContainer(private val app: Application) {
             cues = cues,
             publisher = sessionRecorder,
             preferences = preferences.flow,
+            voice = AndroidWatchVoice(app),
         )
     }
 
@@ -71,6 +78,23 @@ class PulseWearApp : Application() {
         // A watch that has never been paired (or was just installed) gets the bundled workouts, so
         // the library is usable before any phone is involved. A no-op once a phone has synced.
         container.appScope.launch { container.workouts.seedBundledWorkoutsIfNeeded() }
+        // The tile shows the library, the week and the running session: refresh it when any changes.
+        container.appScope.launch {
+            combine(
+                container.preferences.flow,
+                container.history.records,
+                container.workouts.workouts,
+                container.session.active.map { it?.plan?.id },
+            ) { _, _, _, _ -> }
+                .debounce(TILE_REFRESH_DEBOUNCE_MILLIS)
+                .collect {
+                    runCatching { TileService.getUpdater(this@PulseWearApp).requestUpdate(PulseTileService::class.java) }
+                }
+        }
+    }
+
+    private companion object {
+        const val TILE_REFRESH_DEBOUNCE_MILLIS = 1_000L
     }
 }
 

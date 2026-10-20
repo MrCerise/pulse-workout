@@ -14,8 +14,10 @@ import com.mrcerise.intervalcoach.wear.ui.theme.WearThemeMode
 import com.pulse.sync.LibraryManifest
 import com.pulse.sync.SessionLog
 import com.pulse.sync.SyncJson
+import com.pulse.sync.WatchDashboard
 import com.pulse.sync.SyncedPreferences
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +52,10 @@ data class WatchPreferences(
     val libraryTruncated: Boolean = false,
     /** Session logs waiting for the phone, oldest first. */
     val pendingLogs: List<SessionLog> = emptyList(),
+    /** The phone's last activity dashboard; null on a watch that has never received one. */
+    val dashboard: WatchDashboard? = null,
+    /** Speak step names and countdowns. Local-only: whether a wrist talks is the wearer's call. */
+    val voiceCues: Boolean = false,
 )
 
 private val Context.watchDataStore: DataStore<Preferences> by preferencesDataStore(name = "pulse_watch_prefs")
@@ -68,6 +74,8 @@ private object WatchPrefKeys {
     val phoneVersion = stringPreferencesKey("phone_app_version")
     val libraryTruncated = booleanPreferencesKey("library_truncated")
     val pendingLogs = stringPreferencesKey("pending_session_logs")
+    val dashboard = stringPreferencesKey("dashboard")
+    val voiceCues = booleanPreferencesKey("voice_cues")
 }
 
 private fun Preferences.toWatchPreferences(): WatchPreferences = WatchPreferences(
@@ -83,6 +91,8 @@ private fun Preferences.toWatchPreferences(): WatchPreferences = WatchPreference
     phoneAppVersion = this[WatchPrefKeys.phoneVersion] ?: "",
     libraryTruncated = this[WatchPrefKeys.libraryTruncated] ?: false,
     pendingLogs = this[WatchPrefKeys.pendingLogs]?.let { SyncJson.decodeLogQueue(it) } ?: emptyList(),
+    dashboard = this[WatchPrefKeys.dashboard]?.let { SyncJson.decodeDashboard(it) },
+    voiceCues = this[WatchPrefKeys.voiceCues] ?: false,
 )
 
 private fun String?.toThemeMode(): WearThemeMode = when (this) {
@@ -104,11 +114,21 @@ class WatchPreferencesRepository(
         .map { it.toWatchPreferences() }
         .stateIn(scope, SharingStarted.Eagerly, WatchPreferences())
 
+    /** Reads the stored value directly, for callers (the tile) that cannot wait for [flow] to load. */
+    suspend fun current(): WatchPreferences = raw.first().toWatchPreferences()
+
     fun setVibration(enabled: Boolean) = launchEdit { it[WatchPrefKeys.vibration] = enabled }
 
     fun setKeepScreenOn(enabled: Boolean) = launchEdit { it[WatchPrefKeys.keepScreenOn] = enabled }
 
     fun setThemeMode(mode: WearThemeMode) = launchEdit { it[WatchPrefKeys.theme] = mode.name }
+
+    fun setVoiceCues(enabled: Boolean) = launchEdit { it[WatchPrefKeys.voiceCues] = enabled }
+
+    /** Stores the phone's dashboard as received; the home screen and the tile read it from here. */
+    fun applyDashboard(dashboard: WatchDashboard) = launchEdit {
+        it[WatchPrefKeys.dashboard] = SyncJson.encodeDashboard(dashboard)
+    }
 
     /** Turns the phone link on or off. The queue and the history are untouched either way. */
     fun setSyncEnabled(enabled: Boolean) = launchEdit { it[WatchPrefKeys.syncEnabled] = enabled }

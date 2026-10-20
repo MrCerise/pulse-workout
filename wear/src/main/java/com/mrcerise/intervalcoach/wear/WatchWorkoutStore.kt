@@ -55,21 +55,26 @@ class WatchWorkoutStore(private val context: Context, scope: kotlinx.coroutines.
     }
 
     val workouts: StateFlow<List<StoredWorkout>> = context.workoutDataStore.data
-        .map { prefs ->
-            val ids = prefs[Keys.known] ?: emptySet()
-            ids.mapNotNull { id ->
-                val json = prefs[Keys.plan(id)] ?: return@mapNotNull null
-                val plan = runCatching { SyncJson.decodePlan(json) }.getOrNull() ?: return@mapNotNull null
-                StoredWorkout(
-                    id = id,
-                    updatedAt = prefs[Keys.updated(id)] ?: 0L,
-                    favorite = prefs[Keys.favorite(id)] ?: false,
-                    plan = plan,
-                )
-            }
-                .sortedWith(compareByDescending<StoredWorkout> { it.favorite }.thenBy { it.plan.name.lowercase() })
-        }
+        .map { prefs -> prefs.toStoredWorkouts() }
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    /** Reads the library directly, for callers (the tile) that cannot wait for [workouts] to load. */
+    suspend fun current(): List<StoredWorkout> = context.workoutDataStore.data.first().toStoredWorkouts()
+
+    private fun Preferences.toStoredWorkouts(): List<StoredWorkout> {
+        val ids = this[Keys.known] ?: emptySet()
+        return ids.mapNotNull { id ->
+            val json = this[Keys.plan(id)] ?: return@mapNotNull null
+            val plan = runCatching { SyncJson.decodePlan(json) }.getOrNull() ?: return@mapNotNull null
+            StoredWorkout(
+                id = id,
+                updatedAt = this[Keys.updated(id)] ?: 0L,
+                favorite = this[Keys.favorite(id)] ?: false,
+                plan = plan,
+            )
+        }
+            .sortedWith(compareByDescending<StoredWorkout> { it.favorite }.thenBy { it.plan.name.lowercase() })
+    }
 
     /**
      * True once a phone's manifest has been applied at least once. Until then this watch is
@@ -78,6 +83,13 @@ class WatchWorkoutStore(private val context: Context, scope: kotlinx.coroutines.
     val phoneLibrarySeen: StateFlow<Boolean> = context.workoutDataStore.data
         .map { prefs -> prefs[Keys.librarySynced] ?: false }
         .stateIn(scope, SharingStarted.Eagerly, false)
+
+    /** Stars or unstars a workout on this watch; the sync link tells the phone. */
+    suspend fun setFavorite(id: String, favorite: Boolean) {
+        context.workoutDataStore.edit { prefs ->
+            if (id in (prefs[Keys.known] ?: emptySet())) prefs[Keys.favorite(id)] = favorite
+        }
+    }
 
     /** Upserts one workout from a `/pulse/workout/<id>` data item. */
     suspend fun applyWorkout(id: String, planJson: String, updatedAt: Long, favorite: Boolean) {

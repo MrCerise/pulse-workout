@@ -216,7 +216,7 @@ object WorkoutImport {
             "steps": [
               {"name": "Easy marching", "kind": "WARM_UP", "seconds": 120},
               {"name": "Circuit", "repeat": 4, "steps": [
-                {"name": "Chair squats", "kind": "WORK", "seconds": 30, "notes": "Use a stable chair."},
+                {"name": "Chair squats", "kind": "WORK", "seconds": 30, "reps": 12},
                 {"name": "Recover", "kind": "REST", "seconds": 30}
               ]},
               {"name": "Gentle walking", "kind": "COOLDOWN", "seconds": 120}
@@ -226,12 +226,12 @@ object WorkoutImport {
     """.trimIndent()
 
     fun aiPrompt(request: String): String = """
-        Create a workout for PULSE Interval Coach using my request below. Return ONLY one valid JSON document, no explanation or workout description. Do not include IDs, URLs, markdown or database fields. Treat this as a workout, not medical advice. Include appropriate warm-up/recovery and do not promise results.
+        Create a workout for PULSE Interval Coach using my request below. Return ONLY one valid JSON document, no explanation or workout description. Do not describe how to perform the exercises: no instructions, form cues or coaching tips anywhere, and keep each name to the exercise itself ("Squats", not "Squats - keep your back straight"). Do not include IDs, URLs, markdown or database fields. Treat this as a workout, not medical advice. Include appropriate warm-up/recovery and do not promise results.
 
         Required root: {"format":"pulse.workouts","version":1,"workouts":[...]}
         Each workout requires name (1–120 characters) and nonempty steps. Optional fields: type (one of ${WorkoutType.entries.joinToString { it.name }}; default CUSTOM_SEQUENCE), equipment (1–200 characters), tags (up to 20 strings, each 1–40 characters).
         A step is either an interval or a repeat group, never both.
-        Interval: name (1–120 characters), kind (one of ${PhaseKind.entries.joinToString { it.name }}), seconds (whole number 1–86400). Optional: notes (up to 2000 characters), speechText (up to 500 characters), reps (1–10000), equipment (1–200 characters), sideLabel (1–40 characters). For a manual interval set manual:true and omit seconds or use 0; the user must advance it themselves.
+        Interval: name (1–120 characters), kind (one of ${PhaseKind.entries.joinToString { it.name }}), seconds (whole number 1–86400). Optional: reps (1–10000), equipment (1–200 characters), sideLabel (1–40 characters). Never add notes or speechText. For a manual interval set manual:true and omit seconds or use 0; the user must advance it themselves.
         Group: {"name":"Circuit","repeat":4,"steps":[...intervals or groups...]}. Repeat is 1–1000. Name is optional. Rest must be an explicit interval; all repeated steps, including rest, run each round.
         No other fields or null values. At most 50 workouts, 8 step nesting levels, 10000 expanded intervals across the file, 24 hours timed duration per workout, and 256 KiB UTF-8 JSON. The type is a category, not a generator: explicitly include every interval needed for EMOM, Tabata, etc. Whole seconds only, not milliseconds.
 

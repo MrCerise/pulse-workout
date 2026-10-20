@@ -74,6 +74,7 @@ class WatchSessionController(
     private val publisher: WatchSessionPublisher,
     private val preferences: StateFlow<WatchPreferences>,
     private val wallClock: () -> Long = { System.currentTimeMillis() },
+    private val voice: WatchVoice = WatchVoice.None,
 ) {
 
     private var engine = TimerEngine(clock)
@@ -263,6 +264,7 @@ class WatchSessionController(
                 else -> Unit
             }
         }
+        if (prefs.voiceCues) voice.announce(event)
         event.toLoggedEvent(atMillis)?.let {
             if (loggedEvents.size < MAX_LOGGED_EVENTS) loggedEvents += it
         }

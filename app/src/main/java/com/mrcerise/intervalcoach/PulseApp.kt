@@ -97,6 +97,7 @@ class AppContainer(private val app: Application) {
             workouts = workouts,
             sessions = sessions,
             preferences = preferences,
+            reminders = reminders,
             sessionController = sessionController,
             health = health,
         )

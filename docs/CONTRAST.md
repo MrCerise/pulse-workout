@@ -23,7 +23,7 @@ the pairs measured here and text moves to pure white / pure black.
 The Wear OS app mirrors this palette by value in
 `wear/src/main/java/com/mrcerise/intervalcoach/wear/ui/theme/WearPalette.kt` (dark, OLED and
 high-contrast ramps only — watches have no light theme). This script asserts that every
-mirrored constant is byte-identical to the phone's `PulsePalette` (50 of them), so
+mirrored constant is byte-identical to the phone's `PulsePalette` (62 of them), so
 the ratios above apply to the watch unchanged.
 
 ## Dark (default)

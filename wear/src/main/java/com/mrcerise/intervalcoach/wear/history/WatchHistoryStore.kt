@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.pulse.sync.SessionLog
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -34,6 +35,9 @@ class WatchHistoryStore(
     val records: StateFlow<List<WatchSessionRecord>> = context.historyDataStore.data
         .map { prefs -> WatchHistoryCodec.decode(prefs[RECORDS]) }
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    /** Reads the stored list directly, for callers (the tile) that cannot wait for [records] to load. */
+    suspend fun current(): List<WatchSessionRecord> = WatchHistoryCodec.decode(context.historyDataStore.data.first()[RECORDS])
 
     /** Records a finished session, newest first, replacing any earlier entry for the same id. */
     override suspend fun record(log: SessionLog) {

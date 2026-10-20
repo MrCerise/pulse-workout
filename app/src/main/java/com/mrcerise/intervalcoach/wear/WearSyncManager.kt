@@ -12,13 +12,18 @@ import com.mrcerise.intervalcoach.BuildConfig
 import com.mrcerise.intervalcoach.data.STATUS_COMPLETED
 import com.mrcerise.intervalcoach.data.STATUS_STOPPED
 import com.mrcerise.intervalcoach.data.PreferencesRepository
+import com.mrcerise.intervalcoach.data.ReminderRepository
+import com.mrcerise.intervalcoach.data.STATUS_RUNNING
 import com.mrcerise.intervalcoach.data.SessionRepository
 import com.mrcerise.intervalcoach.data.WorkoutRepository
 import com.mrcerise.intervalcoach.data.db.SessionEventEntity
 import com.mrcerise.intervalcoach.data.db.WorkoutEntity
 import com.mrcerise.intervalcoach.health.HealthHub
 import com.mrcerise.intervalcoach.session.SessionController
+import com.pulse.sync.FinishedSession
 import com.pulse.sync.LibraryManifest
+import com.pulse.sync.PlannerEntry
+import com.pulse.sync.WatchDashboards
 import com.pulse.sync.LiveSession
 import com.pulse.sync.SessionLog
 import com.pulse.sync.SessionOrigin
@@ -34,11 +39,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.time.Duration
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -51,6 +61,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  *    recently used workouts are pushed first and a byte budget caps the mirror, because a data
  *    item may not exceed 100 KB and the watch does not need a 600-workout library on a wrist;
  *  - the **appearance and cue preferences** the watch reuses are pushed whenever they change;
+ *  - the **activity dashboard** (weekly goal, the week's minutes, streak, today's plan) is pushed
+ *    whenever history, the planner or the goal changes, and again after midnight;
  *  - a **running phone session** is mirrored to the watch at ~1 Hz, and commands from the watch
  *    are applied to the [SessionController] — the wrist is a remote control for the phone;
  *  - a **finished watch session** arrives as a log message and is stored into the phone's history
@@ -65,6 +77,7 @@ class WearSyncManager(
     private val workouts: WorkoutRepository,
     private val sessions: SessionRepository,
     private val preferences: PreferencesRepository,
+    private val reminders: ReminderRepository,
     private val sessionController: SessionController,
     private val health: HealthHub,
 ) {
@@ -105,6 +118,18 @@ class WearSyncManager(
         }
         scope.launch {
             workouts.workouts.collect { entities -> pushLibrary(entities) }
+        }
+        scope.launch {
+            combine(sessions.history, reminders.reminders, workouts.workouts, preferences.flow) { _, _, _, _ -> }
+                .debounce(PREFS_DEBOUNCE_MILLIS)
+                .collect { pushDashboard() }
+        }
+        scope.launch {
+            // "Today" and the rolling week move at midnight even when no data does.
+            while (isActive) {
+                delay(millisUntilNextDay())
+                pushDashboard()
+            }
         }
         scope.launch {
             preferences.flow.debounce(PREFS_DEBOUNCE_MILLIS).collect { pushPreferences() }
@@ -214,6 +239,31 @@ class WearSyncManager(
         runCatching { dataClient.putDataItem(request.asPutDataRequest().setUrgent()) }
     }
 
+    private suspend fun pushDashboard() {
+        val zone = ZoneId.systemDefault()
+        // A RUNNING row is a workout still in progress — it has not earned any minutes yet.
+        val finished = sessions.history.first()
+            .filter { it.status != STATUS_RUNNING }
+            .map { FinishedSession(it.workoutId, it.startedAt, it.activeMillis) }
+        val dashboard = WatchDashboards.build(
+            today = LocalDate.now(zone),
+            zone = zone,
+            weeklyGoalMinutes = preferences.current().weeklyGoalMinutes,
+            sessions = finished,
+            planner = reminders.reminders.first().map { PlannerEntry(it.workoutId, it.scheduledAt, it.repeatRule, it.enabled) },
+            workoutNames = workouts.workouts.first().associate { it.id to it.name },
+        )
+        val request = PutDataMapRequest.create(SyncPaths.DATA_DASHBOARD)
+        request.dataMap.putString(KEY_DASHBOARD, SyncJson.encodeDashboard(dashboard))
+        runCatching { dataClient.putDataItem(request.asPutDataRequest().setUrgent()) }
+    }
+
+    private fun millisUntilNextDay(): Long {
+        val now = ZonedDateTime.now()
+        val next = now.toLocalDate().plusDays(1).atStartOfDay(now.zone).plusSeconds(5)
+        return Duration.between(now, next).toMillis().coerceAtLeast(60_000L)
+    }
+
     // -------------------------------------------------------------------------------------------
     // Outbound: live session mirror
     // -------------------------------------------------------------------------------------------
@@ -276,6 +326,11 @@ class WearSyncManager(
                     WatchCommandKind.COMPLETE_MANUAL -> sessionController.completeManual()
                 }
             }
+            SyncPaths.MESSAGE_FAVORITE -> {
+                val change = SyncJson.decodeFavorite(message.data) ?: return
+                // Saving bumps the workout's timestamp, so the library push carries it back.
+                scope.launch { runCatching { workouts.setFavorite(change.workoutId, change.favorite) } }
+            }
             SyncPaths.MESSAGE_LOG -> {
                 val log = SyncJson.decodeLog(message.data) ?: return
                 scope.launch { storeWatchSession(log, message.sourceNodeId) }
@@ -284,6 +339,7 @@ class WearSyncManager(
                 scope.launch {
                     pushLibrary()
                     pushPreferences()
+                    pushDashboard()
                 }
             }
             SyncPaths.MESSAGE_LIVE -> {
@@ -381,6 +437,7 @@ class WearSyncManager(
         const val KEY_UPDATED_AT = "updatedAt"
         const val KEY_FAVORITE = "favorite"
         const val KEY_PREFS = "prefs"
+        const val KEY_DASHBOARD = "dashboard"
 
         /** A data item is capped at 100 KB by the platform; keep a wide margin per workout. */
         const val MAX_WORKOUT_CHARS = 90_000

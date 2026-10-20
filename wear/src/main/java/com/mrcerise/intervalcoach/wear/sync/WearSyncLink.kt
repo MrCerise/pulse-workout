@@ -15,6 +15,7 @@ import com.google.android.gms.wearable.Wearable
 import com.mrcerise.intervalcoach.wear.WatchPreferencesRepository
 import com.mrcerise.intervalcoach.wear.WatchWorkoutStore
 import com.mrcerise.intervalcoach.wear.session.WatchSessionPublisher
+import com.pulse.sync.FavoriteChange
 import com.pulse.sync.LiveSession
 import com.pulse.sync.SessionLog
 import com.pulse.sync.SessionOrigin
@@ -163,6 +164,20 @@ class WearSyncLink(
         scope.launch { sendToPeers(SyncPaths.MESSAGE_COMMAND, SyncJson.encodeCommand(command)) }
     }
 
+    /**
+     * Stars or unstars a workout: at once on this watch, and on the phone, which owns the library
+     * and pushes the change back. A phone out of reach keeps its own value, and the next library
+     * sync brings the watch back in line with it.
+     */
+    fun setFavorite(workoutId: String, favorite: Boolean) {
+        scope.launch {
+            workouts.setFavorite(workoutId, favorite)
+            if (syncEnabled) {
+                sendToPeers(SyncPaths.MESSAGE_FAVORITE, SyncJson.encodeFavorite(FavoriteChange(workoutId = workoutId, favorite = favorite)))
+            }
+        }
+    }
+
     /** Asks the phone to re-push the library and preferences. */
     fun requestSync() {
         if (!syncEnabled) return
@@ -197,6 +212,11 @@ class WearSyncLink(
                     val updatedAt = map.getLong(KEY_UPDATED_AT, 0L)
                     val favorite = map.getBoolean(KEY_FAVORITE, false)
                     scope.launch { workouts.applyWorkout(id, planJson, updatedAt, favorite) }
+                }
+                uri.path == SyncPaths.DATA_DASHBOARD -> {
+                    val map = DataMapItem.fromDataItem(event.dataItem).dataMap
+                    val dashboard = SyncJson.decodeDashboard(map.getString(KEY_DASHBOARD) ?: return)
+                    if (dashboard != null) preferences.applyDashboard(dashboard)
                 }
                 uri.path == SyncPaths.DATA_PREFS -> {
                     val map = DataMapItem.fromDataItem(event.dataItem).dataMap
@@ -283,6 +303,7 @@ class WearSyncLink(
         const val KEY_UPDATED_AT = "updatedAt"
         const val KEY_FAVORITE = "favorite"
         const val KEY_PREFS = "prefs"
+        const val KEY_DASHBOARD = "dashboard"
 
         /** A phone snapshot older than this is dropped: the phone has likely stopped. */
         const val REMOTE_TIMEOUT_MILLIS = 15_000L

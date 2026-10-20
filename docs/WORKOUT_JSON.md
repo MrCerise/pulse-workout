@@ -44,7 +44,8 @@ for long workouts. Manual intervals are marked and do not contribute to the time
 - Root: `format: "pulse.workouts"`, `version: 1`, `workouts: [...]` (1–50 workouts).
 - Workout: required `name` and `steps`; optional `type`, `equipment`, `tags`.
 - Legacy `description` is still accepted (up to 2,000 characters) for v1 compatibility, but is not
-  displayed, edited, searched or requested in AI prompts. Interval notes and spoken cues are kept.
+  displayed, edited, searched or requested in AI prompts. Interval notes and spoken cues are kept,
+  but the AI prompt asks for none: exercise instructions are unwanted and overflow workout QR codes.
 - An interval has `name`, `kind`, and integer `seconds` (not milliseconds).
 - A repeat group has integer `repeat` and `steps`, plus an optional `name`.
 - Optional interval coaching fields: `notes`, `speechText`, `reps`, `equipment`, `sideLabel`.

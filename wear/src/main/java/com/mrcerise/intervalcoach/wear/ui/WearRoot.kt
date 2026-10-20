@@ -1,37 +1,52 @@
 package com.mrcerise.intervalcoach.wear.ui
 
-import androidx.activity.compose.BackHandler
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.compose.navigation.SwipeDismissableNavHost
+import androidx.wear.compose.navigation.composable
+import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.mrcerise.intervalcoach.wear.WearAppContainer
+import com.mrcerise.intervalcoach.wear.WearDeepLink
 import com.mrcerise.intervalcoach.wear.ui.theme.PulseWearTheme
 
 /**
- * The watch's small screen graph: home, a local player, a remote player, the summary, the watch's
- * own history and settings. Every screen works with or without a phone.
+ * The watch's small screen graph: home, a workout's details, a local player, a remote player, the
+ * summary, the watch's own history and settings. Every screen works with or without a phone.
  */
-sealed interface WearScreen {
-    data object Home : WearScreen
-    data object History : WearScreen
-    data object Settings : WearScreen
-    data object Privacy : WearScreen
-    data class Player(val workoutId: String) : WearScreen
-    data object RemotePlayer : WearScreen
-    data object Summary : WearScreen
+private object Routes {
+    const val HOME = "home"
+    const val HISTORY = "history"
+    const val SETTINGS = "settings"
+    const val PRIVACY = "privacy"
+    const val DETAILS = "workout/{workoutId}"
+    const val PLAYER = "player/{workoutId}"
+    const val REMOTE = "remote"
+    const val SUMMARY = "summary"
+
+    fun player(workoutId: String) = "player/" + Uri.encode(workoutId)
+    fun details(workoutId: String) = "workout/" + Uri.encode(workoutId)
 }
 
 /**
- * Application frame: theme, back stack, and the session-scoped device keep-alive (screen on while
+ * Application frame: theme, navigation, and the session-scoped device keep-alive (screen on while
  * a session is visible, partial wake lock while any session runs).
+ *
+ * Navigation is the Wear swipe-to-dismiss host: a swipe from the left edge goes back one screen,
+ * the way every Wear OS app behaves, and only closes the app from the home screen. Leaving a
+ * player that way keeps its session running; home offers to resume it.
  */
 @Composable
-fun PulseWearRoot(container: WearAppContainer) {
+fun PulseWearRoot(
+    container: WearAppContainer,
+    deepLink: WearDeepLink? = null,
+    onDeepLinkHandled: () -> Unit = {},
+) {
     val prefs by container.preferences.flow.collectAsStateWithLifecycle()
     val snapshot by container.session.snapshot.collectAsStateWithLifecycle()
     val remote by container.wearSync.remoteSession.collectAsStateWithLifecycle()
@@ -46,49 +61,82 @@ fun PulseWearRoot(container: WearAppContainer) {
             onDispose { container.wakeLock.set(false) }
         }
 
-        val backStack = remember { mutableStateListOf<WearScreen>(WearScreen.Home) }
-        val screen = backStack.lastOrNull() ?: WearScreen.Home
-        BackHandler(enabled = backStack.size > 1) { backStack.removeAt(backStack.lastIndex) }
-
-        when (val current = screen) {
-            is WearScreen.Home -> WearHomeScreen(
-                container = container,
-                onOpenWorkout = { backStack.add(WearScreen.Player(it)) },
-                onOpenSettings = { backStack.add(WearScreen.Settings) },
-                onOpenHistory = { backStack.add(WearScreen.History) },
-                onOpenRemote = { backStack.add(WearScreen.RemotePlayer) },
-                onOpenActive = { backStack.add(WearScreen.Player(it)) },
-            )
-            WearScreen.History -> WearHistoryScreen(
-                container = container,
-                onBack = { backStack.removeAt(backStack.lastIndex) },
-            )
-            is WearScreen.Player -> WearPlayerScreen(
-                container = container,
-                workoutId = current.workoutId,
-                onFinished = {
-                    backStack[backStack.lastIndex] = WearScreen.Summary
-                },
-                onBack = { backStack.removeAt(backStack.lastIndex) },
-            )
-            WearScreen.RemotePlayer -> WearRemotePlayerScreen(
-                container = container,
-                onClosed = { backStack.removeAt(backStack.lastIndex) },
-            )
-            WearScreen.Summary -> WearSummaryScreen(
-                container = container,
-                onDone = {
-                    container.session.clearSummary()
-                    backStack.clear()
-                    backStack.add(WearScreen.Home)
-                },
-            )
-            WearScreen.Settings -> WearSettingsScreen(
-                container = container,
-                onBack = { backStack.removeAt(backStack.lastIndex) },
-                onOpenPrivacy = { backStack.add(WearScreen.Privacy) },
-            )
-            WearScreen.Privacy -> WearPrivacyScreen(onBack = { backStack.removeAt(backStack.lastIndex) })
+        val navController = rememberSwipeDismissableNavController()
+        // The tile opens a workout: running ones straight into the player, others on their details,
+        // always on top of home so a swipe back lands where the app normally starts.
+        LaunchedEffect(deepLink) {
+            val link = deepLink ?: return@LaunchedEffect
+            navController.popBackStack(Routes.HOME, inclusive = false)
+            navController.navigate(if (link.resume) Routes.player(link.workoutId) else Routes.details(link.workoutId))
+            onDeepLinkHandled()
+        }
+        AppScaffold {
+            SwipeDismissableNavHost(navController = navController, startDestination = Routes.HOME) {
+                composable(Routes.HOME) {
+                    WearHomeScreen(
+                        container = container,
+                        onOpenWorkout = { navController.navigate(Routes.details(it)) },
+                        onResume = { navController.navigate(Routes.player(it)) },
+                        onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                        onOpenHistory = { navController.navigate(Routes.HISTORY) },
+                        onOpenRemote = { navController.navigate(Routes.REMOTE) },
+                    )
+                }
+                composable(Routes.DETAILS) { entry ->
+                    WearDetailsScreen(
+                        container = container,
+                        workoutId = entry.arguments?.getString("workoutId").orEmpty(),
+                        onStart = { id ->
+                            // The player replaces the details: swiping back from a running workout
+                            // lands on home, where Resume is, not on a Start button.
+                            navController.navigate(Routes.player(id)) {
+                                popUpTo(Routes.HOME) { inclusive = false }
+                            }
+                        },
+                    )
+                }
+                composable(Routes.HISTORY) {
+                    WearHistoryScreen(container = container)
+                }
+                composable(Routes.PLAYER) { entry ->
+                    WearPlayerScreen(
+                        container = container,
+                        workoutId = entry.arguments?.getString("workoutId").orEmpty(),
+                        onFinished = {
+                            navController.navigate(Routes.SUMMARY) {
+                                popUpTo(Routes.PLAYER) { inclusive = true }
+                            }
+                        },
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(Routes.REMOTE) {
+                    WearRemotePlayerScreen(
+                        container = container,
+                        onClosed = { navController.popBackStack() },
+                    )
+                }
+                composable(Routes.SUMMARY) {
+                    // However the summary is left (Done, or a swipe back), it is consumed: a stale
+                    // summary must never end the next workout's player the moment it opens.
+                    DisposableEffect(Unit) {
+                        onDispose { container.session.clearSummary() }
+                    }
+                    WearSummaryScreen(
+                        container = container,
+                        onDone = { navController.popBackStack(Routes.HOME, inclusive = false) },
+                    )
+                }
+                composable(Routes.SETTINGS) {
+                    WearSettingsScreen(
+                        container = container,
+                        onOpenPrivacy = { navController.navigate(Routes.PRIVACY) },
+                    )
+                }
+                composable(Routes.PRIVACY) {
+                    WearPrivacyScreen()
+                }
+            }
         }
     }
 }

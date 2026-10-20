@@ -9,7 +9,7 @@ seed — can be tested exhaustively on the JVM, without an emulator and without 
 :sync     pure Kotlin/JVM phone↔watch protocol: payload formats, codecs, event mapping
 :library  pure Kotlin/JVM bundled workout catalogue, shared by the phone and the watch
 :app      the Android application (Compose, Room, DataStore, Media3, WorkManager, AppWidgets)
-:wear     the Wear OS application (Compose for Wear OS, DataStore, the Wear data layer)
+:wear     the Wear OS application (Wear Compose Material 3, DataStore, the Wear data layer)
 ```
 
 - [Modules](#modules)
@@ -109,6 +109,8 @@ phone :app                                     watch :wear
 ──────────────────────                         ──────────────────────
 WorkoutRepository ──▶ data items ────────────▶ WatchWorkoutStore (library mirror)
 PreferencesRepository ─▶ data item ─────────▶ WatchPreferences (theme, cues)
+history + planner + goal ─▶ data item ──────▶ WatchPreferences.dashboard (week, streak, today)
+WorkoutRepository.setFavorite ◀─ message ─── WearSyncLink.setFavorite (star on the watch)
 SessionController.snapshot ─▶ messages ────▶ WearSyncLink.remoteSession (live mirror)
 WearSyncManager.remoteWatchSession ◀─ messages ─ WatchSessionController (live mirror)
 WearSyncManager.sendCommand ──▶ messages ───▶ WatchSessionController.applyCommand
@@ -144,6 +146,7 @@ state to be useful with nothing else around:
 | Sessions | run locally, haptics local | run locally, mirrored to the phone at ~1 Hz, controlled from either screen |
 | History | the watch's own list (last 20, newest first) | written locally **and** delivered to the phone's history, with the phone's copy as the full record (event trail, Health Connect, statistics) |
 | Preferences | the watch's own defaults | the appearance and cue fields follow the phone; the watch can still override them |
+| Week & plan | the week, streak and goal counted from the watch's own history (WHO default goal) | the phone's dashboard — per-day minutes, active days, today's planner entries — recomputed on the watch for the current day, plus sessions still queued here |
 
 - **Seeding is one-way and reversible only by clearing.** `WatchWorkoutStore` records
   `library_synced` the first time it applies a phone manifest and never seeds again, so a paired
@@ -155,6 +158,13 @@ state to be useful with nothing else around:
 - **One session at a time.** Tapping a workout on the watch while the phone runs a session confirms
   once and sends `STOP` to the phone before starting locally — the phone records a stopped-early
   session, the watch records its own, and no two devices coach the same workout at once.
+- **The dashboard carries ingredients, not totals.** "This week" is the rolling seven days ending
+  today and the streak counts back from today, so the phone sends minutes per day and the set of
+  active days (`WatchDashboards` in `:sync`), and the watch recomputes both for whatever day it is —
+  right after midnight, and for days away from the phone.
+- **The phone owns the library, so favourites travel as a request.** A star on the watch applies
+  locally at once and sends `/pulse/favorite`; the phone saves it and the library push brings both
+  copies back in line. A phone out of reach keeps its value and the next sync wins.
 - **No payload changed shape**, so `PROTOCOL_VERSION` stayed at 1: a 1.7.1 phone and a 1.7.2 watch
   keep syncing. A watch-local feature (the history, the seeded catalogue, the switch) needs no wire
   change at all, which is exactly what a feature that must work without a peer should look like.

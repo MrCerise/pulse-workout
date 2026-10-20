@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
@@ -75,6 +77,7 @@ import com.mrcerise.intervalcoach.ui.components.StatTile
 import com.mrcerise.intervalcoach.ui.components.TimelineBar
 import com.mrcerise.intervalcoach.ui.components.WorkoutQrCodes
 import com.mrcerise.intervalcoach.ui.components.WorkoutQrCode
+import com.mrcerise.intervalcoach.ui.components.SecondaryActionButton
 import com.mrcerise.intervalcoach.ui.summary.SummaryImage
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseColors
 import com.mrcerise.intervalcoach.ui.theme.LocalPulseDimens
@@ -568,7 +571,8 @@ private fun knownMillis(nodes: List<Node>): Long? {
 
 /**
  * The workout as a QR code another phone can scan into its library. The code carries the whole
- * workout ([ShareCode]); the dialog also offers it as an image, for chats and email.
+ * workout ([ShareCode]); the dialog also offers it as an image, for chats and email. When the
+ * coaching text makes the workout too large, the code falls back to the structure alone.
  */
 @Composable
 internal fun WorkoutQrDialog(plan: WorkoutPlan, onDismiss: () -> Unit) {
@@ -576,7 +580,11 @@ internal fun WorkoutQrDialog(plan: WorkoutPlan, onDismiss: () -> Unit) {
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()
-    val qr = remember(plan) { runCatching { WorkoutQrCodes.render(ShareCode.encode(plan)) }.getOrNull() }
+    val full = remember(plan) { runCatching { WorkoutQrCodes.render(ShareCode.encode(plan)) }.getOrNull() }
+    val compact = remember(plan, full) {
+        if (full != null) null else runCatching { WorkoutQrCodes.render(ShareCode.encode(plan, compact = true)) }.getOrNull()
+    }
+    val qr = full ?: compact
     var sharing by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -586,8 +594,9 @@ internal fun WorkoutQrDialog(plan: WorkoutPlan, onDismiss: () -> Unit) {
             border = BorderStroke(dimens.borderWidth, colors.border),
             shadowElevation = LocalPulseElevation.current.level3,
         ) {
+            // Scrolls so the actions stay reachable on short screens and in landscape.
             Column(
-                modifier = Modifier.padding(dimens.xl),
+                modifier = Modifier.verticalScroll(rememberScrollState()).padding(dimens.xl),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(dimens.m),
             ) {
@@ -596,6 +605,8 @@ internal fun WorkoutQrDialog(plan: WorkoutPlan, onDismiss: () -> Unit) {
                     style = MaterialTheme.typography.headlineSmall,
                     color = colors.textPrimary,
                     textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (qr != null) {
                     WorkoutQrCode(qr = qr)
@@ -605,6 +616,9 @@ internal fun WorkoutQrDialog(plan: WorkoutPlan, onDismiss: () -> Unit) {
                         color = colors.textSecondary,
                         textAlign = TextAlign.Center,
                     )
+                    if (qr === compact) {
+                        InfoBanner(text = stringResource(R.string.workout_qr_compact), tone = PulseTone.INFO)
+                    }
                     PrimaryActionButton(
                         text = stringResource(R.string.workout_share_qr_image),
                         enabled = !sharing,
@@ -628,6 +642,12 @@ internal fun WorkoutQrDialog(plan: WorkoutPlan, onDismiss: () -> Unit) {
                     )
                 } else {
                     InfoBanner(text = stringResource(R.string.workout_qr_too_large), tone = PulseTone.WARNING)
+                    // The banner points to text sharing; offer it here rather than a dead end.
+                    SecondaryActionButton(
+                        text = stringResource(R.string.workout_share_summary),
+                        onClick = { shareWorkoutText(context, plan) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
                 GhostActionButton(text = stringResource(R.string.close), onClick = onDismiss, modifier = Modifier.fillMaxWidth())
             }

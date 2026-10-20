@@ -169,6 +169,15 @@ class SyncProtocolTest {
         assertTrue(SyncJson.decodeLogQueue("[]").isEmpty())
     }
 
+    @Test
+    fun `favourite changes round-trip and reject blanks and other versions`() {
+        val change = FavoriteChange(workoutId = "w-1", favorite = true)
+        assertEquals(change, SyncJson.decodeFavorite(SyncJson.encodeFavorite(change)))
+        assertNull(SyncJson.decodeFavorite(SyncJson.encodeFavorite(change.copy(workoutId = " "))))
+        assertNull(SyncJson.decodeFavorite(SyncJson.encodeFavorite(change.copy(protocolVersion = PROTOCOL_VERSION + 1))))
+        assertNull(SyncJson.decodeFavorite("{".toByteArray()))
+    }
+
     private companion object {
         const val TimerEngineStatus_RUNNING = "RUNNING"
     }

@@ -39,7 +39,7 @@ object PulseWearPalette {
     /** Progress ring grooves. */
     val Track = Color(0xFF3A3E45)
 
-    /** The accent (Cloudflare orange) and its lighter partner. */
+    /** The accent (lime) and its lighter partner. */
     val Accent = Color(0xFFA3E635)
     val AccentAlt = Color(0xFFD9F99D)
     val AccentTint = Color(0xFF232B10)
@@ -63,6 +63,21 @@ object PulseWearPalette {
     val ActionFill = Color(0xFFA3E635)
     val ActionText = Color(0xFF101216)
     val OnAccent = Color(0xFF101216)
+
+    // ---------------------------------------------------------------- Category hues (dark)
+
+    val CatCardio = Color(0xFFF0607A)
+    val CatCardioTint = Color(0xFF312126)
+    val CatConditioning = Color(0xFFF5B544)
+    val CatConditioningTint = Color(0xFF322B20)
+    val CatStrength = Color(0xFFB18CFA)
+    val CatStrengthTint = Color(0xFF292636)
+    val CatMobility = Color(0xFF5BA8F5)
+    val CatMobilityTint = Color(0xFF1F2935)
+    val CatMind = Color(0xFF4CC38A)
+    val CatMindTint = Color(0xFF1D2D28)
+    val CatTools = Color(0xFF98A2B3)
+    val CatToolsTint = Color(0xFF26292D)
 
     // ---------------------------------------------------------------- Void (OLED)
 

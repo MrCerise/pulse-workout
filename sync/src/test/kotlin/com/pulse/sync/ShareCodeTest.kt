@@ -75,6 +75,41 @@ class ShareCodeTest {
     }
 
     @Test
+    fun `a compact code drops coaching text but keeps the workout`() {
+        // Varied text, like real explanations: a repeated sentence would compress to almost nothing.
+        val random = java.util.Random(7)
+        fun howTo(words: Int) = List(words) { List(3 + random.nextInt(6)) { 'a' + random.nextInt(26) }.joinToString("") }.joinToString(" ")
+        val plan = WorkoutPlan(
+            id = "ai",
+            name = "AI workout",
+            description = howTo(80),
+            nodes = List(12) { index ->
+                IntervalNode(
+                    "n$index",
+                    IntervalSpec("n$index", "Exercise $index", PhaseKind.WORK, 30_000, notes = howTo(60), speechText = "Go $index", reps = 10),
+                )
+            },
+        )
+        // The explanations alone are far past what any QR code holds.
+        assertTrue(ShareCode.encode(plan).length > 2_953)
+        val code = ShareCode.encode(plan, compact = true)
+        assertTrue("compact code is ${code.length} characters", code.length <= 1_273)
+        val decoded = ShareCode.decode(code)!!
+        assertEquals("", decoded.description)
+        assertEquals(plan.nodes.size, decoded.nodes.size)
+        decoded.nodes.zip(plan.nodes).forEach { (shared, original) ->
+            shared as IntervalNode
+            original as IntervalNode
+            assertNull(shared.interval.notes)
+            assertNull(shared.interval.speechText)
+            assertEquals(original.interval.name, shared.interval.name)
+            assertEquals(original.interval.durationMillis, shared.interval.durationMillis)
+            assertEquals(original.interval.reps, shared.interval.reps)
+        }
+        assertEquals(emptyList<String>(), Validation.validate(decoded))
+    }
+
+    @Test
     fun `anything that is not a share code decodes to null`() {
         assertNull(ShareCode.decode(""))
         assertNull(ShareCode.decode("https://example.com"))

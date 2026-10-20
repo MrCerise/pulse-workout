@@ -49,6 +49,9 @@ object SyncPaths {
     /** Data item: the subset of preferences that is mirrored to the watch. */
     const val DATA_PREFS = "/pulse/prefs"
 
+    /** Data item: the phone's activity dashboard — goal, week, streak, today's plan. */
+    const val DATA_DASHBOARD = "/pulse/dashboard"
+
     /** Message: a live session snapshot, sender → peers, ~1 Hz while a session runs. */
     const val MESSAGE_LIVE = "/pulse/live"
 
@@ -60,6 +63,9 @@ object SyncPaths {
 
     /** Message: the phone confirmed it stored the session with this id. */
     const val MESSAGE_LOG_ACK = "/pulse/log-ack"
+
+    /** Message: the watch starred or unstarred a workout; the phone owns the library and applies it. */
+    const val MESSAGE_FAVORITE = "/pulse/favorite"
 
     /** Message: the watch asks the phone to re-push the library and preferences. */
     const val MESSAGE_REQUEST_SYNC = "/pulse/request-sync"
@@ -109,6 +115,14 @@ data class SyncedPreferences(
     val keepScreenOn: Boolean = true,
     val countdownFromSeconds: Int = 3,
     val halfwayAnnouncements: Boolean = true,
+)
+
+/** A favourite toggled on the watch, for the phone to apply to the library it owns. */
+@Serializable
+data class FavoriteChange(
+    val protocolVersion: Int = PROTOCOL_VERSION,
+    val workoutId: String,
+    val favorite: Boolean,
 )
 
 /** Commands the non-running device can send to the device that owns the session. */
@@ -301,6 +315,22 @@ object SyncJson {
         runCatching { messages.decodeFromString(SyncedPreferences.serializer(), text) }
             .getOrNull()
             ?.takeIf { it.protocolVersion == PROTOCOL_VERSION }
+
+    fun encodeDashboard(dashboard: WatchDashboard): String =
+        messages.encodeToString(WatchDashboard.serializer(), dashboard)
+
+    fun decodeDashboard(text: String): WatchDashboard? =
+        runCatching { messages.decodeFromString(WatchDashboard.serializer(), text) }
+            .getOrNull()
+            ?.takeIf { it.protocolVersion == PROTOCOL_VERSION }
+
+    fun encodeFavorite(change: FavoriteChange): ByteArray =
+        messages.encodeToString(FavoriteChange.serializer(), change).toByteArray(Charsets.UTF_8)
+
+    fun decodeFavorite(bytes: ByteArray): FavoriteChange? =
+        runCatching { messages.decodeFromString(FavoriteChange.serializer(), bytes.decodeToString()) }
+            .getOrNull()
+            ?.takeIf { it.protocolVersion == PROTOCOL_VERSION && it.workoutId.isNotBlank() }
 
     fun encodeCommand(command: WatchCommand): ByteArray =
         messages.encodeToString(WatchCommand.serializer(), command).toByteArray(Charsets.UTF_8)

@@ -140,34 +140,34 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
             item { PulsePageHeader(title = stringResource(R.string.json_title), onBack = onBack) }
             if (state.text.isBlank() && !state.busy) item {
                 Column(verticalArrangement = Arrangement.spacedBy(dimens.s)) {
-                PulseTextField(
-                    value = state.request, onValueChange = { model.request(it); copied = false },
-                    label = stringResource(R.string.json_request), placeholder = stringResource(R.string.json_request_hint), minLines = 2,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
-                    PrimaryActionButton(
-                        text = stringResource(R.string.json_send_prompt),
-                        onClick = {
-                            inputError = null
-                            val intent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, WorkoutImport.aiPrompt(state.request))
-                            }
-                            // Native sharesheet, never a hidden request to an AI service.
-                            runCatching { context.startActivity(Intent.createChooser(intent, context.getString(R.string.json_send_prompt))) }
-                                .onFailure { copyPrompt() }
-                        },
-                        modifier = Modifier.weight(1f),
+                    PulseTextField(
+                        value = state.request, onValueChange = { model.request(it); copied = false },
+                        label = stringResource(R.string.json_request), placeholder = stringResource(R.string.json_request_hint), minLines = 2,
                     )
-                    PulseIconButton(
-                        icon = if (copied) Icons.Filled.Check else Icons.Filled.ContentCopy,
-                        contentDescription = stringResource(if (copied) R.string.json_copied else R.string.json_copy_prompt),
-                        onClick = { copyPrompt() },
-                        tint = if (copied) colors.success else colors.textSecondary,
-                    )
-                }
-                Text(stringResource(R.string.json_ai_help), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {
+                        PrimaryActionButton(
+                            text = stringResource(R.string.json_send_prompt),
+                            onClick = {
+                                inputError = null
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, WorkoutImport.aiPrompt(state.request))
+                                }
+                                // Native sharesheet, never a hidden request to an AI service.
+                                runCatching { context.startActivity(Intent.createChooser(intent, context.getString(R.string.json_send_prompt))) }
+                                    .onFailure { copyPrompt() }
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                        PulseIconButton(
+                            icon = if (copied) Icons.Filled.Check else Icons.Filled.ContentCopy,
+                            contentDescription = stringResource(if (copied) R.string.json_copied else R.string.json_copy_prompt),
+                            onClick = { copyPrompt() },
+                            tint = if (copied) colors.success else colors.textSecondary,
+                        )
                     }
+                    Text(stringResource(R.string.json_ai_help), style = MaterialTheme.typography.bodySmall, color = colors.textSecondary)
+                }
             }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.s)) {

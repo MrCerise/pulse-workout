@@ -17,6 +17,8 @@ import kotlinx.serialization.builtins.ListSerializer
 @Serializable
 data class WatchSessionRecord(
     val sessionId: String,
+    /** Empty in records written before 1.8.7; used to tick off today's planned workouts. */
+    val workoutId: String = "",
     val planName: String,
     val startedAt: Long,
     val endedAt: Long,
@@ -30,6 +32,7 @@ data class WatchSessionRecord(
     companion object {
         fun from(log: SessionLog): WatchSessionRecord = WatchSessionRecord(
             sessionId = log.sessionId,
+            workoutId = log.workoutId,
             planName = log.planName,
             startedAt = log.startedAt,
             endedAt = log.endedAt,

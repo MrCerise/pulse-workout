@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tile picker preview: the tile's shape in the app's palette (title, main button, week, edge button). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="192dp"
+    android:height="192dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M96,0a96,96 0,1 1,0 192a96,96 0,1 1,0 -192z" />
+    <path
+        android:fillColor="#FFF4F6F8"
+        android:pathData="M72,26h48a4,4 0,0 1,0 8h-48a4,4 0,0 1,0 -8z" />
+    <path
+        android:fillColor="#FFA3E635"
+        android:pathData="M42,48h108a20,20 0,0 1,20 20v24a20,20 0,0 1,-20 20h-108a20,20 0,0 1,-20 -20v-24a20,20 0,0 1,20 -20z" />
+    <path
+        android:fillColor="#FF101216"
+        android:pathData="M42,68h76a5,5 0,0 1,0 10h-76a5,5 0,0 1,0 -10zM42,84h48a3,3 0,0 1,0 6h-48a3,3 0,0 1,0 -6z" />
+    <path
+        android:fillColor="#FF9CA2A9"
+        android:pathData="M66,124h60a3,3 0,0 1,0 6h-60a3,3 0,0 1,0 -6z" />
+    <path
+        android:fillColor="#FFA3E635"
+        android:pathData="M40,142h112a10,10 0,0 1,9.5 13a72,72 0,0 1,-131 0a10,10 0,0 1,9.5 -13z" />
+</vector>

@@ -3,16 +3,17 @@
     <string name="app_name">Intervals</string>
 
     <!-- Library -->
-    <string name="library_resume">Resume workout</string>
     <string name="library_empty">No workouts yet</string>
     <string name="library_empty_hint">Open Intervals on your phone — your workouts sync here</string>
     <string name="library_empty_solo">No workouts on this watch</string>
     <string name="library_restore_starters">Tap to load the starter workouts</string>
     <string name="library_row_summary">%1$s · %2$d intervals</string>
     <string name="library_truncated">First %1$d workouts — library too large for the watch</string>
-    <string name="library_replace_confirm">Tap again to replace the running workout</string>
-    <string name="library_takeover_confirm">Tap again to run here and stop the phone</string>
     <string name="library_never_synced">Not synced yet</string>
+    <string name="library_replace_title">Replace workout?</string>
+    <string name="library_replace_text">The workout running on this watch will stop.</string>
+    <string name="library_takeover_title">Start it on your watch?</string>
+    <string name="library_takeover_text">The workout on your phone will stop.</string>
     <string name="library_history">History</string>
     <string name="library_history_count">%1$d workouts</string>
 
@@ -22,27 +23,29 @@
     <string name="remote_ended">Phone session ended</string>
 
     <!-- The watch's own history -->
-    <string name="history_title">On this watch</string>
     <string name="history_empty">Nothing yet. Finish a workout and it is recorded here.</string>
-    <string name="history_row_detail">%1$s · %2$s · %3$s</string>
     <string name="history_state_on_phone">On your phone</string>
     <string name="history_state_on_watch">On this watch</string>
     <string name="history_stopped">Stopped early</string>
     <string name="history_pending_note">%1$d waiting for your phone</string>
     <string name="history_clear">Clear history</string>
-    <string name="history_clear_confirm">Tap again to erase</string>
+    <string name="history_clear_title">Erase all history?</string>
+    <string name="history_clear_text">Your phone\'s history is not affected.</string>
 
     <!-- Player -->
     <string name="player_pause">Pause</string>
     <string name="player_resume">Resume</string>
     <string name="player_skip">Skip</string>
     <string name="player_add_time">Add 15 seconds</string>
+    <string name="player_add_time_short">+15</string>
     <string name="player_done">Done</string>
     <string name="player_stop">Stop</string>
     <string name="player_stop_confirm">Stop this workout?</string>
-    <string name="player_keep_going">Keep going</string>
-    <string name="player_paused">paused</string>
+    <string name="player_paused">Paused</string>
     <string name="player_step_of">%1$d of %2$d</string>
+    <string name="player_next">Next: %1$s</string>
+    <string name="player_manual_hint">Tap ✓ when done</string>
+    <string name="player_elapsed">%1$s total</string>
     <string name="player_load_failed">This workout could not be started.</string>
 
     <!-- Summary -->
@@ -58,7 +61,7 @@
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_sync_with_phone">Sync with phone</string>
-    <string name="settings_sync_on_hint">Library, settings and history follow your phone</string>
+    <string name="settings_sync_on_hint">Follows your phone</string>
     <string name="settings_sync_off_hint">This watch runs on its own</string>
     <string name="settings_sync_now">Sync now</string>
     <string name="settings_sync_requested">Sync requested</string>
@@ -70,11 +73,36 @@
     <string name="settings_theme_true_black">Pure black</string>
     <string name="settings_theme_note">Appearance follows your phone\'s Intervals settings</string>
     <string name="settings_about">Intervals Watch %1$s · last sync %2$s</string>
-    <string name="settings_back">Back</string>
 
     <!-- Where this watch's data comes from and goes -->
     <string name="sync_status_solo">Solo — no phone yet</string>
     <string name="sync_status_off">Sync is off</string>
     <string name="sync_status_connected">Phone connected</string>
     <string name="sync_status_offline">No phone nearby</string>
+    <string name="details_start">Start</string>
+    <string name="details_split">Work %1$s · Rest %2$s · %3$d intervals</string>
+    <string name="details_favorite">Favorite</string>
+    <string name="details_structure">Structure</string>
+    <string name="details_manual">Manual</string>
+    <string name="home_today">Today</string>
+    <string name="home_library">Workouts</string>
+    <string name="home_week_minutes">%1$d / %2$d min</string>
+    <string name="home_week_label">Last 7 days</string>
+    <string name="home_streak_none">No streak yet</string>
+    <string name="home_planned_done">Done · %1$s</string>
+    <plurals name="home_streak_days">
+        <item quantity="one">%1$d-day streak</item>
+        <item quantity="other">%1$d-day streak</item>
+    </plurals>
+    <string name="settings_voice">Voice cues</string>
+    <string name="settings_voice_hint">Speaker or earbuds</string>
+    <string name="voice_side">%1$s side</string>
+    <string name="voice_halfway">Halfway.</string>
+    <string name="voice_resumed">Go.</string>
+    <string name="voice_finished">Workout complete. Well done.</string>
+    <string name="voice_stopped">Workout stopped.</string>
+    <string name="tile_label">Intervals</string>
+    <string name="tile_planned">Today · %1$s</string>
+    <string name="tile_empty">Open Intervals to add your workouts</string>
+    <string name="tile_open">Open</string>
 </resources>

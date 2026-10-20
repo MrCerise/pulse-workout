@@ -31,6 +31,7 @@ class WearSyncManagerTest {
                 workouts = mockk(relaxed = true),
                 sessions = mockk(relaxed = true),
                 preferences = mockk(relaxed = true),
+                reminders = mockk(relaxed = true),
                 sessionController = mockk(relaxed = true),
                 health = mockk(relaxed = true),
             )

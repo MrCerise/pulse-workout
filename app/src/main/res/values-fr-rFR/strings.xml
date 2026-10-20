@@ -768,6 +768,7 @@
     <string name="share_image_no_code">Aucun QR code de séance dans cette image.</string>
     <string name="workout_qr_hint">Sur un autre téléphone, ouvrez Séances → Scanner un QR code pour l’ajouter.</string>
     <string name="workout_qr_too_large">Cette séance est trop volumineuse pour un QR code. Partagez-la plutôt en texte.</string>
+    <string name="workout_qr_compact">Les notes d’exercice et les annonces vocales sont omises pour que la séance tienne dans le code.</string>
     <string name="workout_share_qr_image">Partager l’image du QR code</string>
     <string name="details_block_per_round">%1$s par tour</string>
     <string name="details_times">×%1$d</string>

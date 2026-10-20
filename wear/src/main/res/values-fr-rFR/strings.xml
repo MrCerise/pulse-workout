@@ -3,16 +3,17 @@
     <string name="app_name">Intervals</string>
 
     <!-- Library -->
-    <string name="library_resume">Reprendre</string>
     <string name="library_empty">Aucun entraînement</string>
     <string name="library_empty_hint">Ouvrez Intervals sur votre téléphone — vos entraînements se synchronisent ici</string>
     <string name="library_empty_solo">Aucun entraînement sur cette montre</string>
     <string name="library_restore_starters">Touchez pour charger les entraînements de base</string>
     <string name="library_row_summary">%1$s · %2$d intervalles</string>
     <string name="library_truncated">%1$d premiers entraînements — bibliothèque trop grande pour la montre</string>
-    <string name="library_replace_confirm">Touchez à nouveau pour remplacer l\'entraînement en cours</string>
-    <string name="library_takeover_confirm">Touchez à nouveau : le téléphone s\'arrête</string>
     <string name="library_never_synced">Pas encore synchronisé</string>
+    <string name="library_replace_title">Remplacer l\'entraînement ?</string>
+    <string name="library_replace_text">L\'entraînement sur cette montre s\'arrêtera.</string>
+    <string name="library_takeover_title">Le lancer sur la montre ?</string>
+    <string name="library_takeover_text">L\'entraînement sur votre téléphone s\'arrêtera.</string>
     <string name="library_history">Historique</string>
     <string name="library_history_count">%1$d entraînements</string>
 
@@ -22,27 +23,29 @@
     <string name="remote_ended">Session terminée sur le téléphone</string>
 
     <!-- The watch's own history -->
-    <string name="history_title">Sur cette montre</string>
     <string name="history_empty">Rien pour l\'instant. Terminez un entraînement pour l\'enregistrer ici.</string>
-    <string name="history_row_detail">%1$s · %2$s · %3$s</string>
     <string name="history_state_on_phone">Sur votre téléphone</string>
     <string name="history_state_on_watch">Sur cette montre</string>
     <string name="history_stopped">Arrêté avant la fin</string>
     <string name="history_pending_note">%1$d en attente du téléphone</string>
     <string name="history_clear">Effacer l\'historique</string>
-    <string name="history_clear_confirm">Touchez à nouveau pour effacer</string>
+    <string name="history_clear_title">Effacer tout l\'historique ?</string>
+    <string name="history_clear_text">L\'historique de votre téléphone n\'est pas modifié.</string>
 
     <!-- Player -->
     <string name="player_pause">Pause</string>
     <string name="player_resume">Reprendre</string>
     <string name="player_skip">Passer</string>
     <string name="player_add_time">Ajouter 15 secondes</string>
+    <string name="player_add_time_short">+15</string>
     <string name="player_done">Terminé</string>
     <string name="player_stop">Arrêter</string>
     <string name="player_stop_confirm">Arrêter cet entraînement ?</string>
-    <string name="player_keep_going">Continuer</string>
-    <string name="player_paused">en pause</string>
+    <string name="player_paused">En pause</string>
     <string name="player_step_of">%1$d sur %2$d</string>
+    <string name="player_next">Ensuite : %1$s</string>
+    <string name="player_manual_hint">Touchez ✓ une fois terminé</string>
+    <string name="player_elapsed">%1$s au total</string>
     <string name="player_load_failed">Impossible de démarrer cet entraînement.</string>
 
     <!-- Summary -->
@@ -58,7 +61,7 @@
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="settings_sync_with_phone">Synchroniser avec le téléphone</string>
-    <string name="settings_sync_on_hint">Bibliothèque, réglages et historique suivent votre téléphone</string>
+    <string name="settings_sync_on_hint">Suit votre téléphone</string>
     <string name="settings_sync_off_hint">Cette montre fonctionne seule</string>
     <string name="settings_sync_now">Synchroniser</string>
     <string name="settings_sync_requested">Synchronisation demandée</string>
@@ -70,11 +73,37 @@
     <string name="settings_theme_true_black">Noir profond</string>
     <string name="settings_theme_note">L\'apparence suit les réglages de Intervals sur votre téléphone</string>
     <string name="settings_about">Intervals pour montre %1$s · dernière synchro %2$s</string>
-    <string name="settings_back">Retour</string>
 
     <!-- Where this watch's data comes from and goes -->
     <string name="sync_status_solo">Solo — pas encore de téléphone</string>
     <string name="sync_status_off">Synchro désactivée</string>
     <string name="sync_status_connected">Téléphone connecté</string>
     <string name="sync_status_offline">Aucun téléphone à proximité</string>
+    <string name="details_start">Démarrer</string>
+    <string name="details_split">Effort %1$s · Repos %2$s · %3$d intervalles</string>
+    <string name="details_favorite">Favori</string>
+    <string name="details_structure">Déroulé</string>
+    <string name="details_manual">Manuel</string>
+    <string name="home_today">Aujourd\'hui</string>
+    <string name="home_library">Séances</string>
+    <string name="home_week_minutes">%1$d / %2$d min</string>
+    <string name="home_week_label">7 derniers jours</string>
+    <string name="home_streak_none">Pas encore de série</string>
+    <string name="home_planned_done">Fait · %1$s</string>
+    <plurals name="home_streak_days">
+        <item quantity="one">%1$d jour d\'affilée</item>
+        <item quantity="many">%1$d jours d\'affilée</item>
+        <item quantity="other">%1$d jours d\'affilée</item>
+    </plurals>
+    <string name="settings_voice">Annonces vocales</string>
+    <string name="settings_voice_hint">Haut-parleur ou écouteurs</string>
+    <string name="voice_side">Côté %1$s</string>
+    <string name="voice_halfway">Mi-parcours.</string>
+    <string name="voice_resumed">C\'est reparti.</string>
+    <string name="voice_finished">Séance terminée. Bravo.</string>
+    <string name="voice_stopped">Séance arrêtée.</string>
+    <string name="tile_label">Intervals</string>
+    <string name="tile_planned">Aujourd’hui · %1$s</string>
+    <string name="tile_empty">Ouvrez Intervals pour ajouter vos séances</string>
+    <string name="tile_open">Ouvrir</string>
 </resources>

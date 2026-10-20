@@ -768,6 +768,7 @@
     <string name="share_image_no_code">Nessun codice QR di allenamento trovato in quell’immagine.</string>
     <string name="workout_qr_hint">Su un altro telefono apri Allenamenti → Scansiona un codice QR per aggiungerlo.</string>
     <string name="workout_qr_too_large">Questo allenamento è troppo grande per un codice QR. Condividilo come testo.</string>
+    <string name="workout_qr_compact">Le note degli esercizi e gli annunci vocali sono omessi perché l’allenamento entri nel codice.</string>
     <string name="workout_share_qr_image">Condividi immagine QR</string>
     <string name="details_block_per_round">%1$s per giro</string>
     <string name="details_times">×%1$d</string>

@@ -14,13 +14,13 @@ class WorkoutImportTest {
         assertTrue("Expected $message in ${error?.message}", error?.message.orEmpty().contains(message))
     }
 
-    @Test fun `sample imports exact rounds timings tags and notes`() {
+    @Test fun `sample imports exact rounds timings tags and reps`() {
         val preview = WorkoutImport.parse(WorkoutImport.example)
         assertEquals(1, preview.plans.size)
         assertEquals(10, preview.timelines.single().steps.size)
         assertEquals(480000L, preview.timelines.single().knownMillis)
         assertEquals(listOf("bodyweight", "beginner"), preview.plans.single().tags)
-        assertEquals("Use a stable chair.", preview.timelines.single().steps[1].notes)
+        assertEquals(12, preview.timelines.single().steps[1].reps)
         assertFalse(preview.timelines.single().hasOpenEnded)
     }
 
@@ -129,6 +129,10 @@ class WorkoutImportTest {
         assertTrue(prompt.contains("seconds"))
         assertFalse(prompt.contains("Optional fields: description"))
         assertFalse(WorkoutImport.example.contains("\"description\""))
+        // Exercise instructions bloat the workout past what a QR code can carry; the AI is told to leave them out.
+        assertFalse(prompt.contains("Optional: notes"))
+        assertFalse(WorkoutImport.example.contains("\"notes\""))
+        assertFalse(WorkoutImport.example.contains("\"speechText\""))
         PhaseKind.entries.forEach { assertTrue(prompt.contains(it.name)) }
         WorkoutType.entries.forEach { assertTrue(prompt.contains(it.name)) }
     }
