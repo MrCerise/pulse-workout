@@ -175,7 +175,7 @@ jobs:
       - name: Set up build environment
         uses: ./.github/actions/setup-pulse-build
         with:
-          minimum-api: '36'
+          minimum-api: '37'
           check-resources: 'false'
       - name: Decode upload signing key
         shell: bash

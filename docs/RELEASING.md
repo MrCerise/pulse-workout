@@ -95,7 +95,7 @@ policy, review Data safety/health/foreground-service declarations and supply the
    If branch/tag restrictions or reviewers are enabled, allow the refs intended for release.
    Create the selected testing track and configure its testers in Play Console.
 
-Phone releases require compile SDK 36+ and use `-Ppulse.playRelease=true`; the phone targets API 36
+Phone and watch builds require compile SDK 37 (Compose 1.12) and phone releases use `-Ppulse.playRelease=true`; the phone targets API 36
 and Wear OS targets API 35 independently of the installed compile SDK.
 
 **Certificate compatibility:** GitHub APKs use the local keystore, while Play-delivered APKs use
