@@ -3,7 +3,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.kotlin.serialization) apply false
@@ -58,7 +57,8 @@ val pulseInstalledApis: Set<Int> = pulseSdkRoot?.let { root ->
             ?.toSet()
             .orEmpty()
 
-    apis("platforms", Regex("^android-(\\d+)$")).intersect(apis("build-tools", Regex("^(\\d+)")))
+    // From API 37 the SDK names platforms with their minor level: `android-37.0`, not `android-37`.
+    apis("platforms", Regex("^android-(\\d+)(?:\\.0)?$")).intersect(apis("build-tools", Regex("^(\\d+)")))
 } ?: emptySet()
 
 val pulseExplicitSdk: Int? = (findProperty("pulse.compileSdk") as? String)?.let { raw ->
@@ -77,7 +77,8 @@ val pulseResolvedSdk: Int = when {
         "-Ppulse.compileSdk=$pulseExplicitSdk asks for platforms;android-$pulseExplicitSdk, which " +
             "is not installed" +
             (pulseSdkRoot?.let { " in ${it.path}" } ?: " (no Android SDK found here)") +
-            " — install it with `sdkmanager \"platforms;android-$pulseExplicitSdk\" " +
+            " — install it with `sdkmanager \"platforms;android-$pulseExplicitSdk" +
+            (if (pulseExplicitSdk >= 37) ".0" else "") + "\" " +
             "\"build-tools;$pulseExplicitSdk.0.0\"`, or drop the property to compile against the " +
             "newest platform this machine has.",
     )

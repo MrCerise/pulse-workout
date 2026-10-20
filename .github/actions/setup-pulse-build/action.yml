@@ -1,5 +1,5 @@
 name: Set up PULSE build
-description: JDK 17, Android SDK platform and build tools (37, falling back to 36/35), and Gradle caching.
+description: JDK 17, Android SDK platform and build tools (37), and Gradle caching.
 
 inputs:
   check-resources:
@@ -7,9 +7,9 @@ inputs:
     required: false
     default: 'true'
   minimum-api:
-    description: Lowest compile SDK accepted by this job (Play phone releases require 36)
+    description: Lowest compile SDK accepted by this job (Compose 1.12 requires 37)
     required: false
-    default: '35'
+    default: '37'
 
 runs:
   using: composite
@@ -27,7 +27,7 @@ runs:
         git diff --exit-code -- docs/CONTRAST.md
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v6.0.1
+      uses: actions/setup-java@v6.1.0
       with:
         distribution: temurin
         java-version: '17'
@@ -43,8 +43,8 @@ runs:
         PULSE_MINIMUM_API: ${{ inputs.minimum-api }}
       run: |
         set -euo pipefail
-        # Android 17 (API 37) is the compile target; 36 and 35 are the documented fallbacks, and
-        # the app still runs on newer devices when it is compiled against an older platform.
+        # Android 17 (API 37) is the compile target, and since Compose 1.12 the minimum: its AAR
+        # metadata rejects anything older. 36 and 35 remain only for a job that lowers minimum-api.
         #
         # The runner image already ships several platforms and build-tools sets, so look on disk
         # first: `sdkmanager` costs a repository round trip per call, and the newest API the
@@ -57,15 +57,22 @@ runs:
         # scanner's autobuild, a fresh clone — compiles at all when platforms;android-37 is
         # missing. Here the newest obtainable API is chosen and handed to Gradle explicitly, so a
         # CI run says in its log which platform it used.
+        #
+        # From API 37 the SDK repository publishes platforms with their minor level,
+        # `platforms;android-37.0`; there is no `platforms;android-37` to install.
+        platform() {
+          if (( $1 >= 37 )); then echo "android-${1}.0"; else echo "android-${1}"; fi
+        }
+
         installed() {
           local api="$1"
           [ -n "${ANDROID_SDK_ROOT:-}" ] || return 1
-          [ -d "${ANDROID_SDK_ROOT}/platforms/android-${api}" ] || return 1
+          [ -d "${ANDROID_SDK_ROOT}/platforms/$(platform "$api")" ] || return 1
           compgen -G "${ANDROID_SDK_ROOT}/build-tools/${api}.0*" > /dev/null || return 1
         }
 
         use() {
-          echo "Compiling against platforms;android-${1} / build-tools;${1}.0.0"
+          echo "Compiling against platforms;$(platform "$1") / build-tools;${1}.0.0"
           echo "PULSE_COMPILE_SDK=${1}" >> "$GITHUB_ENV"
         }
 
@@ -81,11 +88,11 @@ runs:
         # Pass 2: nothing usable is preinstalled, so ask the SDK repository, newest first.
         for api in 37 36 35; do
           if (( api < PULSE_MINIMUM_API )); then continue; fi
-          if sdkmanager "platforms;android-${api}" "build-tools;${api}.0.0"; then
+          if sdkmanager "platforms;$(platform "$api")" "build-tools;${api}.0.0"; then
             use "$api"
             exit 0
           fi
-          echo "::warning::platforms;android-${api} is not available from this runner's SDK repository; falling back to an older platform"
+          echo "::warning::platforms;$(platform "$api") is not available from this runner's SDK repository; falling back to an older platform"
         done
 
         echo "::error::no usable Android platform could be installed on this runner" >&2
