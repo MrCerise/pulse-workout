@@ -12,6 +12,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.8.8] — 2026-10-20
+
+**Added**
+- Watch home screen with today's planned workouts, the last seven days against the weekly goal and
+  the streak. The phone sends per-day minutes, active days and today's planner entries
+  (`WatchDashboards` in `:sync`); the watch recomputes them for the current day and adds sessions
+  still queued. A watch without a phone counts its own history against the WHO default goal.
+- Watch workout page: work and rest time, the structure, Start, and a favorite star that is sent to
+  the phone (`/pulse/favorite`).
+- A Wear OS tile that resumes the running workout or opens today's planned one, with the week.
+- Optional voice cues on the watch, spoken only through its speaker or connected earbuds.
+- Workouts whose notes and spoken cues overflow a QR code can be shared as a compact code that keeps
+  only the structure.
+
+**Changed**
+- The Wear OS app moved from Wear Compose Material to Material 3 (Wear Compose 1.5, Tiles 1.5,
+  ProtoLayout 1.3). The player shows the next step, total time and a manual-step hint; stopping,
+  replacing a workout and clearing history confirm in a dialog instead of a second tap.
+- The AI workout prompt no longer asks for exercise notes or spoken cues.
+
 ## [1.8.7] — 2026-10-20
 
 **Added**

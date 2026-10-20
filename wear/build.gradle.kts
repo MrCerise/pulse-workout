@@ -46,8 +46,8 @@ android {
         minSdk = 26
         // Wear has a separate Play requirement; compile SDK availability must not change this.
         targetSdk = 35
-        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 10807000
-        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.7"
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 10808000
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.8"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -116,7 +116,12 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.wear.compose.foundation)
-    implementation(libs.androidx.wear.compose.material)
+    implementation(libs.androidx.wear.compose.material3)
+    implementation(libs.androidx.wear.compose.navigation)
+    implementation(libs.androidx.wear.tiles)
+    implementation(libs.androidx.wear.protolayout)
+    implementation(libs.androidx.wear.protolayout.material3)
+    implementation(libs.androidx.concurrent.futures.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
