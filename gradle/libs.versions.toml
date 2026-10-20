@@ -19,7 +19,7 @@ serialization = "1.7.3"
 documentfile = "1.0.1"
 work = "2.9.1"
 healthConnect = "1.1.0"
-playServicesWearable = "19.0.0"
+playServicesWearable = "20.0.1"
 playServicesCodeScanner = "16.1.0"
 # 1.5.x is the newest Wear Material 3 line built for Kotlin 2.0; 1.6+ needs Kotlin 2.1.
 wearCompose = "1.5.6"
