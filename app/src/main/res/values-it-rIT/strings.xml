@@ -767,6 +767,7 @@
     <string name="share_image_no_code">No workout QR code found in that image.</string>
     <string name="workout_qr_hint">On another phone, open Workouts → Scan a QR code to add it.</string>
     <string name="workout_qr_too_large">This workout is too large for a QR code. Share it as text instead.</string>
+    <string name="workout_qr_compact">Exercise notes and spoken cues are left out so the workout fits the code.</string>
     <string name="workout_share_qr_image">Share QR image</string>
     <string name="details_block_per_round">%1$s per round</string>
     <string name="details_times">×%1$d</string>
