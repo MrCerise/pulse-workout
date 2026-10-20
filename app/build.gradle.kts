@@ -3,7 +3,6 @@ import java.time.Duration
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -83,11 +82,6 @@ android {
         isCoreLibraryDesugaringEnabled = false
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += listOf("-Xjvm-default=all")
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -99,6 +93,14 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+}
+
+// AGP 9 compiles Kotlin itself; these were `kotlinOptions` under the kotlin-android plugin.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmDefault.set(org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY)
     }
 }
 
