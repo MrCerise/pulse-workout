@@ -1,7 +1,7 @@
 package com.mrcerise.intervalcoach.ui.home
 
 import com.mrcerise.intervalcoach.locale.categoryTitle
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -224,7 +224,7 @@ fun HomeScreen(
     onOpenLibrary: (() -> Unit)? = null,
     onOpenWatchSession: (() -> Unit)? = null,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val viewModel: HomeViewModel = viewModel(initializer = { HomeViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val quick by viewModel.quickState.collectAsStateWithLifecycle()
@@ -561,7 +561,7 @@ private fun QuickStartCard(
     onStart: () -> Unit,
     onBuild: () -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -630,7 +630,7 @@ private fun WeeklyGoalCard(
     weekSessions: Int,
     goalMillis: Long,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val goalMinutes = (goalMillis / 60000L).coerceAtLeast(1)
@@ -688,7 +688,7 @@ private fun CategoryStartTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val hue = colors.categoryColor(category.hue)
@@ -734,7 +734,7 @@ private fun FavoriteCard(
     onOpen: () -> Unit,
     onStart: () -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val category = workout.categoryOrCustom()
@@ -905,7 +905,7 @@ private fun planForCategory(category: WorkoutCategory): WorkoutPlan {
 
 @Composable
 private fun formatPlanned(millis: Long): String {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val zone = ZoneId.systemDefault()
     val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), zone)
     val today = LocalDateTime.now(zone).toLocalDate()

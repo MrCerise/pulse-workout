@@ -2,7 +2,7 @@ package com.mrcerise.intervalcoach.ui.components
 
 import com.mrcerise.intervalcoach.R
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,7 +60,7 @@ fun PulseCalendar(
     minDate: LocalDate = LocalDate.now(),
     maxDate: LocalDate = LocalDate.now().plusYears(2),
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val shapes = LocalPulseShapes.current

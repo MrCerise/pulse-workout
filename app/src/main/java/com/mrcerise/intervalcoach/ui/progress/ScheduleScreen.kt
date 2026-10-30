@@ -1,6 +1,6 @@
 package com.mrcerise.intervalcoach.ui.progress
 
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -75,7 +75,7 @@ fun ScheduleScreen(
     workoutId: String?,
     onBack: () -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val scope = rememberCoroutineScope()

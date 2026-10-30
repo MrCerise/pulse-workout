@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -98,7 +99,7 @@ fun SettingsScreen(
     onOpenWelcome: () -> Unit,
     onOpenHealth: () -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val colors = LocalPulseColors.current
     val scope = rememberCoroutineScope()
@@ -340,7 +341,7 @@ fun SettingsScreen(
 
 @Composable
 private fun formatSync(millis: Long): String {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val then = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
     return if (then.toLocalDate() == LocalDateTime.now(ZoneId.systemDefault()).toLocalDate()) {
         strings.getString(R.string.date_today_time, then.format(DateTimeFormatter.ofPattern("HH:mm", strings.configuration.locales[0])))
@@ -396,7 +397,7 @@ private fun HeadphoneBehavior.label(): String = when (this) {
 
 @Composable
 fun VoiceStudioScreen(container: AppContainer, onBack: () -> Unit) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val speechInfo by container.speech.info.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
@@ -802,7 +803,7 @@ private fun VoiceVerbosity.label(): String = when (this) {
 
 @Composable
 fun HelpScreen(container: AppContainer, onBack: () -> Unit) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
 
     PulseScaffold { padding ->

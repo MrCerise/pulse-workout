@@ -9,7 +9,9 @@ import android.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import com.mrcerise.intervalcoach.data.AppLanguage
 import java.util.Locale
 
@@ -85,18 +87,23 @@ object AppLocale {
 }
 
 /**
- * Scopes [LocalContext] to [language] for [content].
+ * Scopes the context, resources and configuration to [language] for [content].
  *
- * `stringResource` reads `LocalContext` in the Compose version this app pins, which is what makes the
- * override reach every string in the tree. A Compose upgrade that moves resource lookups onto
- * `LocalResources` must provide that local here too, or the selector silently stops relabelling text.
+ * Compose resource lookups and date formatters must observe the same locale as the wrapped context.
+ * Include the parent configuration in the context key so system changes also refresh this scope.
  */
 @Composable
 fun Localized(language: AppLanguage, content: @Composable () -> Unit) {
     val base = LocalContext.current
+    val configuration = LocalConfiguration.current
     // Keep the composition shape identical across language changes: branching on the language
     // here would dispose and recreate the whole subtree (and lose saved state such as the
     // welcome tour's current step) whenever the user picks a different language.
-    val context = remember(base, language) { AppLocale.localizedContext(base, language) }
-    CompositionLocalProvider(LocalContext provides context, content = content)
+    val context = remember(base, language, configuration) { AppLocale.localizedContext(base, language) }
+    CompositionLocalProvider(
+        LocalContext provides context,
+        LocalResources provides context.resources,
+        LocalConfiguration provides context.resources.configuration,
+        content = content,
+    )
 }

@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -256,9 +257,10 @@ fun PulseAppRoot(
     onRequestNotificationPermission: () -> Unit,
     onRequestLocationPermission: (() -> Unit) -> Unit,
 ) {
-    val language by container.preferences.flow
-        .map { it.appLanguage }
-        .collectAsStateWithLifecycle(initialValue = AppLanguage.SYSTEM)
+    val languageFlow = remember(container.preferences) {
+        container.preferences.flow.map { it.appLanguage }
+    }
+    val language by languageFlow.collectAsStateWithLifecycle(initialValue = AppLanguage.SYSTEM)
     Localized(language) {
         PulseAppRootContent(
             container = container,
@@ -279,7 +281,7 @@ private fun PulseAppRootContent(
     onRequestNotificationPermission: () -> Unit,
     onRequestLocationPermission: (() -> Unit) -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val prefs by container.preferences.flow.collectAsStateWithLifecycle(initialValue = null)
     val navController = rememberNavController()
     val current = prefs
@@ -322,7 +324,7 @@ private fun PulseAppRootContent(
         val openSharedCode: (String) -> Unit = { text ->
             val plan = ShareCode.decode(text)?.takeIf { Validation.validate(it).isEmpty() }
             if (plan == null) {
-                scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.share_code_invalid)) }
+                scope.launch { snackbarHostState.showSnackbar(strings.getString(R.string.share_code_invalid)) }
             } else {
                 pendingShared.value = plan
             }
@@ -383,7 +385,7 @@ private fun PulseAppRootContent(
                     val id = link.removePrefix("pulse://start/")
                     val plan = container.workouts.plan(id)
                     if (plan == null) {
-                        snackbarHostState.showSnackbar(context.getString(R.string.external_start_unavailable))
+                        snackbarHostState.showSnackbar(strings.getString(R.string.external_start_unavailable))
                     } else {
                         // pulse:// is an exported entry point; a matching URI is not proof that a
                         // trusted widget or shortcut launched it. Require an in-app confirmation.
@@ -733,9 +735,9 @@ private fun PulseAppRootContent(
                         pendingShared.value = null
                         if (id != null) {
                             navController.navigate(Routes.details(id))
-                            snackbarHostState.showSnackbar(context.getString(R.string.share_import_added))
+                            snackbarHostState.showSnackbar(strings.getString(R.string.share_import_added))
                         } else {
-                            snackbarHostState.showSnackbar(context.getString(R.string.share_import_failed))
+                            snackbarHostState.showSnackbar(strings.getString(R.string.share_import_failed))
                         }
                     }
                 },
@@ -821,7 +823,7 @@ private fun ShellBreadcrumb(
     showMark: Boolean,
     onOpenSettings: () -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     PulseBreadcrumbBar(
         title = title,
         parent = parent,
@@ -871,7 +873,7 @@ private fun SidebarHeader() {
  */
 @Composable
 private fun AppearanceControl(mode: ThemeMode, onSelect: (ThemeMode) -> Unit) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     Column(

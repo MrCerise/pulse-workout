@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated from legal/privacy.json; run scripts/generate_privacy_policy.py. -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="privacy_policy_title" formatted="false">Privacy policy</string>
     <string name="privacy_updated" formatted="false">Interval Coach · Last updated: 20 October 2026</string>
     <string name="privacy_back" formatted="false">Back</string>

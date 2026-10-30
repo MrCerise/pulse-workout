@@ -15,7 +15,7 @@ Health Connect.
 [![Release](https://img.shields.io/github/v/release/MrCerise/pulse-workout?sort=semver&style=flat-square)](https://github.com/MrCerise/pulse-workout/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%208.0%2B-3DDC84?style=flat-square&logo=android)](https://developer.android.com/about/versions/oreo)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.21-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org)
 [![Crowdin](https://badges.crowdin.net/pulse-workout/localized.svg)](https://crowdin.com/project/pulse-workout)
 
 <a href="https://play.google.com/store/apps/details?id=com.mrcerise.intervalcoach"><img src="https://appure.io/badges/playstore/en.svg" alt="Get it on Google Play" width="160" /></a>
@@ -91,7 +91,7 @@ connectors you authorise.
 ## Quick start
 
 You need **JDK 17** and the **Android SDK** with **platform 37** and **build-tools 37.0.0**
-(36.0.0 also works). Gradle 8.9 comes from the committed wrapper. Android Studio is optional.
+(36.0.0 also works). Gradle 9.8.2 comes from the committed wrapper. Android Studio is optional.
 
 ```bash
 git clone https://github.com/MrCerise/pulse-workout.git

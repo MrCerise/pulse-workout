@@ -29,9 +29,13 @@ def outputs():
             "privacy_location_notice": policy["location_notice"],
             "privacy_medical_disclaimer": policy["medical"],
         }
+        # Policies are maintained in English and French; other app locales intentionally
+        # fall back to the complete English policy rather than a partial translation.
+        resource_tag = ('<resources xmlns:tools="http://schemas.android.com/tools" '
+                        'tools:ignore="MissingTranslation">' if language == "en" else '<resources>')
         rows = ['<?xml version="1.0" encoding="utf-8"?>',
                 '<!-- Generated from legal/privacy.json; run scripts/generate_privacy_policy.py. -->',
-                '<resources>']
+                resource_tag]
         rows += [f'    <string name="{key}" formatted="false">{android_text(value)}</string>'
                  for key, value in strings.items()]
         for name, index in (("privacy_section_titles", 0), ("privacy_section_bodies", 1)):

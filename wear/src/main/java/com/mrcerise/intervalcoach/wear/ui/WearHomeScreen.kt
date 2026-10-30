@@ -24,7 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -312,8 +312,10 @@ private fun PlannedButton(
     transformation: SurfaceTransformation,
 ) {
     val colors = LocalWearColors.current
-    val context = LocalContext.current
-    val time = remember(plan.atMillis) { DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(plan.atMillis)) }
+    val configuration = LocalConfiguration.current
+    val time = remember(plan.atMillis, configuration) {
+        DateFormat.getTimeInstance(DateFormat.SHORT, configuration.locales[0]).format(Date(plan.atMillis))
+    }
     Button(
         onClick = onClick,
         modifier = modifier,
@@ -327,7 +329,7 @@ private fun PlannedButton(
         label = { Text(plan.name, maxLines = 2, overflow = TextOverflow.Ellipsis) },
         secondaryLabel = {
             Text(
-                if (plan.done) context.getString(R.string.home_planned_done, time) else time,
+                if (plan.done) stringResource(R.string.home_planned_done, time) else time,
                 maxLines = 1,
             )
         },

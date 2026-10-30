@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Locale
 
 /**
  * Pure arithmetic tests for the running system: distance accumulation from GPS fixes, the
@@ -185,16 +186,39 @@ class RaceMathTest {
     // -------------------------------------------------------------------------------------------
 
     @Test
-    fun `speed is printed as km h`() {
-        assertEquals("10.0", RaceMath.formatSpeedKph(100.0 / 36.0))
-        assertEquals("0.0", RaceMath.formatSpeedKph(0.0))
+    fun `speed is printed as km h in the current locale`() {
+        withLocale(Locale.US) {
+            assertEquals("10.0", RaceMath.formatSpeedKph(100.0 / 36.0))
+            assertEquals("0.0", RaceMath.formatSpeedKph(0.0))
+        }
+        withLocale(Locale.FRANCE) {
+            assertEquals("10,0", RaceMath.formatSpeedKph(100.0 / 36.0))
+            assertEquals("0,0", RaceMath.formatSpeedKph(0.0))
+        }
     }
 
     @Test
-    fun `distance is printed in kilometres`() {
-        assertEquals("3.24", RaceMath.formatDistanceKm(3_240.0))
-        assertEquals("0.00", RaceMath.formatDistanceKm(0.0))
-        assertEquals("12.5", RaceMath.formatDistanceKm(12_500.0))
+    fun `distance is printed in kilometres in the current locale`() {
+        withLocale(Locale.US) {
+            assertEquals("3.24", RaceMath.formatDistanceKm(3_240.0))
+            assertEquals("0.00", RaceMath.formatDistanceKm(0.0))
+            assertEquals("12.5", RaceMath.formatDistanceKm(12_500.0))
+        }
+        withLocale(Locale.FRANCE) {
+            assertEquals("3,24", RaceMath.formatDistanceKm(3_240.0))
+            assertEquals("0,00", RaceMath.formatDistanceKm(0.0))
+            assertEquals("12,5", RaceMath.formatDistanceKm(12_500.0))
+        }
+    }
+
+    private fun withLocale(locale: Locale, block: () -> Unit) {
+        val previous = Locale.getDefault()
+        try {
+            Locale.setDefault(locale)
+            block()
+        } finally {
+            Locale.setDefault(previous)
+        }
     }
 
     @Test

@@ -4,6 +4,7 @@ import android.app.Instrumentation
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Resources
 import android.graphics.BitmapFactory
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivityResultRegistryOwner
@@ -11,7 +12,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.core.content.IntentCompat
 import androidx.health.connect.client.PermissionController
@@ -40,9 +44,15 @@ class LocalizedActivityFlowsTest {
         val language = mutableStateOf(AppLanguage.SYSTEM)
         var owner: ActivityResultRegistryOwner? = null
         lateinit var context: Context
+        lateinit var resources: Resources
+        var configurationLocale: String? = null
+        var label: String? = null
         compose.setContent {
             Localized(language.value) {
                 val currentContext = LocalContext.current
+                val currentResources = LocalResources.current
+                val currentConfiguration = LocalConfiguration.current
+                val currentLabel = stringResource(R.string.nav_today)
                 val currentOwner = LocalActivityResultRegistryOwner.current
                 // This is the registration that used to crash as soon as Health opened.
                 rememberLauncherForActivityResult(
@@ -50,6 +60,9 @@ class LocalizedActivityFlowsTest {
                 ) { }
                 SideEffect {
                     context = currentContext
+                    resources = currentResources
+                    configurationLocale = currentConfiguration.locales[0].toLanguageTag()
+                    label = currentLabel
                     owner = currentOwner
                 }
             }
@@ -59,6 +72,9 @@ class LocalizedActivityFlowsTest {
             compose.runOnIdle { language.value = selected }
             compose.runOnIdle {
                 assertSame(compose.activity, owner)
+                assertSame(context.resources, resources)
+                assertEquals(context.resources.configuration.locales[0].toLanguageTag(), configurationLocale)
+                assertEquals(context.getString(R.string.nav_today), label)
                 val locale = selected.tag
                 if (locale == null) {
                     assertSame(compose.activity, context)

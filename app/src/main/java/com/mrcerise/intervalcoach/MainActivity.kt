@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class MainActivity : ComponentActivity() {
 
     private val deeplinks = MutableStateFlow<String?>(null)
+    private val deeplinkState = deeplinks.asStateFlow()
 
     // Result launchers must be registered before the activity reaches STARTED, so they live at
     // property level — calling registerForActivityResult from a runtime callback would throw.
@@ -48,7 +49,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PulseAppRoot(
                 container = (application as PulseApp).container,
-                deeplinks = deeplinks.asStateFlow(),
+                deeplinks = deeplinkState,
                 onDeeplinkConsumed = { deeplinks.value = null },
                 onRequestNotificationPermission = ::requestNotificationPermissionIfNeeded,
                 onRequestLocationPermission = ::requestLocationPermissionIfNeeded,

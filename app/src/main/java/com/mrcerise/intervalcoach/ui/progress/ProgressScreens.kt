@@ -1,7 +1,7 @@
 package com.mrcerise.intervalcoach.ui.progress
 
 import com.mrcerise.intervalcoach.locale.categoryTitle
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -142,7 +142,7 @@ fun ProgressScreen(
     onOpenHealth: () -> Unit,
     onOpenSchedule: () -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val viewModel: ProgressViewModel = viewModel(initializer = { ProgressViewModel(container) })
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = LocalPulseColors.current
@@ -371,7 +371,7 @@ fun ProgressScreen(
 
 @Composable
 private fun formatLastSync(millis: Long): String {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val then = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
     val now = LocalDateTime.now(ZoneId.systemDefault())
     return if (then.toLocalDate() == now.toLocalDate()) {
@@ -383,7 +383,7 @@ private fun formatLastSync(millis: Long): String {
 
 @Composable
 private fun SessionRow(session: SessionEntity, onClick: () -> Unit) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     PulseCard(onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -443,7 +443,7 @@ private fun String.tone(): PulseTone = when (this) {
 
 @Composable
 fun HistoryScreen(container: AppContainer, onBack: () -> Unit, onOpenSession: (String) -> Unit) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val allSessions by container.sessions.history.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -505,7 +505,7 @@ fun SessionDetailScreen(
     onBack: () -> Unit,
     onRepeat: (WorkoutPlan) -> Unit,
 ) {
-    val strings = LocalContext.current.resources
+    val strings = LocalResources.current
     val colors = LocalPulseColors.current
     val dimens = LocalPulseDimens.current
     val session by container.sessions.observeSession(sessionId).collectAsStateWithLifecycle(initialValue = null)

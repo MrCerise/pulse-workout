@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,6 +73,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
     val model: JsonImportViewModel = viewModel(initializer = { JsonImportViewModel(container.workouts::importJson) })
     val state by model.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val strings = LocalResources.current
     val modelError = when (state.errorKind) {
         JsonImportViewModel.ErrorKind.TOO_LARGE -> stringResource(R.string.json_too_large)
         JsonImportViewModel.ErrorKind.INVALID_JSON -> stringResource(R.string.json_invalid)
@@ -90,7 +92,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
             inputError = null
             model.load {
                 context.contentResolver.openInputStream(uri)?.use(WorkoutImport::readText)
-                    ?: throw IOException(context.getString(R.string.json_file_error))
+                    ?: throw IOException(strings.getString(R.string.json_file_error))
             }
         }
     }
@@ -110,7 +112,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(ClipData.newPlainText("Pulse Workout prompt", WorkoutImport.aiPrompt(state.request)))
         }.isSuccess
-        if (!copied) inputError = context.getString(R.string.json_clipboard_error)
+        if (!copied) inputError = strings.getString(R.string.json_clipboard_error)
     }
 
     PulseScaffold(
@@ -154,7 +156,7 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
                                     putExtra(Intent.EXTRA_TEXT, WorkoutImport.aiPrompt(state.request))
                                 }
                                 // Native sharesheet, never a hidden request to an AI service.
-                                runCatching { context.startActivity(Intent.createChooser(intent, context.getString(R.string.json_send_prompt))) }
+                                runCatching { context.startActivity(Intent.createChooser(intent, strings.getString(R.string.json_send_prompt))) }
                                     .onFailure { copyPrompt() }
                             },
                             modifier = Modifier.weight(1f),
@@ -180,10 +182,10 @@ fun JsonImportScreen(container: AppContainer, onBack: () -> Unit, onOpenWorkout:
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 val clip = clipboard.primaryClip
                                 val text = if (clip != null && clip.itemCount > 0) clip.getItemAt(0).text else null
-                                require(!text.isNullOrBlank()) { context.getString(R.string.json_clipboard_empty) }
+                                require(!text.isNullOrBlank()) { strings.getString(R.string.json_clipboard_empty) }
                                 model.paste(text.take(WorkoutImport.MAX_BYTES + 1).toString())
                                 showEditor = false
-                            }.onFailure { inputError = context.getString(R.string.json_paste_error) }
+                            }.onFailure { inputError = strings.getString(R.string.json_paste_error) }
                         },
                         modifier = Modifier.weight(1f), enabled = !state.busy,
                     )
