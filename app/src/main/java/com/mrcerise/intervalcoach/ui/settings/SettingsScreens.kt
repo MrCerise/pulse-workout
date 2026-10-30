@@ -326,7 +326,7 @@ fun SettingsScreen(
     if (confirmDeleteSessions) {
         ConfirmDialog(
             title = strings.getString(R.string.settings_delete_title),
-            body = strings.getString(R.string.settings_delete_all_confirm),
+            body = strings.getString(R.string.journey_delete_sessions_confirm),
             confirmLabel = strings.getString(R.string.settings_delete_confirm),
             dismissLabel = stringResource(R.string.cancel),
             destructive = true,

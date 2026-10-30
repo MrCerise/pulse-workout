@@ -110,8 +110,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+private data class SessionLaunch(
+    val plan: WorkoutPlan,
+    val journey: com.mrcerise.intervalcoach.journey.JourneyContext? = null,
+)
+
 object Routes {
     const val HOME = "home"
+    const val FREE = "free"
     const val WORKOUTS = "workouts"
     const val PROGRESS = "progress"
     const val SETTINGS = "settings"
@@ -185,7 +191,7 @@ private fun escapeRouteArg(value: String): String {
 }
 
 /** The destinations the bottom bar, the rail and the sidebar all agree on. */
-private val primaryRoutes = listOf(Routes.HOME, Routes.WORKOUTS, Routes.PROGRESS, Routes.SETTINGS)
+private val primaryRoutes = listOf(Routes.HOME, Routes.FREE, Routes.PROGRESS, Routes.SETTINGS)
 
 /**
  * The primary destinations, with their labels read as resources.
@@ -196,8 +202,8 @@ private val primaryRoutes = listOf(Routes.HOME, Routes.WORKOUTS, Routes.PROGRESS
  */
 @Composable
 private fun primaryDestinations(): List<PulseNavItem> = listOf(
-    PulseNavItem(Routes.HOME, stringResource(R.string.nav_today), Icons.Filled.Home),
-    PulseNavItem(Routes.WORKOUTS, stringResource(R.string.nav_workouts), Icons.Filled.FitnessCenter),
+    PulseNavItem(Routes.HOME, stringResource(R.string.journey_title), Icons.Filled.Home),
+    PulseNavItem(Routes.FREE, stringResource(R.string.journey_free), Icons.Filled.FitnessCenter),
     PulseNavItem(Routes.PROGRESS, stringResource(R.string.nav_progress), Icons.Filled.Insights),
     PulseNavItem(Routes.SETTINGS, stringResource(R.string.nav_settings), Icons.Filled.Settings),
 )
@@ -316,8 +322,8 @@ private fun PulseAppRootContent(
         val motion = LocalPulseMotion.current
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
-        val pendingStartPlan = remember { mutableStateOf<WorkoutPlan?>(null) }
-        val pendingLocationStart = remember { mutableStateOf<Pair<WorkoutPlan, Boolean>?>(null) }
+        val pendingStartPlan = remember { mutableStateOf<SessionLaunch?>(null) }
+        val pendingLocationStart = remember { mutableStateOf<Pair<SessionLaunch, Boolean>?>(null) }
         // A workout received by QR code or `pulse://import` link, waiting for the user to accept it.
         val pendingShared = remember { mutableStateOf<WorkoutPlan?>(null) }
         val sharedSaving = remember { mutableStateOf(false) }
@@ -332,9 +338,9 @@ private fun PulseAppRootContent(
 
         // Starting over an active session is always an explicit user decision. The controller also
         // refuses silent replacement, so alternate callers cannot bypass this UI check.
-        val performStart: (WorkoutPlan, Boolean) -> Unit = { plan, replaceActive ->
+        val performStart: (SessionLaunch, Boolean) -> Unit = { request, replaceActive ->
             scope.launch {
-                val result = sessionController.startWorkout(plan, replaceActiveSession = replaceActive)
+                val result = sessionController.startWorkout(request.plan, replaceActiveSession = replaceActive, journey = request.journey)
                 if (result.isSuccess) {
                     onRequestNotificationPermission()
                     sessionController.clearSummary()
@@ -349,15 +355,19 @@ private fun PulseAppRootContent(
         }
         // Explain screen-off tracking before permission and start only after the result, so
         // RunTracker and the foreground service see the grant on the very first run.
-        val launchStart: (WorkoutPlan, Boolean) -> Unit = { plan, replaceActive ->
-            if (plan.category.capabilities.supportsRaceInfo && !RunTracker.hasLocationPermission(context)) {
+        val launchStart: (SessionLaunch, Boolean) -> Unit = { plan, replaceActive ->
+            if (plan.plan.category.capabilities.supportsRaceInfo && !RunTracker.hasLocationPermission(context)) {
                 pendingLocationStart.value = plan to replaceActive
             } else {
                 performStart(plan, replaceActive)
             }
         }
-        val startSession: (WorkoutPlan) -> Unit = { plan ->
-            if (activeSession != null) pendingStartPlan.value = plan else launchStart(plan, false)
+        val startRequest: (SessionLaunch) -> Unit = { request ->
+            if (activeSession != null) pendingStartPlan.value = request else launchStart(request, false)
+        }
+        val startSession: (WorkoutPlan) -> Unit = { startRequest(SessionLaunch(it)) }
+        val startJourney: (WorkoutPlan, com.mrcerise.intervalcoach.journey.JourneyContext) -> Unit = { plan, journey ->
+            startRequest(SessionLaunch(plan, journey))
         }
         val backStackEntry by navController.currentBackStackEntryAsState()
         val route = backStackEntry?.destination?.route
@@ -389,7 +399,7 @@ private fun PulseAppRootContent(
                     } else {
                         // pulse:// is an exported entry point; a matching URI is not proof that a
                         // trusted widget or shortcut launched it. Require an in-app confirmation.
-                        pendingStartPlan.value = plan
+                        pendingStartPlan.value = SessionLaunch(plan)
                     }
                 }
                 link.startsWith("pulse://workout/") -> {
@@ -398,6 +408,7 @@ private fun PulseAppRootContent(
                 }
                 // Never saved directly: the shared-workout dialog asks first.
                 ShareCode.isShareCode(link) -> openSharedCode(link)
+                link == "pulse://journey" -> select(Routes.HOME)
                 link == DeepLinks.QUICK_BUILDER -> navController.navigate(Routes.QUICK_BUILDER)
                 link == DeepLinks.RECENT -> navController.navigate(Routes.WORKOUTS)
                 link == DeepLinks.PLAYER -> if (activeSession != null) navController.navigate(Routes.PLAYER)
@@ -469,6 +480,14 @@ private fun PulseAppRootContent(
                         modifier = Modifier.padding(padding),
                     ) {
                         composable(Routes.HOME) {
+                            com.mrcerise.intervalcoach.journey.JourneyScreen(
+                                container = container,
+                                onStart = startJourney,
+                                onResume = { navController.navigate(Routes.PLAYER) },
+                                onRequestNotifications = onRequestNotificationPermission,
+                            )
+                        }
+                        composable(Routes.FREE) {
                             HomeScreen(
                                 container = container,
                                 onOpenWorkout = { navController.navigate(Routes.details(it)) },
@@ -598,11 +617,28 @@ private fun PulseAppRootContent(
                             )
                         }
                         composable(Routes.SUMMARY) {
-                            SessionSummaryScreen(
+                            val result by sessionController.summary.collectAsStateWithLifecycle()
+                            val journeyResult = result?.takeIf { it.journey != null }
+                            if (journeyResult != null) {
+                                com.mrcerise.intervalcoach.journey.JourneySummaryScreen(
+                                    container, journeyResult,
+                                    onDone = {
+                                        sessionController.clearSummary()
+                                        navController.navigate(Routes.HOME) { popUpTo(Routes.HOME) { inclusive = true } }
+                                    },
+                                    onRepeat = {
+                                        val journey = journeyResult.journey!!
+                                        val fr = strings.configuration.locales[0].language == "fr"
+                                        com.mrcerise.intervalcoach.journey.JourneyCatalogue.node(journey.nodeId)?.let {
+                                            startJourney(it.plan(fr), journey)
+                                        }
+                                    },
+                                )
+                            } else SessionSummaryScreen(
                                 container = container,
                                 onDone = {
                                     sessionController.clearSummary()
-                                    navController.navigate(Routes.HOME) { popUpTo(Routes.HOME) { inclusive = true } }
+                                    navController.navigate(Routes.FREE) { popUpTo(Routes.HOME) }
                                 },
                                 onRepeat = startSession,
                             )
@@ -749,9 +785,9 @@ private fun PulseAppRootContent(
             ConfirmDialog(
                 title = stringResource(R.string.external_start_title),
                 body = if (activeName == null) {
-                    stringResource(R.string.external_start_body, plan.name)
+                    stringResource(R.string.external_start_body, plan.plan.name)
                 } else {
-                    stringResource(R.string.external_start_replace_body, plan.name, activeName)
+                    stringResource(R.string.external_start_replace_body, plan.plan.name, activeName)
                 },
                 confirmLabel = stringResource(R.string.details_start),
                 dismissLabel = stringResource(R.string.cancel),
@@ -772,7 +808,8 @@ private fun PulseAppRootContent(
  */
 @Composable
 private fun routeTitle(route: String?): String = when (route) {
-    Routes.HOME -> stringResource(R.string.nav_today)
+    Routes.HOME -> stringResource(R.string.journey_title)
+    Routes.FREE -> stringResource(R.string.journey_free)
     Routes.WORKOUTS -> stringResource(R.string.workouts_title)
     Routes.PROGRESS -> stringResource(R.string.progress_title)
     Routes.SETTINGS -> stringResource(R.string.settings_title)

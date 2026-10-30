@@ -56,6 +56,26 @@ class ReminderWorker(appContext: Context, params: WorkerParameters) : CoroutineW
                 Notifications.manager(applicationContext).notify(reminder.id.hashCode(), notification)
             }
         }
+        runCatching {
+            // Journey reminders have their own schedule and never point at the free workout library.
+            if (container.journey.reminderDue()) {
+                val intent = PendingIntent.getActivity(applicationContext, 4202,
+                    Intent(applicationContext, MainActivity::class.java).apply {
+                        action = Intent.ACTION_VIEW
+                        data = android.net.Uri.parse("pulse://journey")
+                    }, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+                val localized = com.mrcerise.intervalcoach.locale.AppLocale.localizedContext(
+                    applicationContext, container.preferences.current().appLanguage)
+                val notification = NotificationCompat.Builder(applicationContext, Notifications.CHANNEL_REMINDERS)
+                    .setSmallIcon(R.drawable.ic_stat_pulse)
+                    .setContentTitle(localized.getString(R.string.journey_notification))
+                    .setContentText(localized.getString(R.string.journey_notification_body))
+                    .setContentIntent(intent).setAutoCancel(true).build()
+                container.journey.notifyIfDue {
+                    Notifications.manager(applicationContext).notify(4202, notification)
+                }
+            }
+        }
         return Result.success()
     }
 

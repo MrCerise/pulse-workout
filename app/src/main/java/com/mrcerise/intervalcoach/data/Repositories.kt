@@ -344,7 +344,11 @@ class SessionRepository(
      * row stays RUNNING and [recoverInterruptedSessions] turns it into INTERRUPTED on next launch —
      * which is how PULSE avoids claiming an interrupted workout completed.
      */
-    suspend fun start(plan: WorkoutPlan, startedAtMillis: Long = System.currentTimeMillis()): SessionStartInfo {
+    suspend fun start(plan: WorkoutPlan, startedAtMillis: Long = System.currentTimeMillis(),
+        journey: com.mrcerise.intervalcoach.journey.JourneyContext? = null): SessionStartInfo {
+        require(journey == null || (journey.nodeId == plan.id &&
+            journey.version == com.mrcerise.intervalcoach.journey.JourneyCatalogue.VERSION &&
+            com.mrcerise.intervalcoach.journey.JourneyCatalogue.node(journey.nodeId) != null))
         val sessionId = UUID.randomUUID().toString()
         val snapshot = plan.copy()
         sessionDao.upsert(
@@ -364,6 +368,9 @@ class SessionRepository(
                 completionPercent = 0,
                 status = STATUS_RUNNING,
                 lastHeartbeatAtMillis = startedAtMillis,
+                source = if (journey == null) "FREE" else "JOURNEY",
+                journeyNodeId = journey?.nodeId,
+                journeyVersion = journey?.version,
             )
         )
         return SessionStartInfo(sessionId, snapshot)
@@ -443,8 +450,11 @@ class SessionRepository(
         weightUnit: String?,
         routeJson: String? = null,
     ) {
-        val existing = sessionDao.byId(sessionId) ?: return
-        if (activeMillis < MIN_STORED_SESSION_MILLIS) { sessionDao.delete(sessionId); return }
+        db.withTransaction {
+        val existing = sessionDao.byId(sessionId) ?: return@withTransaction
+        if (activeMillis < MIN_STORED_SESSION_MILLIS && existing.source == "FREE") {
+            sessionDao.delete(sessionId); return@withTransaction
+        }
         sessionDao.upsert(
             existing.copy(
                 endedAt = endedAt,
@@ -462,13 +472,24 @@ class SessionRepository(
                 lastHeartbeatAtMillis = System.currentTimeMillis(),
             )
         )
+        if (existing.source == "JOURNEY" && existing.journeyNodeId != null &&
+            com.mrcerise.intervalcoach.journey.JourneyProgress.qualifies(status, completed, total, skipped)) {
+            db.journeyDao().credit(com.mrcerise.intervalcoach.journey.JourneyCredit(
+                sessionId, existing.journeyNodeId, endedAt))
+        }
+        }
     }
 
     suspend fun updateNotes(id: String, notes: String?) = sessionDao.updateNotes(id, notes)
 
     suspend fun delete(id: String) = sessionDao.delete(id)
 
-    suspend fun deleteAll() = sessionDao.deleteAll()
+    /** Global Settings action: clear both histories, while preserving workouts and enrollment. */
+    suspend fun deleteAll() = db.withTransaction {
+        sessionDao.deleteAll()
+        db.journeyDao().deleteCredits()
+        db.journeyDao().deleteReadiness()
+    }
 
     /**
      * Marks sessions that were still RUNNING when the process died. Returns how many were fixed so
@@ -477,7 +498,7 @@ class SessionRepository(
     suspend fun recoverInterruptedSessions(): Int {
         val stale = sessionDao.runningSessions()
         stale.forEach { session ->
-            if (session.sessionElapsedMillis < MIN_STORED_SESSION_MILLIS) { sessionDao.delete(session.id); return@forEach }
+            if (session.sessionElapsedMillis < MIN_STORED_SESSION_MILLIS && session.source == "FREE") { sessionDao.delete(session.id); return@forEach }
             sessionDao.upsert(
                 session.copy(
                     status = STATUS_INTERRUPTED,

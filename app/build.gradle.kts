@@ -54,8 +54,8 @@ android {
         targetSdk = pulsePhoneTargetSdk
         // CI release trains override these per channel (`-Ppulse.versionCode/-Name`); the values
         // here are the published release line of record.
-        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 10808000
-        versionName = project.findProperty("pulse.versionName") as String? ?: "1.8.8"
+        versionCode = (project.findProperty("pulse.versionCode") as String?)?.toInt() ?: 10900000
+        versionName = project.findProperty("pulse.versionName") as String? ?: "1.9.0"
         // Package all locales delivered by Crowdin; missing strings fall back to English.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

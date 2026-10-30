@@ -12,6 +12,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for the *v
 - Version bumps and release notes are made by maintainers at release time, not in feature PRs (see
   [CONTRIBUTING.md](CONTRIBUTING.md)).
 
+## [1.9.0] — 2026-10-30
+
+**Added**
+- Phone Journey home with beginner, intermediate and advanced levels, each starting with 24
+  foundation sessions and chapter checkpoints.
+- Ongoing chapters generate workout variations locally, with stable session identities and
+  effort bounded to the selected level. Users can browse ahead and switch levels freely.
+- Weekly training targets, consistency streaks, optional local reminders and readiness-based
+  level recommendations. Recovery days need no check-in.
+- English and French Journey screens, exercise guidance and easier variations.
+
+**Changed**
+- Free Workouts keeps the existing dashboard, library, builders and planner as a separate mode;
+  Journey has no in-page Free Workouts shortcuts.
+- Journey attempts and completion credits are stored locally and excluded from free workout
+  statistics, Health Connect exports and Wear OS mirroring/control.
+- Room migration 3 → 4 preserves existing workouts and history. Global session deletion also
+  clears Journey completions and readiness responses while retaining training preferences.
+- Android instrumentation dependencies updated for input injection on Android 17.
+
 ## [1.8.8] — 2026-10-20
 
 **Added**

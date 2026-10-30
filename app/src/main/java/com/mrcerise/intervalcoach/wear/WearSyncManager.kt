@@ -269,9 +269,11 @@ class WearSyncManager(
     // -------------------------------------------------------------------------------------------
 
     private suspend fun mirrorSessionLoop() {
+        var lastFreeSnapshot = com.pulse.engine.TimerSnapshot()
         sessionController.snapshot.collect { snapshot ->
             val active = sessionController.active.value
-            if (snapshot.isActive && active != null) {
+            if (snapshot.isActive && active != null && active.journey == null) {
+                lastFreeSnapshot = snapshot
                 wasPushingLive = true
                 lastLiveSessionId = active.sessionId
                 val now = System.currentTimeMillis()
@@ -299,7 +301,7 @@ class WearSyncManager(
                         LiveSession.fromSnapshot(
                             origin = SessionOrigin.PHONE,
                             sessionId = lastLiveSessionId,
-                            snapshot = snapshot,
+                            snapshot = lastFreeSnapshot.copy(status = com.pulse.engine.TimerStatus.FINISHED),
                             sentAt = System.currentTimeMillis(),
                         ),
                     ),
@@ -316,7 +318,7 @@ class WearSyncManager(
         when (message.path) {
             SyncPaths.MESSAGE_COMMAND -> {
                 val command = SyncJson.decodeCommand(message.data) ?: return
-                if (sessionController.active.value == null) return
+                if (sessionController.active.value == null || sessionController.active.value?.journey != null) return
                 when (command.kind) {
                     WatchCommandKind.TOGGLE_PAUSE -> sessionController.togglePause()
                     WatchCommandKind.NEXT -> sessionController.next()

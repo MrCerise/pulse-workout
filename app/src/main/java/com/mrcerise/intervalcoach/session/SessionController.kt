@@ -59,6 +59,7 @@ data class ActiveSession(
     val timelineSteps: Int,
     /** True when this session was resumed from the database after a restart. */
     val recovered: Boolean = false,
+    val journey: com.mrcerise.intervalcoach.journey.JourneyContext? = null,
 )
 
 data class SessionSummaryData(
@@ -73,6 +74,7 @@ data class SessionSummaryData(
     val skippedIntervals: Int,
     val roundsLogged: Int,
     val stoppedEarly: Boolean,
+    val journey: com.mrcerise.intervalcoach.journey.JourneyContext? = null,
     val endedAt: Long = 0L,
     /** Running system — race totals for a running workout, null otherwise. */
     val raceDistanceMeters: Double? = null,
@@ -173,6 +175,7 @@ class SessionController(
     suspend fun startWorkout(
         plan: WorkoutPlan,
         replaceActiveSession: Boolean = false,
+        journey: com.mrcerise.intervalcoach.journey.JourneyContext? = null,
     ): Result<ActiveSession> = startMutex.withLock {
         val current = prefs.current()
         prefsSnapshot = current
@@ -196,7 +199,7 @@ class SessionController(
         // The player and notification show the last cue; never carry one over from the last session.
         // Cleared before engine.start(), whose first announcement the reducer may publish at once.
         _lastCueText.value = null
-        val start = sessionRepository.start(plan)
+        val start = sessionRepository.start(plan, journey = journey)
         val problems = engine.prepare(timeline, plan.id, plan.name, periodicCueMillis = plan.periodicCueMillis)
         if (problems.isNotEmpty()) {
             sessionRepository.finish(
@@ -222,6 +225,7 @@ class SessionController(
             plan = start.plan,
             startedAtWallClock = System.currentTimeMillis(),
             timelineSteps = timeline.steps.size,
+            journey = journey,
         )
         _active.value = session
         _summary.value = null
@@ -417,7 +421,11 @@ class SessionController(
             weightUnit = prefsSnapshot.weightUnit.name,
             routeJson = com.mrcerise.intervalcoach.data.RouteCodec.encode(route),
         )
-        runCatching { workoutRepository.markUsed(active.plan.id) }
+        if (active.journey == null) runCatching { workoutRepository.markUsed(active.plan.id) }
+        else if (com.mrcerise.intervalcoach.journey.JourneyProgress.qualifies(
+            status, snapshot.completedSteps, snapshot.totalSteps, snapshot.skippedSteps)) {
+            runCatching { Notifications.manager(context).cancel(4202) }
+        }
         _summary.value = SessionSummaryData(
             sessionId = active.sessionId,
             workoutId = active.plan.id,
@@ -430,6 +438,7 @@ class SessionController(
             skippedIntervals = snapshot.skippedSteps,
             roundsLogged = snapshot.laps,
             stoppedEarly = stoppedEarly,
+            journey = active.journey,
             endedAt = endedAt,
             raceDistanceMeters = race?.distanceMeters,
             raceAverageSpeedMps = race?.takeIf { it.movingMillis > 0L }?.averageSpeedMps,

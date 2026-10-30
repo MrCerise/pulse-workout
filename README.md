@@ -76,7 +76,8 @@ as a draft. Manual trains support internal, closed, open and production tracks. 
 | **Library** | Search, tags, favourites, folders, sort, list/grid, duplicate, share, delete, JSON import/export |
 | **Player** | Full-screen tabular timer, current/next interval, round and position, elapsed and remaining totals, left-handed layout, tablet instructor view |
 | **History & progress** | Per-session details with the workout as it was run, weekly chart, daily minutes, streaks, all-time totals, a monthly goal and a local planner with reminders; starter templates live right on Today |
-| **Today** | One-tap category starts, quick work/rest/rounds builder, favourites, templates, weekly progress and goals — everything one tap from the dashboard |
+| **Journey (phone)** | Default home with beginner, intermediate and advanced paths, 72 foundation sessions followed by ongoing locally generated workouts, chapter checkpoints, weekly consistency streaks, optional reminders and freely selectable levels; fully local and separate from free workouts |
+| **Free Workouts** | One-tap category starts, quick work/rest/rounds builder, favourites, templates, weekly progress and goals — everything one tap from the dashboard |
 | **Health** | Health Connect: session writes, 7-day backfill, an honest setup screen |
 | **Voice studio** | Engine and offline-voice status, rate, pitch, verbosity, profiles, cue volume, vibration, ducking switch and depth, your own recordings |
 | **Look & feel** | Light, dark, true black and system themes, high contrast, reduced motion, dynamic colour, adjustable density; 125 contrast pairs measured in CI |

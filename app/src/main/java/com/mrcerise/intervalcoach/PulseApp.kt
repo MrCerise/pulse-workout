@@ -51,6 +51,9 @@ class AppContainer(private val app: Application) {
     val preferences: PreferencesRepository by lazy { PreferencesRepository(app) }
     val workouts: WorkoutRepository by lazy { WorkoutRepository(database) }
     val sessions: SessionRepository by lazy { SessionRepository(database) }
+    val journey: com.mrcerise.intervalcoach.journey.JourneyRepository by lazy {
+        com.mrcerise.intervalcoach.journey.JourneyRepository(database)
+    }
     val voiceProfiles: VoiceProfileRepository by lazy { VoiceProfileRepository(database) }
     val audioAssets: AudioAssetRepository by lazy { AudioAssetRepository(database, java.io.File(app.filesDir, "recordings")) }
     val reminders: ReminderRepository by lazy { ReminderRepository(database) }

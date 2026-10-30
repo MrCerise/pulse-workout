@@ -12,6 +12,13 @@ Everything lives in the app's private storage on the device: workouts and their 
 tags, session history (including the workout as it was actually run), notes, voice profiles and
 preferences. Nothing is cached in a service we run, because there is no service.
 
+The phone also stores journey enrollment, the enrollment timezone, preferred training days,
+optional reminder time, weekly target history, readiness responses and completed journey attempts.
+Journey sessions are distinguished from free workouts and do not enter free workout statistics,
+Health Connect export, or the Wear OS link. Android backup includes these local records.
+Settings → Delete all sessions clears both session histories, journey completions and readiness
+responses; it keeps workouts and the chosen training rhythm.
+
 Running session history can include GPS coordinates, distance, speed and a route. Health Connect
 integration only exports completed workouts; PULSE does not read heart-rate or step records.
 

@@ -149,6 +149,9 @@ data class SessionEntity(
     val lastHeartbeatAtMillis: Long? = null,
     /** GPS route as `lat,lng;lat,lng` (RacePoint list), null for non-running / estimated runs. */
     val routeJson: String? = null,
+    @ColumnInfo(defaultValue = "'FREE'") val source: String = "FREE",
+    val journeyNodeId: String? = null,
+    val journeyVersion: Int? = null,
 )
 
 @Entity(tableName = "session_events", indices = [Index("sessionId")], foreignKeys = [
@@ -326,10 +329,10 @@ interface AudioAssetDao {
 
 @Dao
 interface SessionDao {
-    @Query("SELECT * FROM sessions WHERE activeMillis >= 60000 OR status = 'RUNNING' ORDER BY startedAt DESC")
+    @Query("SELECT * FROM sessions WHERE source = 'FREE' AND (activeMillis >= 60000 OR status = 'RUNNING') ORDER BY startedAt DESC")
     fun observeAll(): Flow<List<SessionEntity>>
 
-    @Query("SELECT * FROM sessions WHERE activeMillis >= 60000 OR status = 'RUNNING' ORDER BY startedAt DESC LIMIT :limit")
+    @Query("SELECT * FROM sessions WHERE source = 'FREE' AND (activeMillis >= 60000 OR status = 'RUNNING') ORDER BY startedAt DESC LIMIT :limit")
     fun observeRecent(limit: Int): Flow<List<SessionEntity>>
 
     @Query("SELECT * FROM sessions WHERE id = :id")
@@ -338,7 +341,7 @@ interface SessionDao {
     @Query("SELECT * FROM sessions WHERE id = :id")
     suspend fun byId(id: String): SessionEntity?
 
-    @Query("SELECT * FROM sessions WHERE startedAt >= :from AND startedAt < :to AND (activeMillis >= 60000 OR status = 'RUNNING') ORDER BY startedAt")
+    @Query("SELECT * FROM sessions WHERE source = 'FREE' AND startedAt >= :from AND startedAt < :to AND (activeMillis >= 60000 OR status = 'RUNNING') ORDER BY startedAt")
     suspend fun between(from: Long, to: Long): List<SessionEntity>
 
     @Upsert
@@ -360,14 +363,14 @@ interface SessionDao {
     @Query("DELETE FROM sessions")
     suspend fun deleteAll()
 
-    @Query("SELECT COUNT(*) FROM sessions WHERE activeMillis >= 60000 OR status = 'RUNNING'")
+    @Query("SELECT COUNT(*) FROM sessions WHERE source = 'FREE' AND (activeMillis >= 60000 OR status = 'RUNNING')")
     suspend fun count(): Int
 
     /** Sessions left in the RUNNING state — i.e. the process died mid-workout. */
     @Query("SELECT * FROM sessions WHERE status = 'RUNNING'")
     suspend fun runningSessions(): List<SessionEntity>
 
-    @Query("SELECT COALESCE(SUM(activeMillis), 0) FROM sessions WHERE activeMillis >= 60000")
+    @Query("SELECT COALESCE(SUM(activeMillis), 0) FROM sessions WHERE source = 'FREE' AND activeMillis >= 60000")
     suspend fun totalActiveMillis(): Long
 }
 
@@ -446,8 +449,12 @@ interface ProgramDao {
         ReminderEntity::class,
         ProgramEntity::class,
         ProgramEntryEntity::class,
+        com.mrcerise.intervalcoach.journey.JourneyEnrollment::class,
+        com.mrcerise.intervalcoach.journey.JourneyTarget::class,
+        com.mrcerise.intervalcoach.journey.JourneyCredit::class,
+        com.mrcerise.intervalcoach.journey.JourneyReadiness::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(PulseConverters::class)
@@ -462,6 +469,7 @@ abstract class PulseDatabase : RoomDatabase() {
     abstract fun sessionEventDao(): SessionEventDao
     abstract fun reminderDao(): ReminderDao
     abstract fun programDao(): ProgramDao
+    abstract fun journeyDao(): com.mrcerise.intervalcoach.journey.JourneyDao
 
     companion object {
         const val NAME = "pulse.db"
@@ -505,5 +513,20 @@ object PulseMigrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    val THREE_TO_FOUR = listOf(
+        "ALTER TABLE sessions ADD COLUMN source TEXT NOT NULL DEFAULT 'FREE'",
+        "ALTER TABLE sessions ADD COLUMN journeyNodeId TEXT",
+        "ALTER TABLE sessions ADD COLUMN journeyVersion INTEGER",
+        "CREATE TABLE IF NOT EXISTS journey_enrollment (id INTEGER NOT NULL PRIMARY KEY, level TEXT NOT NULL, enrolledAt INTEGER NOT NULL, zoneId TEXT NOT NULL, trainingDays INTEGER NOT NULL, reminderMinute INTEGER, lastReminderDate TEXT)",
+        "CREATE TABLE IF NOT EXISTS journey_targets (week TEXT NOT NULL PRIMARY KEY, days INTEGER NOT NULL)",
+        "CREATE TABLE IF NOT EXISTS journey_credits (sessionId TEXT NOT NULL PRIMARY KEY, nodeId TEXT NOT NULL, endedAt INTEGER NOT NULL)",
+        "CREATE TABLE IF NOT EXISTS journey_readiness (level TEXT NOT NULL PRIMARY KEY, ready INTEGER NOT NULL, answeredAt INTEGER NOT NULL)",
+    )
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            THREE_TO_FOUR.forEach(db::execSQL)
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }
