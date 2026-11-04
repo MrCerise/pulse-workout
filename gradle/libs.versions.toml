@@ -2,11 +2,11 @@
 [versions]
 # Compose 1.12 (BOM 2026.09) requires AGP 9.1+ through its AAR metadata, and AGP 9.4 requires
 # Gradle 9.6+. AGP 9 compiles Kotlin itself (built-in Kotlin): there is no kotlin-android plugin.
-agp = "9.4.1"
+agp = "9.5.0"
 # Compose 1.12 is built with a newer Kotlin than a 2.0 compiler can read. KSP 2.3 is KSP2, released
 # independently of Kotlin, and supports AGP's built-in Kotlin.
 kotlin = "2.4.21"
-ksp = "2.3.12"
+ksp = "2.3.13"
 coreKtx = "1.19.1"
 lifecycle = "2.8.7"
 activityCompose = "1.9.3"
@@ -34,7 +34,7 @@ junit = "4.13.2"
 androidxJunit = "1.3.0"
 espresso = "3.7.0"
 mockk = "1.14.11"
-sqliteJdbc = "3.53.4.0"
+sqliteJdbc = "3.54.1.0"
 zxing = "3.5.4"
 
 [libraries]
