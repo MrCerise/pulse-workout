@@ -99,7 +99,7 @@ runs:
         exit 1
 
     - name: Set up Gradle
-      uses: gradle/actions/setup-gradle@v6.4.0
+      uses: gradle/actions/setup-gradle@v6.4.1
       with:
         # Cache entries are branch-scoped, so a pull request branch can only ever read its own
         # entries and the default branch's — never another branch's. Writing them is what makes a
