@@ -269,7 +269,7 @@ jobs:
           name: release-notes-${{ github.run_id }}
           path: release-notes
       - name: Publish all signed assets
-        uses: softprops/action-gh-release@v3.0.3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: ${{ needs.version.outputs.release_tag }}
           target_commitish: ${{ github.sha }}
