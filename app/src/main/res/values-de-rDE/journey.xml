@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Other locales intentionally fall back to English until translated through Crowdin. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="journey_title">Journey</string>
+    <string name="journey_free">Free Workouts</string>
+    <string name="journey_intro">Build your fitness, one session at a time. Your path keeps growing with new sessions at your chosen level.</string>
+    <string name="journey_setup">Your training rhythm</string>
+    <string name="journey_level">Choose your level</string>
+    <string name="journey_target">Training days per week</string>
+    <string name="journey_days">Preferred training days</string>
+    <string name="journey_days_hint">Select exactly %1$d days. Rest days need no check-in.</string>
+    <string name="journey_reminder">Remind me on training days</string>
+    <string name="journey_time">Reminder time: %1$s</string>
+    <string name="journey_reminder_hint">Reminders are optional and may arrive later when Android defers background work.</string>
+    <string name="journey_save">Save rhythm</string>
+    <string name="journey_begin">Start my journey</string>
+    <string name="journey_settings">Adjust my rhythm</string>
+    <string name="journey_changes">Target changes start next Monday. Your progress is always kept.</string>
+    <string name="journey_week">%1$d of %2$d training days this week</string>
+    <string name="journey_streak">%1$d consecutive successful weeks</string>
+    <string name="journey_practice">Practice week — your streak starts next Monday.</string>
+    <string name="journey_recovery">Recovery is part of progress. Your route stays here if you miss a week.</string>
+    <string name="journey_continue">Continue · %1$s</string>
+    <string name="journey_resume">Resume current session</string>
+    <string name="journey_chapter">Chapter %1$d · %2$s</string>
+    <string name="journey_completed">Completed</string>
+    <string name="journey_recommended">Recommended next</string>
+    <string name="journey_available">Available</string>
+    <string name="journey_checkpoint">Checkpoint</string>
+    <string name="journey_node">Session %1$d · %2$s · %3$s</string>
+    <string name="journey_progress">%1$d sessions completed</string>
+    <string name="journey_preview">Session preview</string>
+    <string name="journey_duration">%1$s · %2$d rounds · %3$d s movement / %4$d s rest</string>
+    <string name="journey_effort">Aim for controlled movement and a pace you can sustain. Take recovery days between challenging sessions.</string>
+    <string name="journey_start">Start session</string>
+    <string name="journey_replay">Replay session</string>
+    <string name="journey_ready_title">Ready for your next level?</string>
+    <string name="journey_ready_body">You completed the first 24 sessions and their checkpoints. If the movements feel controlled and recovery feels manageable, try the next level. You can switch back whenever you want.</string>
+    <string name="journey_ready">I feel ready</string>
+    <string name="journey_repeat_level">Keep practising here</string>
+    <string name="journey_advanced_done">Advanced foundation complete</string>
+    <string name="journey_advanced_body">Keep your weekly rhythm with new sessions. Your path continues for as long as you want.</string>
+    <string name="journey_earned">Session complete — progress saved</string>
+    <string name="journey_not_earned">Attempt saved. Finish every interval without skipping to complete this node.</string>
+    <string name="journey_result_hint">This records participation, not a measured change in fitness.</string>
+    <string name="journey_back">Back to my journey</string>
+    <string name="journey_error">Could not save your journey. Please try again.</string>
+    <string name="journey_notification">Your next session is waiting</string>
+    <string name="journey_notification_body">Continue your journey at your own pace.</string>
+    <string name="journey_loading">Loading your journey…</string>
+    <string name="journey_delete_sessions_confirm">All session history, journey completions and readiness responses will be permanently deleted. Workouts and your training rhythm are kept.</string>
+    <string name="journey_foundation_progress">Level milestone: %1$d of 24 sessions</string>
+    <string name="journey_ongoing">Your journey keeps going with new sessions at your chosen level.</string>
+    <string name="journey_more">Explore more sessions</string>
+</resources>
